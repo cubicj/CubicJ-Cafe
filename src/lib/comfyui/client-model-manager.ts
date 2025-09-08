@@ -488,6 +488,21 @@ export class ComfyUIModelManager {
       )
     }
 
-    return await response.json()
+    // JSON 파싱 안전 장치 추가
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
+    }
+
+    try {
+      return JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('ComfyUI JSON 파싱 에러:', {
+        endpoint,
+        responseText: responseText.substring(0, 200),
+        error: parseError
+      })
+      throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
+    }
   }
 }

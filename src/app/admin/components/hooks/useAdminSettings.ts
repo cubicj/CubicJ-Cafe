@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAdminAuth } from './useAdminAuth';
 
 interface SystemSettings {
@@ -130,7 +130,7 @@ export function useAdminSettings() {
     }
   }, [setError]);
 
-  const updateSystemSetting = async (key: string, value: string, type: string = 'string', category: string = 'general') => {
+  const updateSystemSetting = useCallback(async (key: string, value: string, type: string = 'string', category: string = 'general') => {
     try {
       const response = await fetch('/api/admin/settings', {
         method: 'PUT',
@@ -147,9 +147,9 @@ export function useAdminSettings() {
     } catch {
       setError('시스템 설정 업데이트에 실패했습니다.');
     }
-  };
+  }, [showSuccess, fetchSystemSettings, setError]);
 
-  const updateModelSettings = async () => {
+  const updateModelSettings = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/model-settings', {
         method: 'PUT',
@@ -167,9 +167,9 @@ export function useAdminSettings() {
     } catch {
       setError('모델 설정 업데이트에 실패했습니다.');
     }
-  };
+  }, [modelSettings, setModelSettings, showSuccess, setError]);
 
-  return {
+  return useMemo(() => ({
     systemSettings,
     setSystemSettings,
     modelSettings,
@@ -183,5 +183,17 @@ export function useAdminSettings() {
     fetchAvailableModels,
     updateSystemSetting,
     updateModelSettings
-  };
+  }), [
+    systemSettings,
+    modelSettings,
+    availableModels,
+    settingsLoading,
+    modelsLoading,
+    success,
+    fetchSystemSettings,
+    fetchModelSettings,
+    fetchAvailableModels,
+    updateSystemSetting,
+    updateModelSettings
+  ]);
 }
