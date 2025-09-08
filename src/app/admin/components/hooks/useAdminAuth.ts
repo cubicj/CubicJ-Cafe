@@ -2,8 +2,12 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export function useAdminAuth() {
-  const [error, setError] = useState('');
+  const [error, setErrorState] = useState('');
   const router = useRouter();
+
+  const setError = useCallback((message: string) => {
+    setErrorState(message);
+  }, []);
 
   const checkAdminResponse = useCallback(async (response: Response) => {
     if (response.status === 401) {
@@ -15,11 +19,11 @@ export function useAdminAuth() {
       return false;
     }
     return true;
-  }, [router]);
+  }, [router, setError]);
 
   const clearError = useCallback(() => {
     setError('');
-  }, []);
+  }, [setError]);
 
   return {
     error,

@@ -68,7 +68,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 403 });
     }
 
-    const { key, value, type = 'string', category = 'general' } = await request.json();
+    let key, value, type = 'string', category = 'general';
+    try {
+      const requestText = await request.text();
+      if (!requestText || requestText.trim() === '') {
+        throw new Error('빈 요청 본문입니다.');
+      }
+      const parsedBody = JSON.parse(requestText);
+      ({ key, value, type = 'string', category = 'general' } = parsedBody);
+    } catch (parseError) {
+      console.error('요청 JSON 파싱 에러:', parseError);
+      return NextResponse.json(
+        { error: '잘못된 JSON 형식입니다.' },
+        { status: 400 }
+      );
+    }
 
     if (!key || value === undefined) {
       return NextResponse.json(

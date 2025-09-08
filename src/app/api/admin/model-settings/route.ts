@@ -62,7 +62,20 @@ export async function PUT(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const body: Partial<ModelSettings> = await request.json()
+    let body: Partial<ModelSettings>
+    try {
+      const requestText = await request.text()
+      if (!requestText || requestText.trim() === '') {
+        throw new Error('빈 요청 본문입니다.')
+      }
+      body = JSON.parse(requestText)
+    } catch (parseError) {
+      console.error('요청 JSON 파싱 에러:', parseError)
+      return NextResponse.json({
+        success: false,
+        error: '잘못된 JSON 형식입니다.'
+      }, { status: 400 })
+    }
     
     console.log('🔧 모델 설정 업데이트 요청:', body)
     

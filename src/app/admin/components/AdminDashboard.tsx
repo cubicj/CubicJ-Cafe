@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,24 +14,34 @@ import LoRABundleTab from './tabs/LoRABundleTab';
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
   const { error } = useAdminAuth();
   const adminSettings = useAdminSettings();
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     const initializeAdmin = async () => {
-      // 필수 설정만 먼저 로드 (빠른 API들)
-      await Promise.all([
-        adminSettings.fetchSystemSettings(),
-        adminSettings.fetchModelSettings()
-      ]);
-      setLoading(false);
-      
-      // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
-      adminSettings.fetchAvailableModels();
+      try {
+        // 필수 설정만 먼저 로드 (빠른 API들)
+        await Promise.all([
+          adminSettings.fetchSystemSettings(),
+          adminSettings.fetchModelSettings()
+        ]);
+        setLoading(false);
+        
+        // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
+        adminSettings.fetchAvailableModels();
+      } catch (error) {
+        console.error('Admin 초기화 실패:', error);
+        setLoading(false);
+      }
     };
 
     initializeAdmin();
-  }, [adminSettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (
