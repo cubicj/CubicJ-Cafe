@@ -82,8 +82,21 @@ npm test        # Run tests
 
 ## Contributing
 
-This project is designed for personal deployment and portfolio demonstration. For deployment inquiries or technical discussions, please open an issue.
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+### Development Guidelines
+- Follow the existing code style and conventions
+- Add appropriate tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting
 
 ## License
 
-Private project for portfolio demonstration purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### MIT License Summary
+- ✅ Commercial use allowed
+- ✅ Modification allowed  
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ⚠️ License and copyright notice required
