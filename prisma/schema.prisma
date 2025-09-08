@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int            @id @default(autoincrement())
+  discordId       String         @unique @map("discord_id")
+  discordUsername String         @map("discord_username")
+  nickname        String         @unique
+  avatar          String?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  lastLoginAt     DateTime       @default(now()) @map("last_login_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  loraPresets     LoRAPreset[]
+  queueRequests   QueueRequest[]
+  sessions        Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model QueueRequest {
+  id             String      @id @default(cuid())
+  userId         Int         @map("user_id")
+  nickname       String
+  status         QueueStatus @default(PENDING)
+  prompt         String
+  imageFile      String?     @map("image_file")
+  endImageFile   String?     @map("end_image_file")
+  endImageData   String?     @map("end_image_data")
+  lora           String?
+  loraStrength   Float?      @map("lora_strength")
+  loraPresetData String?     @map("lora_preset_data")
+  isNSFW         Boolean     @default(false) @map("is_nsfw")
+  duration       Int?        @default(5)
+  workflowLength Int?        @map("workflow_length")
+  jobId          String?     @map("job_id")
+  serverType     ServerType? @map("server_type")
+  serverId       String?     @map("server_id")
+  position       Int         @default(0)
+  createdAt      DateTime    @default(now()) @map("created_at")
+  startedAt      DateTime?   @map("started_at")
+  completedAt    DateTime?   @map("completed_at")
+  failedAt       DateTime?   @map("failed_at")
+  error          String?
+  imageData      String?     @map("image_data")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([position])
+  @@index([serverType])
+  @@index([createdAt])
+  @@map("queue_requests")
+}
+
+model LoRAPreset {
+  id        String           @id @default(cuid())
+  userId    Int              @map("user_id")
+  name      String
+  isDefault Boolean          @default(false) @map("is_default")
+  isPublic  Boolean          @default(false) @map("is_public")
+  order     Int              @default(0)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  loraItems LoRAPresetItem[]
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isDefault])
+  @@index([isPublic])
+  @@index([order])
+  @@map("lora_presets")
+}
+
+model LoRAPresetItem {
+  id           String     @id @default(cuid())
+  presetId     String     @map("preset_id")
+  loraFilename String     @map("lora_filename")
+  loraName     String     @map("lora_name")
+  strength     Float      @default(0.8)
+  group        LoRAGroup  @default(HIGH)
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  preset       LoRAPreset @relation(fields: [presetId], references: [id], onDelete: Cascade)
+
+  @@index([presetId])
+  @@index([order])
+  @@index([group])
+  @@map("lora_preset_items")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
+  category  String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+enum QueueStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum LoRAGroup {
+  HIGH
+  LOW
+}
+
+model LoRABundle {
+  id               String   @id @default(cuid())
+  displayName      String   @unique @map("display_name")
+  highLoRAFilename String?  @map("high_lora_filename")
+  lowLoRAFilename  String?  @map("low_lora_filename")
+  order            Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([order])
+  @@map("lora_bundles")
+}
+
+enum ServerType {
+  RUNPOD
+  LOCAL
+}

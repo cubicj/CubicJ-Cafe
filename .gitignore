@@ -1,0 +1,246 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# package manager caches and locks (keep package-lock.json for reproducible builds)
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+.pnpm-store/
+**/node_modules/
+npm-shrinkwrap.json
+yarn.lock
+pnpm-lock.yaml
+
+# testing
+/coverage
+/test-results
+/test-results-production.json
+/tests/test-image.png
+/playwright-report
+/playwright-report-production
+/tests/screenshots/
+/tests/videos/
+/tests/traces/
+*.spec.js.map
+*.test.js.map
+
+# next.js
+/.next/
+/out/
+.next/
+out/
+
+# production builds
+/build
+/dist
+*.tgz
+*.tar.gz
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+*.log
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDE and Editor files
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+.project
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.externalToolBuilders/
+*.launch
+.pydevproject
+.cproject
+.autotools
+.factorypath
+.buildpath
+.target
+.tern-project
+.texlipse
+.springBeans
+.recommenders/
+.cache-main
+.scala_dependencies
+.worksheet
+
+# Temporary files and backup
+/public/temp
+/public/uploads
+/temp/
+/tmp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+*.orig
+*.rej
+.#*
+
+# Debug and log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+debug.log
+error.log
+combined.log
+*.log
+
+# Environment files (all variations)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+
+# Deployment
+.vercel
+.netlify/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+.tsc-cache/
+
+# Security and sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+*.p8
+*.cer
+*.csr
+*.pfx
+*.keystore
+secrets/
+private/
+config/secrets.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+prisma/dev.db*
+prisma/*.db*
+/database/
+/data/
+
+# Logs and monitoring
+/logs/
+logs/
+*.log
+combined.log
+error.log
+out.log
+pm2.log
+/monitoring/
+
+# PM2 and process management
+ecosystem.config.js
+pm2.config.js
+process.json
+.pm2/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Git hooks and local config
+.git/hooks/local*
+.gitconfig.local
+
+# Claude Code and AI tools
+.claude/
+.mcp.json
+CLAUDE.md
+REFACTORING_ROADMAP.md
+WAN.json
+
+# Development configuration files
+.prettierrc
+
+# Task Master AI
+.taskmaster/
+
+# Project specific excludes
+/src/generated/
+.playwright-mcp/
+/screenshots/
+/videos/
+/trace/
+
+# Misc caches and temporary directories
+.cache/
+.parcel-cache/
+.nyc_output/
+.grunt/
+bower_components/
+.lock-wscript
+build/Release/
+.tscache/
+*.lcov
+.nyc_output
+.sass-cache/
+connect.lock
+coverage/
+libpeerconnection.log
+testem.log
+typings/
+.awcache/
