@@ -83,7 +83,10 @@ export function LoRABundleManager() {
       console.log('✅ LoRA 파일 목록 조회 성공:', 
         `High: ${data.categorized?.high?.length || 0}개, Low: ${data.categorized?.low?.length || 0}개`);
     } catch (err) {
-      console.error('❌ LoRA 파일 목록 조회 실패:', err);
+      // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
+      if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
+        console.error('❌ LoRA 파일 목록 조회 실패:', err);
+      }
       setError(err instanceof Error ? err.message : 'LoRA 파일 목록 조회 실패');
     } finally {
       setIsLoadingLoRAs(false);

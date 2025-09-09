@@ -23,8 +23,26 @@ export async function GET() {
     
     // 디버깅: 서버 선택 로그 완전 제거
 
-    // WAN 경로의 실제 LoRA 파일 목록 조회
-    const loras = await quickClient.getLoRAList()
+    // WAN 경로의 실제 LoRA 파일 목록 조회 (서버 연결 실패 시 적절한 에러 처리)
+    let loras: string[]
+    try {
+      loras = await quickClient.getLoRAList()
+    } catch (connectionError) {
+      console.error('❌ 선택된 서버 연결 실패:', bestServer.id, connectionError)
+      return NextResponse.json(
+        { 
+          error: `선택된 서버(${bestServer.type})에 연결할 수 없습니다. 서버가 다운되었거나 응답하지 않습니다.`,
+          loras: [],
+          serverInfo: {
+            id: bestServer.id,
+            type: bestServer.type,
+            url: bestServer.url,
+            healthy: false
+          }
+        },
+        { status: 503 }
+      )
+    }
     
     console.log('✅ WAN LoRA 목록 성공:', loras.length + '개')
 
