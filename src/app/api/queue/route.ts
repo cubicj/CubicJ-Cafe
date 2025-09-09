@@ -13,12 +13,28 @@ export async function GET(request: NextRequest) {
 
     switch (action) {
       case 'list':
-        const queueList = await queueService.getQueueList();
-        return NextResponse.json({ success: true, data: queueList });
+        try {
+          const queueList = await queueService.getQueueList();
+          return NextResponse.json({ success: true, data: queueList || [] });
+        } catch (dbError) {
+          console.error('Queue list 조회 실패:', dbError);
+          return NextResponse.json(
+            { success: false, data: [], error: '큐 목록 조회에 실패했습니다.' },
+            { status: 503 }
+          );
+        }
 
       case 'stats':
-        const stats = await queueService.getQueueStats();
-        return NextResponse.json({ success: true, data: stats });
+        try {
+          const stats = await queueService.getQueueStats();
+          return NextResponse.json({ success: true, data: stats || { pending: 0, processing: 0, todayCompleted: 0, total: 0 } });
+        } catch (dbError) {
+          console.error('Queue stats 조회 실패:', dbError);
+          return NextResponse.json(
+            { success: false, data: { pending: 0, processing: 0, todayCompleted: 0, total: 0 }, error: '큐 통계 조회에 실패했습니다.' },
+            { status: 503 }
+          );
+        }
 
       case 'user':
         const sessionId = sessionManager.getSessionIdFromRequest(request);
@@ -27,8 +43,16 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
         }
         
-        const userRequests = await queueService.getUserRequests(parseInt(session.user.id));
-        return NextResponse.json({ success: true, data: userRequests });
+        try {
+          const userRequests = await queueService.getUserRequests(parseInt(session.user.id));
+          return NextResponse.json({ success: true, data: userRequests || [] });
+        } catch (dbError) {
+          console.error('User requests 조회 실패:', dbError);
+          return NextResponse.json(
+            { success: false, data: [], error: '사용자 요청 목록 조회에 실패했습니다.' },
+            { status: 503 }
+          );
+        }
 
       default:
         return NextResponse.json({ error: '잘못된 action 파라미터입니다.' }, { status: 400 });
