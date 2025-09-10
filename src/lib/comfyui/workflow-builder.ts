@@ -42,9 +42,9 @@ export async function buildWanWorkflow(params: GenerationParams, server?: ComfyU
     workflow['285'].inputs.filename_prefix = `WAN/${baseImageName}`;
   }
   
-  // LoRA 프리셋 적용
+  // LoRA 프리셋 적용 (동적 해결 포함)
   if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
-    applyLoraPreset(workflow, params.loraPreset, server);
+    await applyLoraPreset(workflow, params.loraPreset, server);
   }
   
   
