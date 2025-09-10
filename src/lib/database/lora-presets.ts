@@ -15,6 +15,7 @@ export interface CreateLoRAPresetData {
     strength: number;
     group: 'HIGH' | 'LOW';
     order: number;
+    bundleId?: string;
   }>;
 }
 
@@ -28,6 +29,7 @@ export interface UpdateLoRAPresetData {
     strength: number;
     group: 'HIGH' | 'LOW';
     order: number;
+    bundleId?: string;
   }>;
 }
 
@@ -107,6 +109,7 @@ export class LoRAPresetService {
               strength: item.strength,
               group: item.group,
               order: item.order || index,
+              bundleId: item.bundleId || null,
             })),
           },
         },
@@ -165,6 +168,7 @@ export class LoRAPresetService {
                 strength: item.strength,
                 group: item.group,
                 order: item.order || index,
+                bundleId: item.bundleId || null,
               })),
             },
           }),

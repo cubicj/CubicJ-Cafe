@@ -190,4 +190,67 @@ export class LoRABundleService {
       return null;
     }
   }
+
+  // 동적 LoRA 해결: bundleId와 group을 통해 최신 파일명 조회
+  static async resolveLoRAFilename(bundleId: string, group: 'HIGH' | 'LOW'): Promise<string | null> {
+    try {
+      const bundle = await this.getBundleById(bundleId);
+      if (!bundle) {
+        console.warn(`⚠️ 번들을 찾을 수 없음: ${bundleId}`);
+        return null;
+      }
+
+      const filename = group === 'HIGH' ? bundle.highLoRAFilename : bundle.lowLoRAFilename;
+      if (!filename) {
+        console.warn(`⚠️ ${group} LoRA 파일명이 없음: ${bundle.displayName}`);
+        return null;
+      }
+
+      return filename;
+    } catch (error) {
+      console.error(`❌ LoRA 파일명 해결 실패 (${bundleId}, ${group}):`, error);
+      return null;
+    }
+  }
+
+  // 여러 LoRA 아이템을 한번에 해결 (성능 최적화)
+  static async resolveMultipleLoRAs(items: Array<{bundleId?: string; group: 'HIGH' | 'LOW'; originalFilename: string}>): Promise<Array<{resolvedFilename: string; bundleDisplayName?: string}>> {
+    try {
+      const bundleIds = [...new Set(items.filter(item => item.bundleId).map(item => item.bundleId!))];
+      if (bundleIds.length === 0) {
+        return items.map(item => ({ resolvedFilename: item.originalFilename }));
+      }
+
+      const bundles = await prisma.loRABundle.findMany({
+        where: {
+          id: { in: bundleIds }
+        }
+      });
+
+      const bundleMap = new Map(bundles.map(bundle => [bundle.id, bundle]));
+
+      return items.map(item => {
+        if (!item.bundleId) {
+          return { resolvedFilename: item.originalFilename };
+        }
+
+        const bundle = bundleMap.get(item.bundleId);
+        if (!bundle) {
+          console.warn(`⚠️ 번들을 찾을 수 없음: ${item.bundleId}, 원본 파일명 사용`);
+          return { resolvedFilename: item.originalFilename };
+        }
+
+        const resolvedFilename = item.group === 'HIGH' ? bundle.highLoRAFilename : bundle.lowLoRAFilename;
+        if (!resolvedFilename) {
+          console.warn(`⚠️ ${item.group} LoRA 파일명이 없음: ${bundle.displayName}, 원본 파일명 사용`);
+          return { resolvedFilename: item.originalFilename, bundleDisplayName: bundle.displayName };
+        }
+
+        return { resolvedFilename, bundleDisplayName: bundle.displayName };
+      });
+    } catch (error) {
+      console.error('❌ 다중 LoRA 해결 실패:', error);
+      return items.map(item => ({ resolvedFilename: item.originalFilename }));
+    }
+  }
 }

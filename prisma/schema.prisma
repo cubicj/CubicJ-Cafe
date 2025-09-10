@@ -97,12 +97,14 @@ model LoRAPresetItem {
   strength     Float      @default(0.8)
   group        LoRAGroup  @default(HIGH)
   order        Int        @default(0)
+  bundleId     String?    @map("bundle_id")
   createdAt    DateTime   @default(now()) @map("created_at")
   preset       LoRAPreset @relation(fields: [presetId], references: [id], onDelete: Cascade)
 
   @@index([presetId])
   @@index([order])
   @@index([group])
+  @@index([bundleId])
   @@map("lora_preset_items")
 }
 

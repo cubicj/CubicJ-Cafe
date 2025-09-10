@@ -159,6 +159,7 @@ export function LoRAPresetManager({
           strength: newLoRAForm.strength,
           group: 'HIGH',
           order: editForm.loraItems.length + orderOffset,
+          bundleId: selectedBundle.id,
         });
         orderOffset++;
       }
@@ -170,6 +171,7 @@ export function LoRAPresetManager({
           strength: newLoRAForm.strength,
           group: 'LOW',
           order: editForm.loraItems.length + orderOffset,
+          bundleId: selectedBundle.id,
         });
       }
     }
