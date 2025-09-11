@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Cog } from 'lucide-react';
+import { Database, Cog, Shield, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import SystemSettingsTab from './tabs/SystemSettingsTab';
@@ -13,7 +14,10 @@ import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authError, setAuthError] = useState('');
   const initialized = useRef(false);
   const { error } = useAdminAuth();
   const adminSettings = useAdminSettings();
@@ -22,31 +26,99 @@ export default function AdminDashboard() {
     if (initialized.current) return;
     initialized.current = true;
 
-    const initializeAdmin = async () => {
+    const checkAdminPermission = async () => {
+      try {
+        const response = await fetch('/api/auth/admin-check', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          setIsAuthorized(true);
+          // 권한 확인 후 관리자 설정 로드
+          await initializeAdminSettings();
+        } else {
+          const data = await response.json();
+          setAuthError(data.error || '관리자 권한이 없습니다.');
+          // 2초 후 홈으로 리디렉션
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('관리자 권한 확인 실패:', error);
+        setAuthError('서버 오류가 발생했습니다.');
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const initializeAdminSettings = async () => {
       try {
         // 필수 설정만 먼저 로드 (빠른 API들)
         await Promise.all([
           adminSettings.fetchSystemSettings(),
           adminSettings.fetchModelSettings()
         ]);
-        setLoading(false);
         
         // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
         adminSettings.fetchAvailableModels();
       } catch (error) {
-        console.error('Admin 초기화 실패:', error);
-        setLoading(false);
+        console.error('Admin 설정 초기화 실패:', error);
       }
     };
 
-    initializeAdmin();
+    checkAdminPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 권한이 없는 경우 - 오류 메시지와 리디렉션 안내
+  if (!isAuthorized && authError) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="max-w-md mx-auto">
+          <Alert variant="destructive">
+            <Shield className="h-4 w-4" />
+            <AlertDescription className="flex flex-col space-y-2">
+              <strong>접근 거부</strong>
+              <span>{authError}</span>
+              <span className="text-sm">잠시 후 홈페이지로 이동됩니다...</span>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  // 로딩 중인 경우
   if (loading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">로딩 중...</div>
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2">
+            <Shield className="h-5 w-5 animate-pulse text-blue-600" />
+            <span>관리자 권한 확인 중...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 권한이 확인되지 않은 경우 (예상치 못한 상황)
+  if (!isAuthorized) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="max-w-md mx-auto">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>권한 확인 실패</strong>
+              <br />관리자 페이지에 접근할 수 없습니다.
+            </AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
