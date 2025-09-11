@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { User, ArrowRight, Loader2, BarChart3 } from 'lucide-react';
+import { User, Loader2, BarChart3 } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
 import Image from 'next/image';
 
