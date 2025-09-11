@@ -324,7 +324,7 @@ class DiscordBot {
       
       const embed = {
         title: `🔗 Wan 2.2 I2V ${params.isNSFW ? '🔞' : ''}`,
-        description: `📝 **프롬프트**\n\`\`\`${params.prompt}\`\`\``,
+        description: `\`\`\`${params.prompt}\`\`\``,
         color: params.isNSFW ? 0xff6b6b : 0x10b981,
         url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
       };
