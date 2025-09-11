@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ClientIcon } from '@/components/ui/client-icon';
-import { Home, Palette, User, LogOut, Coffee, Settings, Edit } from 'lucide-react';
+import { Home, Palette, User, LogOut, Coffee, Settings } from 'lucide-react';
 import { User as UserType } from '@/types';
 
 export default function Header() {
@@ -72,7 +72,8 @@ export default function Header() {
         setUser(null);
         // 페이지 리로드 대신 현재 페이지가 인증이 필요한 페이지인 경우만 홈으로 이동
         if (window.location.pathname.startsWith('/settings') || 
-            window.location.pathname.startsWith('/generate')) {
+            window.location.pathname.startsWith('/generate') ||
+            window.location.pathname.startsWith('/profile')) {
           window.location.href = '/';
         }
         // 그 외의 경우는 상태만 업데이트 (페이지 리로드 없음)
@@ -145,12 +146,12 @@ export default function Header() {
                   <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="py-1">
                       <Link
-                        href="/profile/change-nickname"
+                        href="/settings"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <span className="flex items-center space-x-2">
-                          <ClientIcon icon={Edit} fallback="✏️" className="h-4 w-4" />
-                          <span>닉네임 변경</span>
+                          <ClientIcon icon={Settings} fallback="⚙️" className="h-4 w-4" />
+                          <span>사용자 설정</span>
                         </span>
                       </Link>
                       {isAdmin && (
