@@ -25,16 +25,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const table = searchParams.get('table');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '25');
+    const orderBy = searchParams.get('orderBy');
+    const orderDirection = searchParams.get('orderDirection') || 'desc';
     const offset = (page - 1) * limit;
 
     if (!table) {
       const tables = [
         { name: 'users', displayName: '사용자', count: await prisma.user.count() },
-        { name: 'sessions', displayName: '세션', count: await prisma.session.count() },
         { name: 'queue_requests', displayName: '큐 요청', count: await prisma.queueRequest.count() },
         { name: 'lora_presets', displayName: 'LoRA 프리셋', count: await prisma.loRAPreset.count() },
-        { name: 'lora_preset_items', displayName: 'LoRA 프리셋 아이템', count: await prisma.loRAPresetItem.count() },
       ];
       return NextResponse.json({ tables });
     }
@@ -42,12 +42,43 @@ export async function GET(request: NextRequest) {
     let data: unknown[] = [];
     let totalCount = 0;
 
+    // 테이블별 기본 정렬 및 허용 정렬 필드 정의
+    const getOrderBy = (table: string, orderBy: string | null, orderDirection: string) => {
+      const direction = orderDirection === 'asc' ? 'asc' as const : 'desc' as const;
+      
+      switch (table) {
+        case 'users':
+          const userFields = ['nickname', 'discordUsername', 'createdAt', 'lastLoginAt'];
+          if (orderBy && userFields.includes(orderBy)) {
+            return { [orderBy]: direction };
+          }
+          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 가입순
+        
+        case 'queue_requests':
+          const queueFields = ['nickname', 'status', 'position', 'createdAt', 'startedAt', 'completedAt'];
+          if (orderBy && queueFields.includes(orderBy)) {
+            return { [orderBy]: direction };
+          }
+          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 요청순
+        
+        case 'lora_presets':
+          const presetFields = ['name', 'createdAt', 'isDefault', 'isPublic'];
+          if (orderBy && presetFields.includes(orderBy)) {
+            return { [orderBy]: direction };
+          }
+          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 생성순
+        
+        default:
+          return { createdAt: 'desc' as const };
+      }
+    };
+
     switch (table) {
       case 'users':
         data = await prisma.user.findMany({
           skip: offset,
           take: limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy: getOrderBy(table, orderBy, orderDirection),
           include: {
             _count: {
               select: {
@@ -61,28 +92,12 @@ export async function GET(request: NextRequest) {
         totalCount = await prisma.user.count();
         break;
 
-      case 'sessions':
-        data = await prisma.session.findMany({
-          skip: offset,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                nickname: true,
-                discordUsername: true,
-              },
-            },
-          },
-        });
-        totalCount = await prisma.session.count();
-        break;
 
       case 'queue_requests':
         data = await prisma.queueRequest.findMany({
           skip: offset,
           take: limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy: getOrderBy(table, orderBy, orderDirection),
           include: {
             user: {
               select: {
@@ -99,13 +114,16 @@ export async function GET(request: NextRequest) {
         data = await prisma.loRAPreset.findMany({
           skip: offset,
           take: limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy: getOrderBy(table, orderBy, orderDirection),
           include: {
             user: {
               select: {
                 nickname: true,
                 discordUsername: true,
               },
+            },
+            loraItems: {
+              orderBy: { order: 'asc' },
             },
             _count: {
               select: {
@@ -117,26 +135,6 @@ export async function GET(request: NextRequest) {
         totalCount = await prisma.loRAPreset.count();
         break;
 
-      case 'lora_preset_items':
-        data = await prisma.loRAPresetItem.findMany({
-          skip: offset,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            preset: {
-              select: {
-                name: true,
-                user: {
-                  select: {
-                    nickname: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-        totalCount = await prisma.loRAPresetItem.count();
-        break;
 
       default:
         return NextResponse.json({ error: '지원하지 않는 테이블입니다.' }, { status: 400 });
