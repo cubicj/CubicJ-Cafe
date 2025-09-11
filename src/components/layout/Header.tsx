@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ClientIcon } from '@/components/ui/client-icon';
-import { Home, Palette, User, LogOut, Coffee, Settings } from 'lucide-react';
+import { Home, Palette, User, LogOut, Coffee, Settings, Shield } from 'lucide-react';
 import { User as UserType } from '@/types';
 
 export default function Header() {
@@ -160,7 +160,7 @@ export default function Header() {
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           <span className="flex items-center space-x-2">
-                            <ClientIcon icon={Settings} fallback="⚙️" className="h-4 w-4" />
+                            <ClientIcon icon={Shield} fallback="🛡️" className="h-4 w-4" />
                             <span>어드민 페이지</span>
                           </span>
                         </Link>

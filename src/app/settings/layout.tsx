@@ -4,8 +4,7 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { User, ArrowLeft, Settings } from 'lucide-react';
+import { User, Settings, BarChart3, Languages } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
 
 interface SettingsLayoutProps {
@@ -14,23 +13,30 @@ interface SettingsLayoutProps {
 
 const settingsNavItems = [
   {
+    href: '/settings',
+    label: '대시보드',
+    icon: BarChart3
+  },
+  {
     href: '/settings/nickname',
     label: '닉네임 변경',
-    icon: User,
-    description: '사용자 닉네임을 변경합니다'
+    icon: User
+  },
+  {
+    href: '/settings/language',
+    label: '번역 설정',
+    icon: Languages
   },
   // 나중에 추가될 설정들
   // {
   //   href: '/settings/notifications',
   //   label: '알림 설정',
-  //   icon: Bell,
-  //   description: '알림 및 이메일 설정을 관리합니다'
+  //   icon: Bell
   // },
   // {
   //   href: '/settings/privacy',
   //   label: '개인정보 설정',
-  //   icon: Shield,
-  //   description: '개인정보 및 프라이버시 설정을 관리합니다'
+  //   icon: Shield
   // }
 ];
 
@@ -42,20 +48,9 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       <div className="container mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8">
-          <Link 
-            href="/" 
-            className="inline-flex items-center space-x-3 px-4 py-2 text-slate-600 hover:text-slate-800 hover:bg-white/50 rounded-lg transition-all duration-200 mb-6"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="font-medium">홈으로 돌아가기</span>
-          </Link>
-          
           <div className="flex items-center space-x-3">
             <ClientIcon icon={Settings} fallback="⚙️" className="h-8 w-8 text-slate-700" />
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800">설정</h1>
-              <p className="text-slate-600">계정 및 앱 설정을 관리하세요</p>
-            </div>
+            <h1 className="text-3xl font-bold text-slate-800">설정</h1>
           </div>
         </div>
 
@@ -71,27 +66,22 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`block p-4 rounded-lg transition-all duration-200 ${
+                      className={`block p-3 rounded-lg transition-all duration-200 ${
                         isActive
                           ? 'bg-blue-50 border-l-4 border-blue-500 text-blue-700'
                           : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
                       }`}
                     >
-                      <div className="flex items-start space-x-3">
+                      <div className="flex items-center space-x-3">
                         <ClientIcon 
                           icon={item.icon} 
                           fallback="⚙️" 
-                          className={`h-5 w-5 mt-0.5 ${
+                          className={`h-5 w-5 ${
                             isActive ? 'text-blue-600' : 'text-slate-500'
                           }`} 
                         />
-                        <div>
-                          <div className={`font-medium ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>
-                            {item.label}
-                          </div>
-                          <div className={`text-sm ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
-                            {item.description}
-                          </div>
+                        <div className={`font-medium ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>
+                          {item.label}
                         </div>
                       </div>
                     </Link>
