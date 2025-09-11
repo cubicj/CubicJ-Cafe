@@ -77,20 +77,85 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
     }
   };
 
-  const formatValue = (value: unknown): string => {
+  const formatValue = (key: string, value: unknown, tableName?: string): React.ReactNode => {
     if (value === null || value === undefined) {
-      return '(null)';
+      return <span className="text-gray-400 italic">(null)</span>;
     }
+    
+    // LoRA 프리셋의 loraItems 특별 처리
+    if (tableName === 'lora_presets' && key === 'loraItems' && Array.isArray(value)) {
+      return (
+        <div className="space-y-1">
+          {value.map((item: any, index: number) => (
+            <div key={index} className="text-xs p-2 bg-muted rounded border">
+              <div className="font-medium">{item.loraName || item.loraFilename}</div>
+              <div className="text-muted-foreground">
+                강도: {item.strength} | 그룹: <span className={item.group === 'HIGH' ? 'text-blue-600' : 'text-green-600'}>{item.group}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // User 관계 특별 처리
+    if (key === 'user' && typeof value === 'object' && value !== null) {
+      const user = value as any;
+      return (
+        <div className="text-sm">
+          <div className="font-medium">{user.nickname}</div>
+          <div className="text-xs text-muted-foreground">{user.discordUsername}</div>
+        </div>
+      );
+    }
+    
+    // _count 객체 특별 처리
+    if (key === '_count' && typeof value === 'object' && value !== null) {
+      const counts = value as any;
+      return (
+        <div className="text-sm">
+          {Object.entries(counts).map(([countKey, countValue]) => (
+            <div key={countKey} className="text-xs">
+              {getColumnDisplayName(countKey)}: {String(countValue)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
     if (typeof value === 'object') {
-      return JSON.stringify(value, null, 2);
+      return (
+        <pre className="text-xs bg-muted p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      );
     }
+    
     if (typeof value === 'boolean') {
-      return value ? '✓' : '✗';
+      return (
+        <span className={value ? 'text-green-600' : 'text-red-600'}>
+          {value ? '✓' : '✗'}
+        </span>
+      );
     }
+    
     if (value instanceof Date || (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/))) {
-      return new Date(value).toLocaleString('ko-KR');
+      return <span className="text-sm">{new Date(value).toLocaleString('ko-KR')}</span>;
     }
-    return String(value);
+    
+    // 긴 문자열은 줄바꿈 처리
+    const stringValue = String(value);
+    if (stringValue.length > 50) {
+      return (
+        <div className="max-w-xs">
+          <div className="truncate" title={stringValue}>
+            {stringValue}
+          </div>
+        </div>
+      );
+    }
+    
+    return stringValue;
   };
 
   const getColumnDisplayName = (key: string): string => {
@@ -131,6 +196,15 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
       _count: '개수',
       user: '사용자',
       preset: '프리셋',
+      loraItems: 'LoRA 아이템들',
+      displayName: '표시명',
+      highLoRAFilename: 'High LoRA 파일',
+      lowLoRAFilename: 'Low LoRA 파일',
+      key: '키',
+      value: '값',
+      sessions: '세션',
+      queueRequests: '큐 요청',
+      loraPresets: 'LoRA 프리셋',
     };
     return columnNames[key] || key;
   };
@@ -233,9 +307,9 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
                       {tableData.data.map((row, index) => (
                         <tr key={index} className="hover:bg-muted/50">
                           {Object.entries(row).map(([key, value]) => (
-                            <td key={key} className="border border-gray-200 p-2 text-sm max-w-xs">
-                              <div className="truncate" title={formatValue(value)}>
-                                {formatValue(value)}
+                            <td key={key} className="border border-gray-200 p-2 text-sm">
+                              <div className="max-w-xs">
+                                {formatValue(key, value, selectedTable)}
                               </div>
                             </td>
                           ))}

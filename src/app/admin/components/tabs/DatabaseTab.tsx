@@ -1,5 +1,5 @@
-import DatabaseViewer from '@/components/ui/database-viewer';
+import ListDatabaseViewer from '@/components/ui/list-database-viewer';
 
 export default function DatabaseTab() {
-  return <DatabaseViewer />;
+  return <ListDatabaseViewer />;
 }
