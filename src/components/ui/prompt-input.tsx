@@ -2,6 +2,7 @@
 
 import { Textarea } from "./textarea";
 import { Card } from "./card";
+import { TranslationControls } from "./translation-controls";
 import { cn } from "@/lib/utils";
 
 interface PromptInputProps {
@@ -37,6 +38,14 @@ export function PromptInput({
             placeholder={placeholder}
             className="min-h-[120px] resize-none"
             maxLength={maxLength}
+          />
+        </div>
+        
+        {/* 번역 컨트롤 */}
+        <div className="border-t pt-3">
+          <TranslationControls
+            text={value}
+            onTextChange={onChange}
           />
         </div>
       </div>
