@@ -17,7 +17,7 @@ export function PromptInput({
   value,
   onChange,
   placeholder = "이미지가 어떻게 움직일지 설명하세요...",
-  maxLength = 3000,
+  maxLength = 5000,
   className,
 }: PromptInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

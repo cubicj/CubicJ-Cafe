@@ -76,7 +76,7 @@ export function ImageUploadSection({
         <PromptInput
           value={prompt}
           onChange={onPromptChange}
-          maxLength={3000}
+          maxLength={5000}
         />
       </div>
     </div>
