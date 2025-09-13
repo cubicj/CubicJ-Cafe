@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '이미지를 업로드해주세요.' }, { status: 400 });
     }
 
-    if (prompt.length > 1000) {
-      return NextResponse.json({ error: '프롬프트가 너무 깁니다 (최대 1000자).' }, { status: 400 });
+    if (prompt.length > 5000) {
+      return NextResponse.json({ error: '프롬프트가 너무 깁니다 (최대 5000자).' }, { status: 400 });
     }
 
     if (imageFile.size > 10 * 1024 * 1024) {
