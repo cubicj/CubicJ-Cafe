@@ -1,4 +1,5 @@
 import { LoRAPreset } from './index';
+import type { DropResult } from '@hello-pangea/dnd';
 
 export interface LoRAPresetManagerProps {
   selectedPresetIds: string[];
@@ -20,6 +21,8 @@ export interface LoRAPresetListProps {
   onPresetDelete: (preset: LoRAPreset) => void;
   onNewPreset: () => void;
   onRefresh: () => void;
-  onDragEnd: (result: any) => void;
+  onCopyBundleNames: () => void;
+  copySuccess: boolean;
+  onDragEnd: (result: DropResult) => void;
   isLoRAAvailable: (filename: string) => boolean;
 }
