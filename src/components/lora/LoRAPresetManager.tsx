@@ -59,6 +59,7 @@ export function LoRAPresetManager({
     useBundle: true,
     selectedBundleId: '',
   });
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const togglePresetSelection = (presetId: string) => {
     const newSelectedIds = selectedPresetIds.includes(presetId)
@@ -133,6 +134,26 @@ export function LoRAPresetManager({
 
   const deletePreset = async (preset: LoRAPreset) => {
     await hookDeletePreset(preset);
+  };
+
+  const copyBundleNames = async () => {
+    try {
+      const bundleNames = availableBundles
+        .map(bundle => bundle.displayName)
+        .sort()
+        .join(', ');
+
+      await navigator.clipboard.writeText(bundleNames);
+      setCopySuccess(true);
+      console.log('✅ 번들명 목록이 클립보드에 복사되었습니다:', bundleNames);
+
+      setTimeout(() => {
+        setCopySuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error('❌ 번들명 복사 실패:', error);
+      alert('번들명 복사에 실패했습니다.');
+    }
   };
 
   const addLoRAItem = (e?: React.MouseEvent) => {
@@ -225,6 +246,8 @@ export function LoRAPresetManager({
           onPresetDelete={deletePreset}
           onNewPreset={startNewPreset}
           onRefresh={() => fetchAvailableLoRAs(true)}
+          onCopyBundleNames={copyBundleNames}
+          copySuccess={copySuccess}
           onDragEnd={handleDragEnd}
           isLoRAAvailable={isLoRAAvailable}
         />
