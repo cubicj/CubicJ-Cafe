@@ -32,6 +32,7 @@ next-env.d.ts
 /tests/screenshots/
 /tests/videos/
 /tests/traces/
+tests/.test.db*
 
 # temp files
 /public/temp
