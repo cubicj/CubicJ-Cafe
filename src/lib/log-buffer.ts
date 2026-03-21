@@ -60,7 +60,7 @@ class LogBuffer {
     for (const [id, subscriber] of this.subscribers) {
       const { filters } = subscriber;
       if (filters?.level && filters.level !== entry.level) continue;
-      if (filters?.category && filters.category !== entry.category) continue;
+      if (filters?.category && !filters.category.split(',').includes(entry.category)) continue;
 
       try {
         const data = `data: ${JSON.stringify(entry)}\n\n`;

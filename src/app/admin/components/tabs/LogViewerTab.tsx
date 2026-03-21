@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { enableClientLogTransport, disableClientLogTransport } from '@/lib/logger';
+import { enableClientLogTransport, disableClientLogTransport, isClientLogTransportEnabled } from '@/lib/logger';
 import {
   Play,
   Pause,
@@ -39,7 +39,7 @@ interface LogEntry {
 const LEVELS = ['all', 'error', 'warn', 'info', 'debug'] as const;
 const CATEGORIES = [
   'system', 'auth', 'api', 'queue', 'comfyui', 'discord', 'admin', 'database',
-  'hook', 'ui', 'page', 'generate',
+  'hook', 'ui', 'page', 'generate', 'console',
 ] as const;
 
 const MAX_ENTRIES = 500;
@@ -114,7 +114,7 @@ export default function LogViewerTab() {
   const [level, setLevel] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [search, setSearch] = useState('');
-  const [clientCapture, setClientCapture] = useState(false);
+  const [clientCapture, setClientCapture] = useState(() => isClientLogTransportEnabled());
   const [sourceFilter, setSourceFilter] = useState<'all' | 'server' | 'client'>('all');
 
   const [entries, setEntries] = useState<LogEntry[]>([]);
@@ -131,12 +131,6 @@ export default function LogViewerTab() {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      disableClientLogTransport();
-    };
-  }, []);
 
   const connectSSE = useCallback(() => {
     if (eventSourceRef.current) {
@@ -210,6 +204,8 @@ export default function LogViewerTab() {
 
   const filteredEntries = entries.filter((e) => {
     if (sourceFilter !== 'all' && e.source !== sourceFilter) return false;
+    if (level !== 'all' && e.level !== level) return false;
+    if (selectedCategories.length > 0 && !selectedCategories.includes(e.category)) return false;
     if (search && !e.message.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -392,8 +388,8 @@ export default function LogViewerTab() {
                 로그 대기 중...
               </div>
             ) : (
-              filteredEntries.map((entry) => (
-                <LogEntryRow key={entry.id} entry={entry} />
+              filteredEntries.map((entry, idx) => (
+                <LogEntryRow key={`${entry.timestamp}-${entry.id}-${idx}`} entry={entry} />
               ))
             )}
           </div>
@@ -409,8 +405,8 @@ export default function LogViewerTab() {
                   로그 없음
                 </div>
               ) : (
-                historyEntries.map((entry) => (
-                  <LogEntryRow key={entry.id} entry={entry} />
+                historyEntries.map((entry, idx) => (
+                  <LogEntryRow key={`${entry.timestamp}-${idx}`} entry={entry} />
                 ))
               )}
             </div>

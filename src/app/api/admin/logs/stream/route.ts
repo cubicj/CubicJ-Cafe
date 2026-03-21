@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     start(controller) {
       const initial = logBuffer.getRecent(100).filter((entry) => {
         if (level && level !== entry.level) return false;
-        if (category && category !== entry.category) return false;
+        if (category && !category.split(',').includes(entry.category)) return false;
         return true;
       });
 
