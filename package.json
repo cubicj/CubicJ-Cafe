@@ -32,7 +32,8 @@
     "prisma:push": "node -r ./load-env.js ./node_modules/.bin/prisma db push",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:bench": "vitest bench"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
