@@ -16,9 +16,12 @@ export interface LogSubscriber {
   };
 }
 
+export type LogListener = (entry: LogEntry) => void;
+
 class LogBuffer {
   private buffer: LogEntry[] = [];
   private subscribers: Map<string, LogSubscriber> = new Map();
+  private listeners: LogListener[] = [];
   private nextId = 1;
   private readonly maxSize = 500;
 
@@ -29,6 +32,13 @@ class LogBuffer {
       this.buffer.shift();
     }
     this.broadcast(full);
+    for (const listener of this.listeners) {
+      try { listener(full); } catch { /* non-critical */ }
+    }
+  }
+
+  onPush(listener: LogListener): void {
+    this.listeners.push(listener);
   }
 
   getRecent(count = 100): LogEntry[] {
