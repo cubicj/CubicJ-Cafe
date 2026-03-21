@@ -33,6 +33,7 @@ export interface QueueRequestData {
   workflowLength?: number; // 워크플로우 길이
   serverType?: ServerType;
   serverId?: string;
+  videoModel?: string;
 }
 
 export interface QueueRequestUpdate {
@@ -84,6 +85,7 @@ export class QueueService {
       workflowLength: data.workflowLength || (16 * (data.duration || 5) + 1),
       serverType: data.serverType,
       serverId: data.serverId,
+      videoModel: data.videoModel || 'wan',
       position: nextPosition,
       status: QueueStatus.PENDING
     };
