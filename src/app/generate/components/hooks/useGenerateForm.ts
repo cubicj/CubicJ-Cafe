@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { User } from "@/types";
+import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
 
 interface ServerInfo {
   type: 'local' | 'runpod'
@@ -70,6 +71,8 @@ interface UseGenerateFormReturn {
   setIsRefreshing: (refreshing: boolean) => void;
   isLoadingServerStatus: boolean;
   setIsLoadingServerStatus: (loading: boolean) => void;
+  activeModel: VideoModel;
+  capabilities: ModelCapabilities;
   isFormValid: boolean;
   handleGenerate: () => Promise<void>;
   handleNewGeneration: () => void;
@@ -120,6 +123,10 @@ export function useGenerateForm(): UseGenerateFormReturn {
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
+  const [activeModel, setActiveModel] = useState<VideoModel>('ltx');
+  const [capabilities, setCapabilities] = useState<ModelCapabilities>({
+    loraPresets: false, endImage: false, videoDuration: false, audio: true,
+  });
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -308,10 +315,19 @@ export function useGenerateForm(): UseGenerateFormReturn {
   useEffect(() => {
     fetchUser();
     fetchServerStatus();
-    
-    fetchPresets().then((allPresets) => {
-      setPresets(allPresets);
-    });
+
+    fetch('/api/system/active-model')
+      .then(res => res.json())
+      .then(data => {
+        setActiveModel(data.model);
+        setCapabilities(data.capabilities);
+        if (data.capabilities.loraPresets) {
+          fetchPresets().then((allPresets) => {
+            setPresets(allPresets);
+          });
+        }
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -374,6 +390,8 @@ export function useGenerateForm(): UseGenerateFormReturn {
     setIsRefreshing,
     isLoadingServerStatus,
     setIsLoadingServerStatus,
+    activeModel,
+    capabilities,
     isFormValid,
     handleGenerate,
     handleNewGeneration,

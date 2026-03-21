@@ -15,6 +15,7 @@ interface ImageUploadSectionProps {
   onLoopToggle: (enabled: boolean) => void;
   prompt: string;
   onPromptChange: (prompt: string) => void;
+  showEndImage?: boolean;
 }
 
 export function ImageUploadSection({
@@ -26,6 +27,7 @@ export function ImageUploadSection({
   onLoopToggle,
   prompt,
   onPromptChange,
+  showEndImage = true,
 }: ImageUploadSectionProps) {
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -41,20 +43,22 @@ export function ImageUploadSection({
         />
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
-          <Switch 
-            id="loop-mode" 
-            checked={isLoopEnabled}
-            onCheckedChange={onLoopToggle}
-          />
-          <Label htmlFor="loop-mode" className="text-sm font-medium">
-            루프 모드
-          </Label>
+      {showEndImage && (
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="loop-mode"
+              checked={isLoopEnabled}
+              onCheckedChange={onLoopToggle}
+            />
+            <Label htmlFor="loop-mode" className="text-sm font-medium">
+              루프 모드
+            </Label>
+          </div>
         </div>
-      </div>
+      )}
 
-      {!isLoopEnabled && (
+      {showEndImage && !isLoopEnabled && (
         <div className="space-y-2">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Bot className="h-4 w-4" />
