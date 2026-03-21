@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import fs from 'fs/promises';
 
 const log = createLogger('system');
@@ -48,6 +49,13 @@ interface ServiceStatus {
 }
 
 async function checkComfyUIService(): Promise<ServiceStatus> {
+  if (!isComfyUIEnabled()) {
+    return {
+      status: 'unknown' as const,
+      lastCheck: new Date().toISOString(),
+      error: 'ComfyUI disabled by admin',
+    };
+  }
   const start = Date.now();
   try {
     const controller = new AbortController();

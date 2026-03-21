@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 import { ServerType } from '@prisma/client';
 import { getActiveModel } from '@/lib/database/model-settings';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 import { createLogger } from '@/lib/logger';
 
@@ -46,6 +47,13 @@ export async function POST(request: NextRequest) {
     }
 
     log.info('User authenticated', { nickname: session.user.nickname });
+
+    if (!isComfyUIEnabled()) {
+      return NextResponse.json(
+        { error: 'ComfyUI 서버가 비활성 상태입니다.' },
+        { status: 503 }
+      );
+    }
 
     // 최적 서버 선택
     const selectedServer = await selectBestServer();
