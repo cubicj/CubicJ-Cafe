@@ -12,8 +12,10 @@ import { ImageUploadSection } from "./sections/ImageUploadSection";
 import { ContentSettingsSection } from "./sections/ContentSettingsSection";
 import { GenerationControlsSection } from "./sections/GenerationControlsSection";
 import { useGenerateForm } from "./hooks/useGenerateForm";
+import { useSession } from "@/contexts/SessionContext";
 
 export default function GeneratePageClient() {
+  const { user, isLoading: isLoadingAuth } = useSession();
   const {
     selectedFile,
     setSelectedFile,
@@ -32,8 +34,6 @@ export default function GeneratePageClient() {
     videoDuration,
     setVideoDuration,
     submitMessage,
-    user,
-    isLoadingAuth,
     serverStatus,
     isRefreshing,
     isLoadingServerStatus,
