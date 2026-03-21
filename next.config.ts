@@ -191,6 +191,10 @@ const nextConfig: NextConfig = {
   },
 
   output: 'standalone',
+
+  outputFileTracingExcludes: {
+    '*': ['.git/**', '.claude/**', '.serena/**', 'Docs/**'],
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);
