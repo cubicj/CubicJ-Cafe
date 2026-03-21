@@ -57,8 +57,6 @@ export class SessionManager {
       return null;
     }
 
-    await UserService.updateLastLogin(sessionWithUser.user.discordId);
-
     return {
       sessionId: sessionWithUser.id,
       user: {
@@ -68,7 +66,7 @@ export class SessionManager {
         nickname: sessionWithUser.user.nickname,
         avatar: sessionWithUser.user.avatar || undefined,
         createdAt: sessionWithUser.user.createdAt,
-        lastLoginAt: new Date(),
+        lastLoginAt: sessionWithUser.user.lastLoginAt,
       },
       expiresAt: sessionWithUser.expiresAt,
     };
