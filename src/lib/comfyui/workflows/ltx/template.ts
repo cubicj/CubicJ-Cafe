@@ -224,7 +224,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "22": {
     "inputs": {
-      "steps": 15,
+      "steps": 12,
       "max_shift": 2.05,
       "base_shift": 0.95,
       "stretch": true,
