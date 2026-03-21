@@ -1,9 +1,10 @@
 import { queueService } from '@/lib/database/queue';
 import { QueueStatus } from '@prisma/client';
 import { ComfyUIClient } from './client';
-import { buildWanWorkflow } from './workflow-builder';
+import { buildWorkflow } from './workflow-router';
+import { MODEL_REGISTRY } from './workflows/registry';
+import type { GenerationParams } from './workflows/types';
 import { jobMonitor } from './job-monitor';
-// env removed - using process.env directly
 import type { LoRAPresetData } from '@/types';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -248,9 +249,11 @@ class QueueMonitor {
 
 
     try {
-      // LoRA 프리셋 데이터 파싱
+      const videoModel = (request.videoModel as 'wan' | 'ltx') || 'wan';
+      const modelConfig = MODEL_REGISTRY[videoModel];
+
       let loraPreset: LoRAPresetData | null = null;
-      if (request.loraPresetData) {
+      if (modelConfig.capabilities.loraPresets && request.loraPresetData) {
         try {
           loraPreset = JSON.parse(request.loraPresetData);
         } catch (parseError) {
@@ -258,23 +261,18 @@ class QueueMonitor {
         }
       }
 
-      // 임시 파일을 읽어서 ComfyUI에 업로드
       let uploadedImageName = null
-      
-      
+
+
       if (request.imageData && existsSync(request.imageData)) {
         try {
-          // 임시 파일을 File 객체로 변환 (ComfyUI에서도 고유한 파일명 사용)
           const imageBuffer = await readFile(request.imageData)
           const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' })
-          // 기존 임시 파일명을 그대로 사용 (이미 고유함)
           const comfyUIFileName = request.imageFile || `upload_${request.id}_${Date.now()}.png`
           const file = new File([blob], comfyUIFileName, { type: 'image/png' })
-          
-          // ComfyUI에 파일 업로드
+
           uploadedImageName = await server.client.uploadImage(file)
-          
-          // 업로드 성공 후 임시 파일 정리 예약 (10분 후)
+
           scheduleFileCleanup(request.imageData, 10)
         } catch (error) {
           console.error('❌ 이미지 업로드 실패:', error)
@@ -290,7 +288,6 @@ class QueueMonitor {
         throw new Error('이미지 파일이 없습니다.')
       }
 
-      // ComfyUI 워크플로우 빌드 (서버 정보 전달)
       const serverInfo = {
         id: server.type === 'runpod' ? 'runpod-temp' : 'local',
         type: server.type === 'runpod' ? 'RUNPOD' as const : 'LOCAL' as const,
@@ -300,30 +297,44 @@ class QueueMonitor {
         maxJobs: 1,
         priority: server.type === 'runpod' ? 1 : 2
       }
-      
-      // 끝 이미지 처리 - 먼저 끝 이미지 업로드 (있는 경우)
+
       let uploadedEndImageName = null;
-      if (request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
+      if (videoModel === 'wan' && request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
         const endImageBuffer = await readFile(request.endImageData);
         const endImageBlob = new Blob([new Uint8Array(endImageBuffer)], { type: 'image/png' });
         const endImageFile = new File([endImageBlob], request.endImageFile, { type: 'image/png' });
         uploadedEndImageName = await server.client.uploadImage(endImageFile);
-        
-        // 업로드 성공 후 임시 파일 정리 예약 (10분 후)
+
         scheduleFileCleanup(request.endImageData, 10);
       }
 
-      const workflow = await buildWanWorkflow({
-        prompt: request.prompt,
-        inputImage: uploadedImageName || request.imageFile || 'input_image.png',
-        endImage: uploadedEndImageName || undefined,
-        loraPreset: loraPreset || undefined,
-        videoLength: request.workflowLength || (16 * (request.duration || 5) + 1)
-      }, serverInfo);
+      const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
+
+      let params: GenerationParams;
+      if (videoModel === 'wan') {
+        params = {
+          model: 'wan',
+          prompt: request.prompt,
+          inputImage,
+          loraPreset: loraPreset || undefined,
+          endImage: uploadedEndImageName || undefined,
+          videoLength: request.workflowLength || (16 * (request.duration || 5) + 1),
+        };
+      } else {
+        params = {
+          model: 'ltx',
+          prompt: request.prompt,
+          inputImage,
+          durationSeconds: request.duration || 5,
+        };
+      }
+
+      const workflow = await buildWorkflow(params, serverInfo);
 
       logger.logGenerationEvent('Workflow built', {
         server: server.name,
         requestId: requestId,
+        videoModel,
         prompt: request.prompt.substring(0, 50),
         preset: loraPreset?.presetName,
         highLoras: loraPreset?.loraItems.filter(item => item.group === 'HIGH').length || 0,
@@ -355,6 +366,7 @@ class QueueMonitor {
         createdAt: new Date(),
         updatedAt: new Date(),
         isNSFW: Boolean(request.isNSFW),
+        videoModel,
         userInfo: {
           name: request.user?.nickname || request.nickname,
           image: request.user?.avatar || undefined,
@@ -366,161 +378,13 @@ class QueueMonitor {
 
     } catch (error) {
       console.error(`❌ 요청 처리 실패 (${server.name}): ${requestId}`, error);
-      
+
       await queueService.updateRequest(requestId, {
         status: QueueStatus.FAILED,
         failedAt: new Date(),
         error: error instanceof Error ? error.message : '알 수 없는 오류'
       });
     }
-  }
-
-  // 레거시 메서드 (호환성 유지)
-  async processQueueRequest(requestId: string): Promise<void> {
-    const request = await queueService.getRequestById(requestId);
-    if (!request) {
-      console.error(`요청을 찾을 수 없습니다: ${requestId}`);
-      return;
-    }
-
-
-    try {
-      // LoRA 프리셋 데이터 파싱
-      let loraPreset: LoRAPresetData | null = null;
-      if (request.loraPresetData) {
-        try {
-          loraPreset = JSON.parse(request.loraPresetData);
-        } catch (parseError) {
-          console.error('LoRA 프리셋 데이터 파싱 실패:', parseError);
-        }
-      }
-
-      // 임시 파일을 읽어서 ComfyUI에 업로드 (레거시)
-      let uploadedImageName = null
-      
-      
-      if (request.imageData && existsSync(request.imageData)) {
-        try {
-          // 임시 파일을 File 객체로 변환 (ComfyUI에서도 고유한 파일명 사용)
-          const imageBuffer = await readFile(request.imageData)
-          const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' })
-          // 기존 임시 파일명을 그대로 사용 (이미 고유함) - 레거시
-          const comfyUIFileName = request.imageFile || `upload_${request.id}_${Date.now()}.png`
-          const file = new File([blob], comfyUIFileName, { type: 'image/png' })
-          
-          // ComfyUI에 파일 업로드
-          uploadedImageName = await this.comfyUIClient.uploadImage(file)
-          
-          // 업로드 성공 후 임시 파일 정리 예약 (10분 후)
-          scheduleFileCleanup(request.imageData, 10)
-        } catch (error) {
-          console.error('❌ 이미지 업로드 실패 (레거시):', error)
-          throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
-        }
-      } else {
-        console.warn('⚠️ 이미지 파일이 없습니다. (레거시)', {
-          requestId: request.id,
-          imageFile: request.imageFile,
-          imagePath: request.imageData,
-          fileExists: request.imageData ? existsSync(request.imageData) : false
-        })
-        throw new Error('이미지 파일이 없습니다.')
-      }
-
-      // ComfyUI 워크플로우 빌드 (레거시 - 로컬만 사용)
-      const legacyServerInfo = {
-        id: 'local',
-        type: 'LOCAL' as const,
-        url: process.env.COMFYUI_API_URL || 'http://localhost:8188',
-        isActive: true,
-        activeJobs: 0,
-        maxJobs: 1,
-        priority: 2
-      }
-      
-      // 끝 이미지 처리 - 레거시 처리 (있는 경우)
-      let uploadedEndImageName = null;
-      if (request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
-        const endImageBuffer = await readFile(request.endImageData);
-        const endImageBlob = new Blob([new Uint8Array(endImageBuffer)], { type: 'image/png' });
-        const endImageFile = new File([endImageBlob], request.endImageFile, { type: 'image/png' });
-        uploadedEndImageName = await this.comfyUIClient.uploadImage(endImageFile);
-        
-        // 업로드 성공 후 임시 파일 정리 예약 (10분 후)
-        scheduleFileCleanup(request.endImageData, 10);
-      }
-
-      const workflow = await buildWanWorkflow({
-        prompt: request.prompt,
-        inputImage: uploadedImageName || request.imageFile || 'input_image.png',
-        endImage: uploadedEndImageName || undefined,
-        loraPreset: loraPreset || undefined,
-        videoLength: request.workflowLength || (16 * (request.duration || 5) + 1)
-      }, legacyServerInfo);
-
-
-      // ComfyUI에 워크플로우 전송
-      const response = await this.comfyUIClient.submitPrompt(workflow);
-      
-
-      // 요청 상태 업데이트 (prompt_id 저장, 상태는 PROCESSING 유지)
-      await queueService.updateRequest(requestId, {
-        jobId: response.prompt_id
-      });
-
-
-      // Job Monitor로 실제 작업 완료 모니터링 시작
-      const job = {
-        id: requestId,
-        userId: request.userId.toString(),
-        promptId: response.prompt_id,
-        prompt: request.prompt,
-        status: 'processing' as const,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isNSFW: Boolean(request.isNSFW),
-        userInfo: {
-          name: request.user?.nickname || request.nickname,
-          image: request.user?.avatar || undefined,
-          discordId: request.user?.discordId || undefined
-        }
-      };
-
-      await jobMonitor.startMonitoring(job);
-
-    } catch (error) {
-      console.error(`❌ 요청 처리 실패: ${requestId}`, error);
-      
-      // 에러 시 서버 해제 (요청 ID로 서버 찾기)
-      const serverToRelease = this.activeServers.find(s => s.currentJobId === requestId);
-      if (serverToRelease) {
-        this.releaseJobFromServer(serverToRelease, requestId);
-      }
-      
-      await queueService.updateRequest(requestId, {
-        status: QueueStatus.FAILED,
-        failedAt: new Date(),
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
-      });
-    } finally {
-      // 작업 완료/실패와 관계없이 메모리에서 제거
-      // (실제 서버 해제는 job monitor에서 처리)
-    }
-  }
-
-  private buildPrompt(userPrompt: string, lora?: string | null, loraStrength?: number | null): string {
-    let finalPrompt = userPrompt.trim();
-    
-    // 품질 프롬프트 추가
-    const qualityPrompt = "best quality, 8k, highly detailed, cinematic";
-    finalPrompt = `${finalPrompt}, ${qualityPrompt}`;
-    
-    // LoRA 추가
-    if (lora && lora !== 'none' && loraStrength) {
-      finalPrompt = `${finalPrompt}, <lora:${lora}:${loraStrength}>`;
-    }
-    
-    return finalPrompt;
   }
 
   getIsRunning(): boolean {

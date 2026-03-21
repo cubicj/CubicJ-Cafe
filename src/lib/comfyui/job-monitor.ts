@@ -5,6 +5,8 @@ import { GenerationJob } from '@/types';
 import { discordBot } from '../discord-bot';
 import { serverManager } from './server-manager';
 import { queueMonitor } from './queue-monitor';
+import { VIDEO_OUTPUT_TYPES, MODEL_REGISTRY } from './workflows/registry';
+import type { VideoModel } from './workflows/types';
 
 interface ComfyUIHistoryStatus {
   status_str?: string;
@@ -312,14 +314,17 @@ class ComfyUIJobMonitor {
         return;
       }
 
-      // ComfyUI outputs에서 비디오 파일 찾기 (gifs 필드에서 mp4 파일 찾기)
+      const videoModel = (job.videoModel as VideoModel) || 'wan';
+      const outputConfig = VIDEO_OUTPUT_TYPES[videoModel];
+      const modelConfig = MODEL_REGISTRY[videoModel];
+
       let videoFound = false;
       for (const [, nodeOutput] of Object.entries(outputs)) {
-        if (nodeOutput.gifs && nodeOutput.gifs.length > 0) {
-          const video = nodeOutput.gifs[0];
+        const outputFiles = (nodeOutput as Record<string, unknown>)[outputConfig.outputField] as Array<{ filename: string; subfolder?: string }> | undefined;
+        if (outputFiles && outputFiles.length > 0) {
+          const video = outputFiles[0];
           videoFound = true;
 
-          // 작업이 처리된 서버 정보 가져오기
           const queueRequest = await queueService.getRequestById(job.id);
           if (!queueRequest?.serverId) {
             throw new Error('서버 정보를 찾을 수 없습니다');
@@ -330,14 +335,15 @@ class ComfyUIJobMonitor {
             throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`);
           }
 
-          const processingTime = job.updatedAt && job.createdAt 
+          const processingTime = job.updatedAt && job.createdAt
             ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
             : undefined;
 
-          console.log('🎬 Discord 비디오 전송 시작:', { 
-            jobId: job.id, 
+          console.log('🎬 Discord 비디오 전송 시작:', {
+            jobId: job.id,
             videoFile: video.filename,
-            serverUrl: server.url 
+            videoModel,
+            serverUrl: server.url
           });
 
           await discordBot.sendVideoToDiscord({
@@ -349,7 +355,8 @@ class ComfyUIJobMonitor {
             processingTime,
             isNSFW: job.isNSFW,
             discordId: job.userInfo.discordId,
-            comfyUIServerUrl: server.url  // 동적 서버 URL 전달
+            comfyUIServerUrl: server.url,
+            videoModel
           });
 
           console.log('✅ Discord 비디오 전송 완료:', job.id);
@@ -357,11 +364,9 @@ class ComfyUIJobMonitor {
         }
       }
 
-      // gifs 필드가 없을 때 히스토리에서 파일명 추출
       if (!videoFound) {
-        console.log('gifs 필드가 없어 히스토리에서 파일명 추출 시도:', job.id);
-        
-        // 작업이 처리된 서버 정보 가져오기
+        console.log('출력 필드가 없어 히스토리에서 파일명 추출 시도:', job.id);
+
         const queueRequest = await queueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
           console.log('서버 정보가 없어 디스코드 전송을 건너뜁니다:', job.id);
@@ -377,38 +382,37 @@ class ComfyUIJobMonitor {
         const comfyUIClient = serverManager.getClient(server);
 
         try {
-          // 히스토리 다시 조회해서 prompt 데이터 확보
           const history = await comfyUIClient.getHistory(job.promptId!);
           const promptData = history[job.promptId!];
-          
+
           if (!promptData) {
             console.log('히스토리에서 prompt 데이터를 찾을 수 없습니다');
             return;
           }
 
-          // 히스토리에서 VHS_VideoCombine 노드의 filename_prefix 추출
           let videoFilename = null;
-          
+
           if (promptData.prompt && Array.isArray(promptData.prompt)) {
-            // VHS_VideoCombine 노드 찾기
             for (const promptItem of promptData.prompt) {
               if (promptItem && typeof promptItem === 'object') {
                 for (const [nodeId, nodeData] of Object.entries(promptItem)) {
-                  if (nodeData && typeof nodeData === 'object' && 
-                      (nodeData as ComfyUIWorkflowNode).class_type === 'VHS_VideoCombine') {
-                    const vhsNode = nodeData as ComfyUIWorkflowNode;
-                    if (vhsNode.inputs && vhsNode.inputs.filename_prefix) {
-                      // filename_prefix에서 WAN/ 부분 제거하고 _00001.mp4 추가
-                      const filenamePrefix = vhsNode.inputs?.filename_prefix;
-                      if (!filenamePrefix || typeof filenamePrefix !== 'string') continue;
-                      const baseFilename = filenamePrefix.replace(/^WAN\//, '');
-                      videoFilename = `${baseFilename}_00001.mp4`;
-                      console.log('🎯 VHS_VideoCombine에서 파일명 추출:', {
-                        nodeId,
-                        filenamePrefix,
-                        videoFilename
-                      });
-                      break;
+                  if (nodeData && typeof nodeData === 'object') {
+                    const node = nodeData as ComfyUIWorkflowNode;
+                    if (node.class_type && outputConfig.classTypes.includes(node.class_type)) {
+                      if (node.inputs && node.inputs.filename_prefix) {
+                        const filenamePrefix = node.inputs?.filename_prefix;
+                        if (!filenamePrefix || typeof filenamePrefix !== 'string') continue;
+                        const subfolderPattern = new RegExp('^' + modelConfig.defaultSubfolder + '/');
+                        const baseFilename = filenamePrefix.replace(subfolderPattern, '');
+                        videoFilename = `${baseFilename}_00001.mp4`;
+                        console.log('🎯 비디오 노드에서 파일명 추출:', {
+                          nodeId,
+                          classType: node.class_type,
+                          filenamePrefix,
+                          videoFilename
+                        });
+                        break;
+                      }
                     }
                   }
                 }
@@ -418,35 +422,36 @@ class ComfyUIJobMonitor {
           }
 
           if (!videoFilename) {
-            console.log('히스토리에서 VHS_VideoCombine 노드를 찾을 수 없습니다');
+            console.log('히스토리에서 비디오 출력 노드를 찾을 수 없습니다');
             return;
           }
-          
-          console.log('🎬 추출된 파일명으로 Discord 전송 시작:', { 
-            jobId: job.id, 
+
+          console.log('🎬 추출된 파일명으로 Discord 전송 시작:', {
+            jobId: job.id,
             videoFilename,
-            serverUrl: server.url 
+            serverUrl: server.url
           });
 
-          const processingTime = job.updatedAt && job.createdAt 
+          const processingTime = job.updatedAt && job.createdAt
             ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
             : undefined;
 
           await discordBot.sendVideoToDiscord({
             filename: videoFilename,
-            subfolder: 'WAN',
+            subfolder: modelConfig.defaultSubfolder,
             prompt: job.prompt,
             username: job.userInfo.name,
             userAvatar: job.userInfo.image,
             processingTime,
             isNSFW: job.isNSFW,
             discordId: job.userInfo.discordId,
-            comfyUIServerUrl: server.url
+            comfyUIServerUrl: server.url,
+            videoModel
           });
 
           console.log('✅ 추출된 파일명으로 Discord 전송 완료:', job.id);
           return;
-          
+
         } catch (error) {
           console.error('히스토리에서 파일명 추출 중 오류:', error);
           console.log('파일명 추출 실패로 디스코드 전송을 건너뜁니다:', job.id);
@@ -456,7 +461,6 @@ class ComfyUIJobMonitor {
 
     } catch (error) {
       console.error('❌ 디스코드 비디오 전송 실패:', error);
-      // 디스코드 전송 실패는 전체 작업을 실패시키지 않음
     }
   }
 }
