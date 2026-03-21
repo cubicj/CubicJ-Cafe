@@ -59,6 +59,7 @@ model QueueRequest {
   completedAt    DateTime?   @map("completed_at")
   failedAt       DateTime?   @map("failed_at")
   error          String?
+  videoModel     String      @default("wan") @map("video_model")
   imageData      String?     @map("image_data")
   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 

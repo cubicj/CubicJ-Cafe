@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-// env removed - using process.env directly
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('hook')
 
 export interface ComfyUIProgressEvent {
   type: 'progress'
@@ -139,10 +141,10 @@ export function useComfyUIWebSocket(options: UseComfyUIWebSocketOptions = {}): U
           break
 
         default:
-          console.log('ComfyUI WebSocket 알 수 없는 메시지:', message)
+          log.info('ComfyUI WebSocket unknown message', { message })
       }
     } catch (error) {
-      console.error('ComfyUI WebSocket 메시지 파싱 오류:', error)
+      log.error('ComfyUI WebSocket message parse error', { error: error instanceof Error ? error.message : String(error) })
     }
   }, [currentStatus, onProgress, onStatusChange, onError])
 
@@ -153,12 +155,12 @@ export function useComfyUIWebSocket(options: UseComfyUIWebSocketOptions = {}): U
 
     try {
       const wsURL = getWebSocketURL()
-      console.log('ComfyUI WebSocket 연결 시도:', wsURL)
+      log.info('ComfyUI WebSocket connecting', { wsURL })
       
       wsRef.current = new WebSocket(wsURL)
 
       wsRef.current.onopen = () => {
-        console.log('ComfyUI WebSocket 연결 성공')
+        log.info('ComfyUI WebSocket connected')
         setIsConnected(true)
         setLastError(null)
         reconnectAttemptsRef.current = 0
@@ -172,12 +174,12 @@ export function useComfyUIWebSocket(options: UseComfyUIWebSocketOptions = {}): U
       wsRef.current.onmessage = handleMessage
 
       wsRef.current.onclose = (event) => {
-        console.log('ComfyUI WebSocket 연결 종료:', event.code, event.reason)
+        log.info('ComfyUI WebSocket closed', { code: event.code, reason: event.reason })
         setIsConnected(false)
         
         if (shouldReconnectRef.current && autoReconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000)
-          console.log(`ComfyUI WebSocket 재연결 시도 ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts} (${delay}ms 후)`)
+          log.info('ComfyUI WebSocket reconnecting', { attempt: reconnectAttemptsRef.current + 1, maxReconnectAttempts, delay })
           
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current++
@@ -187,14 +189,14 @@ export function useComfyUIWebSocket(options: UseComfyUIWebSocketOptions = {}): U
       }
 
       wsRef.current.onerror = (error) => {
-        console.error('ComfyUI WebSocket 오류:', error)
+        log.error('ComfyUI WebSocket error', { error: String(error) })
         const errorMsg = 'ComfyUI WebSocket 연결 오류'
         setLastError(errorMsg)
         onError?.(new Error(errorMsg))
       }
 
     } catch (error) {
-      console.error('ComfyUI WebSocket 연결 실패:', error)
+      log.error('ComfyUI WebSocket connection failed', { error: error instanceof Error ? error.message : String(error) })
       const errorMsg = `WebSocket 연결 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
       setLastError(errorMsg)
       onError?.(new Error(errorMsg))

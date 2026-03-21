@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { getServerSession } from '@/lib/auth/server';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 // GET: 활성화된 LoRA 번들 목록 조회 (사용자용)
 export async function GET() {
   try {
@@ -21,7 +25,7 @@ export async function GET() {
       count: bundles.length,
     });
   } catch (error) {
-    console.error('❌ LoRA 번들 목록 조회 실패:', error);
+    log.error('Failed to fetch LoRA bundle list', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 목록 조회에 실패했습니다.' },
       { status: 500 }

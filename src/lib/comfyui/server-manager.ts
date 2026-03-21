@@ -1,4 +1,7 @@
 import { ComfyUIClient } from './client'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('comfyui')
 
 export interface ComfyUIServer {
   id: string
@@ -71,7 +74,7 @@ export class ComfyUIServerManager {
       } catch (error) {
         server.isActive = false
         server.activeJobs = 0
-        console.warn(`⚠️ 서버 헬스 체크 실패: ${server.id} -`, error)
+        log.warn('Server health check failed', { serverId: server.id, error: error instanceof Error ? error.message : String(error) })
       }
     })
 
@@ -88,20 +91,20 @@ export class ComfyUIServerManager {
     const availableServers = this.getAvailableServers()
     
     if (availableServers.length === 0) {
-      console.warn('⚠️ 사용 가능한 서버가 없습니다. 로컬 서버로 fallback 시도...')
-      
+      log.warn('No available servers, attempting local server fallback')
+
       const localServer = this.servers.find(s => s.type === 'LOCAL')
       if (localServer) {
-        console.log('📍 로컬 서버로 fallback:', localServer.url)
+        log.info('Fallback to local server', { url: localServer.url })
         return localServer
       }
-      
-      console.error('❌ 모든 서버가 사용 불가능합니다')
+
+      log.error('All servers unavailable')
       return null
     }
 
     const bestServer = availableServers[0]
-    console.log(`🎯 최적 서버 선택: ${bestServer.type} (${bestServer.id}) - ${bestServer.url}`)
+    log.info('Best server selected', { type: bestServer.type, id: bestServer.id, url: bestServer.url })
     
     return bestServer
   }

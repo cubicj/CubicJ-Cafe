@@ -7,6 +7,12 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { ServerType } from '@prisma/client';
+import { getActiveModel } from '@/lib/database/model-settings';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
 
 async function selectBestServer() {
   await serverManager.checkServerHealth();
@@ -25,7 +31,7 @@ async function selectBestServer() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎬 Generate API 요청 시작:', {
+    log.info('Generate API request started', {
       method: request.method,
       url: request.url,
       contentType: request.headers.get('content-type'),
@@ -35,42 +41,44 @@ export async function POST(request: NextRequest) {
     const sessionId = sessionManager.getSessionIdFromRequest(request);
     const session = sessionId ? await sessionManager.validateSession(sessionId) : null;
     if (!session?.user) {
-      console.log('❌ 인증 실패: 로그인이 필요합니다.');
+      log.info('Auth failed: login required.');
       return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    console.log('✅ 사용자 인증 성공:', session.user.nickname);
+    log.info('User authenticated', { nickname: session.user.nickname });
 
     // 최적 서버 선택
     const selectedServer = await selectBestServer();
     if (!selectedServer) {
-      console.log('❌ 서버 선택 실패: 현재 사용 가능한 ComfyUI 서버가 없습니다.');
+      log.info('Server selection failed: no available ComfyUI servers.');
       return NextResponse.json({ 
         error: '현재 사용 가능한 서버가 없습니다. 잠시 후 다시 시도해주세요.' 
       }, { status: 503 });
     }
 
-    console.log('✅ 서버 선택 완료:', {
+    log.info('Server selected', {
       serverId: selectedServer.serverId,
       serverType: selectedServer.serverType,
       url: selectedServer.url
     });
 
+    const activeModel = await getActiveModel();
+    const capabilities = MODEL_REGISTRY[activeModel].capabilities;
+
     const formData = await request.formData();
     const prompt = formData.get('prompt') as string;
     const imageFile = formData.get('image') as File | null;
-    const endImageFile = formData.get('endImage') as File | null;
-    const loraName = formData.get('lora') as string;
-    const loraStrength = parseFloat(formData.get('loraStrength') as string || '0.8');
-    const loraPresetData = formData.get('loraPreset') as string;
+    const endImageFile = capabilities.endImage ? formData.get('endImage') as File | null : null;
+    const loraName = capabilities.loraPresets ? formData.get('lora') as string : null;
+    const loraStrength = capabilities.loraPresets ? parseFloat(formData.get('loraStrength') as string || '0.8') : 0;
+    const loraPresetData = capabilities.loraPresets ? formData.get('loraPreset') as string : null;
     const isNSFW = formData.get('isNSFW') === 'true';
     const duration = parseInt(formData.get('duration') as string || '5');
-    
-    // duration 유효성 검사 (4-7초만 허용)
+
     const validDuration = Math.min(Math.max(duration, 4), 7);
     const workflowLength = 16 * validDuration + 1;
 
-    console.log('📋 FormData 파싱 완료:', {
+    log.info('FormData parsed', {
       prompt: prompt?.substring(0, 50) + '...',
       imageFile: imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'null',
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
@@ -102,8 +110,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '시작 이미지 파일은 이미지 형식이어야 합니다.' }, { status: 400 });
     }
 
-    // 끝 이미지 파일 유효성 검사 (선택적)
-    if (endImageFile) {
+    if (capabilities.endImage && endImageFile) {
       if (endImageFile.size > 10 * 1024 * 1024) {
         return NextResponse.json({ error: '끝 이미지 파일이 너무 큽니다 (최대 10MB).' }, { status: 400 });
       }
@@ -114,13 +121,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // LoRA 프리셋 데이터 파싱
       let loraPreset = null;
-      if (loraPresetData) {
+      if (capabilities.loraPresets && loraPresetData) {
         try {
           loraPreset = JSON.parse(loraPresetData);
         } catch (parseError) {
-          console.error('LoRA 프리셋 데이터 파싱 실패:', parseError);
+          log.error('LoRA preset data parse failed', { error: parseError instanceof Error ? parseError.message : String(parseError) });
         }
       }
 
@@ -141,16 +147,15 @@ export async function POST(request: NextRequest) {
       const imageBuffer = await imageFile.arrayBuffer()
       await writeFile(tempFilePath, Buffer.from(imageBuffer))
       
-      console.log('💾 시작 이미지 임시 파일 저장:', {
+      log.info('Start image temp file saved', {
         originalName: imageFile.name,
         tempFileName,
         size: imageFile.size
       })
 
-      // 끝 이미지 저장 (선택적)
       let endTempFileName = null
       let endTempFilePath = null
-      if (endImageFile) {
+      if (capabilities.endImage && endImageFile) {
         const endUuid = randomUUID()
         const endFileExtension = endImageFile.name.split('.').pop() || 'png'
         endTempFileName = `end_${endUuid}_${userId}_${timestamp}.${endFileExtension}`
@@ -159,7 +164,7 @@ export async function POST(request: NextRequest) {
         const endImageBuffer = await endImageFile.arrayBuffer()
         await writeFile(endTempFilePath, Buffer.from(endImageBuffer))
         
-        console.log('💾 끝 이미지 임시 파일 저장:', {
+        log.info('End image temp file saved', {
           originalName: endImageFile.name,
           tempFileName: endTempFileName,
           size: endImageFile.size
@@ -181,10 +186,11 @@ export async function POST(request: NextRequest) {
         duration: validDuration,
         workflowLength: workflowLength,
         serverType: selectedServer.serverType,
-        serverId: selectedServer.serverId
+        serverId: selectedServer.serverId,
+        videoModel: activeModel
       });
 
-      console.log(`🎬 큐에 요청 추가됨 - Request ID: ${requestId}, User: ${session.user.nickname}`);
+      log.info('Request queued', { requestId, user: session.user.nickname });
 
       return NextResponse.json({
         success: true,
@@ -200,7 +206,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Queue 요청 처리 에러:', error);
+    log.error('Queue request processing error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
       { status: 500 }

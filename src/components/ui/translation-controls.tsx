@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ui');
 import { Button } from './button';
 import { Loader2, RotateCcw, Languages } from 'lucide-react';
 
@@ -48,7 +51,7 @@ export function TranslationControls({
           }
         }
       } catch (error) {
-        console.error('번역 설정 로드 실패:', error);
+        log.error('Failed to load translation settings', { error: error instanceof Error ? error.message : String(error) });
       }
     };
 
@@ -107,7 +110,7 @@ export function TranslationControls({
       onTextChange(translatedText);
 
     } catch (error) {
-      console.error('번역 오류:', error);
+      log.error('Translation error', { error: error instanceof Error ? error.message : String(error) });
       alert(error instanceof Error ? error.message : '번역 중 오류가 발생했습니다.');
     } finally {
       setState(prev => ({

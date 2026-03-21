@@ -32,7 +32,7 @@ function ErrorContent() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Button asChild className="w-full">
-            <Link href="/auth/signin">다시 로그인</Link>
+            <Link href="/">다시 로그인</Link>
           </Button>
           <Button asChild variant="outline" className="w-full">
             <Link href="/">홈으로 돌아가기</Link>

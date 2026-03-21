@@ -4,6 +4,10 @@ import { sessionManager } from "@/lib/auth/session";
 import { initializeServices } from "@/lib/startup/init";
 import { isAdmin } from "@/lib/auth/admin";
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('queue');
+
 export async function GET(request: NextRequest) {
   try {
     initializeServices();
@@ -17,7 +21,7 @@ export async function GET(request: NextRequest) {
           const queueList = await queueService.getQueueList();
           return NextResponse.json({ success: true, data: queueList || [] });
         } catch (dbError) {
-          console.error('Queue list 조회 실패:', dbError);
+          log.error('Queue list fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
           return NextResponse.json(
             { success: false, data: [], error: '큐 목록 조회에 실패했습니다.' },
             { status: 503 }
@@ -29,7 +33,7 @@ export async function GET(request: NextRequest) {
           const stats = await queueService.getQueueStats();
           return NextResponse.json({ success: true, data: stats || { pending: 0, processing: 0, todayCompleted: 0, total: 0 } });
         } catch (dbError) {
-          console.error('Queue stats 조회 실패:', dbError);
+          log.error('Queue stats fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
           return NextResponse.json(
             { success: false, data: { pending: 0, processing: 0, todayCompleted: 0, total: 0 }, error: '큐 통계 조회에 실패했습니다.' },
             { status: 503 }
@@ -47,7 +51,7 @@ export async function GET(request: NextRequest) {
           const userRequests = await queueService.getUserRequests(parseInt(session.user.id));
           return NextResponse.json({ success: true, data: userRequests || [] });
         } catch (dbError) {
-          console.error('User requests 조회 실패:', dbError);
+          log.error('User requests fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
           return NextResponse.json(
             { success: false, data: [], error: '사용자 요청 목록 조회에 실패했습니다.' },
             { status: 503 }
@@ -58,7 +62,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: '잘못된 action 파라미터입니다.' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Queue API 에러:', error);
+    log.error('Queue API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
       { status: 500 }
@@ -96,7 +100,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: '잘못된 action입니다.' }, { status: 400 });
     }
   } catch (error) {
-    console.error('Queue POST API 에러:', error);
+    log.error('Queue POST API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
       { status: 500 }

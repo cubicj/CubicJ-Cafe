@@ -1,4 +1,7 @@
 import { prisma } from './prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('database');
 
 export async function getSystemSetting(key: string, defaultValue: string = ''): Promise<string> {
   try {
@@ -7,7 +10,7 @@ export async function getSystemSetting(key: string, defaultValue: string = ''): 
     });
     return setting?.value || defaultValue;
   } catch (error) {
-    console.error(`시스템 설정 조회 오류 (${key}):`, error);
+    log.error('System setting fetch error', { key, error: error instanceof Error ? error.message : String(error) });
     return defaultValue;
   }
 }
@@ -35,7 +38,7 @@ export async function setSystemSetting(
       create: { key, value, type, category }
     });
   } catch (error) {
-    console.error(`시스템 설정 저장 오류 (${key}):`, error);
+    log.error('System setting save error', { key, error: error instanceof Error ? error.message : String(error) });
     throw error;
   }
 }
@@ -88,7 +91,7 @@ export async function initializeDefaultSettings(): Promise<void> {
         create: setting
       });
     } catch (error) {
-      console.error(`기본 설정 초기화 오류 (${setting.key}):`, error);
+      log.error('Default setting init error', { key: setting.key, error: error instanceof Error ? error.message : String(error) });
     }
   }
 }

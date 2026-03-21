@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('hook');
 
 interface UseWebSocketReturn {
   isConnected: boolean;
@@ -12,8 +15,7 @@ export default function useWebSocket(url: string): UseWebSocketReturn {
   const [socket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    // TODO: WebSocket 연결 구현
-    console.log('WebSocket connection to:', url);
+    log.info('WebSocket connection to', { url });
     setIsConnected(true);
 
     return () => {
@@ -28,7 +30,7 @@ export default function useWebSocket(url: string): UseWebSocketReturn {
     if (socket && isConnected) {
       socket.send(message);
     } else {
-      console.log('WebSocket not connected, message:', message);
+      log.info('WebSocket not connected', { message });
     }
   };
 

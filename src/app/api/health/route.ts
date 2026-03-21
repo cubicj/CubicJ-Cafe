@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
+import { createLogger } from '@/lib/logger';
 import fs from 'fs/promises';
+
+const log = createLogger('system');
 
 interface HealthCheck {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -213,7 +215,7 @@ async function getSystemMetrics() {
       percentage: 0,
     };
   } catch (error) {
-    logger.warn('Failed to get disk statistics', { error: error instanceof Error ? error.message : error });
+    log.warn('Failed to get disk statistics', { error: error instanceof Error ? error.message : error });
   }
 
   return stats;
@@ -223,7 +225,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    logger.info('Health check requested', {
+    log.info('Health check requested', {
       userAgent: request.headers.get('user-agent'),
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     });
@@ -270,9 +272,12 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    logger.logSystemMetrics({
-      memoryUsage: process.memoryUsage(),
-      uptime: process.uptime(),
+    log.info('System metrics', {
+      memoryUsage: {
+        rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
+        heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      },
+      uptime: `${Math.round(process.uptime() / 60)}min`,
     });
 
     const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
@@ -282,7 +287,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const responseTime = Date.now() - startTime;
     
-    logger.error('Health check failed', error instanceof Error ? error : new Error(String(error)));
+    log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
 
     const errorResponse: Partial<HealthCheck> = {
       status: 'unhealthy',

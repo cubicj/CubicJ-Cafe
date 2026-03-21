@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
 import { getServerSession } from '@/lib/auth/server';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 // GET: 특정 LoRA 프리셋 조회
 export async function GET(
   request: NextRequest,
@@ -31,7 +35,7 @@ export async function GET(
       preset,
     });
   } catch (error) {
-    console.error('❌ LoRA 프리셋 조회 실패:', error);
+    log.error('Failed to fetch LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 프리셋 조회에 실패했습니다.' },
       { status: 500 }
@@ -59,7 +63,7 @@ export async function PUT(
     try {
       body = await request.json();
     } catch (jsonError) {
-      console.error('❌ JSON 파싱 실패:', jsonError);
+      log.error('JSON parse failed', { error: jsonError instanceof Error ? jsonError.message : String(jsonError) });
       return NextResponse.json(
         { error: '잘못된 JSON 데이터입니다.' },
         { status: 400 }
@@ -105,7 +109,7 @@ export async function PUT(
       preset,
     });
   } catch (error) {
-    console.error('❌ LoRA 프리셋 수정 실패:', error);
+    log.error('Failed to update LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 프리셋 수정에 실패했습니다.' },
       { status: 500 }
@@ -142,7 +146,7 @@ export async function DELETE(
       message: '프리셋이 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('❌ LoRA 프리셋 삭제 실패:', error);
+    log.error('Failed to delete LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 프리셋 삭제에 실패했습니다.' },
       { status: 500 }

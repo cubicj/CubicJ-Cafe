@@ -1,5 +1,8 @@
 import { prisma } from './prisma';
 import type { LoRAPreset, LoRAPresetItem } from '@prisma/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('database');
 
 export interface LoRAPresetWithItems extends LoRAPreset {
   loraItems: LoRAPresetItem[];
@@ -59,7 +62,7 @@ export class LoRAPresetService {
 
       return presets;
     } catch (error) {
-      console.error('❌ LoRA 프리셋 조회 실패:', error);
+      log.error('Failed to fetch LoRA presets', { error: error instanceof Error ? error.message : String(error) });
       throw new Error('프리셋 조회에 실패했습니다.');
     }
   }
@@ -84,11 +87,11 @@ export class LoRAPresetService {
       });
 
       if (preset) {
-        console.log(`✅ LoRA 프리셋 상세 조회 성공: ${presetId}`);
+        log.info('LoRA preset detail fetched', { presetId });
       }
       return preset;
     } catch (error) {
-      console.error('❌ LoRA 프리셋 상세 조회 실패:', error);
+      log.error('Failed to fetch LoRA preset detail', { error: error instanceof Error ? error.message : String(error) });
       throw new Error('프리셋 조회에 실패했습니다.');
     }
   }
@@ -120,10 +123,10 @@ export class LoRAPresetService {
         },
       });
 
-      console.log(`✅ LoRA 프리셋 생성 성공: ${preset.name} (${preset.id})`);
+      log.info('LoRA preset created', { name: preset.name, id: preset.id });
       return preset;
     } catch (error) {
-      console.error('❌ LoRA 프리셋 생성 실패:', error);
+      log.error('Failed to create LoRA preset', { error: error instanceof Error ? error.message : String(error) });
       throw new Error('프리셋 생성에 실패했습니다.');
     }
   }
@@ -180,10 +183,10 @@ export class LoRAPresetService {
         },
       });
 
-      console.log(`✅ LoRA 프리셋 수정 성공: ${preset.name} (${preset.id})`);
+      log.info('LoRA preset updated', { name: preset.name, id: preset.id });
       return preset;
     } catch (error) {
-      console.error('❌ LoRA 프리셋 수정 실패:', error);
+      log.error('Failed to update LoRA preset', { error: error instanceof Error ? error.message : String(error) });
       throw new Error(error instanceof Error ? error.message : '프리셋 수정에 실패했습니다.');
     }
   }
@@ -207,10 +210,10 @@ export class LoRAPresetService {
         where: { id: presetId },
       });
 
-      console.log(`✅ LoRA 프리셋 삭제 성공: ${preset.name} (${presetId})`);
+      log.info('LoRA preset deleted', { name: preset.name, presetId });
       return true;
     } catch (error) {
-      console.error('❌ LoRA 프리셋 삭제 실패:', error);
+      log.error('Failed to delete LoRA preset', { error: error instanceof Error ? error.message : String(error) });
       throw new Error(error instanceof Error ? error.message : '프리셋 삭제에 실패했습니다.');
     }
   }
@@ -251,11 +254,11 @@ export class LoRAPresetService {
               ...presetData,
             },
           });
-          console.log(`✅ 기본 프리셋 생성: ${presetData.name}`);
+          log.info('Default preset created', { name: presetData.name });
         }
       }
     } catch (error) {
-      console.error('❌ 기본 프리셋 생성 실패:', error);
+      log.error('Failed to create default presets', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 }

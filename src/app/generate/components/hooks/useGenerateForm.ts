@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { User } from "@/types";
+import { createLogger } from '@/lib/logger';
+import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
+
+const log = createLogger('generate');
 
 interface ServerInfo {
   type: 'local' | 'runpod'
@@ -70,6 +74,8 @@ interface UseGenerateFormReturn {
   setIsRefreshing: (refreshing: boolean) => void;
   isLoadingServerStatus: boolean;
   setIsLoadingServerStatus: (loading: boolean) => void;
+  activeModel: VideoModel;
+  capabilities: ModelCapabilities;
   isFormValid: boolean;
   handleGenerate: () => Promise<void>;
   handleNewGeneration: () => void;
@@ -120,6 +126,10 @@ export function useGenerateForm(): UseGenerateFormReturn {
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
+  const [activeModel, setActiveModel] = useState<VideoModel>('ltx');
+  const [capabilities, setCapabilities] = useState<ModelCapabilities>({
+    loraPresets: false, endImage: false, videoDuration: false, audio: true,
+  });
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -152,7 +162,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
         setUser(null);
       }
     } catch (error) {
-      console.error('사용자 정보 조회 실패:', error);
+      log.error('Failed to fetch user info', { error: error instanceof Error ? error.message : String(error) });
       setUser(null);
     } finally {
       setIsLoadingAuth(false);
@@ -170,7 +180,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
     } catch (error) {
       // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
-        console.error('서버 상태 조회 실패:', error);
+        log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) });
       }
     } finally {
       setIsLoadingServerStatus(false);
@@ -186,7 +196,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
         return data.presets || [];
       }
     } catch (err) {
-      console.error('❌ LoRA 프리셋 목록 조회 실패:', err);
+      log.error('Failed to fetch LoRA preset list', { error: err instanceof Error ? err.message : String(err) });
     }
     return [];
   };
@@ -275,7 +285,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
       }
       
     } catch (error) {
-      console.error("큐 요청 실패:", error);
+      log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
       
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       const errorMessage = isNetworkError 
@@ -308,10 +318,20 @@ export function useGenerateForm(): UseGenerateFormReturn {
   useEffect(() => {
     fetchUser();
     fetchServerStatus();
-    
-    fetchPresets().then((allPresets) => {
-      setPresets(allPresets);
-    });
+
+    fetch('/api/system/active-model')
+      .then(res => res.json())
+      .then(data => {
+        log.info('Active model loaded', { model: data.model, capabilities: data.capabilities });
+        setActiveModel(data.model);
+        setCapabilities(data.capabilities);
+        if (data.capabilities.loraPresets) {
+          fetchPresets().then((allPresets) => {
+            setPresets(allPresets);
+          });
+        }
+      })
+      .catch((err: unknown) => log.error('Failed to load active model', { error: err instanceof Error ? err.message : String(err) }));
   }, []);
 
   useEffect(() => {
@@ -374,6 +394,8 @@ export function useGenerateForm(): UseGenerateFormReturn {
     setIsRefreshing,
     isLoadingServerStatus,
     setIsLoadingServerStatus,
+    activeModel,
+    capabilities,
     isFormValid,
     handleGenerate,
     handleNewGeneration,

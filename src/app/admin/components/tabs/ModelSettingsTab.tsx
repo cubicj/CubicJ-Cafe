@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Save } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
 
 interface ModelSettings {
   highDiffusionModel: string;
@@ -36,6 +40,8 @@ interface ModelSettingsTabProps {
   updateModelSettings: () => Promise<void>;
 }
 
+const log = createLogger('admin');
+
 export default function ModelSettingsTab({
   modelSettings,
   setModelSettings,
@@ -43,8 +49,65 @@ export default function ModelSettingsTab({
   modelsLoading,
   updateModelSettings
 }: ModelSettingsTabProps) {
+  const [activeModel, setActiveModel] = useState<VideoModel>('ltx');
+
+  useEffect(() => {
+    fetch('/api/system/active-model')
+      .then(res => res.json())
+      .then(data => {
+        log.info('Active model loaded', { model: data.model, capabilities: data.capabilities });
+        if (data.model) setActiveModel(data.model);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleModelChange = async (model: VideoModel) => {
+    const queueRes = await fetch('/api/queue');
+    const queueData = await queueRes.json();
+    const activeRequests = queueData.data?.filter(
+      (r: { status: string }) => r.status === 'PENDING' || r.status === 'PROCESSING'
+    ).length || 0;
+
+    if (activeRequests > 0) {
+      const confirmed = window.confirm(
+        `현재 처리 대기 중인 요청이 ${activeRequests}건 있습니다. 모델을 변경하시겠습니까?`
+      );
+      if (!confirmed) return;
+    }
+
+    const res = await fetch('/api/system/active-model', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model }),
+    });
+    if (res.ok) {
+      setActiveModel(model);
+    }
+  };
+
   return (
     <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">활성 모델</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Select value={activeModel} onValueChange={(v) => handleModelChange(v as VideoModel)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(MODEL_REGISTRY).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>{config.displayName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">모든 사용자의 생성 요청에 적용됩니다</p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">AI 모델 설정</CardTitle>
