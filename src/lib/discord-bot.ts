@@ -442,7 +442,11 @@ class DiscordBot {
   }
 }
 
-export const discordBot = new DiscordBot();
+declare global {
+  var __discordBot: DiscordBot | undefined;
+}
+
+export const discordBot = globalThis.__discordBot ?? (globalThis.__discordBot = new DiscordBot());
 
 export type SendImageParams = {
   imagePath: string;
