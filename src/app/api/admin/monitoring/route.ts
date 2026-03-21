@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
-// env removed - using process.env directly
+import { createLogger } from '@/lib/logger';
 import fs from 'fs/promises';
+
+const log = createLogger('admin');
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -108,7 +109,7 @@ async function checkPM2Status(): Promise<PM2Status[]> {
       restarts: proc.pm2_env?.restart_time || 0,
     }));
   } catch (error) {
-    logger.warn('Failed to get PM2 status', { error: error instanceof Error ? error.message : error });
+    log.warn('Failed to get PM2 status', { error: error instanceof Error ? error.message : error });
     return [];
   }
 }
@@ -193,7 +194,7 @@ async function getSystemMetrics() {
         percentage: Math.round((parseInt(memLines[2]) / parseInt(memLines[1])) * 100),
       };
     } catch (error) {
-      logger.debug('Failed to get system memory info', { error: error instanceof Error ? error.message : error });
+      log.debug('Failed to get system memory info', { error: error instanceof Error ? error.message : error });
     }
 
     try {
@@ -206,19 +207,19 @@ async function getSystemMetrics() {
         percentage: parseInt(diskLines[4].replace('%', '')),
       };
     } catch (error) {
-      logger.debug('Failed to get disk info', { error: error instanceof Error ? error.message : error });
+      log.debug('Failed to get disk info', { error: error instanceof Error ? error.message : error });
     }
 
     try {
       const { stdout: cpuInfo } = await execAsync('nproc');
       systemInfo.cpu.cores = parseInt(cpuInfo.trim());
     } catch (error) {
-      logger.debug('Failed to get CPU info', { error: error instanceof Error ? error.message : error });
+      log.debug('Failed to get CPU info', { error: error instanceof Error ? error.message : error });
     }
 
     return systemInfo;
   } catch (error) {
-    logger.warn('Failed to get system metrics', { error: error instanceof Error ? error.message : error });
+    log.warn('Failed to get system metrics', { error: error instanceof Error ? error.message : error });
     
     const memoryUsage = process.memoryUsage();
     return {
@@ -275,7 +276,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
       const stats = await fs.stat(applicationLogPath);
       size.application = stats.size;
     } catch (error) {
-      logger.debug('Failed to read application log', { error: error instanceof Error ? error.message : error });
+      log.debug('Failed to read application log', { error: error instanceof Error ? error.message : error });
     }
 
     try {
@@ -298,14 +299,14 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
       const stats = await fs.stat(errorLogPath);
       size.error = stats.size;
     } catch (error) {
-      logger.debug('Failed to read error log', { error: error instanceof Error ? error.message : error });
+      log.debug('Failed to read error log', { error: error instanceof Error ? error.message : error });
     }
 
     size.total = size.application + size.error;
 
     return { recent, errors, size };
   } catch (error) {
-    logger.warn('Failed to get recent logs', { error: error instanceof Error ? error.message : error });
+    log.warn('Failed to get recent logs', { error: error instanceof Error ? error.message : error });
     return {
       recent: [],
       errors: [],
@@ -322,7 +323,7 @@ export async function GET(request: NextRequest) {
     // const session = await getServerSession(authOptions);
     // 
     // if (!session?.user) {
-    //   logger.warn('Unauthorized monitoring access attempt', {
+    //   log.warn('Unauthorized monitoring access attempt', {
     //     ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     //     userAgent: request.headers.get('user-agent'),
     //   });
@@ -333,7 +334,7 @@ export async function GET(request: NextRequest) {
     //   );
     // }
 
-    logger.info('Monitoring data requested', {
+    log.info('Monitoring data requested', {
       user: 'admin', // TODO: 실제 사용자 정보로 교체
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     });
@@ -371,7 +372,7 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    logger.info('Monitoring data collected', {
+    log.info('Monitoring data collected', {
       user: 'admin', // TODO: 실제 사용자 정보로 교체
       responseTime,
       dataSize: JSON.stringify(monitoringData).length,
@@ -382,7 +383,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const responseTime = Date.now() - startTime;
     
-    logger.error('Failed to collect monitoring data', error instanceof Error ? error : new Error(String(error)));
+    log.error('Failed to collect monitoring data', { error: error instanceof Error ? error.message : String(error) });
 
     return NextResponse.json(
       { 

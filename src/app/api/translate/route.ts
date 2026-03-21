@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 interface TranslateRequest {
   text: string;
   service: 'google' | 'gemini';
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Translation API error:', error);
+    log.error('Translation API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: '번역 중 오류가 발생했습니다.' },
       { status: 500 }

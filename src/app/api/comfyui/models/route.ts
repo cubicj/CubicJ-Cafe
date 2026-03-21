@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
+
 export async function GET() {
   try {
-    console.log('📁 ComfyUI model list API called')
+    log.info('ComfyUI model list API called')
     
     const client = new ComfyUIClient()
     
     try {
       const models = await client.getModelList()
       
-      console.log('✅ Model list fetched:', {
+      log.info('Model list fetched', {
         diffusionModels: models.diffusionModels.length,
         textEncoders: models.textEncoders.length,
         vaes: models.vaes.length,
@@ -23,7 +27,7 @@ export async function GET() {
         models
       })
     } catch (connectionError) {
-      console.error('❌ ComfyUI server connection failed:', connectionError)
+      log.error('ComfyUI server connection failed', { error: connectionError instanceof Error ? connectionError.message : String(connectionError) })
       
       return NextResponse.json({
         success: false,
@@ -41,7 +45,7 @@ export async function GET() {
     }
     
   } catch (error) {
-    console.error('❌ Failed to fetch ComfyUI model list:', error)
+    log.error('Failed to fetch ComfyUI model list', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json({
       success: false,

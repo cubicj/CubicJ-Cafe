@@ -5,6 +5,10 @@ import type { VideoModel } from '@/lib/comfyui/workflows/types'
 import { sessionManager } from '@/lib/auth/session'
 import { isAdmin } from '@/lib/auth/admin'
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 export async function GET() {
   try {
     const model = await getActiveModel()
@@ -15,7 +19,7 @@ export async function GET() {
       capabilities: config.capabilities,
     })
   } catch (error) {
-    console.error('Active model fetch error:', error)
+    log.error('Active model fetch error', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json(
       { error: '활성 모델을 조회할 수 없습니다.' },
       { status: 500 }
@@ -49,7 +53,7 @@ export async function PUT(request: NextRequest) {
       capabilities: config.capabilities,
     })
   } catch (error) {
-    console.error('Active model change error:', error)
+    log.error('Active model change error', { error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json(
       { error: '활성 모델 변경에 실패했습니다.' },
       { status: 500 }

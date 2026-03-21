@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UserService } from '@/lib/database/users';
 import { withAuth } from '@/lib/auth/middleware';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 // Node.js runtime 사용 (Edge Runtime이 아닌)
 export const runtime = 'nodejs';
 
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
         user: updatedUser,
       });
     } catch (error) {
-      console.error('Nickname setup error:', error);
+      log.error('Nickname setup error', { error: error instanceof Error ? error.message : String(error) });
       return NextResponse.json(
         { error: '닉네임 설정 중 오류가 발생했습니다.' },
         { status: 500 }
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ available: isAvailable });
   } catch (error) {
-    console.error('Nickname check error:', error);
+    log.error('Nickname check error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ available: false });
   }
 }

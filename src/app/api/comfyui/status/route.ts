@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
+
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 // env removed - using process.env directly
 
 interface ServerStatus {
@@ -128,7 +132,7 @@ export async function GET() {
       timestamp: new Date().toISOString()
     })
   } catch {
-    console.error('ComfyUI status API error: server connection failed')
+    log.error('ComfyUI status API error: server connection failed')
     
     return NextResponse.json({
       servers: [],

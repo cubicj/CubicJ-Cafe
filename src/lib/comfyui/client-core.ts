@@ -1,4 +1,7 @@
 import type { ComfyUIWorkflow, ComfyUIResponse } from '@/types'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('comfyui')
 import type { ComfyUIPromptRequest, ComfyUIQueueResponse, ComfyUIQueueStatus, ComfyUIHistoryResponse, DownloadedMedia, ModelListResponse } from './client-types'
 import { ComfyUIServerManager } from './client-server-manager'
 import { ComfyUIModelManager } from './client-model-manager'
@@ -81,9 +84,9 @@ export class ComfyUIClient {
       try {
         return JSON.parse(responseText)
       } catch (parseError) {
-        console.error('ComfyUI JSON parse error:', {
+        log.error('ComfyUI JSON parse error', {
           responseText: responseText.substring(0, 200),
-          error: parseError
+          error: parseError instanceof Error ? parseError.message : String(parseError)
         })
         throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
       }
@@ -114,8 +117,8 @@ export class ComfyUIClient {
 
       return response
     } catch (error) {
-      console.error('❌ ComfyUI workflow submit failed:', {
-        error: error instanceof Error ? error.message : error,
+      log.error('ComfyUI workflow submit failed', {
+        error: error instanceof Error ? error.message : String(error),
         baseURL: this.baseURL,
         endpoint: '/prompt'
       })
@@ -130,7 +133,7 @@ export class ComfyUIClient {
       const response = await this.makeRequest<{ exec_info?: { queue_remaining: number } }>('/queue')
       return response.exec_info ? response as ComfyUIQueueResponse : null
     } catch (error) {
-      console.warn('Queue status check failed:', error)
+      log.warn('Queue status check failed', { error: error instanceof Error ? error.message : String(error) })
       return null
     }
   }
@@ -140,7 +143,7 @@ export class ComfyUIClient {
       const response = await this.makeRequest<ComfyUIQueueStatus>('/queue')
       return response
     } catch (error) {
-      console.warn('Queue list check failed:', error)
+      log.warn('Queue list check failed', { error: error instanceof Error ? error.message : String(error) })
       return null
     }
   }

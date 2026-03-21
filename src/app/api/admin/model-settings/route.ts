@@ -3,6 +3,10 @@ import { isAdmin } from '@/lib/auth/admin'
 import { sessionManager } from '@/lib/auth/session'
 import { getModelSettings, updateModelSettings, ModelSettings } from '@/lib/database/model-settings'
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('admin');
+
 export async function GET(request: NextRequest) {
   try {
     const sessionId = sessionManager.getSessionIdFromRequest(request)
@@ -24,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const modelSettings = await getModelSettings()
     
-    console.log('✅ Model settings fetched:', modelSettings)
+    log.info('Model settings fetched:', modelSettings)
     
     return NextResponse.json({
       success: true,
@@ -32,7 +36,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('❌ Failed to fetch model settings:', error)
+    log.error('Failed to fetch model settings', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json({
       success: false,
@@ -70,20 +74,20 @@ export async function PUT(request: NextRequest) {
       }
       body = JSON.parse(requestText)
     } catch (parseError) {
-      console.error('Request JSON parse error:', parseError)
+      log.error('Request JSON parse error', { error: parseError instanceof Error ? parseError.message : String(parseError) })
       return NextResponse.json({
         success: false,
         error: '잘못된 JSON 형식입니다.'
       }, { status: 400 })
     }
     
-    console.log('🔧 Model settings update request:', body)
+    log.info('Model settings update request:', body)
     
     await updateModelSettings(body)
     
     const updatedSettings = await getModelSettings()
     
-    console.log('✅ Model settings updated:', updatedSettings)
+    log.info('Model settings updated:', updatedSettings)
     
     return NextResponse.json({
       success: true,
@@ -92,7 +96,7 @@ export async function PUT(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('❌ Failed to update model settings:', error)
+    log.error('Failed to update model settings', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json({
       success: false,

@@ -1,6 +1,9 @@
 import type { ComfyUIWorkflow, LoRAPresetItem } from '@/types';
 import type { ComfyUIServer } from '../../server-manager';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 
 interface LoRAPreset {
   presetName: string;
@@ -33,7 +36,7 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
     applyLorasToNode(workflow['306'] as WorkflowNode, processedLowLoras, 'LOW', 306, server);
   }
 
-  console.log('🎨 LoRA preset applied:', {
+  log.info('LoRA preset applied', {
     presetName: loraPreset.presetName,
     totalProcessed: processedHighLoras.length + processedLowLoras.length,
     highCount: processedHighLoras.length,
@@ -55,7 +58,8 @@ function processLoraGroup(groupItems: LoRAPresetItem[], groupName: string) {
   const uniqueLoras = Array.from(loraMap.values());
 
   if (groupItems.length > uniqueLoras.length) {
-    console.log(`🔄 Duplicates removed from ${groupName} group:`, {
+    log.info('Duplicates removed from LoRA group', {
+      group: groupName,
       original: groupItems.length,
       afterDedup: uniqueLoras.length,
       removed: groupItems.length - uniqueLoras.length,
@@ -93,7 +97,9 @@ function applyLorasToNode(node: WorkflowNode, loras: LoRAPresetItem[], groupName
     };
   });
 
-  console.log(`🔗 ${groupName} LoRA applied (node ${nodeNumber}):`, {
+  log.info('LoRA applied to node', {
+    group: groupName,
+    nodeNumber,
     count: loras.length,
     loras: loras.map(lora => ({
       filename: lora.loraFilename,
@@ -126,7 +132,8 @@ async function resolveLoRAItems(loraItems: LoRAPresetItem[]): Promise<LoRAPreset
       const needsUpdate = resolvedData.resolvedFilename !== item.loraFilename;
 
       if (needsUpdate) {
-        console.log(`🔄 LoRA bundle dynamic update: ${item.loraName}`, {
+        log.info('LoRA bundle dynamic update', {
+          loraName: item.loraName,
           bundleId: item.bundleId,
           originalFilename: item.loraFilename,
           resolvedFilename: resolvedData.resolvedFilename,
@@ -148,7 +155,7 @@ async function resolveLoRAItems(loraItems: LoRAPresetItem[]): Promise<LoRAPreset
     return [...resolvedBundleItems, ...nonBundleItems];
 
   } catch (error) {
-    console.error('❌ LoRA dynamic resolution failed, using original data:', error);
+    log.error('LoRA dynamic resolution failed, using original data', { error: error instanceof Error ? error.message : String(error) });
     return loraItems;
   }
 }

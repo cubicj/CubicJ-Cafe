@@ -1,5 +1,8 @@
 import type { ComfyUIWorkflow, GenerationParams } from '@/types';
 import { getNegativePrompt, getQualityPrompt, getVideoResolution } from '@/lib/database/system-settings';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 
 export function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   // End Image가 없을 때 관련 노드들을 우회하는 로직
@@ -18,15 +21,15 @@ export function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   // End Image 관련 노드들을 워크플로우에서 제거
   if (workflow['324']?.inputs) {
     delete workflow['324'];
-    console.log('🗑️ Node 324 (End Image CLIP Vision Encode) removed');
+    log.info('Node 324 (End Image CLIP Vision Encode) removed');
   }
   
   if (workflow['325']?.inputs) {
     delete workflow['325'];
-    console.log('🗑️ Node 325 (End Image LoadImage) removed');
+    log.info('Node 325 (End Image LoadImage) removed');
   }
   
-  console.log('✅ End Image bypass complete');
+  log.info('End Image bypass complete');
 }
 
 export async function applyPromptSettings(workflow: ComfyUIWorkflow, params: GenerationParams) {
@@ -41,9 +44,9 @@ export async function applyPromptSettings(workflow: ComfyUIWorkflow, params: Gen
     workflow['266'].inputs.negative = negativePrompt;
   }
   
-  console.log('📝 Prompt settings applied:', {
+  log.info('Prompt settings applied', {
     prompt: params.prompt,
-    negativePrompt: negativePrompt,
+    negativePrompt,
   });
 }
 
@@ -61,7 +64,7 @@ export async function applyImageSettings(workflow: ComfyUIWorkflow, params: Gene
     handleEndImageBypass(workflow);
   }
 
-  console.log('🖼️ Image settings applied:', {
+  log.info('Image settings applied', {
     inputImage: params.inputImage ? '설정됨' : '없음',
     endImage: endImage ? '설정됨' : '없음 (우회 처리)',
   });
@@ -86,9 +89,9 @@ export async function applyGenerationSettings(workflow: ComfyUIWorkflow, params:
     workflow['293'].inputs.positive = qualityPrompt;
   }
 
-  console.log('⚙️ Generation settings applied:', {
+  log.info('Generation settings applied', {
     videoLength: videoLength || '기본값 사용',
-    videoResolution: videoResolution,
+    videoResolution,
     qualityPrompt: qualityPrompt || '없음',
   });
 }
@@ -98,10 +101,10 @@ export function validateWorkflowNodes(workflow: ComfyUIWorkflow): boolean {
   const missingNodes = requiredNodes.filter(nodeId => !workflow[nodeId]);
   
   if (missingNodes.length > 0) {
-    console.error('❌ Required workflow nodes missing:', missingNodes);
+    log.error('Required workflow nodes missing', { missingNodes });
     return false;
   }
   
-  console.log('✅ Workflow node validation passed');
+  log.info('Workflow node validation passed');
   return true;
 }

@@ -1,35 +1,32 @@
-// 전역 에러 핸들러
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('system');
+
 export function setupGlobalErrorHandlers(): void {
-  // unhandledRejection 핸들러 (Discord Bot 에러 등)
   process.on('unhandledRejection', (reason, promise) => {
-    console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
-    
-    // Discord 관련 에러는 로그만 남기고 프로세스를 중단하지 않음
+    log.error('Unhandled Rejection', { promise: String(promise), reason: String(reason) });
+
     if (reason && typeof reason === 'object' && 'message' in reason) {
       const message = String((reason as { message?: unknown }).message);
       if (message.includes('handle') || message.includes('Discord') || message.includes('MESSAGE_CREATE')) {
-        console.warn('⚠️ Discord-related error detected, continuing process.');
+        log.warn('Discord-related error detected, continuing process');
         return;
       }
     }
-    
-    // 다른 중요한 에러는 로그만 남기고 계속 진행
-    console.error('📝 Error occurred but continuing process.');
+
+    log.error('Error occurred but continuing process');
   });
 
-  // uncaughtException 핸들러
   process.on('uncaughtException', (error) => {
-    console.error('🚨 Uncaught Exception:', error);
-    
-    // Discord 관련 에러는 로그만 남기고 프로세스를 중단하지 않음
+    log.error('Uncaught Exception', { error: error.message, stack: error.stack });
+
     if (error.message.includes('handle') || error.message.includes('Discord') || error.message.includes('MESSAGE_CREATE')) {
-      console.warn('⚠️ Discord-related uncaught exception detected, continuing process.');
+      log.warn('Discord-related uncaught exception detected, continuing process');
       return;
     }
-    
-    // 다른 중요한 에러도 로그만 남기고 계속 진행 (프로덕션 안정성을 위해)
-    console.error('📝 Uncaught exception occurred but continuing process.');
+
+    log.error('Uncaught exception occurred but continuing process');
   });
 
-  console.log('✅ Global error handlers configured.');
+  log.info('Global error handlers configured');
 }

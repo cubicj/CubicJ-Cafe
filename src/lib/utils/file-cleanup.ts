@@ -1,5 +1,8 @@
 import { readdir, stat, unlink } from 'fs/promises';
 import { join } from 'path';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('system');
 
 export interface CleanupResult {
   deletedFiles: number;
@@ -20,35 +23,35 @@ export async function cleanupTempFiles(
   try {
     const fullTempDir = join(process.cwd(), tempDir);
     const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
-    
-    console.log(`Temp file cleanup started: ${tempDir} (files older than ${maxAgeHours}h)`);
+
+    log.info('Temp file cleanup started', { tempDir, maxAgeHours });
 
     const files = await readdir(fullTempDir);
-    
+
     for (const file of files) {
       try {
         const filePath = join(fullTempDir, file);
         const stats = await stat(filePath);
-        
+
         if (stats.isFile() && stats.mtime.getTime() < cutoffTime) {
           await unlink(filePath);
           result.deletedFiles++;
           result.totalSize += stats.size;
-          console.log(`Deleted: ${file} (size: ${stats.size} bytes)`);
+          log.info('Deleted temp file', { file, size: stats.size });
         }
       } catch (fileError) {
         const errorMsg = `파일 처리 실패: ${file} - ${fileError}`;
         result.errors.push(errorMsg);
-        console.warn(errorMsg);
+        log.warn('File processing failed', { file, error: String(fileError) });
       }
     }
 
-    console.log(`Temp file cleanup complete: ${result.deletedFiles} files deleted (${result.totalSize} bytes)`);
-    
+    log.info('Temp file cleanup complete', { deletedFiles: result.deletedFiles, totalSize: result.totalSize });
+
   } catch (error) {
     const errorMsg = `임시 파일 정리 실패: ${error}`;
     result.errors.push(errorMsg);
-    console.error(errorMsg);
+    log.error('Temp file cleanup failed', { error: String(error) });
   }
 
   return result;
@@ -61,9 +64,9 @@ export async function scheduleFileCleanup(
   setTimeout(async () => {
     try {
       await unlink(filePath);
-      console.log(`Scheduled file deletion complete: ${filePath}`);
+      log.info('Scheduled file deletion complete', { filePath });
     } catch (error) {
-      console.warn(`Scheduled file deletion failed: ${filePath} - ${error}`);
+      log.warn('Scheduled file deletion failed', { filePath, error: String(error) });
     }
   }, delayMinutes * 60 * 1000);
 }

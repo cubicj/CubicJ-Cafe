@@ -10,6 +10,10 @@ import { ServerType } from '@prisma/client';
 import { getActiveModel } from '@/lib/database/model-settings';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 async function selectBestServer() {
   await serverManager.checkServerHealth();
   const bestServer = serverManager.selectBestServer();
@@ -27,7 +31,7 @@ async function selectBestServer() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎬 Generate API request started:', {
+    log.info('Generate API request started', {
       method: request.method,
       url: request.url,
       contentType: request.headers.get('content-type'),
@@ -37,22 +41,22 @@ export async function POST(request: NextRequest) {
     const sessionId = sessionManager.getSessionIdFromRequest(request);
     const session = sessionId ? await sessionManager.validateSession(sessionId) : null;
     if (!session?.user) {
-      console.log('❌ Auth failed: login required.');
+      log.info('Auth failed: login required.');
       return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
     }
 
-    console.log('✅ User authenticated:', session.user.nickname);
+    log.info('User authenticated', { nickname: session.user.nickname });
 
     // 최적 서버 선택
     const selectedServer = await selectBestServer();
     if (!selectedServer) {
-      console.log('❌ Server selection failed: no available ComfyUI servers.');
+      log.info('Server selection failed: no available ComfyUI servers.');
       return NextResponse.json({ 
         error: '현재 사용 가능한 서버가 없습니다. 잠시 후 다시 시도해주세요.' 
       }, { status: 503 });
     }
 
-    console.log('✅ Server selected:', {
+    log.info('Server selected', {
       serverId: selectedServer.serverId,
       serverType: selectedServer.serverType,
       url: selectedServer.url
@@ -74,7 +78,7 @@ export async function POST(request: NextRequest) {
     const validDuration = Math.min(Math.max(duration, 4), 7);
     const workflowLength = 16 * validDuration + 1;
 
-    console.log('📋 FormData parsed:', {
+    log.info('FormData parsed', {
       prompt: prompt?.substring(0, 50) + '...',
       imageFile: imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'null',
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
@@ -122,7 +126,7 @@ export async function POST(request: NextRequest) {
         try {
           loraPreset = JSON.parse(loraPresetData);
         } catch (parseError) {
-          console.error('LoRA preset data parse failed:', parseError);
+          log.error('LoRA preset data parse failed', { error: parseError instanceof Error ? parseError.message : String(parseError) });
         }
       }
 
@@ -143,7 +147,7 @@ export async function POST(request: NextRequest) {
       const imageBuffer = await imageFile.arrayBuffer()
       await writeFile(tempFilePath, Buffer.from(imageBuffer))
       
-      console.log('💾 Start image temp file saved:', {
+      log.info('Start image temp file saved', {
         originalName: imageFile.name,
         tempFileName,
         size: imageFile.size
@@ -160,7 +164,7 @@ export async function POST(request: NextRequest) {
         const endImageBuffer = await endImageFile.arrayBuffer()
         await writeFile(endTempFilePath, Buffer.from(endImageBuffer))
         
-        console.log('💾 End image temp file saved:', {
+        log.info('End image temp file saved', {
           originalName: endImageFile.name,
           tempFileName: endTempFileName,
           size: endImageFile.size
@@ -186,7 +190,7 @@ export async function POST(request: NextRequest) {
         videoModel: activeModel
       });
 
-      console.log(`🎬 Request queued - Request ID: ${requestId}, User: ${session.user.nickname}`);
+      log.info('Request queued', { requestId, user: session.user.nickname });
 
       return NextResponse.json({
         success: true,
@@ -202,7 +206,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Queue request processing error:', error);
+    log.error('Queue request processing error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
       { status: 500 }

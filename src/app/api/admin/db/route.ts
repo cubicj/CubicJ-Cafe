@@ -3,6 +3,10 @@ import { PrismaClient } from '@prisma/client';
 import { sessionManager } from '@/lib/auth/session';
 import { isAdmin } from '@/lib/auth/admin';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('admin');
+
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
@@ -149,7 +153,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Database query error:', error);
+    log.error('Database query error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ error: '데이터베이스 조회 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }

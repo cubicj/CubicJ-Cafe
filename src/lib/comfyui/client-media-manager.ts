@@ -1,8 +1,10 @@
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
-import { logger } from '@/lib/logger'
+import { createLogger } from '@/lib/logger'
 import type { ComfyUIHistoryResponse, DownloadedMedia } from './client-types'
+
+const log = createLogger('comfyui')
 
 export class ComfyUIMediaManager {
   private baseURL: string
@@ -16,17 +18,17 @@ export class ComfyUIMediaManager {
   async uploadImage(file: File): Promise<string> {
     const formData = new FormData()
     formData.append('image', file)
-    
+
     try {
       const response = await this.makeRequest<{ name: string }>('/upload/image', {
         method: 'POST',
         body: formData,
       })
-      
-      logger.logComfyUIEvent('Image uploaded successfully', { filename: response.name, size: file.size })
+
+      log.info('Image uploaded successfully', { filename: response.name, size: file.size })
       return response.name
     } catch (error) {
-      console.error('❌ ComfyUI image upload failed:', error)
+      log.error('ComfyUI image upload failed', { error: error instanceof Error ? error.message : String(error) })
       throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     }
   }
@@ -37,7 +39,7 @@ export class ComfyUIMediaManager {
       const response = await this.makeRequest<ComfyUIHistoryResponse>(endpoint)
       return response
     } catch (error) {
-      console.error('ComfyUI history fetch failed:', error)
+      log.error('ComfyUI history fetch failed', { error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -46,14 +48,14 @@ export class ComfyUIMediaManager {
     try {
       const history = await this.getHistory(promptId)
       const promptData = history[promptId]
-      
+
       if (!promptData || !promptData.outputs) {
         throw new Error(`프롬프트 ${promptId}에서 출력 데이터를 찾을 수 없습니다`)
       }
 
       const downloadedFiles: DownloadedMedia[] = []
       const tempDir = join(process.cwd(), 'public', 'temp')
-      
+
       if (!existsSync(tempDir)) {
         await mkdir(tempDir, { recursive: true })
       }
@@ -65,7 +67,7 @@ export class ComfyUIMediaManager {
             downloadedFiles.push(downloaded)
           }
         }
-        
+
         if (output.gifs) {
           for (const gif of output.gifs) {
             const downloaded = await this.downloadFile(gif, tempDir, 'video')
@@ -74,10 +76,10 @@ export class ComfyUIMediaManager {
         }
       }
 
-      logger.logComfyUIEvent('Media files downloaded', { promptId, count: downloadedFiles.length })
+      log.info('Media files downloaded', { promptId, count: downloadedFiles.length })
       return downloadedFiles
     } catch (error) {
-      console.error('Media download failed:', error)
+      log.error('Media download failed', { error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -88,24 +90,24 @@ export class ComfyUIMediaManager {
     mediaType: 'image' | 'video'
   ): Promise<DownloadedMedia> {
     const { filename, subfolder, type } = fileInfo
-    
+
     const downloadUrl = `${this.baseURL}/view?filename=${encodeURIComponent(filename)}&subfolder=${encodeURIComponent(subfolder)}&type=${encodeURIComponent(type)}`
-    
+
     const response = await fetch(downloadUrl)
     if (!response.ok) {
       throw new Error(`파일 다운로드 실패: ${response.status} ${response.statusText}`)
     }
 
     const buffer = Buffer.from(await response.arrayBuffer())
-    
+
     const timestamp = Date.now()
     const localFilename = `${timestamp}_${filename}`
     const localPath = join(tempDir, localFilename)
-    
+
     await writeFile(localPath, buffer)
-    
+
     const publicUrl = `/temp/${localFilename}`
-    
+
     return {
       filename: localFilename,
       localPath,
@@ -127,7 +129,7 @@ export class ComfyUIMediaManager {
     }
 
     const fullUrl = `${this.baseURL}${endpoint}`
-    
+
     const response = await fetch(fullUrl, {
       ...options,
       signal: controller.signal,
@@ -150,9 +152,9 @@ export class ComfyUIMediaManager {
     try {
       return JSON.parse(responseText)
     } catch (parseError) {
-      console.error('ComfyUI JSON parse error:', {
+      log.error('ComfyUI JSON parse error', {
         responseText: responseText.substring(0, 200),
-        error: parseError
+        error: parseError instanceof Error ? parseError.message : String(parseError)
       })
       throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
     }
