@@ -2,11 +2,23 @@ import { NextResponse } from 'next/server'
 import { serverManager } from '@/lib/comfyui/server-manager'
 
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
 
 export async function GET() {
   try {
+    if (!isComfyUIEnabled()) {
+      return NextResponse.json({
+        enabled: false,
+        success: false,
+        loras: [],
+        categorized: { all: [], safetensors: [], ckpt: [], pt: [], high: [], low: [] },
+        count: 0,
+        serverInfo: null,
+        timestamp: new Date().toISOString()
+      });
+    }
     // 서버 헬스 체크 후 사용 가능한 서버 선택
     await serverManager.checkServerHealth()
     const bestServer = serverManager.selectBestServer()

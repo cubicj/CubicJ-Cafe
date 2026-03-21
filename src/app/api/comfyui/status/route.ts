@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
 
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
 // env removed - using process.env directly
@@ -18,6 +19,19 @@ interface ServerStatus {
 
 export async function GET() {
   try {
+    if (!isComfyUIEnabled()) {
+      return NextResponse.json({
+        enabled: false,
+        servers: [],
+        summary: {
+          local: { active: 0, total: 0 },
+          runpod: { active: 0, total: 0 },
+          totalActive: 0,
+          totalServers: 0
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
     // 서버 체크 함수들을 병렬로 실행
     const serverCheckPromises: Promise<ServerStatus>[] = []
     

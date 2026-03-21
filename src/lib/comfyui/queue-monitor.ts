@@ -10,6 +10,7 @@ import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { scheduleFileCleanup } from '@/lib/utils/file-cleanup';
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from './comfyui-state';
 
 const log = createLogger('queue');
 
@@ -162,6 +163,7 @@ class QueueMonitor {
   }
 
   private async processQueue(): Promise<void> {
+    if (!isComfyUIEnabled()) return;
     // 1. 활성 서버 목록 업데이트 (주기적으로)
     await this.updateActiveServers();
 

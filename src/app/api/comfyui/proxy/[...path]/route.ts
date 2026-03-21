@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
 // env removed - using process.env directly
@@ -43,6 +44,12 @@ async function handleProxy(
   method: string
 ) {
   try {
+    if (!isComfyUIEnabled()) {
+      return NextResponse.json(
+        { error: 'ComfyUI 서버가 비활성 상태입니다.' },
+        { status: 503 }
+      );
+    }
     const path = pathSegments.join('/')
     const comfyUrl = `${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/${path}`
     
