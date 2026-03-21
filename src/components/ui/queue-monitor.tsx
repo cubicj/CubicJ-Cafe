@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ui');
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,7 +62,7 @@ export function QueueMonitor() {
             setCurrentUser(userData.user);
           }
         } catch (userErr) {
-          console.warn('사용자 정보 조회 실패:', userErr);
+          log.warn('Failed to fetch user info', { error: userErr instanceof Error ? userErr.message : String(userErr) });
         }
       }
       
@@ -70,10 +73,10 @@ export function QueueMonitor() {
           const queueData = await queueResponse.json();
           setQueueList(queueData.data || []);
         } else {
-          console.warn('큐 리스트 조회 실패:', queueResponse.status);
+          log.warn('Queue list fetch failed', { status: queueResponse.status });
         }
       } catch (queueErr) {
-        console.warn('큐 리스트 fetch 에러:', queueErr);
+        log.warn('Queue list fetch error', { error: queueErr instanceof Error ? queueErr.message : String(queueErr) });
       }
 
       // 큐 통계 조회
@@ -83,14 +86,14 @@ export function QueueMonitor() {
           const statsData = await statsResponse.json();
           setStats(statsData.data);
         } else {
-          console.warn('큐 통계 조회 실패:', statsResponse.status);
+          log.warn('Queue stats fetch failed', { status: statsResponse.status });
         }
       } catch (statsErr) {
-        console.warn('큐 통계 fetch 에러:', statsErr);
+        log.warn('Queue stats fetch error', { error: statsErr instanceof Error ? statsErr.message : String(statsErr) });
       }
 
     } catch (err) {
-      console.error('Queue 데이터 조회 전체 실패:', err);
+      log.error('Queue data fetch failed', { error: err instanceof Error ? err.message : String(err) });
       setError('큐 정보를 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -126,7 +129,7 @@ export function QueueMonitor() {
         alert(`삭제 실패: ${errorData.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('큐 삭제 오류:', error);
+      log.error('Queue delete error', { error: error instanceof Error ? error.message : String(error) });
       alert('네트워크 오류가 발생했습니다.');
     } finally {
       setDeletingIds(prev => {

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('hook');
 
 export interface SubmitMessage {
   type: 'success' | 'error';
@@ -156,7 +159,7 @@ export function useGenerateForm() {
       }
       
     } catch (error) {
-      console.error('큐 요청 실패:', error);
+      log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
       
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       const errorMessage = isNetworkError 

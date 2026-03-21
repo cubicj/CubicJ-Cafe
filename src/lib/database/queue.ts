@@ -1,6 +1,9 @@
 import { prisma } from "./prisma";
 import { QueueStatus, ServerType, type QueueRequest } from "@prisma/client";
 import type { LoRAPresetData } from "@/types";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('queue');
 
 type QueueRequestWithUser = QueueRequest & {
   user: {
@@ -33,6 +36,7 @@ export interface QueueRequestData {
   workflowLength?: number; // 워크플로우 길이
   serverType?: ServerType;
   serverId?: string;
+  videoModel?: string;
 }
 
 export interface QueueRequestUpdate {
@@ -84,6 +88,7 @@ export class QueueService {
       workflowLength: data.workflowLength || (16 * (data.duration || 5) + 1),
       serverType: data.serverType,
       serverId: data.serverId,
+      videoModel: data.videoModel || 'wan',
       position: nextPosition,
       status: QueueStatus.PENDING
     };
@@ -176,7 +181,7 @@ export class QueueService {
   }
 
   // 캐시 무효화 메서드
-  private invalidateCache() {
+  invalidateCache() {
     this.queueListCache = null;
     this.statsCache = null;
   }
@@ -376,7 +381,7 @@ export class QueueService {
           return null; // 처리할 요청이 없음
         }
 
-        console.log(`🎯 원자적 처리 대상: ${nextRequest.id} (position: ${nextRequest.position}, 닉네임: ${nextRequest.nickname})`);
+        log.info('Atomic claim target', { id: nextRequest.id, position: nextRequest.position, nickname: nextRequest.nickname });
 
         // 2. 즉시 PROCESSING 상태로 변경 (race condition 방지)
         const updatedRequest = await tx.queueRequest.update({
@@ -405,7 +410,7 @@ export class QueueService {
       });
     } catch (error) {
       // 다른 인스턴스가 이미 처리했거나 요청이 없는 경우
-      console.warn('다음 요청 원자적 처리 실패:', error);
+      log.warn('Atomic next request claim failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

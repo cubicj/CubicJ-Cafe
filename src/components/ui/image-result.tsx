@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ui');
 import { Card } from "./card";
 import { Button } from "./button";
 import { Download, Share2, RefreshCw, Heart, Copy } from "lucide-react";
@@ -32,10 +35,9 @@ export function ImageResult({
   const handleCopyPrompt = async () => {
     try {
       await navigator.clipboard.writeText(prompt);
-      // TODO: 토스트 알림 구현
-      console.log("프롬프트가 클립보드에 복사되었습니다");
+      log.info('Prompt copied to clipboard');
     } catch (error) {
-      console.error("클립보드 복사 실패:", error);
+      log.error('Clipboard copy failed', { error: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -48,15 +50,15 @@ export function ImageResult({
           url: imageUrl,
         });
       } catch (error) {
-        console.error("공유 실패:", error);
+        log.error('Share failed', { error: error instanceof Error ? error.message : String(error) });
       }
     } else {
       // 폴백: URL 복사
       try {
         await navigator.clipboard.writeText(imageUrl);
-        console.log("이미지 URL이 클립보드에 복사되었습니다");
+        log.info('Image URL copied to clipboard');
       } catch (error) {
-        console.error("URL 복사 실패:", error);
+        log.error('URL copy failed', { error: error instanceof Error ? error.message : String(error) });
       }
     }
   };

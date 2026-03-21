@@ -1,9 +1,11 @@
-import { logger } from '@/lib/logger'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('comfyui')
 
 export class ComfyUIServerManager {
   private baseURL: string
   private timeout: number
-  
+
   constructor(baseURL: string, timeout: number = 10000) {
     this.baseURL = baseURL
     this.timeout = timeout
@@ -41,9 +43,9 @@ export class ComfyUIServerManager {
         method: 'POST',
         body: JSON.stringify({}),
       })
-      logger.logComfyUIEvent('Processing interrupted successfully')
+      log.info('Processing interrupted successfully')
     } catch (error) {
-      console.error('ComfyUI 처리 중단 실패:', error)
+      log.error('ComfyUI interrupt failed', { error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -53,7 +55,7 @@ export class ComfyUIServerManager {
     if (!runpodUrlsEnv || runpodUrlsEnv.trim() === '') {
       return []
     }
-    
+
     return runpodUrlsEnv
       .split(',')
       .map(url => url.trim())
@@ -67,7 +69,7 @@ export class ComfyUIServerManager {
     }
 
     const activeServers: string[] = []
-    
+
     for (const serverUrl of runpodServers) {
       try {
         const controller = new AbortController()
@@ -79,15 +81,15 @@ export class ComfyUIServerManager {
         })
 
         clearTimeout(timeoutId)
-        
+
         if (response.ok) {
           activeServers.push(serverUrl)
-          logger.logComfyUIEvent('Runpod server active', { server: serverUrl })
+          log.info('Runpod server active', { server: serverUrl })
         } else {
-          logger.warn('Runpod server inactive', { server: serverUrl, status: response.status })
+          log.warn('Runpod server inactive', { server: serverUrl, status: response.status })
         }
       } catch (error) {
-        logger.warn('Runpod server connection failed', { server: serverUrl, error })
+        log.warn('Runpod server connection failed', { server: serverUrl, error: error instanceof Error ? error.message : String(error) })
       }
     }
 
@@ -107,7 +109,7 @@ export class ComfyUIServerManager {
     }
 
     const fullUrl = `${this.baseURL}${endpoint}`
-    
+
     const response = await fetch(fullUrl, {
       ...options,
       signal: controller.signal,

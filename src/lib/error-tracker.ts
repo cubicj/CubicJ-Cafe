@@ -1,5 +1,6 @@
-import { logger } from './logger';
-// env removed - using process.env directly
+import { createLogger } from './logger';
+
+const log = createLogger('system');
 
 interface ErrorContext {
   userId?: string;
@@ -92,16 +93,16 @@ class ErrorTracker {
 
     switch (severity) {
       case 'critical':
-        logger.error(`[CRITICAL] ${category.toUpperCase()}: ${error.message}`, logData);
+        log.error(`[CRITICAL] ${category.toUpperCase()}: ${error.message}`, logData);
         break;
       case 'high':
-        logger.error(`[HIGH] ${category.toUpperCase()}: ${error.message}`, logData);
+        log.error(`[HIGH] ${category.toUpperCase()}: ${error.message}`, logData);
         break;
       case 'medium':
-        logger.warn(`[MEDIUM] ${category.toUpperCase()}: ${error.message}`, logData);
+        log.warn(`[MEDIUM] ${category.toUpperCase()}: ${error.message}`, logData);
         break;
       case 'low':
-        logger.info(`[LOW] ${category.toUpperCase()}: ${error.message}`, logData);
+        log.info(`[LOW] ${category.toUpperCase()}: ${error.message}`, logData);
         break;
     }
   }
@@ -149,13 +150,13 @@ class ErrorTracker {
         await this.sendDiscordAlert(alertMessage, criticalError);
       }
 
-      logger.info('Error alert sent', {
+      log.info('Error alert sent', {
         severity: criticalError.severity,
         category: criticalError.category,
         errorName: criticalError.error.name,
       });
     } catch (alertError) {
-      logger.error('Failed to send error alert', alertError instanceof Error ? alertError : new Error(String(alertError)));
+      log.error('Failed to send error alert', { error: alertError instanceof Error ? alertError.message : String(alertError) });
     }
   }
 
@@ -224,7 +225,7 @@ class ErrorTracker {
         throw new Error(`Discord API error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      logger.error('Failed to send Discord alert', error instanceof Error ? error : new Error(String(error)));
+      log.error('Failed to send Discord alert', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -248,12 +249,12 @@ class ErrorTracker {
   public clearErrorStats(): void {
     this.errorCounts.clear();
     this.lastErrors.clear();
-    logger.info('Error statistics cleared');
+    log.info('Error statistics cleared');
   }
 
   public configureAlerts(config: Partial<AlertConfig>): void {
     this.alertConfig = { ...this.alertConfig, ...config };
-    logger.info('Alert configuration updated', this.alertConfig);
+    log.info('Alert configuration updated', { ...this.alertConfig } as Record<string, unknown>);
   }
 }
 

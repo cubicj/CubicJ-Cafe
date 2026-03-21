@@ -1,6 +1,4 @@
-// LoRA 관련 타입들 import
 export * from './lora';
-import type { LoRAPresetData } from './lora';
 
 export interface User {
   id: string;
@@ -28,6 +26,7 @@ export interface GenerationJob {
   promptId?: string;
   error?: string;
   isNSFW?: boolean;
+  videoModel?: string;
   userInfo?: {
     name: string;
     email?: string;
@@ -81,24 +80,14 @@ export interface ComfyUIWebSocketStatus {
   error?: string;
 }
 
-export interface GenerationParams {
-  prompt: string;
-  inputImage: string;
-  endImage?: string;
-  loras?: LoraConfig[];
-  loraPreset?: LoRAPresetData;
-  videoLength?: number;
-  steps?: number;
-}
-
-export interface LoraConfig {
-  name: string;
-  strength: number;
-  enabled: boolean;
-}
-
-// LoRA 관련 타입들은 @/types/lora로 이동됨
-export type { LoRAPresetData, LoRAPresetItem } from '@/types/lora';
+export type {
+  VideoModel,
+  ModelCapabilities,
+  ModelConfig,
+  GenerationParams,
+  WanGenerationParams,
+  LtxGenerationParams,
+} from '@/lib/comfyui/workflows/types'
 
 export interface DiscordMessage {
   content: string;

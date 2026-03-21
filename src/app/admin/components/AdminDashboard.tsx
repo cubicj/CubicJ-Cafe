@@ -2,16 +2,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Cog, Shield, AlertCircle } from 'lucide-react';
+import { Database, Cog, Shield, AlertCircle, ScrollText } from 'lucide-react';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import SystemSettingsTab from './tabs/SystemSettingsTab';
 import ModelSettingsTab from './tabs/ModelSettingsTab';
 import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
+import LogViewerTab from './tabs/LogViewerTab';
+
+const log = createLogger('admin');
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -45,7 +49,7 @@ export default function AdminDashboard() {
           }, 2000);
         }
       } catch (error) {
-        console.error('관리자 권한 확인 실패:', error);
+        log.error('Admin permission check failed', { error: error instanceof Error ? error.message : String(error) });
         setAuthError('서버 오류가 발생했습니다.');
         setTimeout(() => {
           router.push('/');
@@ -66,7 +70,7 @@ export default function AdminDashboard() {
         // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
         adminSettings.fetchAvailableModels();
       } catch (error) {
-        console.error('Admin 설정 초기화 실패:', error);
+        log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
       }
     };
 
@@ -143,7 +147,7 @@ export default function AdminDashboard() {
       )}
 
       <Tabs defaultValue="advanced" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="advanced" className="flex items-center">
             <Cog className="w-4 h-4 mr-2" />
             고급 설정
@@ -155,6 +159,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="database" className="flex items-center">
             <Database className="w-4 h-4 mr-2" />
             데이터베이스
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center">
+            <ScrollText className="w-4 h-4 mr-2" />
+            Logs
           </TabsTrigger>
         </TabsList>
 
@@ -169,6 +177,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="database" className="space-y-4">
           <DatabaseTab />
+        </TabsContent>
+
+        <TabsContent value="logs">
+          <LogViewerTab />
         </TabsContent>
       </Tabs>
     </div>

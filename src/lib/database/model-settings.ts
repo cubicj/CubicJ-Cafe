@@ -1,4 +1,30 @@
 import { prisma } from '@/lib/database/prisma'
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
+import type { VideoModel } from '@/lib/comfyui/workflows/types'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('database')
+
+const ACTIVE_MODEL_KEY = 'system.active_model'
+
+export async function getActiveModel(): Promise<VideoModel> {
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key: ACTIVE_MODEL_KEY }
+  })
+  const model = setting?.value as VideoModel
+  return model && model in MODEL_REGISTRY ? model : 'ltx'
+}
+
+export async function setActiveModel(model: VideoModel): Promise<void> {
+  if (!(model in MODEL_REGISTRY)) {
+    throw new Error(`지원하지 않는 모델: ${model}`)
+  }
+  await prisma.systemSetting.upsert({
+    where: { key: ACTIVE_MODEL_KEY },
+    update: { value: model },
+    create: { key: ACTIVE_MODEL_KEY, value: model, type: 'string', category: 'system' }
+  })
+}
 
 export type ModelSettings = {
   highDiffusionModel: string
@@ -68,7 +94,7 @@ export async function getModelSettings(): Promise<ModelSettings> {
       lowShift: parseFloat(settingMap.get(MODEL_SETTING_KEYS.LOW_SHIFT) || DEFAULT_MODEL_SETTINGS.lowShift.toString())
     }
   } catch (error) {
-    console.error('모델 설정 조회 실패:', error)
+    log.error('Model settings fetch failed', { error: error instanceof Error ? error.message : String(error) })
     return DEFAULT_MODEL_SETTINGS
   }
 }
@@ -187,9 +213,9 @@ export async function updateModelSettings(settings: Partial<ModelSettings>): Pro
       })
     }
 
-    console.log('✅ 모델 설정 업데이트 완료:', settings)
+    log.info('Model settings updated', { settings })
   } catch (error) {
-    console.error('모델 설정 업데이트 실패:', error)
+    log.error('Model settings update failed', { error: error instanceof Error ? error.message : String(error) })
     throw error
   }
 }
@@ -237,14 +263,26 @@ export async function initializeModelSettings(): Promise<void> {
       }
     }
 
+    const activeModelSetting = await prisma.systemSetting.findUnique({
+      where: { key: ACTIVE_MODEL_KEY }
+    })
+    if (!activeModelSetting) {
+      newSettings.push({
+        key: ACTIVE_MODEL_KEY,
+        value: 'ltx',
+        type: 'string',
+        category: 'system'
+      })
+    }
+
     if (newSettings.length > 0) {
       await prisma.systemSetting.createMany({
         data: newSettings
       })
-      console.log(`✅ 모델 설정 초기화 완료: ${newSettings.length}개 설정 추가`)
+      log.info('Model settings initialized', { count: newSettings.length })
     }
   } catch (error) {
-    console.error('모델 설정 초기화 실패:', error)
+    log.error('Model settings initialization failed', { error: error instanceof Error ? error.message : String(error) })
     throw error
   }
 }

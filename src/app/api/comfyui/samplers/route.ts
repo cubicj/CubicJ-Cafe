@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
+
 export async function GET() {
   try {
-    console.log('📁 ComfyUI 샘플러 목록 조회 API 호출')
+    log.info('ComfyUI sampler list API called')
     
     const client = new ComfyUIClient()
     
     try {
       const samplers = await client.getSamplerList()
       
-      console.log('✅ 샘플러 목록 조회 성공:', {
+      log.info('Sampler list fetched', {
         count: samplers.length,
         samplers: samplers
       })
@@ -20,7 +24,7 @@ export async function GET() {
         samplers
       })
     } catch (connectionError) {
-      console.error('❌ ComfyUI 서버 연결 실패:', connectionError)
+      log.error('ComfyUI server connection failed', { error: connectionError instanceof Error ? connectionError.message : String(connectionError) })
       
       return NextResponse.json({
         success: false,
@@ -32,7 +36,7 @@ export async function GET() {
     }
     
   } catch (error) {
-    console.error('❌ ComfyUI 샘플러 목록 조회 실패:', error)
+    log.error('Failed to fetch ComfyUI sampler list', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json({
       success: false,

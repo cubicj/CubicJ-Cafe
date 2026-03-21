@@ -21,6 +21,7 @@ try {
 }
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [],
   experimental: {
     optimizePackageImports: [
       '@radix-ui/react-icons',

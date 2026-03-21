@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('hook');
 
 interface LoRABundle {
   id: string;
@@ -30,7 +33,7 @@ export function useLoRABundles() {
       
       setAvailableBundles(data.bundles || []);
     } catch (err) {
-      console.error('❌ LoRA 번들 목록 조회 실패:', err);
+      log.error('Failed to fetch LoRA bundle list', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '번들 목록 조회 실패');
     } finally {
       setIsLoadingBundles(false);

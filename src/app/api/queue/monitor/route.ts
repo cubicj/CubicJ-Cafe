@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('queue');
+
 export async function POST(request: NextRequest) {
   try {
     const { action } = await request.json();
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Queue Monitor API 오류:', error);
+    log.error('Queue Monitor API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ 
       error: '서버 오류가 발생했습니다.' 
     }, { status: 500 });
@@ -49,7 +53,7 @@ export async function GET() {
       data: queueMonitor.getStatus()
     });
   } catch (error) {
-    console.error('Queue Monitor 상태 조회 오류:', error);
+    log.error('Queue Monitor status fetch error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ 
       error: '서버 오류가 발생했습니다.' 
     }, { status: 500 });

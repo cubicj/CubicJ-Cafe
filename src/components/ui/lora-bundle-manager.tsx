@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ui');
 import { Card, CardContent } from "./card";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -55,9 +58,9 @@ export function LoRABundleManager() {
       }
       
       setBundles(data.bundles || []);
-      console.log('✅ LoRA 번들 목록 조회 성공:', data.count, '개');
+      log.info('LoRA bundle list fetched', { count: data.count });
     } catch (err) {
-      console.error('❌ LoRA 번들 목록 조회 실패:', err);
+      log.error('Failed to fetch LoRA bundle list', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '번들 목록 조회 실패');
     } finally {
       setIsLoading(false);
@@ -80,12 +83,11 @@ export function LoRABundleManager() {
         high: data.categorized?.high || [],
         low: data.categorized?.low || [],
       });
-      console.log('✅ LoRA 파일 목록 조회 성공:', 
-        `High: ${data.categorized?.high?.length || 0}개, Low: ${data.categorized?.low?.length || 0}개`);
+      log.info('LoRA file list fetched', { high: data.categorized?.high?.length || 0, low: data.categorized?.low?.length || 0 });
     } catch (err) {
       // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
-        console.error('❌ LoRA 파일 목록 조회 실패:', err);
+        log.error('Failed to fetch LoRA file list', { error: err instanceof Error ? err.message : String(err) });
       }
       setError(err instanceof Error ? err.message : 'LoRA 파일 목록 조회 실패');
     } finally {
@@ -116,7 +118,7 @@ export function LoRABundleManager() {
         throw new Error(data.error || '번들 저장에 실패했습니다');
       }
 
-      console.log(`✅ LoRA 번들 ${editingBundle ? '수정' : '생성'} 성공`);
+      log.info('LoRA bundle saved successfully', { action: editingBundle ? 'updated' : 'created' });
       
       // 목록 새로고침
       await fetchBundles();
@@ -127,7 +129,7 @@ export function LoRABundleManager() {
       resetForm();
       
     } catch (err) {
-      console.error('❌ LoRA 번들 저장 실패:', err);
+      log.error('Failed to save LoRA bundle', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '번들 저장 실패');
     }
   };
@@ -149,13 +151,13 @@ export function LoRABundleManager() {
         throw new Error(data.error || '번들 삭제에 실패했습니다');
       }
 
-      console.log('✅ LoRA 번들 삭제 성공');
+      log.info('LoRA bundle deleted successfully');
       
       // 목록 새로고침
       await fetchBundles();
       
     } catch (err) {
-      console.error('❌ LoRA 번들 삭제 실패:', err);
+      log.error('Failed to delete LoRA bundle', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '번들 삭제 실패');
     }
   };

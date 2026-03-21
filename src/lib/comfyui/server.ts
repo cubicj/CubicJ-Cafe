@@ -1,6 +1,8 @@
 import { comfyUIClient } from './client';
 import { ComfyUIClient } from './client';
-// env removed - using process.env directly
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 
 interface ServerStatus {
   type: 'local' | 'runpod'
@@ -102,7 +104,7 @@ export async function getComfyUIServerStatus() {
       timestamp: new Date().toISOString()
     }
   } catch (error) {
-    console.error('ComfyUI 서버 상태 확인 실패:', error)
+    log.error('ComfyUI server status check failed', { error: error instanceof Error ? error.message : String(error) })
     
     return {
       servers: [],

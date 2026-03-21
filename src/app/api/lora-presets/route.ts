@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
 import { getServerSession } from '@/lib/auth/server';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 // GET: 사용자의 LoRA 프리셋 목록 조회
 export async function GET() {
   try {
@@ -21,7 +25,7 @@ export async function GET() {
       count: presets.length,
     });
   } catch (error) {
-    console.error('❌ LoRA 프리셋 목록 조회 실패:', error);
+    log.error('Failed to fetch LoRA preset list', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 프리셋 목록 조회에 실패했습니다.' },
       { status: 500 }
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch (jsonError) {
-      console.error('❌ JSON 파싱 실패:', jsonError);
+      log.error('JSON parse failed', { error: jsonError instanceof Error ? jsonError.message : String(jsonError) });
       return NextResponse.json(
         { error: '잘못된 JSON 데이터입니다.' },
         { status: 400 }
@@ -83,7 +87,7 @@ export async function POST(request: NextRequest) {
       preset,
     });
   } catch (error) {
-    console.error('❌ LoRA 프리셋 생성 실패:', error);
+    log.error('Failed to create LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 프리셋 생성에 실패했습니다.' },
       { status: 500 }

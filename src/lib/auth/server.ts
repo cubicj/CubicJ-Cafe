@@ -1,5 +1,8 @@
 import { cookies, headers } from 'next/headers';
 import { SessionManager } from './session';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('auth');
 
 const sessionManager = new SessionManager();
 
@@ -40,7 +43,7 @@ export async function getServerSession() {
       }
     };
   } catch (error) {
-    console.error('Server session check error:', error);
+    log.error('Server session check error', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }

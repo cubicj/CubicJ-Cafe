@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 // env removed - using process.env directly
 
 export async function GET(
@@ -85,7 +89,7 @@ async function handleProxy(
     })
     
   } catch {
-    console.error('ComfyUI 프록시 오류: 백엔드 서버 연결 실패')
+    log.error('ComfyUI proxy error: backend server connection failed')
     
     return NextResponse.json({
       error: '백엔드 서비스 연결 실패',

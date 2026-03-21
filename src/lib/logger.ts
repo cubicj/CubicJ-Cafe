@@ -1,254 +1,251 @@
-// env removed - using process.env directly
+import { logBuffer } from './log-buffer';
 
-interface LoggerConfig {
-  level: string;
-  logDir: string;
-  maxFiles: string;
-  maxSize: string;
-  environment: string;
+export interface CategoryLogger {
+  info: (message: string, meta?: Record<string, unknown>) => void;
+  warn: (message: string, meta?: Record<string, unknown>) => void;
+  error: (message: string, meta?: Record<string, unknown>) => void;
+  debug: (message: string, meta?: Record<string, unknown>) => void;
 }
 
-interface WinstonLogger {
-  info: (message: string, meta?: object) => void;
-  warn: (message: string, meta?: object) => void;
-  error: (message: string, meta?: object) => void;
-  debug: (message: string, meta?: object) => void;
-  verbose: (message: string, meta?: object) => void;
-  http: (message: string, meta?: object) => void;
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+const LEVEL_PRIORITY: Record<string, number> = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+};
+
+function isLevelEnabled(level: string): boolean {
+  return (LEVEL_PRIORITY[level] ?? 99) <= (LEVEL_PRIORITY[LOG_LEVEL] ?? 2);
 }
 
-
-// Edge Runtime 체크
 const isEdgeRuntime = typeof globalThis !== 'undefined' && 'EdgeRuntime' in globalThis;
+const isBrowser = typeof window !== 'undefined';
+const isServer = !isEdgeRuntime && !isBrowser;
 
-class Logger {
-  private static instance: Logger;
-  private logger: WinstonLogger | Console = console;
-  private config: LoggerConfig;
+function dispatch(category: string, level: 'info' | 'warn' | 'error' | 'debug', message: string, meta?: Record<string, unknown>): void {
+  if (!isLevelEnabled(level) && level !== 'error') return;
 
-  private constructor() {
-    this.config = {
-      level: process.env.LOG_LEVEL || 'info',
-      logDir: process.env.LOG_DIR || './logs',
-      maxFiles: '14d',
-      maxSize: '20m',
-      environment: process.env.NODE_ENV || 'development' || 'development',
+  const timestamp = new Date().toISOString();
+
+  logBuffer.push({ timestamp, level, category, message, meta, source: 'server' });
+
+  if (isServer && IS_DEV) {
+    const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : level === 'debug' ? console.debug : console.log;
+    consoleFn(`${timestamp.slice(11, 19)} [${level.toUpperCase()}] [${category}] ${message}`, meta ?? '');
+  }
+}
+
+interface ClientLogEntry {
+  timestamp: string;
+  level: string;
+  category: string;
+  message: string;
+  meta?: Record<string, unknown>;
+}
+
+let clientBuffer: ClientLogEntry[] = [];
+let flushInterval: ReturnType<typeof setInterval> | null = null;
+const CLIENT_BUFFER_MAX = 200;
+const FLUSH_INTERVAL_MS = 3000;
+const INGEST_URL = '/api/admin/logs/ingest';
+
+function flushClientBuffer(): void {
+  if (clientBuffer.length === 0) return;
+
+  const entries = clientBuffer.splice(0, clientBuffer.length);
+
+  fetch(INGEST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ entries }),
+  }).catch(() => {});
+}
+
+function pushToClientBuffer(entry: ClientLogEntry): void {
+  if (!flushInterval) return;
+  clientBuffer.push(entry);
+  if (clientBuffer.length > CLIENT_BUFFER_MAX) {
+    clientBuffer = clientBuffer.slice(-CLIENT_BUFFER_MAX);
+  }
+}
+
+function handleBeforeUnload(): void {
+  if (clientBuffer.length === 0) return;
+  const blob = new Blob(
+    [JSON.stringify({ entries: clientBuffer })],
+    { type: 'application/json' }
+  );
+  navigator.sendBeacon(INGEST_URL, blob);
+  clientBuffer = [];
+}
+
+let originalConsole: { log: typeof console.log; warn: typeof console.warn; error: typeof console.error; debug: typeof console.debug } | null = null;
+let insideOverride = false;
+
+function argsToString(args: unknown[]): string {
+  return args.map(a => {
+    if (typeof a === 'string') return a;
+    try { return JSON.stringify(a); } catch { return String(a); }
+  }).join(' ');
+}
+
+function installConsoleOverride(): void {
+  if (originalConsole) return;
+  originalConsole = { log: console.log, warn: console.warn, error: console.error, debug: console.debug };
+
+  const wrap = (level: 'info' | 'warn' | 'error' | 'debug', orig: (...args: unknown[]) => void) => {
+    return (...args: unknown[]) => {
+      orig.apply(console, args);
+      if (insideOverride) return;
+      insideOverride = true;
+      pushToClientBuffer({ timestamp: new Date().toISOString(), level, category: 'console', message: argsToString(args) });
+      insideOverride = false;
     };
+  };
 
-    this.initLogger();
+  console.log = wrap('info', originalConsole.log);
+  console.warn = wrap('warn', originalConsole.warn);
+  console.error = wrap('error', originalConsole.error);
+  console.debug = wrap('debug', originalConsole.debug);
+}
+
+function uninstallConsoleOverride(): void {
+  if (!originalConsole) return;
+  console.log = originalConsole.log;
+  console.warn = originalConsole.warn;
+  console.error = originalConsole.error;
+  console.debug = originalConsole.debug;
+  originalConsole = null;
+}
+
+export function enableClientLogTransport(): void {
+  if (!isBrowser || flushInterval) return;
+  flushInterval = setInterval(flushClientBuffer, FLUSH_INTERVAL_MS);
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  installConsoleOverride();
+}
+
+export function isClientLogTransportEnabled(): boolean {
+  return flushInterval !== null;
+}
+
+export function disableClientLogTransport(): void {
+  if (flushInterval) {
+    clearInterval(flushInterval);
+    flushInterval = null;
+  }
+  clientBuffer = [];
+  if (isBrowser) {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
+  uninstallConsoleOverride();
+}
+
+export function createLogger(category: string): CategoryLogger {
+  if (isEdgeRuntime || isBrowser) {
+    return {
+      info: (message, meta) => {
+        if (!isLevelEnabled('info')) return;
+        console.log(`[INFO] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'info', category, message, meta });
+      },
+      warn: (message, meta) => {
+        if (!isLevelEnabled('warn')) return;
+        console.warn(`[WARN] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'warn', category, message, meta });
+      },
+      error: (message, meta) => {
+        console.error(`[ERROR] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'error', category, message, meta });
+      },
+      debug: (message, meta) => {
+        if (!isLevelEnabled('debug')) return;
+        console.debug(`[DEBUG] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'debug', category, message, meta });
+      },
+    };
   }
 
-  private async initLogger(): Promise<void> {
-    this.logger = await this.createLogger();
+  return {
+    info: (message, meta) => dispatch(category, 'info', message, meta),
+    warn: (message, meta) => dispatch(category, 'warn', message, meta),
+    error: (message, meta) => dispatch(category, 'error', message, meta),
+    debug: (message, meta) => dispatch(category, 'debug', message, meta),
+  };
+}
+
+class BackwardCompatLogger {
+  private log = createLogger('app');
+
+  info(message: string, meta?: object): void {
+    this.log.info(message, meta as Record<string, unknown>);
   }
 
-  public static getInstance(): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger();
-    }
-    return Logger.instance;
+  warn(message: string, meta?: object): void {
+    this.log.warn(message, meta as Record<string, unknown>);
   }
 
-  private async createLogger(): Promise<{
-    info: (message: string, meta?: object) => void;
-    warn: (message: string, meta?: object) => void;
-    error: (message: string, meta?: object) => void;
-    debug: (message: string, meta?: object) => void;
-    verbose: (message: string, meta?: object) => void;
-    http: (message: string, meta?: object) => void;
-  }> {
-    // Edge Runtime에서는 console 로거 사용
-    if (isEdgeRuntime || typeof window !== 'undefined') {
-      return {
-        info: (message: string, meta?: object) => console.log(`[INFO] ${message}`, meta),
-        warn: (message: string, meta?: object) => console.warn(`[WARN] ${message}`, meta),
-        error: (message: string, meta?: object) => console.error(`[ERROR] ${message}`, meta),
-        debug: (message: string, meta?: object) => console.debug(`[DEBUG] ${message}`, meta),
-        verbose: (message: string, meta?: object) => console.log(`[VERBOSE] ${message}`, meta),
-        http: (message: string, meta?: object) => console.log(`[HTTP] ${message}`, meta),
-      };
-    }
-
-    // Node.js 런타임에서만 Winston 사용
-    try {
-      const { default: winston } = await import('winston');
-      const { default: DailyRotateFile } = await import('winston-daily-rotate-file');
-      const { join } = await import('path');
-
-      const formats = [
-        winston.format.timestamp(),
-        winston.format.errors({ stack: true }),
-        winston.format.json(),
-      ];
-
-      if (this.config.environment === 'development') {
-        formats.push(
-          winston.format.colorize(),
-          winston.format.simple()
-        );
-      }
-
-      const transports: unknown[] = [];
-
-      if (this.config.environment === 'development') {
-        transports.push(
-          new winston.transports.Console({
-            format: winston.format.combine(
-              winston.format.colorize(),
-              winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-              winston.format.printf((info: Record<string, unknown>) => {
-                const { timestamp, level, message, stack } = info;
-                return `${timestamp} [${level}]: ${stack || message}`;
-              })
-            ),
-          })
-        );
-      }
-
-      transports.push(
-        new DailyRotateFile({
-          filename: join(this.config.logDir, 'application-%DATE%.log'),
-          datePattern: 'YYYY-MM-DD',
-          maxFiles: this.config.maxFiles,
-          maxSize: this.config.maxSize,
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
-          ),
-        })
-      );
-
-      transports.push(
-        new DailyRotateFile({
-          level: 'error',
-          filename: join(this.config.logDir, 'error-%DATE%.log'),
-          datePattern: 'YYYY-MM-DD',
-          maxFiles: this.config.maxFiles,
-          maxSize: this.config.maxSize,
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
-          ),
-        })
-      );
-
-      return winston.createLogger({
-        level: this.config.level,
-        format: winston.format.combine(...formats),
-        transports: transports as never[],
-        exitOnError: false,
-      });
-    } catch {
-      // Winston 로드 실패 시 console fallback
-      return {
-        info: (message: string, meta?: object) => console.log(`[INFO] ${message}`, meta),
-        warn: (message: string, meta?: object) => console.warn(`[WARN] ${message}`, meta),
-        error: (message: string, meta?: object) => console.error(`[ERROR] ${message}`, meta),
-        debug: (message: string, meta?: object) => console.debug(`[DEBUG] ${message}`, meta),
-        verbose: (message: string, meta?: object) => console.log(`[VERBOSE] ${message}`, meta),
-        http: (message: string, meta?: object) => console.log(`[HTTP] ${message}`, meta),
-      };
-    }
-  }
-
-  public info(message: string, meta?: object): void {
-    this.logger.info(message, meta);
-  }
-
-  public warn(message: string, meta?: object): void {
-    this.logger.warn(message, meta);
-  }
-
-  public error(message: string, error?: Error | object): void {
+  error(message: string, error?: Error | object): void {
     if (error instanceof Error) {
-      this.logger.error(message, {
-        error: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-        },
+      this.log.error(message, {
+        error: { name: error.name, message: error.message, stack: error.stack },
       });
     } else {
-      this.logger.error(message, error);
+      this.log.error(message, error as Record<string, unknown>);
     }
   }
 
-  public debug(message: string, meta?: object): void {
-    if ('debug' in this.logger) {
-      this.logger.debug(message, meta);
-    } else {
-      console.debug(`[DEBUG] ${message}`, meta);
-    }
+  debug(message: string, meta?: object): void {
+    this.log.debug(message, meta as Record<string, unknown>);
   }
 
-  public verbose(message: string, meta?: object): void {
-    if ('verbose' in this.logger) {
-      this.logger.verbose(message, meta);
-    } else {
-      console.log(`[VERBOSE] ${message}`, meta);
-    }
+  verbose(message: string, meta?: object): void {
+    this.log.debug(message, meta as Record<string, unknown>);
   }
 
-  public http(message: string, meta?: object): void {
-    if ('http' in this.logger) {
-      this.logger.http(message, meta);
-    } else {
-      console.log(`[HTTP] ${message}`, meta);
-    }
+  http(message: string, meta?: object): void {
+    this.log.info(message, meta as Record<string, unknown>);
   }
 
-  public logApiRequest(req: {
-    method: string;
-    url: string;
-    ip?: string;
-    userAgent?: string;
-  }): void {
-    this.http('API Request', {
-      method: req.method,
-      url: req.url,
-      ip: req.ip,
-      userAgent: req.userAgent,
-      timestamp: new Date().toISOString(),
+  logApiRequest(req: { method: string; url: string; ip?: string; userAgent?: string }): void {
+    this.log.info('API Request', {
+      method: req.method, url: req.url, ip: req.ip, userAgent: req.userAgent,
     });
   }
 
-  public logApiResponse(
-    req: { method: string; url: string },
-    res: { statusCode: number },
-    responseTime: number
-  ): void {
-    this.http('API Response', {
-      method: req.method,
-      url: req.url,
-      statusCode: res.statusCode,
-      responseTime: `${responseTime}ms`,
-      timestamp: new Date().toISOString(),
+  logApiResponse(req: { method: string; url: string }, res: { statusCode: number }, responseTime: number): void {
+    this.log.info('API Response', {
+      method: req.method, url: req.url, statusCode: res.statusCode, responseTime: `${responseTime}ms`,
     });
   }
 
-  public logError(error: Error, context?: string): void {
+  logError(error: Error, context?: string): void {
     this.error(`${context ? `[${context}] ` : ''}${error.message}`, error);
   }
 
-  public logDiscordEvent(event: string, data?: object): void {
-    this.info(`Discord Event: ${event}`, data);
+  logDiscordEvent(event: string, data?: object): void {
+    this.log.info(`Discord Event: ${event}`, data as Record<string, unknown>);
   }
 
-  public logComfyUIEvent(event: string, data?: object): void {
-    this.info(`ComfyUI Event: ${event}`, data);
+  logComfyUIEvent(event: string, data?: object): void {
+    this.log.info(`ComfyUI Event: ${event}`, data as Record<string, unknown>);
   }
 
-  public logGenerationEvent(event: string, data?: object): void {
-    this.info(`Generation Event: ${event}`, data);
+  logGenerationEvent(event: string, data?: object): void {
+    this.log.info(`Generation Event: ${event}`, data as Record<string, unknown>);
   }
 
-  public logSystemMetrics(metrics: {
+  logSystemMetrics(metrics: {
     memoryUsage: NodeJS.MemoryUsage;
     uptime: number;
     loadAverage?: number[];
     diskUsage?: { used: number; total: number };
   }): void {
-    this.info('System Metrics', {
+    this.log.info('System Metrics', {
       memory: {
         rss: `${Math.round(metrics.memoryUsage.rss / 1024 / 1024)}MB`,
         heapUsed: `${Math.round(metrics.memoryUsage.heapUsed / 1024 / 1024)}MB`,
@@ -257,38 +254,36 @@ class Logger {
       },
       uptime: `${Math.round(metrics.uptime / 60)}min`,
       loadAverage: metrics.loadAverage,
-      diskUsage: metrics.diskUsage ? {
-        used: `${Math.round(metrics.diskUsage.used / 1024 / 1024 / 1024)}GB`,
-        total: `${Math.round(metrics.diskUsage.total / 1024 / 1024 / 1024)}GB`,
-        percentage: `${Math.round((metrics.diskUsage.used / metrics.diskUsage.total) * 100)}%`,
-      } : undefined,
-      timestamp: new Date().toISOString(),
+      diskUsage: metrics.diskUsage
+        ? {
+            used: `${Math.round(metrics.diskUsage.used / 1024 / 1024 / 1024)}GB`,
+            total: `${Math.round(metrics.diskUsage.total / 1024 / 1024 / 1024)}GB`,
+            percentage: `${Math.round((metrics.diskUsage.used / metrics.diskUsage.total) * 100)}%`,
+          }
+        : undefined,
     });
   }
 
-  public getConfig(): LoggerConfig {
-    return { ...this.config };
+  getConfig() {
+    return { level: LOG_LEVEL, logDir: './logs', maxFiles: '14d', maxSize: '20m' };
   }
 }
 
-export const logger = Logger.getInstance();
+export const logger = new BackwardCompatLogger();
 
 export function createRequestLogger() {
-  return (req: { method: string; url: string; ip?: string; connection?: { remoteAddress: string }; get: (header: string) => string }, res: { statusCode: number; on: (event: string, callback: () => void) => void }, next?: () => void) => {
+  return (
+    req: { method: string; url: string; ip?: string; connection?: { remoteAddress: string }; get: (header: string) => string },
+    res: { statusCode: number; on: (event: string, callback: () => void) => void },
+    next?: () => void
+  ) => {
     const start = Date.now();
-    
     logger.logApiRequest({
-      method: req.method,
-      url: req.url,
-      ip: req.ip || req.connection?.remoteAddress,
-      userAgent: req.get('User-Agent'),
+      method: req.method, url: req.url, ip: req.ip || req.connection?.remoteAddress, userAgent: req.get('User-Agent'),
     });
-
     res.on('finish', () => {
-      const responseTime = Date.now() - start;
-      logger.logApiResponse(req, res, responseTime);
+      logger.logApiResponse(req, res, Date.now() - start);
     });
-
     if (next) next();
   };
 }
