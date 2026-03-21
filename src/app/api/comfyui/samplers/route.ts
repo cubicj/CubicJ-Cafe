@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
 
 import { createLogger } from '@/lib/logger';
+import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
 
 export async function GET() {
   try {
+    if (!isComfyUIEnabled()) {
+      return NextResponse.json({
+        enabled: false,
+        success: false,
+        samplers: []
+      });
+    }
     log.info('ComfyUI sampler list API called')
     
     const client = new ComfyUIClient()
