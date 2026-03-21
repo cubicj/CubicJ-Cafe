@@ -38,13 +38,90 @@ function dispatch(category: string, level: 'info' | 'warn' | 'error' | 'debug', 
   }
 }
 
+interface ClientLogEntry {
+  timestamp: string;
+  level: string;
+  category: string;
+  message: string;
+  meta?: Record<string, unknown>;
+}
+
+let clientBuffer: ClientLogEntry[] = [];
+let flushInterval: ReturnType<typeof setInterval> | null = null;
+const CLIENT_BUFFER_MAX = 200;
+const FLUSH_INTERVAL_MS = 3000;
+const INGEST_URL = '/api/admin/logs/ingest';
+
+function flushClientBuffer(): void {
+  if (clientBuffer.length === 0) return;
+
+  const entries = clientBuffer.splice(0, clientBuffer.length);
+
+  fetch(INGEST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ entries }),
+  }).catch(() => {});
+}
+
+function pushToClientBuffer(entry: ClientLogEntry): void {
+  if (!flushInterval) return;
+  clientBuffer.push(entry);
+  if (clientBuffer.length > CLIENT_BUFFER_MAX) {
+    clientBuffer = clientBuffer.slice(-CLIENT_BUFFER_MAX);
+  }
+}
+
+function handleBeforeUnload(): void {
+  if (clientBuffer.length === 0) return;
+  const blob = new Blob(
+    [JSON.stringify({ entries: clientBuffer })],
+    { type: 'application/json' }
+  );
+  navigator.sendBeacon(INGEST_URL, blob);
+  clientBuffer = [];
+}
+
+export function enableClientLogTransport(): void {
+  if (!isBrowser || flushInterval) return;
+  flushInterval = setInterval(flushClientBuffer, FLUSH_INTERVAL_MS);
+  window.addEventListener('beforeunload', handleBeforeUnload);
+}
+
+export function disableClientLogTransport(): void {
+  if (flushInterval) {
+    clearInterval(flushInterval);
+    flushInterval = null;
+  }
+  clientBuffer = [];
+  if (isBrowser) {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  }
+}
+
 export function createLogger(category: string): CategoryLogger {
   if (isEdgeRuntime || isBrowser) {
     return {
-      info: (message, meta) => { if (isLevelEnabled('info')) console.log(`[INFO] [${category}] ${message}`, meta ?? ''); },
-      warn: (message, meta) => { if (isLevelEnabled('warn')) console.warn(`[WARN] [${category}] ${message}`, meta ?? ''); },
-      error: (message, meta) => { console.error(`[ERROR] [${category}] ${message}`, meta ?? ''); },
-      debug: (message, meta) => { if (isLevelEnabled('debug')) console.debug(`[DEBUG] [${category}] ${message}`, meta ?? ''); },
+      info: (message, meta) => {
+        if (!isLevelEnabled('info')) return;
+        console.log(`[INFO] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'info', category, message, meta });
+      },
+      warn: (message, meta) => {
+        if (!isLevelEnabled('warn')) return;
+        console.warn(`[WARN] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'warn', category, message, meta });
+      },
+      error: (message, meta) => {
+        console.error(`[ERROR] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'error', category, message, meta });
+      },
+      debug: (message, meta) => {
+        if (!isLevelEnabled('debug')) return;
+        console.debug(`[DEBUG] [${category}] ${message}`, meta ?? '');
+        pushToClientBuffer({ timestamp: new Date().toISOString(), level: 'debug', category, message, meta });
+      },
     };
   }
 
