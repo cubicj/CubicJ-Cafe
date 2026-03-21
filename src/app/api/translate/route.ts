@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('번역 API 오류:', error);
+    console.error('Translation API error:', error);
     return NextResponse.json(
       { error: '번역 중 오류가 발생했습니다.' },
       { status: 500 }

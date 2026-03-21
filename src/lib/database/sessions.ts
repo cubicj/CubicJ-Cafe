@@ -27,7 +27,7 @@ export class SessionService {
         },
       });
     } catch (error) {
-      console.error('세션 생성 실패:', error);
+      console.error('Session creation failed:', error);
       return null;
     }
   }
@@ -40,7 +40,7 @@ export class SessionService {
         include: { user: true },
       });
     } catch (error) {
-      console.error('세션 조회 실패:', error);
+      console.error('Session lookup failed:', error);
       return null;
     }
   }
@@ -59,7 +59,7 @@ export class SessionService {
       });
       return session;
     } catch (error) {
-      console.error('유효한 세션 조회 실패:', error);
+      console.error('Valid session lookup failed:', error);
       return null;
     }
   }
@@ -72,7 +72,7 @@ export class SessionService {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      console.error('사용자 세션 조회 실패:', error);
+      console.error('User session lookup failed:', error);
       return [];
     }
   }
@@ -85,7 +85,7 @@ export class SessionService {
       });
       return true;
     } catch (error) {
-      console.error('세션 삭제 실패:', error);
+      console.error('Session deletion failed:', error);
       return false;
     }
   }
@@ -98,7 +98,7 @@ export class SessionService {
       });
       return true;
     } catch (error) {
-      console.error('사용자 전체 세션 삭제 실패:', error);
+      console.error('All user sessions deletion failed:', error);
       return false;
     }
   }
@@ -113,10 +113,10 @@ export class SessionService {
           },
         },
       });
-      console.log(`🧹 만료된 세션 ${result.count}개 정리 완료`);
+      console.log(`🧹 Cleaned up ${result.count} expired sessions`);
       return result.count;
     } catch (error) {
-      console.error('만료된 세션 정리 실패:', error);
+      console.error('Expired session cleanup failed:', error);
       return 0;
     }
   }
@@ -131,7 +131,7 @@ export class SessionService {
         data: { expiresAt: newExpiresAt },
       });
     } catch (error) {
-      console.error('세션 연장 실패:', error);
+      console.error('Session extension failed:', error);
       return null;
     }
   }
@@ -155,7 +155,7 @@ export class SessionService {
 
       return { total, active, expired };
     } catch (error) {
-      console.error('세션 통계 조회 실패:', error);
+      console.error('Session stats fetch failed:', error);
       return { total: 0, active: 0, expired: 0 };
     }
   }
@@ -171,7 +171,7 @@ export async function getSession(request: NextRequest): Promise<SessionWithUser 
 
     return await SessionService.findValidSession(sessionId);
   } catch (error) {
-    console.error('세션 조회 실패:', error);
+    console.error('Session lookup failed:', error);
     return null;
   }
 }

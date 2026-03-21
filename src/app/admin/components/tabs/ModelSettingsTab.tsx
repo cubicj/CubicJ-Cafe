@@ -52,6 +52,7 @@ export default function ModelSettingsTab({
     fetch('/api/system/active-model')
       .then(res => res.json())
       .then(data => {
+        console.log('[Admin] Active model:', data.model, '| Capabilities:', data.capabilities);
         if (data.model) setActiveModel(data.model);
       })
       .catch(() => {});

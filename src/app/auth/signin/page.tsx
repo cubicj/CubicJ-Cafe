@@ -26,7 +26,7 @@ export default function SignInPage() {
     try {
       await signIn("discord", { callbackUrl: "/" })
     } catch (error) {
-      console.error("로그인 오류:", error)
+      console.error("Sign-in error:", error)
     } finally {
       setIsLoading(false)
     }

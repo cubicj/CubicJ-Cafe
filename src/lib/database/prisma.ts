@@ -17,10 +17,10 @@ if ((process.env.NODE_ENV || 'development') !== 'production') globalForPrisma.pr
 export async function testDatabaseConnection() {
   try {
     await prisma.$connect();
-    console.log('✅ 데이터베이스 연결 성공');
+    console.log('✅ Database connection successful');
     return true;
   } catch (error) {
-    console.error('❌ 데이터베이스 연결 실패:', error);
+    console.error('❌ Database connection failed:', error);
     return false;
   }
 }
@@ -28,5 +28,5 @@ export async function testDatabaseConnection() {
 // 애플리케이션 종료 시 연결 해제
 export async function disconnectDatabase() {
   await prisma.$disconnect();
-  console.log('🔌 데이터베이스 연결 해제');
+  console.log('🔌 Database disconnected');
 }

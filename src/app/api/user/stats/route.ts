@@ -33,7 +33,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('사용자 통계 조회 실패:', error);
+    console.error('Failed to fetch user stats:', error);
     return NextResponse.json(
       { error: '통계 정보를 불러오는데 실패했습니다' },
       { status: 500 }

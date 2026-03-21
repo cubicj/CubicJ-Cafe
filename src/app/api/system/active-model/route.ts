@@ -15,7 +15,7 @@ export async function GET() {
       capabilities: config.capabilities,
     })
   } catch (error) {
-    console.error('활성 모델 조회 오류:', error)
+    console.error('Active model fetch error:', error)
     return NextResponse.json(
       { error: '활성 모델을 조회할 수 없습니다.' },
       { status: 500 }
@@ -49,7 +49,7 @@ export async function PUT(request: NextRequest) {
       capabilities: config.capabilities,
     })
   } catch (error) {
-    console.error('활성 모델 변경 오류:', error)
+    console.error('Active model change error:', error)
     return NextResponse.json(
       { error: '활성 모델 변경에 실패했습니다.' },
       { status: 500 }

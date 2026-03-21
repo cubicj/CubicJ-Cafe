@@ -3,14 +3,14 @@ import { ComfyUIClient } from '@/lib/comfyui/client'
 
 export async function GET() {
   try {
-    console.log('📁 ComfyUI 샘플러 목록 조회 API 호출')
+    console.log('📁 ComfyUI sampler list API called')
     
     const client = new ComfyUIClient()
     
     try {
       const samplers = await client.getSamplerList()
       
-      console.log('✅ 샘플러 목록 조회 성공:', {
+      console.log('✅ Sampler list fetched:', {
         count: samplers.length,
         samplers: samplers
       })
@@ -20,7 +20,7 @@ export async function GET() {
         samplers
       })
     } catch (connectionError) {
-      console.error('❌ ComfyUI 서버 연결 실패:', connectionError)
+      console.error('❌ ComfyUI server connection failed:', connectionError)
       
       return NextResponse.json({
         success: false,
@@ -32,7 +32,7 @@ export async function GET() {
     }
     
   } catch (error) {
-    console.error('❌ ComfyUI 샘플러 목록 조회 실패:', error)
+    console.error('❌ Failed to fetch ComfyUI sampler list:', error)
     
     return NextResponse.json({
       success: false,

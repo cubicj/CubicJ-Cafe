@@ -81,7 +81,7 @@ export class ComfyUIClient {
       try {
         return JSON.parse(responseText)
       } catch (parseError) {
-        console.error('ComfyUI JSON 파싱 에러:', {
+        console.error('ComfyUI JSON parse error:', {
           responseText: responseText.substring(0, 200),
           error: parseError
         })
@@ -114,7 +114,7 @@ export class ComfyUIClient {
 
       return response
     } catch (error) {
-      console.error('❌ ComfyUI 워크플로우 전송 실패:', {
+      console.error('❌ ComfyUI workflow submit failed:', {
         error: error instanceof Error ? error.message : error,
         baseURL: this.baseURL,
         endpoint: '/prompt'
@@ -130,7 +130,7 @@ export class ComfyUIClient {
       const response = await this.makeRequest<{ exec_info?: { queue_remaining: number } }>('/queue')
       return response.exec_info ? response as ComfyUIQueueResponse : null
     } catch (error) {
-      console.warn('큐 상태 확인 실패:', error)
+      console.warn('Queue status check failed:', error)
       return null
     }
   }
@@ -140,7 +140,7 @@ export class ComfyUIClient {
       const response = await this.makeRequest<ComfyUIQueueStatus>('/queue')
       return response
     } catch (error) {
-      console.warn('큐 목록 확인 실패:', error)
+      console.warn('Queue list check failed:', error)
       return null
     }
   }

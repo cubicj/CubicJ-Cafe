@@ -59,7 +59,7 @@ export function QueueMonitor() {
             setCurrentUser(userData.user);
           }
         } catch (userErr) {
-          console.warn('사용자 정보 조회 실패:', userErr);
+          console.warn('Failed to fetch user info:', userErr);
         }
       }
       
@@ -70,10 +70,10 @@ export function QueueMonitor() {
           const queueData = await queueResponse.json();
           setQueueList(queueData.data || []);
         } else {
-          console.warn('큐 리스트 조회 실패:', queueResponse.status);
+          console.warn('Queue list fetch failed:', queueResponse.status);
         }
       } catch (queueErr) {
-        console.warn('큐 리스트 fetch 에러:', queueErr);
+        console.warn('Queue list fetch error:', queueErr);
       }
 
       // 큐 통계 조회
@@ -83,14 +83,14 @@ export function QueueMonitor() {
           const statsData = await statsResponse.json();
           setStats(statsData.data);
         } else {
-          console.warn('큐 통계 조회 실패:', statsResponse.status);
+          console.warn('Queue stats fetch failed:', statsResponse.status);
         }
       } catch (statsErr) {
-        console.warn('큐 통계 fetch 에러:', statsErr);
+        console.warn('Queue stats fetch error:', statsErr);
       }
 
     } catch (err) {
-      console.error('Queue 데이터 조회 전체 실패:', err);
+      console.error('Queue data fetch failed:', err);
       setError('큐 정보를 불러오는데 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -126,7 +126,7 @@ export function QueueMonitor() {
         alert(`삭제 실패: ${errorData.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('큐 삭제 오류:', error);
+      console.error('Queue delete error:', error);
       alert('네트워크 오류가 발생했습니다.');
     } finally {
       setDeletingIds(prev => {

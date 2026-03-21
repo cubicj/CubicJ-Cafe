@@ -39,7 +39,7 @@ export async function GET(
       bundle,
     });
   } catch (error) {
-    console.error('❌ LoRA 번들 조회 실패:', error);
+    console.error('❌ Failed to fetch LoRA bundle:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 조회에 실패했습니다.' },
       { status: 500 }
@@ -103,7 +103,7 @@ export async function PUT(
       bundle,
     });
   } catch (error) {
-    console.error('❌ LoRA 번들 수정 실패:', error);
+    console.error('❌ Failed to update LoRA bundle:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 수정에 실패했습니다.' },
       { status: 500 }
@@ -140,7 +140,7 @@ export async function DELETE(
       message: '번들이 성공적으로 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('❌ LoRA 번들 삭제 실패:', error);
+    console.error('❌ Failed to delete LoRA bundle:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 삭제에 실패했습니다.' },
       { status: 500 }

@@ -128,7 +128,7 @@ export async function GET() {
       timestamp: new Date().toISOString()
     })
   } catch {
-    console.error('ComfyUI 상태 확인 API 오류: 서버 연결 실패')
+    console.error('ComfyUI status API error: server connection failed')
     
     return NextResponse.json({
       servers: [],

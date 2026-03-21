@@ -27,7 +27,7 @@ export function useAvailableLoRAs() {
     } catch (err) {
       // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
-        console.error('❌ LoRA 목록 조회 실패:', err);
+        console.error('❌ Failed to fetch LoRA list:', err);
       }
       setAvailableLoRAs([]);
       if (showLoading) {

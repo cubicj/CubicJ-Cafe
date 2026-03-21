@@ -378,7 +378,7 @@ export class QueueService {
           return null; // 처리할 요청이 없음
         }
 
-        console.log(`🎯 원자적 처리 대상: ${nextRequest.id} (position: ${nextRequest.position}, 닉네임: ${nextRequest.nickname})`);
+        console.log(`🎯 Atomic claim target: ${nextRequest.id} (position: ${nextRequest.position}, nickname: ${nextRequest.nickname})`);
 
         // 2. 즉시 PROCESSING 상태로 변경 (race condition 방지)
         const updatedRequest = await tx.queueRequest.update({
@@ -407,7 +407,7 @@ export class QueueService {
       });
     } catch (error) {
       // 다른 인스턴스가 이미 처리했거나 요청이 없는 경우
-      console.warn('다음 요청 원자적 처리 실패:', error);
+      console.warn('Atomic next request claim failed:', error);
       return null;
     }
   }

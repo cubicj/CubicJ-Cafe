@@ -159,7 +159,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
         setUser(null);
       }
     } catch (error) {
-      console.error('사용자 정보 조회 실패:', error);
+      console.error('Failed to fetch user info:', error);
       setUser(null);
     } finally {
       setIsLoadingAuth(false);
@@ -177,7 +177,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
     } catch (error) {
       // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
-        console.error('서버 상태 조회 실패:', error);
+        console.error('Failed to fetch server status:', error);
       }
     } finally {
       setIsLoadingServerStatus(false);
@@ -193,7 +193,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
         return data.presets || [];
       }
     } catch (err) {
-      console.error('❌ LoRA 프리셋 목록 조회 실패:', err);
+      console.error('❌ Failed to fetch LoRA preset list:', err);
     }
     return [];
   };
@@ -282,7 +282,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
       }
       
     } catch (error) {
-      console.error("큐 요청 실패:", error);
+      console.error("Queue request failed:", error);
       
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       const errorMessage = isNetworkError 
@@ -319,6 +319,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
     fetch('/api/system/active-model')
       .then(res => res.json())
       .then(data => {
+        console.log('[GenerateForm] Active model:', data.model, '| Capabilities:', data.capabilities);
         setActiveModel(data.model);
         setCapabilities(data.capabilities);
         if (data.capabilities.loraPresets) {

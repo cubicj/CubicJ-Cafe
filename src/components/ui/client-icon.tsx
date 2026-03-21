@@ -15,7 +15,7 @@ export function ClientIcon({ icon: Icon, className = "h-4 w-4", fallback }: Clie
   try {
     return <Icon className={className} />;
   } catch (error) {
-    console.warn('ClientIcon 렌더링 에러:', error);
+    console.warn('ClientIcon render error:', error);
     return (
       <span className={`${className} inline-flex items-center justify-center`} style={{ minWidth: '1rem', minHeight: '1rem' }}>
         {fallback || ''}

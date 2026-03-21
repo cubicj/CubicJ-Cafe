@@ -85,7 +85,7 @@ async function handleProxy(
     })
     
   } catch {
-    console.error('ComfyUI 프록시 오류: 백엔드 서버 연결 실패')
+    console.error('ComfyUI proxy error: backend server connection failed')
     
     return NextResponse.json({
       error: '백엔드 서비스 연결 실패',

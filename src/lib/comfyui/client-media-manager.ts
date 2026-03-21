@@ -26,7 +26,7 @@ export class ComfyUIMediaManager {
       logger.logComfyUIEvent('Image uploaded successfully', { filename: response.name, size: file.size })
       return response.name
     } catch (error) {
-      console.error('❌ ComfyUI 이미지 업로드 실패:', error)
+      console.error('❌ ComfyUI image upload failed:', error)
       throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     }
   }
@@ -37,7 +37,7 @@ export class ComfyUIMediaManager {
       const response = await this.makeRequest<ComfyUIHistoryResponse>(endpoint)
       return response
     } catch (error) {
-      console.error('ComfyUI 히스토리 조회 실패:', error)
+      console.error('ComfyUI history fetch failed:', error)
       throw error
     }
   }
@@ -77,7 +77,7 @@ export class ComfyUIMediaManager {
       logger.logComfyUIEvent('Media files downloaded', { promptId, count: downloadedFiles.length })
       return downloadedFiles
     } catch (error) {
-      console.error('미디어 다운로드 실패:', error)
+      console.error('Media download failed:', error)
       throw error
     }
   }
@@ -150,7 +150,7 @@ export class ComfyUIMediaManager {
     try {
       return JSON.parse(responseText)
     } catch (parseError) {
-      console.error('ComfyUI JSON 파싱 에러:', {
+      console.error('ComfyUI JSON parse error:', {
         responseText: responseText.substring(0, 200),
         error: parseError
       })

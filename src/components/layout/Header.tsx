@@ -41,10 +41,10 @@ export default function Header() {
         setIsAdmin(false);
       }
     } catch (error) {
-      console.error('사용자 정보 조회 실패:', error);
+      console.error('Failed to fetch user info:', error);
       
       if (retryCount < maxRetries && error instanceof Error && error.name !== 'AbortError') {
-        console.log(`재시도 ${retryCount + 1}/${maxRetries}`);
+        console.log(`Retry ${retryCount + 1}/${maxRetries}`);
         setTimeout(() => fetchUser(retryCount + 1), 1000 * (retryCount + 1));
         return;
       }
@@ -79,7 +79,7 @@ export default function Header() {
         // 그 외의 경우는 상태만 업데이트 (페이지 리로드 없음)
       }
     } catch (error) {
-      console.error('로그아웃 실패:', error);
+      console.error('Sign-out failed:', error);
     }
   };
 

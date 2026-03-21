@@ -33,9 +33,9 @@ export function ImageResult({
     try {
       await navigator.clipboard.writeText(prompt);
       // TODO: 토스트 알림 구현
-      console.log("프롬프트가 클립보드에 복사되었습니다");
+      console.log("Prompt copied to clipboard");
     } catch (error) {
-      console.error("클립보드 복사 실패:", error);
+      console.error("Clipboard copy failed:", error);
     }
   };
 
@@ -48,15 +48,15 @@ export function ImageResult({
           url: imageUrl,
         });
       } catch (error) {
-        console.error("공유 실패:", error);
+        console.error("Share failed:", error);
       }
     } else {
       // 폴백: URL 복사
       try {
         await navigator.clipboard.writeText(imageUrl);
-        console.log("이미지 URL이 클립보드에 복사되었습니다");
+        console.log("Image URL copied to clipboard");
       } catch (error) {
-        console.error("URL 복사 실패:", error);
+        console.error("URL copy failed:", error);
       }
     }
   };

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Queue Monitor API 오류:', error);
+    console.error('Queue Monitor API error:', error);
     return NextResponse.json({ 
       error: '서버 오류가 발생했습니다.' 
     }, { status: 500 });
@@ -49,7 +49,7 @@ export async function GET() {
       data: queueMonitor.getStatus()
     });
   } catch (error) {
-    console.error('Queue Monitor 상태 조회 오류:', error);
+    console.error('Queue Monitor status fetch error:', error);
     return NextResponse.json({ 
       error: '서버 오류가 발생했습니다.' 
     }, { status: 500 });

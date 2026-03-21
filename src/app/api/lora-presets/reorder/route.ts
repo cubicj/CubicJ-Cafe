@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ 프리셋 순서 변경 실패:', error);
+    console.error('❌ Failed to reorder presets:', error);
     return NextResponse.json(
       { error: '프리셋 순서 변경에 실패했습니다' },
       { status: 500 }

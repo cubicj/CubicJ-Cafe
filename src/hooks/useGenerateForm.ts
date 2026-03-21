@@ -156,7 +156,7 @@ export function useGenerateForm() {
       }
       
     } catch (error) {
-      console.error('큐 요청 실패:', error);
+      console.error('Queue request failed:', error);
       
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       const errorMessage = isNetworkError 
