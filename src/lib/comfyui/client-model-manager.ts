@@ -3,6 +3,14 @@ import type { ModelListResponse } from './client-types'
 
 const log = createLogger('comfyui')
 
+function extractOptions(data: unknown[]): string[] {
+  if (Array.isArray(data[0])) return data[0]
+  if (typeof data[0] === 'string' && data[1] && typeof data[1] === 'object' && 'options' in data[1]) {
+    return (data[1] as { options: string[] }).options
+  }
+  return data.filter((item): item is string => typeof item === 'string')
+}
+
 export class ComfyUIModelManager {
   private baseURL: string
   private timeout: number
@@ -70,7 +78,7 @@ export class ComfyUIModelManager {
       const node = objectInfo?.[nodeName] as { input?: { required?: { lora_name?: unknown[] } } }
       if (node?.input?.required?.lora_name) {
         const loraData = node.input.required.lora_name || []
-        const loras = Array.isArray(loraData[0]) ? loraData[0] : loraData
+        const loras = extractOptions(loraData)
 
         const filteredLoras = this.filterWANLoRAs(loras)
 
@@ -132,7 +140,7 @@ export class ComfyUIModelManager {
         const node = objectInfo?.[nodeName] as { input?: { required?: { lora_name?: unknown[] } } }
         if (node?.input?.required?.lora_name) {
           const loraData = node.input.required.lora_name || []
-          const loras = Array.isArray(loraData[0]) ? loraData[0] : loraData
+          const loras = extractOptions(loraData)
 
           const filteredLoras = this.filterWANLoRAs(loras, true)
 
@@ -248,7 +256,7 @@ export class ComfyUIModelManager {
       const node = objectInfo?.[nodeName] as { input?: { required?: { sampler_name?: unknown[] } } }
       if (node?.input?.required?.sampler_name) {
         const samplerData = node.input.required.sampler_name || []
-        const samplers = Array.isArray(samplerData[0]) ? samplerData[0] : samplerData
+        const samplers = extractOptions(samplerData)
         return samplers.sort()
       }
     }
@@ -296,7 +304,7 @@ export class ComfyUIModelManager {
         const node = objectInfo?.[nodeName] as { input?: { required?: { sampler_name?: unknown[] } } }
         if (node?.input?.required?.sampler_name) {
           const samplerData = node.input.required.sampler_name || []
-          const samplers = Array.isArray(samplerData[0]) ? samplerData[0] : samplerData
+          const samplers = extractOptions(samplerData)
           return samplers.sort()
         }
       }
@@ -349,31 +357,31 @@ export class ComfyUIModelManager {
     const unetLoader = objectInfo?.UNETLoader as { input?: { required?: { unet_name?: string[] } } }
     if (unetLoader?.input?.required?.unet_name) {
       const unetData = unetLoader.input.required.unet_name
-      result.diffusionModels = Array.isArray(unetData[0]) ? unetData[0] : unetData
+      result.diffusionModels = extractOptions(unetData)
     }
 
     const clipLoader = objectInfo?.CLIPLoader as { input?: { required?: { clip_name?: string[] } } }
     if (clipLoader?.input?.required?.clip_name) {
       const clipData = clipLoader.input.required.clip_name
-      result.textEncoders = Array.isArray(clipData[0]) ? clipData[0] : clipData
+      result.textEncoders = extractOptions(clipData)
     }
 
     const vaeLoader = objectInfo?.VAELoader as { input?: { required?: { vae_name?: string[] } } }
     if (vaeLoader?.input?.required?.vae_name) {
       const vaeData = vaeLoader.input.required.vae_name
-      result.vaes = Array.isArray(vaeData[0]) ? vaeData[0] : vaeData
+      result.vaes = extractOptions(vaeData)
     }
 
     const upscaleLoader = objectInfo?.UpscaleModelLoader as { input?: { required?: { model_name?: string[] } } }
     if (upscaleLoader?.input?.required?.model_name) {
       const upscaleData = upscaleLoader.input.required.model_name
-      result.upscaleModels = Array.isArray(upscaleData[0]) ? upscaleData[0] : upscaleData
+      result.upscaleModels = extractOptions(upscaleData)
     }
 
     const clipVisionLoader = objectInfo?.CLIPVisionLoader as { input?: { required?: { clip_name?: string[] } } }
     if (clipVisionLoader?.input?.required?.clip_name) {
       const clipVisionData = clipVisionLoader.input.required.clip_name
-      result.clipVisions = Array.isArray(clipVisionData[0]) ? clipVisionData[0] : clipVisionData
+      result.clipVisions = extractOptions(clipVisionData)
     }
 
     log.info('Local models fetched', {
@@ -419,31 +427,31 @@ export class ComfyUIModelManager {
       const unetLoader = objectInfo?.UNETLoader as { input?: { required?: { unet_name?: string[] } } }
       if (unetLoader?.input?.required?.unet_name) {
         const unetData = unetLoader.input.required.unet_name
-        result.diffusionModels = Array.isArray(unetData[0]) ? unetData[0] : unetData
+        result.diffusionModels = extractOptions(unetData)
       }
 
       const clipLoader = objectInfo?.CLIPLoader as { input?: { required?: { clip_name?: string[] } } }
       if (clipLoader?.input?.required?.clip_name) {
         const clipData = clipLoader.input.required.clip_name
-        result.textEncoders = Array.isArray(clipData[0]) ? clipData[0] : clipData
+        result.textEncoders = extractOptions(clipData)
       }
 
       const vaeLoader = objectInfo?.VAELoader as { input?: { required?: { vae_name?: string[] } } }
       if (vaeLoader?.input?.required?.vae_name) {
         const vaeData = vaeLoader.input.required.vae_name
-        result.vaes = Array.isArray(vaeData[0]) ? vaeData[0] : vaeData
+        result.vaes = extractOptions(vaeData)
       }
 
       const upscaleLoader = objectInfo?.UpscaleModelLoader as { input?: { required?: { model_name?: string[] } } }
       if (upscaleLoader?.input?.required?.model_name) {
         const upscaleData = upscaleLoader.input.required.model_name
-        result.upscaleModels = Array.isArray(upscaleData[0]) ? upscaleData[0] : upscaleData
+        result.upscaleModels = extractOptions(upscaleData)
       }
 
       const clipVisionLoader = objectInfo?.CLIPVisionLoader as { input?: { required?: { clip_name?: string[] } } }
       if (clipVisionLoader?.input?.required?.clip_name) {
         const clipVisionData = clipVisionLoader.input.required.clip_name
-        result.clipVisions = Array.isArray(clipVisionData[0]) ? clipVisionData[0] : clipVisionData
+        result.clipVisions = extractOptions(clipVisionData)
       }
 
       log.info('Runpod models fetched', {
