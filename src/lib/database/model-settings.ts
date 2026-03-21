@@ -1,4 +1,27 @@
 import { prisma } from '@/lib/database/prisma'
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
+import type { VideoModel } from '@/lib/comfyui/workflows/types'
+
+const ACTIVE_MODEL_KEY = 'system.active_model'
+
+export async function getActiveModel(): Promise<VideoModel> {
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key: ACTIVE_MODEL_KEY }
+  })
+  const model = setting?.value as VideoModel
+  return model && model in MODEL_REGISTRY ? model : 'ltx'
+}
+
+export async function setActiveModel(model: VideoModel): Promise<void> {
+  if (!(model in MODEL_REGISTRY)) {
+    throw new Error(`지원하지 않는 모델: ${model}`)
+  }
+  await prisma.systemSetting.upsert({
+    where: { key: ACTIVE_MODEL_KEY },
+    update: { value: model },
+    create: { key: ACTIVE_MODEL_KEY, value: model, type: 'string', category: 'system' }
+  })
+}
 
 export type ModelSettings = {
   highDiffusionModel: string
@@ -235,6 +258,18 @@ export async function initializeModelSettings(): Promise<void> {
           category: 'models'
         })
       }
+    }
+
+    const activeModelSetting = await prisma.systemSetting.findUnique({
+      where: { key: ACTIVE_MODEL_KEY }
+    })
+    if (!activeModelSetting) {
+      newSettings.push({
+        key: ACTIVE_MODEL_KEY,
+        value: 'ltx',
+        type: 'string',
+        category: 'system'
+      })
     }
 
     if (newSettings.length > 0) {
