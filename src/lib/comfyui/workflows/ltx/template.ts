@@ -620,7 +620,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "86": {
     "inputs": {
-      "megapixels": 0.26,
+      "megapixels": 0.22,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
