@@ -48,49 +48,46 @@ export async function applyPromptSettings(workflow: ComfyUIWorkflow, params: Gen
 }
 
 export async function applyImageSettings(workflow: ComfyUIWorkflow, params: GenerationParams) {
-  // 이미지 업로드 처리 (노드 299: Start Image)
   if (workflow['299']?.inputs) {
     workflow['299'].inputs.image = params.inputImage;
   }
-  
-  // End Image 처리
-  if (params.endImage) {
+
+  const endImage = 'endImage' in params ? params.endImage : undefined;
+  if (endImage) {
     if (workflow['325']?.inputs) {
-      workflow['325'].inputs.image = params.endImage;
+      workflow['325'].inputs.image = endImage;
     }
   } else {
     handleEndImageBypass(workflow);
   }
-  
+
   console.log('🖼️ 이미지 설정 적용 완료:', {
     inputImage: params.inputImage ? '설정됨' : '없음',
-    endImage: params.endImage ? '설정됨' : '없음 (우회 처리)',
+    endImage: endImage ? '설정됨' : '없음 (우회 처리)',
   });
 }
 
 export async function applyGenerationSettings(workflow: ComfyUIWorkflow, params: GenerationParams) {
-  // 비디오 길이 설정 (노드 269: Length)
-  if (params.videoLength) {
+  const videoLength = 'videoLength' in params ? params.videoLength : undefined;
+  if (videoLength) {
     if (workflow['269']?.inputs) {
-      workflow['269'].inputs.value = params.videoLength;
+      workflow['269'].inputs.value = videoLength;
     }
   }
-  
-  // 영상 해상도 설정 (노드 311: DF_Multiply - 목표 해상도)
+
   const videoResolution = await getVideoResolution();
   if (workflow['311']?.inputs) {
     workflow['311'].inputs.Value_A = videoResolution;
     workflow['311'].inputs.Value_B = videoResolution;
   }
-  
-  // 품질 프롬프트 추가 (노드 293: Quality)
+
   const qualityPrompt = await getQualityPrompt();
   if (qualityPrompt && workflow['293']?.inputs) {
     workflow['293'].inputs.positive = qualityPrompt;
   }
-  
+
   console.log('⚙️ 생성 설정 적용 완료:', {
-    videoLength: params.videoLength || '기본값 사용',
+    videoLength: videoLength || '기본값 사용',
     videoResolution: videoResolution,
     qualityPrompt: qualityPrompt || '없음',
   });
