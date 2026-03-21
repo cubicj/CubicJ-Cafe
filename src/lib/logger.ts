@@ -83,10 +83,54 @@ function handleBeforeUnload(): void {
   clientBuffer = [];
 }
 
+let originalConsole: { log: typeof console.log; warn: typeof console.warn; error: typeof console.error; debug: typeof console.debug } | null = null;
+let insideOverride = false;
+
+function argsToString(args: unknown[]): string {
+  return args.map(a => {
+    if (typeof a === 'string') return a;
+    try { return JSON.stringify(a); } catch { return String(a); }
+  }).join(' ');
+}
+
+function installConsoleOverride(): void {
+  if (originalConsole) return;
+  originalConsole = { log: console.log, warn: console.warn, error: console.error, debug: console.debug };
+
+  const wrap = (level: 'info' | 'warn' | 'error' | 'debug', orig: (...args: unknown[]) => void) => {
+    return (...args: unknown[]) => {
+      orig.apply(console, args);
+      if (insideOverride) return;
+      insideOverride = true;
+      pushToClientBuffer({ timestamp: new Date().toISOString(), level, category: 'console', message: argsToString(args) });
+      insideOverride = false;
+    };
+  };
+
+  console.log = wrap('info', originalConsole.log);
+  console.warn = wrap('warn', originalConsole.warn);
+  console.error = wrap('error', originalConsole.error);
+  console.debug = wrap('debug', originalConsole.debug);
+}
+
+function uninstallConsoleOverride(): void {
+  if (!originalConsole) return;
+  console.log = originalConsole.log;
+  console.warn = originalConsole.warn;
+  console.error = originalConsole.error;
+  console.debug = originalConsole.debug;
+  originalConsole = null;
+}
+
 export function enableClientLogTransport(): void {
   if (!isBrowser || flushInterval) return;
   flushInterval = setInterval(flushClientBuffer, FLUSH_INTERVAL_MS);
   window.addEventListener('beforeunload', handleBeforeUnload);
+  installConsoleOverride();
+}
+
+export function isClientLogTransportEnabled(): boolean {
+  return flushInterval !== null;
 }
 
 export function disableClientLogTransport(): void {
@@ -98,6 +142,7 @@ export function disableClientLogTransport(): void {
   if (isBrowser) {
     window.removeEventListener('beforeunload', handleBeforeUnload);
   }
+  uninstallConsoleOverride();
 }
 
 export function createLogger(category: string): CategoryLogger {
