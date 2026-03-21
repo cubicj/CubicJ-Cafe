@@ -19,7 +19,7 @@ export const OTHER_USER = {
   nickname: 'OtherUser',
 } as const
 
-export async function createUser(overrides?: Partial<typeof TEST_USER>): Promise<User> {
+export async function createUser(overrides?: { discordId?: string; discordUsername?: string; nickname?: string }): Promise<User> {
   return prisma.user.create({
     data: { ...TEST_USER, ...overrides },
   })
