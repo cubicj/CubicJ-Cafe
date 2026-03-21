@@ -20,14 +20,16 @@ export async function createExpiredSession(userId: number) {
   return session
 }
 
-export function buildRequest(url: string, options?: RequestInit): NextRequest {
+type NextRequestInit = ConstructorParameters<typeof NextRequest>[1]
+
+export function buildRequest(url: string, options?: NextRequestInit): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:3000'), options)
 }
 
 export function buildAuthenticatedRequest(
   url: string,
   sessionId: string,
-  options?: RequestInit
+  options?: NextRequestInit
 ): NextRequest {
   return new NextRequest(new URL(url, 'http://localhost:3000'), {
     ...options,
