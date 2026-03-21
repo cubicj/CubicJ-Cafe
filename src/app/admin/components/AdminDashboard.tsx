@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +14,8 @@ import ModelSettingsTab from './tabs/ModelSettingsTab';
 import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
 import LogViewerTab from './tabs/LogViewerTab';
+
+const log = createLogger('admin');
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -46,7 +49,7 @@ export default function AdminDashboard() {
           }, 2000);
         }
       } catch (error) {
-        console.error('Admin permission check failed:', error);
+        log.error('Admin permission check failed', { error: error instanceof Error ? error.message : String(error) });
         setAuthError('서버 오류가 발생했습니다.');
         setTimeout(() => {
           router.push('/');
@@ -67,7 +70,7 @@ export default function AdminDashboard() {
         // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
         adminSettings.fetchAvailableModels();
       } catch (error) {
-        console.error('Admin settings initialization failed:', error);
+        log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
       }
     };
 

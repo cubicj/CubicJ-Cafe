@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { LoRAPresetItem } from '@/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('hook');
 
 interface LoRAPreset {
   id: string;
@@ -31,7 +34,7 @@ export function useLoRAPresets() {
       
       setPresets(data.presets || []);
     } catch (err) {
-      console.error('❌ Failed to fetch presets:', err);
+      log.error('Failed to fetch presets', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '프리셋 조회 실패');
     } finally {
       setIsLoading(false);
@@ -53,7 +56,7 @@ export function useLoRAPresets() {
       }
       
     } catch (err) {
-      console.error('❌ Failed to reorder presets:', err);
+      log.error('Failed to reorder presets', { error: err instanceof Error ? err.message : String(err) });
       alert(err instanceof Error ? err.message : '프리셋 순서 변경에 실패했습니다');
       fetchPresets();
     }
@@ -82,7 +85,7 @@ export function useLoRAPresets() {
       await fetchPresets();
       return data;
     } catch (err) {
-      console.error('❌ Failed to save preset:', err);
+      log.error('Failed to save preset', { error: err instanceof Error ? err.message : String(err) });
       throw err;
     }
   };
@@ -108,7 +111,7 @@ export function useLoRAPresets() {
       
       await fetchPresets();
     } catch (err) {
-      console.error('❌ Failed to delete preset:', err);
+      log.error('Failed to delete preset', { error: err instanceof Error ? err.message : String(err) });
       alert(err instanceof Error ? err.message : '프리셋 삭제에 실패했습니다');
     }
   };

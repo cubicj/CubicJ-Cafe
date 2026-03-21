@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,8 @@ interface SessionUser {
   avatar?: string;
   name?: string;
 }
+
+const log = createLogger('page');
 
 export default function NicknameSetupPage() {
   const router = useRouter();
@@ -48,7 +51,7 @@ export default function NicknameSetupPage() {
           router.push('/');
         }
       } catch (error) {
-        console.error('Auth status check failed:', error);
+        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
         router.push('/');
       }
     };
@@ -80,7 +83,7 @@ export default function NicknameSetupPage() {
       const data = await response.json();
       setIsAvailable(data.available);
     } catch (error) {
-      console.error('Nickname check error:', error);
+      log.error('Nickname check error', { error: error instanceof Error ? error.message : String(error) });
       setIsAvailable(null);
     } finally {
       setIsChecking(false);
@@ -136,7 +139,7 @@ export default function NicknameSetupPage() {
         setError(data.error || '닉네임 설정에 실패했습니다.');
       }
     } catch (error) {
-      console.error('Nickname setup error:', error);
+      log.error('Nickname setup error', { error: error instanceof Error ? error.message : String(error) });
       setError('서버 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);

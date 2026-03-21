@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { User } from '@/types'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('hook')
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -23,7 +26,7 @@ export function useAuth() {
         setUser(null)
       }
     } catch (error) {
-      console.error('Failed to fetch user info:', error)
+      log.error('Failed to fetch user info', { error: error instanceof Error ? error.message : String(error) })
       setUser(null)
     } finally {
       setIsLoadingAuth(false)

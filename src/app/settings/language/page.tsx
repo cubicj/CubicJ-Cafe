@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -34,6 +35,8 @@ const translationServices: TranslationService[] = [
   }
 ];
 
+const log = createLogger('page');
+
 export default function LanguageSettingsPage() {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState('google');
@@ -60,7 +63,7 @@ export default function LanguageSettingsPage() {
           return;
         }
       } catch (error) {
-        console.error('Auth status check failed:', error);
+        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
         router.push('/');
         return;
       } finally {
@@ -78,7 +81,7 @@ export default function LanguageSettingsPage() {
         setSelectedService(saved);
       }
     } catch (error) {
-      console.error('Failed to load translation settings:', error);
+      log.error('Failed to load translation settings', { error: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -100,9 +103,9 @@ export default function LanguageSettingsPage() {
       // 3초 후 메시지 숨기기
       setTimeout(() => setSaveMessage(''), 3000);
       
-      console.log('Translation service saved:', selectedService);
+      log.info('Translation service saved', { service: selectedService });
     } catch (error) {
-      console.error('Failed to save translation settings:', error);
+      log.error('Failed to save translation settings', { error: error instanceof Error ? error.message : String(error) });
       setSaveMessage('저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSaving(false);
