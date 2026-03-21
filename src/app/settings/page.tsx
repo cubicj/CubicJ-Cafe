@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Loader2, BarChart3 } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
@@ -21,6 +22,8 @@ interface UserStats {
   loraPresetCount: number;
 }
 
+
+const log = createLogger('page');
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -45,7 +48,7 @@ export default function SettingsPage() {
           router.push('/');
         }
       } catch (error) {
-        console.error('Auth status check failed:', error);
+        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
         router.push('/');
       } finally {
         setIsLoading(false);
@@ -64,7 +67,7 @@ export default function SettingsPage() {
         setUserStats(stats);
       }
     } catch (error) {
-      console.error('Failed to load user stats:', error);
+      log.error('Failed to load user stats', { error: error instanceof Error ? error.message : String(error) });
     } finally {
       setIsStatsLoading(false);
     }

@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('hook');
 
 interface UseImageGenerationReturn {
   isGenerating: boolean;
@@ -15,8 +18,7 @@ export default function useImageGeneration(): UseImageGenerationReturn {
     setError(null);
 
     try {
-      console.log('Image generation started:', prompt);
-      // TODO: ComfyUI API 연동 구현
+      log.info('Image generation started', { prompt });
       await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

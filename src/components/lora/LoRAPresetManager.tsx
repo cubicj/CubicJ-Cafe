@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('ui');
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useLoRAPresets, useLoRABundles, useAvailableLoRAs, useDragAndDrop } from "@/hooks";
@@ -127,7 +130,7 @@ export function LoRAPresetManager({
       await hookSavePreset(presetData);
       setIsEditDialogOpen(false);
     } catch (err) {
-      console.error('❌ Failed to save preset:', err);
+      log.error('Failed to save preset', { error: err instanceof Error ? err.message : String(err) });
       alert(err instanceof Error ? err.message : '프리셋 저장에 실패했습니다');
     }
   };
@@ -145,13 +148,13 @@ export function LoRAPresetManager({
 
       await navigator.clipboard.writeText(bundleNames);
       setCopySuccess(true);
-      console.log('✅ Bundle names copied to clipboard:', bundleNames);
+      log.info('Bundle names copied to clipboard', { bundleNames });
 
       setTimeout(() => {
         setCopySuccess(false);
       }, 2000);
     } catch (error) {
-      console.error('❌ Failed to copy bundle names:', error);
+      log.error('Failed to copy bundle names', { error: error instanceof Error ? error.message : String(error) });
       alert('번들명 복사에 실패했습니다.');
     }
   };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,8 @@ interface ModelSettingsTabProps {
   updateModelSettings: () => Promise<void>;
 }
 
+const log = createLogger('admin');
+
 export default function ModelSettingsTab({
   modelSettings,
   setModelSettings,
@@ -52,7 +55,7 @@ export default function ModelSettingsTab({
     fetch('/api/system/active-model')
       .then(res => res.json())
       .then(data => {
-        console.log('[Admin] Active model:', data.model, '| Capabilities:', data.capabilities);
+        log.info('Active model loaded', { model: data.model, capabilities: data.capabilities });
         if (data.model) setActiveModel(data.model);
       })
       .catch(() => {});
