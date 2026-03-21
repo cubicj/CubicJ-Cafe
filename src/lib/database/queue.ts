@@ -181,7 +181,7 @@ export class QueueService {
   }
 
   // 캐시 무효화 메서드
-  private invalidateCache() {
+  invalidateCache() {
     this.queueListCache = null;
     this.statsCache = null;
   }
