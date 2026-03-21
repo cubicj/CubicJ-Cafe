@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User } from "@/types";
 import { createLogger } from '@/lib/logger';
+import { useSession } from '@/contexts/SessionContext';
 import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
 
 const log = createLogger('generate');
@@ -64,10 +64,6 @@ interface UseGenerateFormReturn {
   setVideoDuration: (duration: number) => void;
   submitMessage: SubmitMessage | null;
   setSubmitMessage: (message: SubmitMessage | null) => void;
-  user: User | null;
-  setUser: (user: User | null) => void;
-  isLoadingAuth: boolean;
-  setIsLoadingAuth: (loading: boolean) => void;
   serverStatus: ComfyUIStatus | null;
   setServerStatus: (status: ComfyUIStatus | null) => void;
   isRefreshing: boolean;
@@ -76,11 +72,11 @@ interface UseGenerateFormReturn {
   setIsLoadingServerStatus: (loading: boolean) => void;
   activeModel: VideoModel;
   capabilities: ModelCapabilities;
+  isLoadingAuth: boolean;
   isFormValid: boolean;
   handleGenerate: () => Promise<void>;
   handleNewGeneration: () => void;
   handleRefreshStatus: () => Promise<void>;
-  fetchUser: () => Promise<void>;
   fetchServerStatus: () => Promise<void>;
   fetchPresets: () => Promise<any[]>;
 }
@@ -121,8 +117,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
   });
 
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const { isLoading: isLoadingAuth } = useSession();
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
@@ -150,24 +145,6 @@ export function useGenerateForm(): UseGenerateFormReturn {
       localStorage.setItem('videoDuration', videoDuration.toString());
     }
   }, [videoDuration]);
-
-  const fetchUser = async () => {
-    setIsLoadingAuth(true);
-    try {
-      const response = await fetch('/api/auth/session');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user || null);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      log.error('Failed to fetch user info', { error: error instanceof Error ? error.message : String(error) });
-      setUser(null);
-    } finally {
-      setIsLoadingAuth(false);
-    }
-  };
 
   const fetchServerStatus = async () => {
     setIsLoadingServerStatus(true);
@@ -316,22 +293,27 @@ export function useGenerateForm(): UseGenerateFormReturn {
   };
 
   useEffect(() => {
-    fetchUser();
-    fetchServerStatus();
+    const loadInitialData = async () => {
+      const [, modelData] = await Promise.all([
+        fetchServerStatus(),
+        fetch('/api/system/active-model').then(res => res.json()).catch((err: unknown) => {
+          log.error('Failed to load active model', { error: err instanceof Error ? err.message : String(err) });
+          return null;
+        }),
+      ]);
 
-    fetch('/api/system/active-model')
-      .then(res => res.json())
-      .then(data => {
-        log.info('Active model loaded', { model: data.model, capabilities: data.capabilities });
-        setActiveModel(data.model);
-        setCapabilities(data.capabilities);
-        if (data.capabilities.loraPresets) {
-          fetchPresets().then((allPresets) => {
-            setPresets(allPresets);
-          });
+      if (modelData) {
+        log.info('Active model loaded', { model: modelData.model, capabilities: modelData.capabilities });
+        setActiveModel(modelData.model);
+        setCapabilities(modelData.capabilities);
+        if (modelData.capabilities.loraPresets) {
+          const allPresets = await fetchPresets();
+          setPresets(allPresets);
         }
-      })
-      .catch((err: unknown) => log.error('Failed to load active model', { error: err instanceof Error ? err.message : String(err) }));
+      }
+    };
+
+    loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -384,10 +366,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
     setVideoDuration,
     submitMessage,
     setSubmitMessage,
-    user,
-    setUser,
     isLoadingAuth,
-    setIsLoadingAuth,
     serverStatus,
     setServerStatus,
     isRefreshing,
@@ -400,7 +379,6 @@ export function useGenerateForm(): UseGenerateFormReturn {
     handleGenerate,
     handleNewGeneration,
     handleRefreshStatus,
-    fetchUser,
     fetchServerStatus,
     fetchPresets,
   };

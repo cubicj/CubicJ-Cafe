@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createLogger } from '@/lib/logger';
+import { useSession } from '@/contexts/SessionContext';
 
 const log = createLogger('ui');
 import { Card } from "@/components/ui/card";
@@ -27,13 +28,6 @@ interface QueueRequest {
   };
 }
 
-interface CurrentUser {
-  id: string;
-  nickname: string;
-  discordUsername: string;
-  discordId: string;
-}
-
 interface QueueStats {
   pending: number;
   processing: number;
@@ -42,9 +36,9 @@ interface QueueStats {
 }
 
 export function QueueMonitor() {
+  const { user: currentUser } = useSession();
   const [queueList, setQueueList] = useState<QueueRequest[]>([]);
   const [stats, setStats] = useState<QueueStats | null>(null);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
@@ -52,44 +46,17 @@ export function QueueMonitor() {
   const fetchQueueData = useCallback(async () => {
     try {
       setError(null);
-      
-      // 현재 사용자 정보 조회 (최초 1회만)
-      if (!currentUser) {
-        try {
-          const userResponse = await fetch('/api/auth/session');
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            setCurrentUser(userData.user);
-          }
-        } catch (userErr) {
-          log.warn('Failed to fetch user info', { error: userErr instanceof Error ? userErr.message : String(userErr) });
-        }
-      }
-      
-      // 전체 큐 리스트 조회
-      try {
-        const queueResponse = await fetch('/api/queue?action=list');
-        if (queueResponse.ok) {
-          const queueData = await queueResponse.json();
-          setQueueList(queueData.data || []);
-        } else {
-          log.warn('Queue list fetch failed', { status: queueResponse.status });
-        }
-      } catch (queueErr) {
-        log.warn('Queue list fetch error', { error: queueErr instanceof Error ? queueErr.message : String(queueErr) });
-      }
 
-      // 큐 통계 조회
-      try {
-        const statsResponse = await fetch('/api/queue?action=stats');
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData.data);
-        } else {
-          log.warn('Queue stats fetch failed', { status: statsResponse.status });
-        }
-      } catch (statsErr) {
-        log.warn('Queue stats fetch error', { error: statsErr instanceof Error ? statsErr.message : String(statsErr) });
+      const [queueResult, statsResult] = await Promise.all([
+        fetch('/api/queue?action=list').then(res => res.ok ? res.json() : null).catch(() => null),
+        fetch('/api/queue?action=stats').then(res => res.ok ? res.json() : null).catch(() => null),
+      ]);
+
+      if (queueResult) {
+        setQueueList(queueResult.data || []);
+      }
+      if (statsResult) {
+        setStats(statsResult.data);
       }
 
     } catch (err) {
@@ -98,7 +65,7 @@ export function QueueMonitor() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser]);
+  }, []);
 
 
   // 큐 삭제 함수
