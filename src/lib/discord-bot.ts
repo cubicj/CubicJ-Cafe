@@ -169,6 +169,7 @@ class DiscordBot {
     videoPath?: string;
     filename?: string;
     subfolder?: string;
+    fileType?: string;
     prompt: string;
     username: string;
     userAvatar?: string;
@@ -226,6 +227,7 @@ class DiscordBot {
     videoPath?: string;
     filename?: string;
     subfolder?: string;
+    fileType?: string;
     prompt: string;
     username: string;
     userAvatar?: string;
@@ -292,13 +294,14 @@ class DiscordBot {
         // ComfyUI에서 파일명만 제공된 경우, 직접 다운로드
         const subfolder = params.subfolder || '';
         const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://localhost:8188';
-        const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=temp`;
-        
+        const fileType = params.fileType || 'output';
+        const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=${fileType}`;
+
         log.info('Downloading video from ComfyUI', {
           videoUrl,
           filename: params.filename,
           subfolder,
-          type: 'temp',
+          type: fileType,
           serverUrl
         });
         
@@ -453,6 +456,7 @@ export type SendVideoParams = {
   videoPath?: string;
   filename?: string;
   subfolder?: string;
+  fileType?: string;
   prompt: string;
   username: string;
   userAvatar?: string;

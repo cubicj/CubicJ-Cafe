@@ -18,5 +18,5 @@ export const VIDEO_OUTPUT_TYPES: Record<VideoModel, {
   outputField: string
 }> = {
   wan: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
-  ltx: { classTypes: ['SaveVideo'], outputField: 'videos' },
+  ltx: { classTypes: ['SaveVideo'], outputField: 'images' },
 }

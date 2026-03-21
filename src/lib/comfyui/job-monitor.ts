@@ -322,7 +322,7 @@ class ComfyUIJobMonitor {
 
       let videoFound = false;
       for (const [, nodeOutput] of Object.entries(outputs)) {
-        const outputFiles = (nodeOutput as Record<string, unknown>)[outputConfig.outputField] as Array<{ filename: string; subfolder?: string }> | undefined;
+        const outputFiles = (nodeOutput as Record<string, unknown>)[outputConfig.outputField] as Array<{ filename: string; subfolder?: string; type?: string }> | undefined;
         if (outputFiles && outputFiles.length > 0) {
           const video = outputFiles[0];
           videoFound = true;
@@ -351,6 +351,7 @@ class ComfyUIJobMonitor {
           await discordBot.sendVideoToDiscord({
             filename: video.filename,
             subfolder: video.subfolder || '',
+            fileType: video.type || 'output',
             prompt: job.prompt,
             username: job.userInfo.name,
             userAvatar: job.userInfo.image,
@@ -441,6 +442,7 @@ class ComfyUIJobMonitor {
           await discordBot.sendVideoToDiscord({
             filename: videoFilename,
             subfolder: modelConfig.defaultSubfolder,
+            fileType: 'output',
             prompt: job.prompt,
             username: job.userInfo.name,
             userAvatar: job.userInfo.image,
