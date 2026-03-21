@@ -3,6 +3,7 @@ export interface LogEntry {
   timestamp: string;
   level: string;
   category: string;
+  source?: 'server' | 'client';
   message: string;
   meta?: Record<string, unknown>;
 }

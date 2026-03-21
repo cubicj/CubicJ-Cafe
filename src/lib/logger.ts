@@ -30,7 +30,7 @@ function dispatch(category: string, level: 'info' | 'warn' | 'error' | 'debug', 
 
   const timestamp = new Date().toISOString();
 
-  logBuffer.push({ timestamp, level, category, message, meta });
+  logBuffer.push({ timestamp, level, category, message, meta, source: 'server' });
 
   if (isServer && IS_DEV) {
     const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : level === 'debug' ? console.debug : console.log;
