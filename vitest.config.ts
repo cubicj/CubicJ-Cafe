@@ -19,5 +19,9 @@ export default defineConfig({
       include: ['src/lib/**', 'src/app/api/**'],
       exclude: ['src/components/**', 'src/app/**/page.tsx', 'src/app/**/layout.tsx'],
     },
+    benchmark: {
+      include: ['tests/**/*.bench.ts'],
+      outputJson: 'tests/bench-results.json',
+    },
   },
 })

@@ -33,6 +33,7 @@ next-env.d.ts
 /tests/videos/
 /tests/traces/
 tests/.test.db*
+tests/bench-results.json
 
 # temp files
 /public/temp
