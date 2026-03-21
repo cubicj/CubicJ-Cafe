@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Cog, Shield, AlertCircle, ScrollText } from 'lucide-react';
+import { Database, Cog, Shield, AlertCircle, ScrollText, Power } from 'lucide-react';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import SystemSettingsTab from './tabs/SystemSettingsTab';
@@ -25,6 +27,45 @@ export default function AdminDashboard() {
   const initialized = useRef(false);
   const { error } = useAdminAuth();
   const adminSettings = useAdminSettings();
+  const [comfyuiEnabled, setComfyuiEnabled] = useState(false);
+  const [comfyuiLoading, setComfyuiLoading] = useState(true);
+  const [comfyuiMessage, setComfyuiMessage] = useState('');
+
+  const fetchComfyUIState = async () => {
+    try {
+      const response = await fetch('/api/admin/comfyui-toggle', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setComfyuiEnabled(data.enabled);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setComfyuiLoading(false);
+    }
+  };
+
+  const toggleComfyUI = async (enabled: boolean) => {
+    try {
+      setComfyuiLoading(true);
+      const response = await fetch('/api/admin/comfyui-toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ enabled })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setComfyuiEnabled(data.enabled);
+        setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
+        setTimeout(() => setComfyuiMessage(''), 3000);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setComfyuiLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (initialized.current) return;
@@ -64,10 +105,10 @@ export default function AdminDashboard() {
         // 필수 설정만 먼저 로드 (빠른 API들)
         await Promise.all([
           adminSettings.fetchSystemSettings(),
-          adminSettings.fetchModelSettings()
+          adminSettings.fetchModelSettings(),
+          fetchComfyUIState()
         ]);
-        
-        // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
+
         adminSettings.fetchAvailableModels();
       } catch (error) {
         log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
@@ -145,6 +186,31 @@ export default function AdminDashboard() {
           <AlertDescription>{adminSettings.success}</AlertDescription>
         </Alert>
       )}
+
+      {comfyuiMessage && (
+        <Alert>
+          <AlertDescription>{comfyuiMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Power className={`h-5 w-5 ${comfyuiEnabled ? 'text-green-500' : 'text-gray-400'}`} />
+            <div>
+              <h3 className="font-semibold">ComfyUI 서버</h3>
+              <p className="text-sm text-muted-foreground">
+                {comfyuiEnabled ? '활성 — 큐 모니터링 및 서버 체크 동작 중' : '비활성 — 모든 ComfyUI 연동 중단'}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={comfyuiEnabled}
+            onCheckedChange={toggleComfyUI}
+            disabled={comfyuiLoading}
+          />
+        </div>
+      </Card>
 
       <Tabs defaultValue="advanced" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
