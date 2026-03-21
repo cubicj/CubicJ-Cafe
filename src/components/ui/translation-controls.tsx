@@ -48,7 +48,7 @@ export function TranslationControls({
           }
         }
       } catch (error) {
-        console.error('번역 설정 로드 실패:', error);
+        console.error('Failed to load translation settings:', error);
       }
     };
 
@@ -107,7 +107,7 @@ export function TranslationControls({
       onTextChange(translatedText);
 
     } catch (error) {
-      console.error('번역 오류:', error);
+      console.error('Translation error:', error);
       alert(error instanceof Error ? error.message : '번역 중 오류가 발생했습니다.');
     } finally {
       setState(prev => ({

@@ -43,7 +43,7 @@ export class ComfyUIServerManager {
       })
       logger.logComfyUIEvent('Processing interrupted successfully')
     } catch (error) {
-      console.error('ComfyUI 처리 중단 실패:', error)
+      console.error('ComfyUI interrupt failed:', error)
       throw error
     }
   }

@@ -27,7 +27,7 @@ export class LoRABundleService {
 
       return bundles;
     } catch (error) {
-      console.error('❌ LoRA 번들 목록 조회 실패:', error);
+      console.error('❌ Failed to fetch LoRA bundle list:', error);
       throw new Error('번들 목록 조회에 실패했습니다.');
     }
   }
@@ -43,7 +43,7 @@ export class LoRABundleService {
 
       return bundles;
     } catch (error) {
-      console.error('❌ 전체 LoRA 번들 조회 실패:', error);
+      console.error('❌ Failed to fetch all LoRA bundles:', error);
       throw new Error('번들 조회에 실패했습니다.');
     }
   }
@@ -59,7 +59,7 @@ export class LoRABundleService {
 
       return bundle;
     } catch (error) {
-      console.error('❌ LoRA 번들 상세 조회 실패:', error);
+      console.error('❌ Failed to fetch LoRA bundle detail:', error);
       throw new Error('번들 조회에 실패했습니다.');
     }
   }
@@ -92,10 +92,10 @@ export class LoRABundleService {
         },
       });
 
-      console.log(`✅ LoRA 번들 생성 성공: ${bundle.displayName} (${bundle.id})`);
+      console.log(`✅ LoRA bundle created: ${bundle.displayName} (${bundle.id})`);
       return bundle;
     } catch (error) {
-      console.error('❌ LoRA 번들 생성 실패:', error);
+      console.error('❌ Failed to create LoRA bundle:', error);
       throw new Error(error instanceof Error ? error.message : '번들 생성에 실패했습니다.');
     }
   }
@@ -141,10 +141,10 @@ export class LoRABundleService {
         },
       });
 
-      console.log(`✅ LoRA 번들 수정 성공: ${bundle.displayName} (${bundle.id})`);
+      console.log(`✅ LoRA bundle updated: ${bundle.displayName} (${bundle.id})`);
       return bundle;
     } catch (error) {
-      console.error('❌ LoRA 번들 수정 실패:', error);
+      console.error('❌ Failed to update LoRA bundle:', error);
       throw new Error(error instanceof Error ? error.message : '번들 수정에 실패했습니다.');
     }
   }
@@ -164,10 +164,10 @@ export class LoRABundleService {
         where: { id: bundleId },
       });
 
-      console.log(`✅ LoRA 번들 삭제 성공: ${bundle.displayName} (${bundleId})`);
+      console.log(`✅ LoRA bundle deleted: ${bundle.displayName} (${bundleId})`);
       return true;
     } catch (error) {
-      console.error('❌ LoRA 번들 삭제 실패:', error);
+      console.error('❌ Failed to delete LoRA bundle:', error);
       throw new Error(error instanceof Error ? error.message : '번들 삭제에 실패했습니다.');
     }
   }
@@ -186,7 +186,7 @@ export class LoRABundleService {
 
       return bundle;
     } catch (error) {
-      console.error('❌ LoRA 파일명으로 번들 검색 실패:', error);
+      console.error('❌ Failed to search bundle by LoRA filename:', error);
       return null;
     }
   }
@@ -196,19 +196,19 @@ export class LoRABundleService {
     try {
       const bundle = await this.getBundleById(bundleId);
       if (!bundle) {
-        console.warn(`⚠️ 번들을 찾을 수 없음: ${bundleId}`);
+        console.warn(`⚠️ Bundle not found: ${bundleId}`);
         return null;
       }
 
       const filename = group === 'HIGH' ? bundle.highLoRAFilename : bundle.lowLoRAFilename;
       if (!filename) {
-        console.warn(`⚠️ ${group} LoRA 파일명이 없음: ${bundle.displayName}`);
+        console.warn(`⚠️ ${group} LoRA filename missing: ${bundle.displayName}`);
         return null;
       }
 
       return filename;
     } catch (error) {
-      console.error(`❌ LoRA 파일명 해결 실패 (${bundleId}, ${group}):`, error);
+      console.error(`❌ LoRA filename resolution failed (${bundleId}, ${group}):`, error);
       return null;
     }
   }
@@ -236,20 +236,20 @@ export class LoRABundleService {
 
         const bundle = bundleMap.get(item.bundleId);
         if (!bundle) {
-          console.warn(`⚠️ 번들을 찾을 수 없음: ${item.bundleId}, 원본 파일명 사용`);
+          console.warn(`⚠️ Bundle not found: ${item.bundleId}, using original filename`);
           return { resolvedFilename: item.originalFilename };
         }
 
         const resolvedFilename = item.group === 'HIGH' ? bundle.highLoRAFilename : bundle.lowLoRAFilename;
         if (!resolvedFilename) {
-          console.warn(`⚠️ ${item.group} LoRA 파일명이 없음: ${bundle.displayName}, 원본 파일명 사용`);
+          console.warn(`⚠️ ${item.group} LoRA filename missing: ${bundle.displayName}, using original filename`);
           return { resolvedFilename: item.originalFilename, bundleDisplayName: bundle.displayName };
         }
 
         return { resolvedFilename, bundleDisplayName: bundle.displayName };
       });
     } catch (error) {
-      console.error('❌ 다중 LoRA 해결 실패:', error);
+      console.error('❌ Multiple LoRA resolution failed:', error);
       return items.map(item => ({ resolvedFilename: item.originalFilename }));
     }
   }

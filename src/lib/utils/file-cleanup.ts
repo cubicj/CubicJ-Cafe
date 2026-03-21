@@ -21,7 +21,7 @@ export async function cleanupTempFiles(
     const fullTempDir = join(process.cwd(), tempDir);
     const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
     
-    console.log(`임시 파일 정리 시작: ${tempDir} (${maxAgeHours}시간 이전 파일)`);
+    console.log(`Temp file cleanup started: ${tempDir} (files older than ${maxAgeHours}h)`);
 
     const files = await readdir(fullTempDir);
     
@@ -34,7 +34,7 @@ export async function cleanupTempFiles(
           await unlink(filePath);
           result.deletedFiles++;
           result.totalSize += stats.size;
-          console.log(`삭제됨: ${file} (크기: ${stats.size}바이트)`);
+          console.log(`Deleted: ${file} (size: ${stats.size} bytes)`);
         }
       } catch (fileError) {
         const errorMsg = `파일 처리 실패: ${file} - ${fileError}`;
@@ -43,7 +43,7 @@ export async function cleanupTempFiles(
       }
     }
 
-    console.log(`임시 파일 정리 완료: ${result.deletedFiles}개 파일 삭제 (${result.totalSize}바이트)`);
+    console.log(`Temp file cleanup complete: ${result.deletedFiles} files deleted (${result.totalSize} bytes)`);
     
   } catch (error) {
     const errorMsg = `임시 파일 정리 실패: ${error}`;
@@ -61,9 +61,9 @@ export async function scheduleFileCleanup(
   setTimeout(async () => {
     try {
       await unlink(filePath);
-      console.log(`예약된 파일 삭제 완료: ${filePath}`);
+      console.log(`Scheduled file deletion complete: ${filePath}`);
     } catch (error) {
-      console.warn(`예약된 파일 삭제 실패: ${filePath} - ${error}`);
+      console.warn(`Scheduled file deletion failed: ${filePath} - ${error}`);
     }
   }, delayMinutes * 60 * 1000);
 }

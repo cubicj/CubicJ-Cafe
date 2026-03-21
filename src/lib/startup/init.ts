@@ -13,21 +13,21 @@ export function initializeServices() {
     return;
   }
 
-  console.log('🚀 서비스 초기화 시작...');
+  console.log('🚀 Initializing services...');
 
   try {
     // 모델 설정 초기화 (비동기)
     initializeModelSettings().catch(error => {
-      console.error('❌ 모델 설정 초기화 실패:', error);
+      console.error('❌ Failed to initialize model settings:', error);
     });
     
     queueMonitor.start();
-    console.log('✅ Queue Monitor 자동 시작 완료');
+    console.log('✅ Queue Monitor auto-started');
     
     global.__queueMonitorInitialized = true;
     global.__modelSettingsInitialized = true;
-    console.log('✅ 모든 서비스 초기화 완료');
+    console.log('✅ All services initialized');
   } catch (error) {
-    console.error('❌ 서비스 초기화 실패:', error);
+    console.error('❌ Service initialization failed:', error);
   }
 }

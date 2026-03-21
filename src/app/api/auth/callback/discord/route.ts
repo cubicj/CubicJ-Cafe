@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
           redirectUrl = '/initial-setup/nickname';
         }
         
-        console.log('기존 사용자 로그인:', existingUser.nickname);
+        console.log('Existing user login:', existingUser.nickname);
       } else {
         // 신규 사용자: 임시 사용자 생성 후 닉네임 설정 페이지로
         await UserService.create({
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
         
         sessionData = await sessionManager.createSession(discordUser.id);
         redirectUrl = '/initial-setup/nickname';
-        console.log('신규 사용자 등록 필요:', discordUser.username);
+        console.log('New user registration required:', discordUser.username);
       }
 
       // HttpOnly 쿠키 설정하고 HTTP 302 리다이렉트

@@ -64,7 +64,7 @@ export default function SettingsPage() {
         setUserStats(stats);
       }
     } catch (error) {
-      console.error('사용자 통계 로드 실패:', error);
+      console.error('Failed to load user stats:', error);
     } finally {
       setIsStatsLoading(false);
     }

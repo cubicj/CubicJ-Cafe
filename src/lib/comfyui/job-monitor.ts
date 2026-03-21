@@ -47,16 +47,16 @@ class ComfyUIJobMonitor {
 
   async startMonitoring(job: GenerationJob): Promise<void> {
     if (!job.promptId) {
-      console.warn('promptId가 없는 작업은 모니터링할 수 없습니다:', job.id);
+      console.warn('Cannot monitor job without promptId:', job.id);
       return;
     }
 
     if (this.monitoringJobs.has(job.promptId)) {
-      console.log('이미 모니터링 중인 작업:', job.promptId);
+      console.log('Already monitoring job:', job.promptId);
       return;
     }
 
-    console.log('ComfyUI 작업 모니터링 시작:', job.promptId);
+    console.log('ComfyUI job monitoring started:', job.promptId);
     this.monitoringJobs.add(job.promptId);
 
     let retryCount = 0;
@@ -70,7 +70,7 @@ class ComfyUIJobMonitor {
         // 0. 모니터링 시간 초과 확인
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime > maxMonitoringTime) {
-          console.log(`⏰ 모니터링 시간 초과 (${Math.round(elapsedTime / 1000 / 60)}분):`, job.promptId);
+          console.log(`⏰ Monitoring timeout (${Math.round(elapsedTime / 1000 / 60)}min):`, job.promptId);
           
           await queueService.updateRequest(job.id, {
             status: QueueStatus.FAILED,
@@ -100,7 +100,7 @@ class ComfyUIJobMonitor {
 
         // CANCELLED 상태인 경우 모니터링 중단
         if (queueRequest.status === 'CANCELLED') {
-          console.log(`⏹️ 취소된 작업 모니터링 중단: ${job.id}`);
+          console.log(`⏹️ Cancelled job monitoring stopped: ${job.id}`);
           queueMonitor.releaseServerJob(job.id);
           this.monitoringJobs.delete(job.promptId!);
           return;
@@ -132,7 +132,7 @@ class ComfyUIJobMonitor {
 
         // 4. 작업 완료 판정 (outputs 존재)
         if (hasOutputs) {
-          console.log('✅ ComfyUI 작업 완료:', job.promptId);
+          console.log('✅ ComfyUI job completed:', job.promptId);
           
           try {
             // 데이터베이스 상태 업데이트
@@ -156,7 +156,7 @@ class ComfyUIJobMonitor {
             
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error(`\u274c Discord 전송 실패 (Job: ${job.id}):`, {
+            console.error(`\u274c Discord send failed (Job: ${job.id}):`, {
               error: errorMessage,
               stack: error instanceof Error ? error.stack : undefined,
               jobId: job.id,
@@ -166,7 +166,7 @@ class ComfyUIJobMonitor {
             
             // Discord 전송 실패는 작업 자체를 실패로 처리하지 않고 완료로 처리
             // 대신 에러 로그만 남김
-            console.warn(`\u26a0\ufe0f 작업 ${job.id}는 완료되었지만 Discord 전송에 실패했습니다.`);
+            console.warn(`\u26a0\ufe0f Job ${job.id} completed but Discord send failed.`);
             
             // 데이터베이스는 COMPLETED로 업데이트 (전송 실패를 에러 필드에 기록)
             await queueService.updateRequest(job.id, {
@@ -193,7 +193,7 @@ class ComfyUIJobMonitor {
 
         // 5. 작업 실패 판정 (큐에서 사라졌지만 outputs가 없는 경우)
         if (!isInQueue && !hasOutputs && promptData) {
-          console.log('❌ ComfyUI 작업 실패 (큐에서 제거되었지만 outputs 없음):', job.promptId);
+          console.log('❌ ComfyUI job failed (removed from queue but no outputs):', job.promptId);
           
           // 히스토리에서 오류 정보 확인
           const errorInfo = this.extractErrorFromHistory(promptData);
@@ -225,11 +225,11 @@ class ComfyUIJobMonitor {
 
       } catch (error) {
         retryCount++;
-        console.error(`작업 모니터링 오류 (${retryCount}/${maxRetries}):`, error);
+        console.error(`Job monitoring error (${retryCount}/${maxRetries}):`, error);
         
         // 최대 재시도 후 실패 처리
         if (retryCount >= maxRetries) {
-          console.error(`최대 재시도 횟수 초과로 모니터링 중단: ${job.promptId}`);
+          console.error(`Max retries exceeded, monitoring stopped: ${job.promptId}`);
           this.monitoringJobs.delete(job.promptId!);
           
           // 최대 재시도 초과로 서버 해제
@@ -252,7 +252,7 @@ class ComfyUIJobMonitor {
         } else {
           // 재시도
           const retryDelay = Math.min(this.monitoringInterval * retryCount, 30000);
-          console.log(`${retryDelay}ms 후 재시도 (${retryCount}/${maxRetries})`);
+          console.log(`Retrying after ${retryDelay}ms (${retryCount}/${maxRetries})`);
           setTimeout(monitor, retryDelay);
         }
       }
@@ -264,7 +264,7 @@ class ComfyUIJobMonitor {
 
   stopMonitoring(promptId: string): void {
     this.monitoringJobs.delete(promptId);
-    console.log('작업 모니터링 중단:', promptId);
+    console.log('Job monitoring stopped:', promptId);
   }
 
   isMonitoring(promptId: string): boolean {
@@ -302,7 +302,7 @@ class ComfyUIJobMonitor {
       
       return null;
     } catch (error) {
-      console.warn('히스토리에서 오류 정보 추출 실패:', error);
+      console.warn('Failed to extract error info from history:', error);
       return null;
     }
   }
@@ -310,7 +310,7 @@ class ComfyUIJobMonitor {
   private async sendVideoToDiscord(job: GenerationJob, outputs: Record<string, ComfyUINodeOutput>): Promise<void> {
     try {
       if (!job.userInfo) {
-        console.log('사용자 정보가 없어 디스코드 전송을 건너뜁니다:', job.id);
+        console.log('No user info, skipping Discord send:', job.id);
         return;
       }
 
@@ -339,7 +339,7 @@ class ComfyUIJobMonitor {
             ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
             : undefined;
 
-          console.log('🎬 Discord 비디오 전송 시작:', {
+          console.log('🎬 Discord video send started:', {
             jobId: job.id,
             videoFile: video.filename,
             videoModel,
@@ -359,23 +359,23 @@ class ComfyUIJobMonitor {
             videoModel
           });
 
-          console.log('✅ Discord 비디오 전송 완료:', job.id);
+          console.log('✅ Discord video send complete:', job.id);
           break;
         }
       }
 
       if (!videoFound) {
-        console.log('출력 필드가 없어 히스토리에서 파일명 추출 시도:', job.id);
+        console.log('No output field, attempting filename extraction from history:', job.id);
 
         const queueRequest = await queueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
-          console.log('서버 정보가 없어 디스코드 전송을 건너뜁니다:', job.id);
+          console.log('No server info, skipping Discord send:', job.id);
           return;
         }
 
         const server = serverManager.getServerById(queueRequest.serverId);
         if (!server) {
-          console.log(`서버를 찾을 수 없어 디스코드 전송을 건너뜁니다: ${queueRequest.serverId}`);
+          console.log(`Server not found, skipping Discord send: ${queueRequest.serverId}`);
           return;
         }
 
@@ -386,7 +386,7 @@ class ComfyUIJobMonitor {
           const promptData = history[job.promptId!];
 
           if (!promptData) {
-            console.log('히스토리에서 prompt 데이터를 찾을 수 없습니다');
+            console.log('No prompt data found in history');
             return;
           }
 
@@ -405,7 +405,7 @@ class ComfyUIJobMonitor {
                         const subfolderPattern = new RegExp('^' + modelConfig.defaultSubfolder + '/');
                         const baseFilename = filenamePrefix.replace(subfolderPattern, '');
                         videoFilename = `${baseFilename}_00001.mp4`;
-                        console.log('🎯 비디오 노드에서 파일명 추출:', {
+                        console.log('🎯 Filename extracted from video node:', {
                           nodeId,
                           classType: node.class_type,
                           filenamePrefix,
@@ -422,11 +422,11 @@ class ComfyUIJobMonitor {
           }
 
           if (!videoFilename) {
-            console.log('히스토리에서 비디오 출력 노드를 찾을 수 없습니다');
+            console.log('No video output node found in history');
             return;
           }
 
-          console.log('🎬 추출된 파일명으로 Discord 전송 시작:', {
+          console.log('🎬 Discord send with extracted filename:', {
             jobId: job.id,
             videoFilename,
             serverUrl: server.url
@@ -449,18 +449,18 @@ class ComfyUIJobMonitor {
             videoModel
           });
 
-          console.log('✅ 추출된 파일명으로 Discord 전송 완료:', job.id);
+          console.log('✅ Discord send with extracted filename complete:', job.id);
           return;
 
         } catch (error) {
-          console.error('히스토리에서 파일명 추출 중 오류:', error);
-          console.log('파일명 추출 실패로 디스코드 전송을 건너뜁니다:', job.id);
+          console.error('Error extracting filename from history:', error);
+          console.log('Filename extraction failed, skipping Discord send:', job.id);
           return;
         }
       }
 
     } catch (error) {
-      console.error('❌ 디스코드 비디오 전송 실패:', error);
+      console.error('❌ Discord video send failed:', error);
     }
   }
 }

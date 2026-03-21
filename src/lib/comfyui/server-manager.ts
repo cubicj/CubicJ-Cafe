@@ -71,7 +71,7 @@ export class ComfyUIServerManager {
       } catch (error) {
         server.isActive = false
         server.activeJobs = 0
-        console.warn(`⚠️ 서버 헬스 체크 실패: ${server.id} -`, error)
+        console.warn(`⚠️ Server health check failed: ${server.id} -`, error)
       }
     })
 
@@ -88,20 +88,20 @@ export class ComfyUIServerManager {
     const availableServers = this.getAvailableServers()
     
     if (availableServers.length === 0) {
-      console.warn('⚠️ 사용 가능한 서버가 없습니다. 로컬 서버로 fallback 시도...')
+      console.warn('⚠️ No available servers. Attempting local server fallback...')
       
       const localServer = this.servers.find(s => s.type === 'LOCAL')
       if (localServer) {
-        console.log('📍 로컬 서버로 fallback:', localServer.url)
+        console.log('📍 Fallback to local server:', localServer.url)
         return localServer
       }
       
-      console.error('❌ 모든 서버가 사용 불가능합니다')
+      console.error('❌ All servers unavailable')
       return null
     }
 
     const bestServer = availableServers[0]
-    console.log(`🎯 최적 서버 선택: ${bestServer.type} (${bestServer.id}) - ${bestServer.url}`)
+    console.log(`🎯 Best server selected: ${bestServer.type} (${bestServer.id}) - ${bestServer.url}`)
     
     return bestServer
   }

@@ -102,7 +102,7 @@ export async function getComfyUIServerStatus() {
       timestamp: new Date().toISOString()
     }
   } catch (error) {
-    console.error('ComfyUI 서버 상태 확인 실패:', error)
+    console.error('ComfyUI server status check failed:', error)
     
     return {
       servers: [],

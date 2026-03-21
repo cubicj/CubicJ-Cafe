@@ -33,7 +33,7 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
     applyLorasToNode(workflow['306'] as WorkflowNode, processedLowLoras, 'LOW', 306, server);
   }
 
-  console.log('🎨 LoRA 프리셋 적용 완료:', {
+  console.log('🎨 LoRA preset applied:', {
     presetName: loraPreset.presetName,
     totalProcessed: processedHighLoras.length + processedLowLoras.length,
     highCount: processedHighLoras.length,
@@ -55,11 +55,11 @@ function processLoraGroup(groupItems: LoRAPresetItem[], groupName: string) {
   const uniqueLoras = Array.from(loraMap.values());
 
   if (groupItems.length > uniqueLoras.length) {
-    console.log(`🔄 ${groupName} 그룹에서 중복 제거:`, {
-      원본개수: groupItems.length,
-      중복제거후: uniqueLoras.length,
-      제거된개수: groupItems.length - uniqueLoras.length,
-      중복된파일들: groupItems.filter(item =>
+    console.log(`🔄 Duplicates removed from ${groupName} group:`, {
+      original: groupItems.length,
+      afterDedup: uniqueLoras.length,
+      removed: groupItems.length - uniqueLoras.length,
+      duplicateFiles: groupItems.filter(item =>
         !uniqueLoras.some(unique => unique.id === item.id)
       ).map(item => item.loraFilename)
     });
@@ -93,7 +93,7 @@ function applyLorasToNode(node: WorkflowNode, loras: LoRAPresetItem[], groupName
     };
   });
 
-  console.log(`🔗 ${groupName} LoRA 적용 (노드 ${nodeNumber}):`, {
+  console.log(`🔗 ${groupName} LoRA applied (node ${nodeNumber}):`, {
     count: loras.length,
     loras: loras.map(lora => ({
       filename: lora.loraFilename,
@@ -126,7 +126,7 @@ async function resolveLoRAItems(loraItems: LoRAPresetItem[]): Promise<LoRAPreset
       const needsUpdate = resolvedData.resolvedFilename !== item.loraFilename;
 
       if (needsUpdate) {
-        console.log(`🔄 LoRA 번들 동적 업데이트: ${item.loraName}`, {
+        console.log(`🔄 LoRA bundle dynamic update: ${item.loraName}`, {
           bundleId: item.bundleId,
           originalFilename: item.loraFilename,
           resolvedFilename: resolvedData.resolvedFilename,
@@ -148,7 +148,7 @@ async function resolveLoRAItems(loraItems: LoRAPresetItem[]): Promise<LoRAPreset
     return [...resolvedBundleItems, ...nonBundleItems];
 
   } catch (error) {
-    console.error('❌ LoRA 동적 해결 실패, 원본 데이터 사용:', error);
+    console.error('❌ LoRA dynamic resolution failed, using original data:', error);
     return loraItems;
   }
 }

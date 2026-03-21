@@ -3,14 +3,14 @@ import { ComfyUIClient } from '@/lib/comfyui/client'
 
 export async function GET() {
   try {
-    console.log('📁 ComfyUI 모델 목록 조회 API 호출')
+    console.log('📁 ComfyUI model list API called')
     
     const client = new ComfyUIClient()
     
     try {
       const models = await client.getModelList()
       
-      console.log('✅ 모델 목록 조회 성공:', {
+      console.log('✅ Model list fetched:', {
         diffusionModels: models.diffusionModels.length,
         textEncoders: models.textEncoders.length,
         vaes: models.vaes.length,
@@ -23,7 +23,7 @@ export async function GET() {
         models
       })
     } catch (connectionError) {
-      console.error('❌ ComfyUI 서버 연결 실패:', connectionError)
+      console.error('❌ ComfyUI server connection failed:', connectionError)
       
       return NextResponse.json({
         success: false,
@@ -41,7 +41,7 @@ export async function GET() {
     }
     
   } catch (error) {
-    console.error('❌ ComfyUI 모델 목록 조회 실패:', error)
+    console.error('❌ Failed to fetch ComfyUI model list:', error)
     
     return NextResponse.json({
       success: false,

@@ -78,7 +78,7 @@ export default function LanguageSettingsPage() {
         setSelectedService(saved);
       }
     } catch (error) {
-      console.error('번역 설정 불러오기 실패:', error);
+      console.error('Failed to load translation settings:', error);
     }
   };
 
@@ -100,9 +100,9 @@ export default function LanguageSettingsPage() {
       // 3초 후 메시지 숨기기
       setTimeout(() => setSaveMessage(''), 3000);
       
-      console.log('번역 서비스 저장:', selectedService);
+      console.log('Translation service saved:', selectedService);
     } catch (error) {
-      console.error('번역 설정 저장 실패:', error);
+      console.error('Failed to save translation settings:', error);
       setSaveMessage('저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSaving(false);

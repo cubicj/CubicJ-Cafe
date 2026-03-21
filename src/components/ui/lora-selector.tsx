@@ -50,7 +50,7 @@ export function LoRASelector({
     setError(null);
     
     try {
-      console.log('🎨 LoRA 목록 조회 시작...');
+      console.log('🎨 Fetching LoRA list...');
       const response = await fetch('/api/comfyui/loras');
       const data = await response.json();
       
@@ -58,7 +58,7 @@ export function LoRASelector({
         throw new Error(data.error || 'LoRA 목록을 가져오는데 실패했습니다');
       }
       
-      console.log('✅ LoRA 목록 조회 성공:', data.count, '개');
+      console.log('✅ LoRA list fetched:', data.count, 'items');
       
       // 서버에서 가져온 LoRA 파일들을 LoRAModel 형태로 변환
       const loraModels: LoRAModel[] = [
@@ -84,7 +84,7 @@ export function LoRASelector({
     } catch (err) {
       // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
-        console.error('❌ LoRA 목록 조회 실패:', err);
+        console.error('❌ Failed to fetch LoRA list:', err);
       }
       setError(err instanceof Error ? err.message : 'LoRA 목록 조회 실패');
       

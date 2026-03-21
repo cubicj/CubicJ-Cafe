@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(settingsMap);
   } catch (error) {
-    console.error('시스템 설정 조회 오류:', error);
+    console.error('System settings fetch error:', error);
     return NextResponse.json(
       { error: '시스템 설정을 불러올 수 없습니다.' },
       { status: 500 }
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
       const parsedBody = JSON.parse(requestText);
       ({ key, value, type = 'string', category = 'general' } = parsedBody);
     } catch (parseError) {
-      console.error('요청 JSON 파싱 에러:', parseError);
+      console.error('Request JSON parse error:', parseError);
       return NextResponse.json(
         { error: '잘못된 JSON 형식입니다.' },
         { status: 400 }
@@ -102,7 +102,7 @@ export async function PUT(request: NextRequest) {
       setting 
     });
   } catch (error) {
-    console.error('시스템 설정 업데이트 오류:', error);
+    console.error('System settings update error:', error);
     return NextResponse.json(
       { error: '설정 업데이트에 실패했습니다.' },
       { status: 500 }
@@ -138,7 +138,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: '설정이 삭제되었습니다.' });
   } catch (error) {
-    console.error('시스템 설정 삭제 오류:', error);
+    console.error('System settings delete error:', error);
     return NextResponse.json(
       { error: '설정 삭제에 실패했습니다.' },
       { status: 500 }

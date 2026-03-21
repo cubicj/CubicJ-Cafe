@@ -18,15 +18,15 @@ export function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   // End Image 관련 노드들을 워크플로우에서 제거
   if (workflow['324']?.inputs) {
     delete workflow['324'];
-    console.log('🗑️ 노드 324 (End Image CLIP Vision Encode) 제거');
+    console.log('🗑️ Node 324 (End Image CLIP Vision Encode) removed');
   }
   
   if (workflow['325']?.inputs) {
     delete workflow['325'];
-    console.log('🗑️ 노드 325 (End Image LoadImage) 제거');
+    console.log('🗑️ Node 325 (End Image LoadImage) removed');
   }
   
-  console.log('✅ End Image 우회 처리 완료');
+  console.log('✅ End Image bypass complete');
 }
 
 export async function applyPromptSettings(workflow: ComfyUIWorkflow, params: GenerationParams) {
@@ -41,7 +41,7 @@ export async function applyPromptSettings(workflow: ComfyUIWorkflow, params: Gen
     workflow['266'].inputs.negative = negativePrompt;
   }
   
-  console.log('📝 프롬프트 설정 적용 완료:', {
+  console.log('📝 Prompt settings applied:', {
     prompt: params.prompt,
     negativePrompt: negativePrompt,
   });
@@ -61,7 +61,7 @@ export async function applyImageSettings(workflow: ComfyUIWorkflow, params: Gene
     handleEndImageBypass(workflow);
   }
 
-  console.log('🖼️ 이미지 설정 적용 완료:', {
+  console.log('🖼️ Image settings applied:', {
     inputImage: params.inputImage ? '설정됨' : '없음',
     endImage: endImage ? '설정됨' : '없음 (우회 처리)',
   });
@@ -86,7 +86,7 @@ export async function applyGenerationSettings(workflow: ComfyUIWorkflow, params:
     workflow['293'].inputs.positive = qualityPrompt;
   }
 
-  console.log('⚙️ 생성 설정 적용 완료:', {
+  console.log('⚙️ Generation settings applied:', {
     videoLength: videoLength || '기본값 사용',
     videoResolution: videoResolution,
     qualityPrompt: qualityPrompt || '없음',
@@ -98,10 +98,10 @@ export function validateWorkflowNodes(workflow: ComfyUIWorkflow): boolean {
   const missingNodes = requiredNodes.filter(nodeId => !workflow[nodeId]);
   
   if (missingNodes.length > 0) {
-    console.error('❌ 필수 워크플로우 노드 누락:', missingNodes);
+    console.error('❌ Required workflow nodes missing:', missingNodes);
     return false;
   }
   
-  console.log('✅ 워크플로우 노드 유효성 검사 통과');
+  console.log('✅ Workflow node validation passed');
   return true;
 }

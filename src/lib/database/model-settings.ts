@@ -91,7 +91,7 @@ export async function getModelSettings(): Promise<ModelSettings> {
       lowShift: parseFloat(settingMap.get(MODEL_SETTING_KEYS.LOW_SHIFT) || DEFAULT_MODEL_SETTINGS.lowShift.toString())
     }
   } catch (error) {
-    console.error('모델 설정 조회 실패:', error)
+    console.error('Model settings fetch failed:', error)
     return DEFAULT_MODEL_SETTINGS
   }
 }
@@ -210,9 +210,9 @@ export async function updateModelSettings(settings: Partial<ModelSettings>): Pro
       })
     }
 
-    console.log('✅ 모델 설정 업데이트 완료:', settings)
+    console.log('✅ Model settings updated:', settings)
   } catch (error) {
-    console.error('모델 설정 업데이트 실패:', error)
+    console.error('Model settings update failed:', error)
     throw error
   }
 }
@@ -276,10 +276,10 @@ export async function initializeModelSettings(): Promise<void> {
       await prisma.systemSetting.createMany({
         data: newSettings
       })
-      console.log(`✅ 모델 설정 초기화 완료: ${newSettings.length}개 설정 추가`)
+      console.log(`✅ Model settings initialized: ${newSettings.length} settings added`)
     }
   } catch (error) {
-    console.error('모델 설정 초기화 실패:', error)
+    console.error('Model settings initialization failed:', error)
     throw error
   }
 }

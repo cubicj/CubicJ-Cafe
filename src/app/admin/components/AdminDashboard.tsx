@@ -45,7 +45,7 @@ export default function AdminDashboard() {
           }, 2000);
         }
       } catch (error) {
-        console.error('관리자 권한 확인 실패:', error);
+        console.error('Admin permission check failed:', error);
         setAuthError('서버 오류가 발생했습니다.');
         setTimeout(() => {
           router.push('/');
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         // ComfyUI 모델 목록은 백그라운드에서 로드 (느린 API)
         adminSettings.fetchAvailableModels();
       } catch (error) {
-        console.error('Admin 설정 초기화 실패:', error);
+        console.error('Admin settings initialization failed:', error);
       }
     };
 

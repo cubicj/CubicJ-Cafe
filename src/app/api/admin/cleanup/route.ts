@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { maxAgeHours = 24 } = body;
 
-    console.log(`수동 임시 파일 정리 요청 - ${maxAgeHours}시간 이전 파일`);
+    console.log(`Manual temp file cleanup request - files older than ${maxAgeHours}h`);
 
     const result = await cleanupTempFiles(maxAgeHours);
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('임시 파일 정리 실패:', error);
+    console.error('Temp file cleanup failed:', error);
     return NextResponse.json(
       { error: 'File cleanup failed' },
       { status: 500 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    console.log('자동 임시 파일 정리 시작');
+    console.log('Auto temp file cleanup started');
     
     const result = await cleanupTempFiles(1);
 
@@ -38,7 +38,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('자동 임시 파일 정리 실패:', error);
+    console.error('Auto temp file cleanup failed:', error);
     return NextResponse.json(
       { error: 'Auto cleanup failed' },
       { status: 500 }

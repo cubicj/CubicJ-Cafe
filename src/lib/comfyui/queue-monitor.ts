@@ -145,7 +145,7 @@ class QueueMonitor {
       try {
         await this.processQueue();
       } catch (error) {
-        console.error('❌ Queue 처리 중 오류:', error);
+        console.error('❌ Queue processing error:', error);
       }
     }, this.checkInterval);
   }
@@ -243,7 +243,7 @@ class QueueMonitor {
   ): Promise<void> {
     const request = await queueService.getRequestById(requestId);
     if (!request) {
-      console.error(`요청을 찾을 수 없습니다: ${requestId}`);
+      console.error(`Request not found: ${requestId}`);
       return;
     }
 
@@ -257,7 +257,7 @@ class QueueMonitor {
         try {
           loraPreset = JSON.parse(request.loraPresetData);
         } catch (parseError) {
-          console.error('LoRA 프리셋 데이터 파싱 실패:', parseError);
+          console.error('LoRA preset data parse failed:', parseError);
         }
       }
 
@@ -275,11 +275,11 @@ class QueueMonitor {
 
           scheduleFileCleanup(request.imageData, 10)
         } catch (error) {
-          console.error('❌ 이미지 업로드 실패:', error)
+          console.error('❌ Image upload failed:', error)
           throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
         }
       } else {
-        console.warn('⚠️ 이미지 파일이 없습니다.', {
+        console.warn('⚠️ Image file not found.', {
           requestId: request.id,
           imageFile: request.imageFile,
           imagePath: request.imageData,
@@ -377,7 +377,7 @@ class QueueMonitor {
       await jobMonitor.startMonitoring(job);
 
     } catch (error) {
-      console.error(`❌ 요청 처리 실패 (${server.name}): ${requestId}`, error);
+      console.error(`❌ Request processing failed (${server.name}): ${requestId}`, error);
 
       await queueService.updateRequest(requestId, {
         status: QueueStatus.FAILED,

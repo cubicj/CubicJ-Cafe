@@ -7,7 +7,7 @@ export async function getSystemSetting(key: string, defaultValue: string = ''): 
     });
     return setting?.value || defaultValue;
   } catch (error) {
-    console.error(`시스템 설정 조회 오류 (${key}):`, error);
+    console.error(`System setting fetch error (${key}):`, error);
     return defaultValue;
   }
 }
@@ -35,7 +35,7 @@ export async function setSystemSetting(
       create: { key, value, type, category }
     });
   } catch (error) {
-    console.error(`시스템 설정 저장 오류 (${key}):`, error);
+    console.error(`System setting save error (${key}):`, error);
     throw error;
   }
 }
@@ -88,7 +88,7 @@ export async function initializeDefaultSettings(): Promise<void> {
         create: setting
       });
     } catch (error) {
-      console.error(`기본 설정 초기화 오류 (${setting.key}):`, error);
+      console.error(`Default setting init error (${setting.key}):`, error);
     }
   }
 }

@@ -56,7 +56,7 @@ export async function applyModelSettings(workflow: ComfyUIWorkflow) {
     workflow['282'].inputs.shift = modelSettings.highShift;
   }
 
-  console.log('⚙️ 모델 설정 적용 완료:', {
+  console.log('⚙️ Model settings applied:', {
     highModel: modelSettings.highDiffusionModel,
     lowModel: modelSettings.lowDiffusionModel,
     textEncoder: modelSettings.textEncoder,

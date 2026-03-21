@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const modelSettings = await getModelSettings()
     
-    console.log('✅ 모델 설정 조회 성공:', modelSettings)
+    console.log('✅ Model settings fetched:', modelSettings)
     
     return NextResponse.json({
       success: true,
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('❌ 모델 설정 조회 실패:', error)
+    console.error('❌ Failed to fetch model settings:', error)
     
     return NextResponse.json({
       success: false,
@@ -70,20 +70,20 @@ export async function PUT(request: NextRequest) {
       }
       body = JSON.parse(requestText)
     } catch (parseError) {
-      console.error('요청 JSON 파싱 에러:', parseError)
+      console.error('Request JSON parse error:', parseError)
       return NextResponse.json({
         success: false,
         error: '잘못된 JSON 형식입니다.'
       }, { status: 400 })
     }
     
-    console.log('🔧 모델 설정 업데이트 요청:', body)
+    console.log('🔧 Model settings update request:', body)
     
     await updateModelSettings(body)
     
     const updatedSettings = await getModelSettings()
     
-    console.log('✅ 모델 설정 업데이트 성공:', updatedSettings)
+    console.log('✅ Model settings updated:', updatedSettings)
     
     return NextResponse.json({
       success: true,
@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('❌ 모델 설정 업데이트 실패:', error)
+    console.error('❌ Failed to update model settings:', error)
     
     return NextResponse.json({
       success: false,

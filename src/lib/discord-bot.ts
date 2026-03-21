@@ -29,34 +29,34 @@ class DiscordBot {
     
     // 전송 전용 모드: 핵심 에러만 처리
     this.client.on('error', (error) => {
-      console.error('Discord Client 에러:', error);
+      console.error('Discord Client error:', error);
       // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러는 무시하고 재초기화
       if (error.message && (
         error.message.includes('handle') || 
         error.message.includes('MESSAGE_CREATE') ||
         error.message.includes('GUILD_UPDATE')
       )) {
-        console.log('Discord 이벤트 처리 에러 (전송 전용 모드에서 무시) - 재초기화 시도...');
+        console.log('Discord event handler error (ignored in send-only mode) - attempting reinit...');
         this.isInitialized = false;
         return;
       }
     });
     
     this.client.on('warn', (warning) => {
-      console.warn('Discord Client 경고:', warning);
+      console.warn('Discord Client warning:', warning);
     });
     
     this.client.on('disconnect', () => {
-      console.log('Discord Bot 연결 끊어짐');
+      console.log('Discord Bot disconnected');
       this.isInitialized = false;
     });
     
     this.client.on('reconnecting', () => {
-      console.log('Discord Bot 재연결 시도 중...');
+      console.log('Discord Bot reconnecting...');
     });
     
     this.client.on('ready', () => {
-      console.log(`Discord Bot 준비됨: ${this.client.user?.tag}`);
+      console.log(`Discord Bot ready: ${this.client.user?.tag}`);
       this.isInitialized = true;
       this.isConnecting = false;
       this.reconnectAttempts = 0;
@@ -64,13 +64,13 @@ class DiscordBot {
 
     // shardError 이벤트 처리 (handle 에러의 주요 원인)
     this.client.on('shardError', (error) => {
-      console.error('Discord Shard 에러:', error);
+      console.error('Discord Shard error:', error);
       this.isInitialized = false;
     });
 
     // shardDisconnect 이벤트 처리
     this.client.on('shardDisconnect', () => {
-      console.log('Discord Shard 연결 끊어짐');
+      console.log('Discord Shard disconnected');
       this.isInitialized = false;
     });
   }
@@ -98,7 +98,7 @@ class DiscordBot {
     try {
       // 기존 연결이 있다면 정리
       if (this.client.readyTimestamp) {
-        console.log('기존 Discord 연결을 정리 중...');
+        console.log('Cleaning up existing Discord connection...');
         this.client.destroy();
         // 새 클라이언트 인스턴스 생성 (전송 전용)
         this.client = new Client({
@@ -107,7 +107,7 @@ class DiscordBot {
         this.setupErrorHandlers();
       }
 
-      console.log('Discord Bot 로그인 시도 중...');
+      console.log('Discord Bot logging in...');
       await this.client.login(process.env.DISCORD_BOT_TOKEN);
       
       // 준비 상태까지 대기 (최대 15초로 연장)
@@ -121,7 +121,7 @@ class DiscordBot {
       
       // handle 관련 에러인 경우 더 자세한 로그
       if (error instanceof Error && error.message.includes('handle')) {
-        console.error('Discord handle 에러 발생. 클라이언트 재생성이 필요할 수 있습니다.');
+        console.error('Discord handle error. Client recreation may be required.');
       }
       
       throw error;
@@ -181,19 +181,19 @@ class DiscordBot {
     
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        console.log(`Discord 전송 시도 ${attempt}/3`);
+        console.log(`Discord send attempt ${attempt}/3`);
         await this.sendVideoToDiscordInternal(params);
-        console.log(`Discord 전송 성공 (${attempt}번째 시도)`);
+        console.log(`Discord send succeeded (attempt ${attempt})`);
         return; // 성공하면 종료
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`Discord 전송 실패 ${attempt}/3:`, lastError.message);
+        console.error(`Discord send failed ${attempt}/3:`, lastError.message);
         
         // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러인 경우 특별 처리
         if (lastError.message.includes('handle') || 
             lastError.message.includes('MESSAGE_CREATE') ||
             lastError.message.includes('GUILD_UPDATE')) {
-          console.log('Discord 이벤트 처리 에러로 인한 클라이언트 재초기화...');
+          console.log('Client reinitialization due to Discord event handler error...');
           this.isInitialized = false;
           // 클라이언트 완전 재생성 (전송 전용)
           this.client.destroy();
@@ -206,7 +206,7 @@ class DiscordBot {
         if (attempt < 3) {
           // 다음 시도 전 대기 (지수 백오프)
           const delay = Math.pow(2, attempt) * 1000;
-          console.log(`${delay}ms 후 재시도...`);
+          console.log(`Retrying after ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           
           // 재초기화 시도
@@ -235,7 +235,7 @@ class DiscordBot {
   }): Promise<void> {
     // 초기화 상태와 클라이언트 준비 상태 확인
     if (!this.isInitialized || !this.client.isReady()) {
-      console.log('Discord Bot이 준비되지 않음. 초기화 시도...');
+      console.log('Discord Bot not ready. Attempting initialization...');
       await this.initialize();
     }
 
@@ -258,7 +258,7 @@ class DiscordBot {
       : process.env.DISCORD_CHANNEL_ID!;
 
     try {
-      console.log('Discord Guild 및 Channel 정보:', {
+      console.log('Discord Guild and Channel info:', {
         guildId: process.env.DISCORD_GUILD_ID,
         channelId: targetChannelId,
         isNSFW: params.isNSFW
@@ -278,7 +278,7 @@ class DiscordBot {
         throw new Error(`Channel is not text-based: ${targetChannelId}`);
       }
       
-      console.log(`Discord 채널 접근 성공: ${channel.name} (${channel.id})`);
+      console.log(`Discord channel access success: ${channel.name} (${channel.id})`);
 
       let attachment: AttachmentBuilder;
 
@@ -291,7 +291,7 @@ class DiscordBot {
         const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://localhost:8188';
         const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=temp`;
         
-        console.log('🎬 ComfyUI에서 비디오 다운로드 중:', {
+        console.log('🎬 Downloading video from ComfyUI:', {
           videoUrl,
           filename: params.filename,
           subfolder: subfolder,
@@ -319,7 +319,7 @@ class DiscordBot {
           throw new Error('다운로드된 비디오 파일이 비어있습니다');
         }
         
-        console.log(`비디오 다운로드 완료: ${arrayBuffer.byteLength} bytes`);
+        console.log(`Video download complete: ${arrayBuffer.byteLength} bytes`);
         const buffer = Buffer.from(arrayBuffer);
         attachment = new AttachmentBuilder(buffer, { name: params.filename });
       } else {

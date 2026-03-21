@@ -24,7 +24,7 @@ export class ComfyUIModelManager {
       const response = await this.makeRequest<Record<string, unknown>>('/object_info')
       return response
     } catch (error) {
-      console.error('ComfyUI object_info 조회 실패:', error)
+      console.error('ComfyUI object_info fetch failed:', error)
       throw error
     }
   }
@@ -45,7 +45,7 @@ export class ComfyUIModelManager {
 
       return this.getLoRAListFromLocal()
     } catch (error) {
-      console.error('❌ LoRA 목록 조회 실패:', error)
+      console.error('❌ Failed to fetch LoRA list:', error)
       return []
     }
   }
@@ -73,7 +73,7 @@ export class ComfyUIModelManager {
         const filteredLoras = this.filterWANLoRAs(loras)
         
         if (filteredLoras.length === 0) {
-          console.warn('⚠️ WAN 폴더에서 LoRA가 발견되지 않음. 전체 목록 반환')
+          console.warn('⚠️ No LoRAs found in WAN folder. Returning full list')
           return this.filterAllLoRAs(loras)
         }
         
@@ -84,7 +84,7 @@ export class ComfyUIModelManager {
       }
     }
 
-    console.warn('⚠️ 전용 LoRA 노드를 찾을 수 없습니다. 사용 가능한 노드들:', 
+    console.warn('⚠️ No dedicated LoRA node found. Available nodes:',
       Object.keys(objectInfo || {}).filter(key => 
         key.toLowerCase().includes('lora') || 
         key.toLowerCase().includes('embed')
@@ -135,7 +135,7 @@ export class ComfyUIModelManager {
           const filteredLoras = this.filterWANLoRAs(loras, true)
           
           if (filteredLoras.length === 0) {
-            console.warn('⚠️ 런포드 WAN 폴더에서 LoRA가 발견되지 않음. 전체 목록 반환')
+            console.warn('⚠️ No LoRAs found in Runpod WAN folder. Returning full list')
             return this.filterAllLoRAs(loras, true)
           }
           
@@ -145,10 +145,10 @@ export class ComfyUIModelManager {
         }
       }
 
-      console.warn('⚠️ 런포드에서 LoRA 노드를 찾을 수 없습니다.')
+      console.warn('⚠️ No LoRA node found on Runpod.')
       return []
     } catch (error) {
-      console.error(`❌ 런포드 서버 LoRA 목록 조회 실패: ${serverUrl}:`, error)
+      console.error(`❌ Runpod server LoRA list fetch failed: ${serverUrl}:`, error)
       throw error
     }
   }
@@ -157,7 +157,7 @@ export class ComfyUIModelManager {
     return loras
       .filter((file: unknown) => {
         if (typeof file !== 'string') {
-          console.warn('⚠️ LoRA 파일명이 문자열이 아닙니다:', typeof file, file)
+          console.warn('⚠️ LoRA filename is not a string:', typeof file, file)
           return false
         }
         
@@ -226,7 +226,7 @@ export class ComfyUIModelManager {
 
       return this.getSamplersFromLocal()
     } catch (error) {
-      console.error('❌ 샘플러 목록 조회 실패:', error)
+      console.error('❌ Failed to fetch sampler list:', error)
       return []
     }
   }
@@ -251,7 +251,7 @@ export class ComfyUIModelManager {
       }
     }
 
-    console.warn('⚠️ KSampler 노드를 찾을 수 없습니다. 사용 가능한 노드들:', 
+    console.warn('⚠️ KSampler node not found. Available nodes:',
       Object.keys(objectInfo || {}).filter(key => 
         key.toLowerCase().includes('sampler') || 
         key.toLowerCase().includes('ksampler')
@@ -299,10 +299,10 @@ export class ComfyUIModelManager {
         }
       }
 
-      console.warn('⚠️ 런포드에서 KSampler 노드를 찾을 수 없습니다.')
+      console.warn('⚠️ KSampler node not found on Runpod.')
       return []
     } catch (error) {
-      console.error(`❌ 런포드 서버 샘플러 목록 조회 실패: ${serverUrl}:`, error)
+      console.error(`❌ Runpod server sampler list fetch failed: ${serverUrl}:`, error)
       throw error
     }
   }
@@ -322,7 +322,7 @@ export class ComfyUIModelManager {
 
       return this.getModelListFromLocal()
     } catch (error) {
-      console.error('❌ 모델 목록 조회 실패:', error)
+      console.error('❌ Failed to fetch model list:', error)
       return {
         diffusionModels: [],
         textEncoders: [],
@@ -455,7 +455,7 @@ export class ComfyUIModelManager {
 
       return result
     } catch (error) {
-      console.error(`❌ 런포드 서버 모델 목록 조회 실패: ${serverUrl}:`, error)
+      console.error(`❌ Runpod server model list fetch failed: ${serverUrl}:`, error)
       throw error
     }
   }
@@ -497,7 +497,7 @@ export class ComfyUIModelManager {
     try {
       return JSON.parse(responseText)
     } catch (parseError) {
-      console.error('ComfyUI JSON 파싱 에러:', {
+      console.error('ComfyUI JSON parse error:', {
         endpoint,
         responseText: responseText.substring(0, 200),
         error: parseError

@@ -31,7 +31,7 @@ export function useLoRAPresets() {
       
       setPresets(data.presets || []);
     } catch (err) {
-      console.error('❌ 프리셋 조회 실패:', err);
+      console.error('❌ Failed to fetch presets:', err);
       setError(err instanceof Error ? err.message : '프리셋 조회 실패');
     } finally {
       setIsLoading(false);
@@ -53,7 +53,7 @@ export function useLoRAPresets() {
       }
       
     } catch (err) {
-      console.error('❌ 프리셋 순서 변경 실패:', err);
+      console.error('❌ Failed to reorder presets:', err);
       alert(err instanceof Error ? err.message : '프리셋 순서 변경에 실패했습니다');
       fetchPresets();
     }
@@ -82,7 +82,7 @@ export function useLoRAPresets() {
       await fetchPresets();
       return data;
     } catch (err) {
-      console.error('❌ 프리셋 저장 실패:', err);
+      console.error('❌ Failed to save preset:', err);
       throw err;
     }
   };
@@ -108,7 +108,7 @@ export function useLoRAPresets() {
       
       await fetchPresets();
     } catch (err) {
-      console.error('❌ 프리셋 삭제 실패:', err);
+      console.error('❌ Failed to delete preset:', err);
       alert(err instanceof Error ? err.message : '프리셋 삭제에 실패했습니다');
     }
   };

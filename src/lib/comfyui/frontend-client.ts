@@ -35,7 +35,7 @@ class FrontendComfyUIClient {
       return await response.json()
     } catch (error) {
       if (retries < this.maxRetries) {
-        console.warn(`요청 실패 (${retries + 1}/${this.maxRetries}): 재시도 중`)
+        console.warn(`Request failed (${retries + 1}/${this.maxRetries}): retrying`)
         await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)))
         return this.makeRequest<T>(endpoint, options, retries + 1)
       }
@@ -48,7 +48,7 @@ class FrontendComfyUIClient {
       await this.makeRequest('/system_stats', { method: 'GET' })
       return true
     } catch {
-      console.error('서버 상태 확인 실패')
+      console.error('Server health check failed')
       return false
     }
   }
@@ -81,7 +81,7 @@ export async function checkComfyUIStatus() {
     
     return await response.json()
   } catch {
-    console.error('ComfyUI 상태 확인 실패')
+    console.error('ComfyUI status check failed')
     return {
       servers: [],
       summary: {

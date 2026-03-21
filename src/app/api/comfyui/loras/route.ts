@@ -28,7 +28,7 @@ export async function GET() {
     try {
       loras = await quickClient.getLoRAList()
     } catch (connectionError) {
-      console.error('❌ 선택된 서버 연결 실패:', bestServer.id, connectionError)
+      console.error('❌ Selected server connection failed:', bestServer.id, connectionError)
       return NextResponse.json(
         { 
           error: `선택된 서버(${bestServer.type})에 연결할 수 없습니다. 서버가 다운되었거나 응답하지 않습니다.`,
@@ -44,7 +44,7 @@ export async function GET() {
       )
     }
     
-    console.log('✅ WAN LoRA 목록 성공:', loras.length + '개')
+    console.log('✅ WAN LoRA list success:', loras.length + ' items')
 
     // LoRA 파일들을 카테고리별로 분류
     const categorizedLoras = {
@@ -72,7 +72,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('❌ WAN LoRA 목록 조회 실패:', error)
+    console.error('❌ Failed to fetch WAN LoRA list:', error)
     
     return NextResponse.json(
       { 

@@ -30,7 +30,7 @@ export function useLoRABundles() {
       
       setAvailableBundles(data.bundles || []);
     } catch (err) {
-      console.error('❌ LoRA 번들 목록 조회 실패:', err);
+      console.error('❌ Failed to fetch LoRA bundle list:', err);
       setError(err instanceof Error ? err.message : '번들 목록 조회 실패');
     } finally {
       setIsLoadingBundles(false);

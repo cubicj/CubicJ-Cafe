@@ -21,7 +21,7 @@ export async function GET() {
       count: bundles.length,
     });
   } catch (error) {
-    console.error('❌ LoRA 번들 목록 조회 실패:', error);
+    console.error('❌ Failed to fetch LoRA bundle list:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 목록 조회에 실패했습니다.' },
       { status: 500 }
