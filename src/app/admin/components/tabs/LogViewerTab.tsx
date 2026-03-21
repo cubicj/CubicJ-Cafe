@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { enableClientLogTransport, disableClientLogTransport } from '@/lib/logger';
 import {
   Play,
   Pause,
@@ -30,19 +32,14 @@ interface LogEntry {
   level: string;
   category: string;
   message: string;
+  source?: 'server' | 'client';
   meta?: Record<string, unknown>;
 }
 
 const LEVELS = ['all', 'error', 'warn', 'info', 'debug'] as const;
 const CATEGORIES = [
-  'system',
-  'auth',
-  'api',
-  'queue',
-  'comfyui',
-  'discord',
-  'admin',
-  'database',
+  'system', 'auth', 'api', 'queue', 'comfyui', 'discord', 'admin', 'database',
+  'hook', 'ui', 'page', 'generate',
 ] as const;
 
 const MAX_ENTRIES = 500;
@@ -83,6 +80,9 @@ function LogEntryRow({ entry }: { entry: LogEntry }) {
         <span className="text-muted-foreground shrink-0">
           {formatTime(entry.timestamp)}
         </span>
+        <span className={`shrink-0 text-xs font-bold ${entry.source === 'client' ? 'text-blue-400' : 'text-green-400'}`}>
+          [{entry.source === 'client' ? 'C' : 'S'}]
+        </span>
         <span className={`shrink-0 uppercase font-semibold ${levelColor}`}>
           [{entry.level}]
         </span>
@@ -114,6 +114,8 @@ export default function LogViewerTab() {
   const [level, setLevel] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [clientCapture, setClientCapture] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'server' | 'client'>('all');
 
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -129,6 +131,12 @@ export default function LogViewerTab() {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      disableClientLogTransport();
+    };
+  }, []);
 
   const connectSSE = useCallback(() => {
     if (eventSourceRef.current) {
@@ -201,8 +209,8 @@ export default function LogViewerTab() {
   };
 
   const filteredEntries = entries.filter((e) => {
-    if (search && !e.message.toLowerCase().includes(search.toLowerCase()))
-      return false;
+    if (sourceFilter !== 'all' && e.source !== sourceFilter) return false;
+    if (search && !e.message.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -314,6 +322,32 @@ export default function LogViewerTab() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-[180px]"
           />
+
+          <div className="flex items-center gap-2 border-l pl-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">Client Capture</label>
+            <Switch
+              checked={clientCapture}
+              onCheckedChange={(checked) => {
+                setClientCapture(checked);
+                if (checked) {
+                  enableClientLogTransport();
+                } else {
+                  disableClientLogTransport();
+                }
+              }}
+            />
+          </div>
+
+          <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as 'all' | 'server' | 'client')}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="server">Server</SelectItem>
+              <SelectItem value="client">Client</SelectItem>
+            </SelectContent>
+          </Select>
 
           {mode === 'realtime' && (
             <>
