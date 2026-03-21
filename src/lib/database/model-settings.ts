@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/database/prisma'
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
 import type { VideoModel } from '@/lib/comfyui/workflows/types'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('database')
 
 const ACTIVE_MODEL_KEY = 'system.active_model'
 
@@ -91,7 +94,7 @@ export async function getModelSettings(): Promise<ModelSettings> {
       lowShift: parseFloat(settingMap.get(MODEL_SETTING_KEYS.LOW_SHIFT) || DEFAULT_MODEL_SETTINGS.lowShift.toString())
     }
   } catch (error) {
-    console.error('Model settings fetch failed:', error)
+    log.error('Model settings fetch failed', { error: error instanceof Error ? error.message : String(error) })
     return DEFAULT_MODEL_SETTINGS
   }
 }
@@ -210,9 +213,9 @@ export async function updateModelSettings(settings: Partial<ModelSettings>): Pro
       })
     }
 
-    console.log('✅ Model settings updated:', settings)
+    log.info('Model settings updated', { settings })
   } catch (error) {
-    console.error('Model settings update failed:', error)
+    log.error('Model settings update failed', { error: error instanceof Error ? error.message : String(error) })
     throw error
   }
 }
@@ -276,10 +279,10 @@ export async function initializeModelSettings(): Promise<void> {
       await prisma.systemSetting.createMany({
         data: newSettings
       })
-      console.log(`✅ Model settings initialized: ${newSettings.length} settings added`)
+      log.info('Model settings initialized', { count: newSettings.length })
     }
   } catch (error) {
-    console.error('Model settings initialization failed:', error)
+    log.error('Model settings initialization failed', { error: error instanceof Error ? error.message : String(error) })
     throw error
   }
 }

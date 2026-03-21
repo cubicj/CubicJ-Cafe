@@ -2,6 +2,9 @@ import { prisma } from './prisma';
 import type { Session, User } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { NextRequest } from 'next/server';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('database');
 
 // 세션과 사용자 정보를 포함한 타입
 export interface SessionWithUser extends Session {
@@ -27,7 +30,7 @@ export class SessionService {
         },
       });
     } catch (error) {
-      console.error('Session creation failed:', error);
+      log.error('Session creation failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -40,7 +43,7 @@ export class SessionService {
         include: { user: true },
       });
     } catch (error) {
-      console.error('Session lookup failed:', error);
+      log.error('Session lookup failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -59,7 +62,7 @@ export class SessionService {
       });
       return session;
     } catch (error) {
-      console.error('Valid session lookup failed:', error);
+      log.error('Valid session lookup failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -72,7 +75,7 @@ export class SessionService {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      console.error('User session lookup failed:', error);
+      log.error('User session lookup failed', { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -85,7 +88,7 @@ export class SessionService {
       });
       return true;
     } catch (error) {
-      console.error('Session deletion failed:', error);
+      log.error('Session deletion failed', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -98,7 +101,7 @@ export class SessionService {
       });
       return true;
     } catch (error) {
-      console.error('All user sessions deletion failed:', error);
+      log.error('All user sessions deletion failed', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -113,10 +116,10 @@ export class SessionService {
           },
         },
       });
-      console.log(`🧹 Cleaned up ${result.count} expired sessions`);
+      log.info('Cleaned up expired sessions', { count: result.count });
       return result.count;
     } catch (error) {
-      console.error('Expired session cleanup failed:', error);
+      log.error('Expired session cleanup failed', { error: error instanceof Error ? error.message : String(error) });
       return 0;
     }
   }
@@ -131,7 +134,7 @@ export class SessionService {
         data: { expiresAt: newExpiresAt },
       });
     } catch (error) {
-      console.error('Session extension failed:', error);
+      log.error('Session extension failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -155,7 +158,7 @@ export class SessionService {
 
       return { total, active, expired };
     } catch (error) {
-      console.error('Session stats fetch failed:', error);
+      log.error('Session stats fetch failed', { error: error instanceof Error ? error.message : String(error) });
       return { total: 0, active: 0, expired: 0 };
     }
   }
@@ -171,7 +174,7 @@ export async function getSession(request: NextRequest): Promise<SessionWithUser 
 
     return await SessionService.findValidSession(sessionId);
   } catch (error) {
-    console.error('Session lookup failed:', error);
+    log.error('Session lookup failed', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 }

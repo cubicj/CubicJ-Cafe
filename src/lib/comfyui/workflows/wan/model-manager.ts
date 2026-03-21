@@ -1,5 +1,8 @@
 import type { ComfyUIWorkflow } from '@/types';
 import { getModelSettings } from '@/lib/database/model-settings';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
 
 export async function applyModelSettings(workflow: ComfyUIWorkflow) {
   const modelSettings = await getModelSettings();
@@ -56,7 +59,7 @@ export async function applyModelSettings(workflow: ComfyUIWorkflow) {
     workflow['282'].inputs.shift = modelSettings.highShift;
   }
 
-  console.log('⚙️ Model settings applied:', {
+  log.info('Model settings applied', {
     highModel: modelSettings.highDiffusionModel,
     lowModel: modelSettings.lowDiffusionModel,
     textEncoder: modelSettings.textEncoder,

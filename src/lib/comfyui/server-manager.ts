@@ -1,4 +1,7 @@
 import { ComfyUIClient } from './client'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('comfyui')
 
 export interface ComfyUIServer {
   id: string
@@ -71,7 +74,7 @@ export class ComfyUIServerManager {
       } catch (error) {
         server.isActive = false
         server.activeJobs = 0
-        console.warn(`⚠️ Server health check failed: ${server.id} -`, error)
+        log.warn('Server health check failed', { serverId: server.id, error: error instanceof Error ? error.message : String(error) })
       }
     })
 
@@ -88,20 +91,20 @@ export class ComfyUIServerManager {
     const availableServers = this.getAvailableServers()
     
     if (availableServers.length === 0) {
-      console.warn('⚠️ No available servers. Attempting local server fallback...')
-      
+      log.warn('No available servers, attempting local server fallback')
+
       const localServer = this.servers.find(s => s.type === 'LOCAL')
       if (localServer) {
-        console.log('📍 Fallback to local server:', localServer.url)
+        log.info('Fallback to local server', { url: localServer.url })
         return localServer
       }
-      
-      console.error('❌ All servers unavailable')
+
+      log.error('All servers unavailable')
       return null
     }
 
     const bestServer = availableServers[0]
-    console.log(`🎯 Best server selected: ${bestServer.type} (${bestServer.id}) - ${bestServer.url}`)
+    log.info('Best server selected', { type: bestServer.type, id: bestServer.id, url: bestServer.url })
     
     return bestServer
   }

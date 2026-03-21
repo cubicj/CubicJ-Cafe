@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generationStore } from '@/lib/generation-store';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api');
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const jobId = searchParams.get('jobId');
@@ -33,7 +37,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error checking job status:', error);
+    log.error('Error checking job status', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

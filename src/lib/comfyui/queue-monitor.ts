@@ -9,7 +9,9 @@ import type { LoRAPresetData } from '@/types';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { scheduleFileCleanup } from '@/lib/utils/file-cleanup';
-import { logger } from '@/lib/logger';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('queue');
 
 class QueueMonitor {
   private isRunning = false;
@@ -128,7 +130,7 @@ class QueueMonitor {
 
   start(): void {
     if (this.isRunning) {
-      logger.warn('Queue Monitor already running');
+      log.warn('Queue Monitor already running');
       return;
     }
 
@@ -139,13 +141,13 @@ class QueueMonitor {
     }
 
     this.isRunning = true;
-    logger.info('Queue Monitor started');
+    log.info('Queue Monitor started');
 
     this.intervalId = setInterval(async () => {
       try {
         await this.processQueue();
       } catch (error) {
-        console.error('❌ Queue processing error:', error);
+        log.error('Queue processing error', { error: error instanceof Error ? error.message : String(error) });
       }
     }, this.checkInterval);
   }
@@ -156,7 +158,7 @@ class QueueMonitor {
       this.intervalId = null;
     }
     this.isRunning = false;
-    logger.info('Queue Monitor stopped');
+    log.info('Queue Monitor stopped');
   }
 
   private async processQueue(): Promise<void> {
@@ -210,10 +212,10 @@ class QueueMonitor {
         break;
       }
 
-      logger.logGenerationEvent('Request assigned to server', { 
-        requestId: claimedRequest.id, 
-        server: selectedServer.name, 
-        slot: i + 1 
+      log.info('Request assigned to server', {
+        requestId: claimedRequest.id,
+        server: selectedServer.name,
+        slot: i + 1
       });
 
       // 즉시 서버에 할당 (race condition 방지)
@@ -231,7 +233,7 @@ class QueueMonitor {
 
     // 모든 병렬 처리 시작 (await하지 않음 - 비동기 실행)
     if (promises.length > 0) {
-      logger.logGenerationEvent('Parallel processing started', { count: promises.length });
+      log.info('Parallel processing started', { count: promises.length });
     }
   }
 
@@ -243,7 +245,7 @@ class QueueMonitor {
   ): Promise<void> {
     const request = await queueService.getRequestById(requestId);
     if (!request) {
-      console.error(`Request not found: ${requestId}`);
+      log.error('Request not found', { requestId });
       return;
     }
 
@@ -257,7 +259,7 @@ class QueueMonitor {
         try {
           loraPreset = JSON.parse(request.loraPresetData);
         } catch (parseError) {
-          console.error('LoRA preset data parse failed:', parseError);
+          log.error('LoRA preset data parse failed', { error: parseError instanceof Error ? parseError.message : String(parseError) });
         }
       }
 
@@ -275,11 +277,11 @@ class QueueMonitor {
 
           scheduleFileCleanup(request.imageData, 10)
         } catch (error) {
-          console.error('❌ Image upload failed:', error)
+          log.error('Image upload failed', { error: error instanceof Error ? error.message : String(error) })
           throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
         }
       } else {
-        console.warn('⚠️ Image file not found.', {
+        log.warn('Image file not found', {
           requestId: request.id,
           imageFile: request.imageFile,
           imagePath: request.imageData,
@@ -331,7 +333,7 @@ class QueueMonitor {
 
       const workflow = await buildWorkflow(params, serverInfo);
 
-      logger.logGenerationEvent('Workflow built', {
+      log.info('Workflow built', {
         server: server.name,
         requestId: requestId,
         videoModel,
@@ -344,7 +346,7 @@ class QueueMonitor {
       // 선택된 서버에 워크플로우 전송
       const response = await server.client.submitPrompt(workflow);
       
-      logger.logGenerationEvent('Workflow submitted', {
+      log.info('Workflow submitted', {
         server: server.name,
         requestId: requestId,
         promptId: response.prompt_id
@@ -377,7 +379,7 @@ class QueueMonitor {
       await jobMonitor.startMonitoring(job);
 
     } catch (error) {
-      console.error(`❌ Request processing failed (${server.name}): ${requestId}`, error);
+      log.error('Request processing failed', { server: server.name, requestId, error: error instanceof Error ? error.message : String(error) });
 
       await queueService.updateRequest(requestId, {
         status: QueueStatus.FAILED,
@@ -430,7 +432,7 @@ class QueueMonitor {
     const server = this.activeServers.find(s => s.currentJobId === requestId);
     if (server) {
       server.currentJobId = undefined;
-      logger.logGenerationEvent('Server job released', { server: server.name, requestId });
+      log.info('Server job released', { server: server.name, requestId });
     }
   }
 }

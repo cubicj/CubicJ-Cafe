@@ -1,6 +1,9 @@
 import { prisma } from "./prisma";
 import { QueueStatus, ServerType, type QueueRequest } from "@prisma/client";
 import type { LoRAPresetData } from "@/types";
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('queue');
 
 type QueueRequestWithUser = QueueRequest & {
   user: {
@@ -378,7 +381,7 @@ export class QueueService {
           return null; // 처리할 요청이 없음
         }
 
-        console.log(`🎯 Atomic claim target: ${nextRequest.id} (position: ${nextRequest.position}, nickname: ${nextRequest.nickname})`);
+        log.info('Atomic claim target', { id: nextRequest.id, position: nextRequest.position, nickname: nextRequest.nickname });
 
         // 2. 즉시 PROCESSING 상태로 변경 (race condition 방지)
         const updatedRequest = await tx.queueRequest.update({
@@ -407,7 +410,7 @@ export class QueueService {
       });
     } catch (error) {
       // 다른 인스턴스가 이미 처리했거나 요청이 없는 경우
-      console.warn('Atomic next request claim failed:', error);
+      log.warn('Atomic next request claim failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

@@ -1,6 +1,9 @@
 import { prisma } from './prisma';
 import type { User } from '@prisma/client';
 import { LoRAPresetService } from './lora-presets';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('database');
 
 // 사용자 생성 타입
 export interface CreateUserData {
@@ -27,7 +30,7 @@ export class UserService {
         where: { discordId },
       });
     } catch (error) {
-      console.error('User lookup failed:', error);
+      log.error('User lookup failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -39,7 +42,7 @@ export class UserService {
         where: { nickname },
       });
     } catch (error) {
-      console.error('Nickname lookup failed:', error);
+      log.error('Nickname lookup failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -52,7 +55,7 @@ export class UserService {
       });
       return user !== null;
     } catch (error) {
-      console.error('Nickname duplicate check failed:', error);
+      log.error('Nickname duplicate check failed', { error: error instanceof Error ? error.message : String(error) });
       return true; // 에러 시 중복으로 간주
     }
   }
@@ -93,15 +96,15 @@ export class UserService {
               },
             ],
           });
-          console.log(`✅ Default LoRA preset created for new user ${userData.nickname}`);
+          log.info('Default LoRA preset created for new user', { nickname: userData.nickname });
         } catch (presetError) {
-          console.error('❌ Failed to create default LoRA preset:', presetError);
+          log.error('Failed to create default LoRA preset', { error: presetError instanceof Error ? presetError.message : String(presetError) });
         }
       }
 
       return user;
     } catch (error) {
-      console.error('User creation failed:', error);
+      log.error('User creation failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -117,7 +120,7 @@ export class UserService {
         },
       });
     } catch (error) {
-      console.error('User update failed:', error);
+      log.error('User update failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -133,7 +136,7 @@ export class UserService {
         },
       });
     } catch (error) {
-      console.error('Login time update failed:', error);
+      log.error('Login time update failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -146,7 +149,7 @@ export class UserService {
       });
       return true;
     } catch (error) {
-      console.error('User deletion failed:', error);
+      log.error('User deletion failed', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -158,7 +161,7 @@ export class UserService {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      console.error('User list fetch failed:', error);
+      log.error('User list fetch failed', { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }

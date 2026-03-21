@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { serverManager } from '@/lib/comfyui/server-manager'
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('comfyui');
+
 export async function GET() {
   try {
     // 서버 헬스 체크 후 사용 가능한 서버 선택
@@ -28,7 +32,7 @@ export async function GET() {
     try {
       loras = await quickClient.getLoRAList()
     } catch (connectionError) {
-      console.error('❌ Selected server connection failed:', bestServer.id, connectionError)
+      log.error('Selected server connection failed', { serverId: bestServer.id, error: connectionError instanceof Error ? connectionError.message : String(connectionError) })
       return NextResponse.json(
         { 
           error: `선택된 서버(${bestServer.type})에 연결할 수 없습니다. 서버가 다운되었거나 응답하지 않습니다.`,
@@ -44,7 +48,7 @@ export async function GET() {
       )
     }
     
-    console.log('✅ WAN LoRA list success:', loras.length + ' items')
+    log.info('WAN LoRA list success', { count: loras.length })
 
     // LoRA 파일들을 카테고리별로 분류
     const categorizedLoras = {
@@ -72,7 +76,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('❌ Failed to fetch WAN LoRA list:', error)
+    log.error('Failed to fetch WAN LoRA list', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json(
       { 

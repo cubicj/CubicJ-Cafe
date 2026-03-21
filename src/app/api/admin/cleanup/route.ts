@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cleanupTempFiles } from '@/lib/utils/file-cleanup';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('admin');
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { maxAgeHours = 24 } = body;
 
-    console.log(`Manual temp file cleanup request - files older than ${maxAgeHours}h`);
+    log.info('Manual temp file cleanup request', { maxAgeHours });
 
     const result = await cleanupTempFiles(maxAgeHours);
 
@@ -17,7 +21,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Temp file cleanup failed:', error);
+    log.error('Temp file cleanup failed', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: 'File cleanup failed' },
       { status: 500 }
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    console.log('Auto temp file cleanup started');
+    log.info('Auto temp file cleanup started');
     
     const result = await cleanupTempFiles(1);
 
@@ -38,7 +42,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Auto temp file cleanup failed:', error);
+    log.error('Auto temp file cleanup failed', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: 'Auto cleanup failed' },
       { status: 500 }

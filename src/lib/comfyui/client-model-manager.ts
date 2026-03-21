@@ -1,5 +1,7 @@
-import { logger } from '@/lib/logger'
+import { createLogger } from '@/lib/logger'
 import type { ModelListResponse } from './client-types'
+
+const log = createLogger('comfyui')
 
 export class ComfyUIModelManager {
   private baseURL: string
@@ -8,8 +10,8 @@ export class ComfyUIModelManager {
   private serverManager: { checkActiveRunpodServers: () => Promise<string[]> }
 
   constructor(
-    baseURL: string, 
-    timeout: number = 10000, 
+    baseURL: string,
+    timeout: number = 10000,
     isRunpodServer: boolean,
     serverManager: { checkActiveRunpodServers: () => Promise<string[]> }
   ) {
@@ -24,7 +26,7 @@ export class ComfyUIModelManager {
       const response = await this.makeRequest<Record<string, unknown>>('/object_info')
       return response
     } catch (error) {
-      console.error('ComfyUI object_info fetch failed:', error)
+      log.error('ComfyUI object_info fetch failed', { error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -32,31 +34,31 @@ export class ComfyUIModelManager {
   async getLoRAList(): Promise<string[]> {
     try {
       const activeRunpodServers = await this.serverManager.checkActiveRunpodServers()
-      
+
       if (activeRunpodServers.length > 0) {
         try {
           const runpodLoras = await this.getLoRAListFromRunpod(activeRunpodServers[0])
-          logger.logComfyUIEvent('LoRA list fetched from Runpod', { server: activeRunpodServers[0], count: runpodLoras.length })
+          log.info('LoRA list fetched from Runpod', { server: activeRunpodServers[0], count: runpodLoras.length })
           return runpodLoras
         } catch (runpodError) {
-          logger.warn('Runpod LoRA fetch failed, fallback to local', { error: runpodError })
+          log.warn('Runpod LoRA fetch failed, fallback to local', { error: runpodError instanceof Error ? runpodError.message : String(runpodError) })
         }
       }
 
       return this.getLoRAListFromLocal()
     } catch (error) {
-      console.error('❌ Failed to fetch LoRA list:', error)
+      log.error('Failed to fetch LoRA list', { error: error instanceof Error ? error.message : String(error) })
       return []
     }
   }
 
   private async getLoRAListFromLocal(): Promise<string[]> {
     const objectInfo = await this.getObjectInfo()
-    
+
     const possibleLoraNodes = [
       'LoraLoader',
       'LoRALoader',
-      'LoraLoaderModelOnly', 
+      'LoraLoaderModelOnly',
       'Load LoRA',
       'LoRA Loader',
       'Power Lora Loader (rgthree)',
@@ -69,28 +71,28 @@ export class ComfyUIModelManager {
       if (node?.input?.required?.lora_name) {
         const loraData = node.input.required.lora_name || []
         const loras = Array.isArray(loraData[0]) ? loraData[0] : loraData
-        
+
         const filteredLoras = this.filterWANLoRAs(loras)
-        
+
         if (filteredLoras.length === 0) {
-          console.warn('⚠️ No LoRAs found in WAN folder. Returning full list')
+          log.warn('No LoRAs found in WAN folder, returning full list')
           return this.filterAllLoRAs(loras)
         }
-        
+
         if (filteredLoras.length > 0) {
-          logger.logComfyUIEvent('Local LoRA list fetched', { node: nodeName, count: filteredLoras.length })
+          log.info('Local LoRA list fetched', { node: nodeName, count: filteredLoras.length })
           return filteredLoras.sort()
         }
       }
     }
 
-    console.warn('⚠️ No dedicated LoRA node found. Available nodes:',
-      Object.keys(objectInfo || {}).filter(key => 
-        key.toLowerCase().includes('lora') || 
+    log.warn('No dedicated LoRA node found', {
+      availableNodes: Object.keys(objectInfo || {}).filter(key =>
+        key.toLowerCase().includes('lora') ||
         key.toLowerCase().includes('embed')
       )
-    )
-    
+    })
+
     return []
   }
 
@@ -114,11 +116,11 @@ export class ComfyUIModelManager {
       }
 
       const objectInfo = await response.json()
-      
+
       const possibleLoraNodes = [
         'LoraLoader',
         'LoRALoader',
-        'LoraLoaderModelOnly', 
+        'LoraLoaderModelOnly',
         'Load LoRA',
         'LoRA Loader',
         'Power Lora Loader (rgthree)',
@@ -131,24 +133,24 @@ export class ComfyUIModelManager {
         if (node?.input?.required?.lora_name) {
           const loraData = node.input.required.lora_name || []
           const loras = Array.isArray(loraData[0]) ? loraData[0] : loraData
-          
+
           const filteredLoras = this.filterWANLoRAs(loras, true)
-          
+
           if (filteredLoras.length === 0) {
-            console.warn('⚠️ No LoRAs found in Runpod WAN folder. Returning full list')
+            log.warn('No LoRAs found in Runpod WAN folder, returning full list')
             return this.filterAllLoRAs(loras, true)
           }
-          
+
           if (filteredLoras.length > 0) {
             return filteredLoras.sort()
           }
         }
       }
 
-      console.warn('⚠️ No LoRA node found on Runpod.')
+      log.warn('No LoRA node found on Runpod')
       return []
     } catch (error) {
-      console.error(`❌ Runpod server LoRA list fetch failed: ${serverUrl}:`, error)
+      log.error('Runpod server LoRA list fetch failed', { server: serverUrl, error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -157,30 +159,30 @@ export class ComfyUIModelManager {
     return loras
       .filter((file: unknown) => {
         if (typeof file !== 'string') {
-          console.warn('⚠️ LoRA filename is not a string:', typeof file, file)
+          log.warn('LoRA filename is not a string', { type: typeof file, value: file })
           return false
         }
-        
+
         const fileName = file.toLowerCase()
         const normalizedPath = file.replace(/\\/g, '/').toLowerCase()
-        
-        const isInWanFolder = normalizedPath.includes('wan/') || 
+
+        const isInWanFolder = normalizedPath.includes('wan/') ||
                              normalizedPath.startsWith('wan/') ||
                              file.toLowerCase().includes('wan\\') ||
                              file.toLowerCase().startsWith('wan\\')
-        
+
         if (!isInWanFolder) return false
-        
-        const isLoRAFile = fileName.endsWith('.safetensors') || 
-                          fileName.endsWith('.ckpt') || 
+
+        const isLoRAFile = fileName.endsWith('.safetensors') ||
+                          fileName.endsWith('.ckpt') ||
                           fileName.endsWith('.pt')
-        
+
         if (!isLoRAFile) return false
-        
+
         if (fileName.includes('checkpoint') && !fileName.includes('lora')) {
           return false
         }
-        
+
         return true
       })
       .map((file: unknown) => {
@@ -214,26 +216,26 @@ export class ComfyUIModelManager {
   async getSamplerList(): Promise<string[]> {
     try {
       const activeRunpodServers = await this.serverManager.checkActiveRunpodServers()
-      
+
       if (activeRunpodServers.length > 0) {
         try {
           const runpodSamplers = await this.getSamplersFromRunpod(activeRunpodServers[0])
           return runpodSamplers
         } catch (runpodError) {
-          logger.warn('Runpod sampler fetch failed, fallback to local', { error: runpodError })
+          log.warn('Runpod sampler fetch failed, fallback to local', { error: runpodError instanceof Error ? runpodError.message : String(runpodError) })
         }
       }
 
       return this.getSamplersFromLocal()
     } catch (error) {
-      console.error('❌ Failed to fetch sampler list:', error)
+      log.error('Failed to fetch sampler list', { error: error instanceof Error ? error.message : String(error) })
       return []
     }
   }
 
   private async getSamplersFromLocal(): Promise<string[]> {
     const objectInfo = await this.getObjectInfo()
-    
+
     const ksamplerNodes = [
       'KSampler',
       'KSamplerAdvanced',
@@ -251,13 +253,13 @@ export class ComfyUIModelManager {
       }
     }
 
-    console.warn('⚠️ KSampler node not found. Available nodes:',
-      Object.keys(objectInfo || {}).filter(key => 
-        key.toLowerCase().includes('sampler') || 
+    log.warn('KSampler node not found', {
+      availableNodes: Object.keys(objectInfo || {}).filter(key =>
+        key.toLowerCase().includes('sampler') ||
         key.toLowerCase().includes('ksampler')
       )
-    )
-    
+    })
+
     return []
   }
 
@@ -281,10 +283,10 @@ export class ComfyUIModelManager {
       }
 
       const objectInfo = await response.json()
-      
+
       const ksamplerNodes = [
         'KSampler',
-        'KSamplerAdvanced', 
+        'KSamplerAdvanced',
         'SamplerCustom',
         'KSamplerSelect',
         'Sampler'
@@ -299,10 +301,10 @@ export class ComfyUIModelManager {
         }
       }
 
-      console.warn('⚠️ KSampler node not found on Runpod.')
+      log.warn('KSampler node not found on Runpod')
       return []
     } catch (error) {
-      console.error(`❌ Runpod server sampler list fetch failed: ${serverUrl}:`, error)
+      log.error('Runpod server sampler list fetch failed', { server: serverUrl, error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -310,19 +312,19 @@ export class ComfyUIModelManager {
   async getModelList(): Promise<ModelListResponse> {
     try {
       const activeRunpodServers = await this.serverManager.checkActiveRunpodServers()
-      
+
       if (activeRunpodServers.length > 0) {
         try {
           const runpodResult = await this.getModelListFromRunpod(activeRunpodServers[0])
           return runpodResult
         } catch (runpodError) {
-          logger.warn('Runpod model fetch failed, fallback to local', { error: runpodError })
+          log.warn('Runpod model fetch failed, fallback to local', { error: runpodError instanceof Error ? runpodError.message : String(runpodError) })
         }
       }
 
       return this.getModelListFromLocal()
     } catch (error) {
-      console.error('❌ Failed to fetch model list:', error)
+      log.error('Failed to fetch model list', { error: error instanceof Error ? error.message : String(error) })
       return {
         diffusionModels: [],
         textEncoders: [],
@@ -335,7 +337,7 @@ export class ComfyUIModelManager {
 
   private async getModelListFromLocal(): Promise<ModelListResponse> {
     const objectInfo = await this.getObjectInfo()
-    
+
     const result: ModelListResponse = {
       diffusionModels: [],
       textEncoders: [],
@@ -374,7 +376,7 @@ export class ComfyUIModelManager {
       result.clipVisions = Array.isArray(clipVisionData[0]) ? clipVisionData[0] : clipVisionData
     }
 
-    logger.logComfyUIEvent('Local models fetched', {
+    log.info('Local models fetched', {
       diffusionModels: result.diffusionModels.length,
       textEncoders: result.textEncoders.length,
       vaes: result.vaes.length,
@@ -405,7 +407,7 @@ export class ComfyUIModelManager {
       }
 
       const objectInfo = await response.json()
-      
+
       const result: ModelListResponse = {
         diffusionModels: [],
         textEncoders: [],
@@ -444,7 +446,7 @@ export class ComfyUIModelManager {
         result.clipVisions = Array.isArray(clipVisionData[0]) ? clipVisionData[0] : clipVisionData
       }
 
-      logger.logComfyUIEvent('Runpod models fetched', {
+      log.info('Runpod models fetched', {
         server: serverUrl,
         diffusionModels: result.diffusionModels.length,
         textEncoders: result.textEncoders.length,
@@ -455,7 +457,7 @@ export class ComfyUIModelManager {
 
       return result
     } catch (error) {
-      console.error(`❌ Runpod server model list fetch failed: ${serverUrl}:`, error)
+      log.error('Runpod server model list fetch failed', { server: serverUrl, error: error instanceof Error ? error.message : String(error) })
       throw error
     }
   }
@@ -473,7 +475,7 @@ export class ComfyUIModelManager {
     }
 
     const fullUrl = `${this.baseURL}${endpoint}`
-    
+
     const response = await fetch(fullUrl, {
       ...options,
       signal: controller.signal,
@@ -488,7 +490,6 @@ export class ComfyUIModelManager {
       )
     }
 
-    // JSON 파싱 안전 장치 추가
     const responseText = await response.text()
     if (!responseText || responseText.trim() === '') {
       throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
@@ -497,10 +498,10 @@ export class ComfyUIModelManager {
     try {
       return JSON.parse(responseText)
     } catch (parseError) {
-      console.error('ComfyUI JSON parse error:', {
+      log.error('ComfyUI JSON parse error', {
         endpoint,
         responseText: responseText.substring(0, 200),
-        error: parseError
+        error: parseError instanceof Error ? parseError.message : String(parseError)
       })
       throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
     }

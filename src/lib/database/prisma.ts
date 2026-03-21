@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('database');
 
 // Prisma Client 싱글톤 패턴
 const globalForPrisma = globalThis as unknown as {
@@ -17,10 +20,10 @@ if ((process.env.NODE_ENV || 'development') !== 'production') globalForPrisma.pr
 export async function testDatabaseConnection() {
   try {
     await prisma.$connect();
-    console.log('✅ Database connection successful');
+    log.info('Database connection successful');
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    log.error('Database connection failed', { error: error instanceof Error ? error.message : String(error) });
     return false;
   }
 }
@@ -28,5 +31,5 @@ export async function testDatabaseConnection() {
 // 애플리케이션 종료 시 연결 해제
 export async function disconnectDatabase() {
   await prisma.$disconnect();
-  console.log('🔌 Database disconnected');
+  log.info('Database disconnected');
 }

@@ -3,6 +3,10 @@ import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { getServerSession } from '@/lib/auth/server';
 import { isAdmin } from '@/lib/auth/admin';
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('admin');
+
 // GET: 모든 LoRA 번들 조회 (관리자용)
 export async function GET() {
   try {
@@ -29,7 +33,7 @@ export async function GET() {
       count: bundles.length,
     });
   } catch (error) {
-    console.error('❌ Failed to fetch LoRA bundle list:', error);
+    log.error('Failed to fetch LoRA bundle list', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 목록 조회에 실패했습니다.' },
       { status: 500 }
@@ -89,7 +93,7 @@ export async function POST(request: NextRequest) {
       bundle,
     });
   } catch (error) {
-    console.error('❌ Failed to create LoRA bundle:', error);
+    log.error('Failed to create LoRA bundle', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LoRA 번들 생성에 실패했습니다.' },
       { status: 500 }

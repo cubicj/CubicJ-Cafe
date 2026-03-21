@@ -1,6 +1,9 @@
 import { Client, GatewayIntentBits, TextChannel, AttachmentBuilder } from 'discord.js';
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
 import type { VideoModel } from './comfyui/workflows/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('discord');
 
 // Discord Bot 전송 전용 모드
 // - 메시지 수신/처리 없음
@@ -29,34 +32,34 @@ class DiscordBot {
     
     // 전송 전용 모드: 핵심 에러만 처리
     this.client.on('error', (error) => {
-      console.error('Discord Client error:', error);
+      log.error('Discord Client error', { error: error.message });
       // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러는 무시하고 재초기화
       if (error.message && (
         error.message.includes('handle') || 
         error.message.includes('MESSAGE_CREATE') ||
         error.message.includes('GUILD_UPDATE')
       )) {
-        console.log('Discord event handler error (ignored in send-only mode) - attempting reinit...');
+        log.info('Discord event handler error (ignored in send-only mode) - attempting reinit');
         this.isInitialized = false;
         return;
       }
     });
     
     this.client.on('warn', (warning) => {
-      console.warn('Discord Client warning:', warning);
+      log.warn('Discord Client warning', { warning });
     });
     
     this.client.on('disconnect', () => {
-      console.log('Discord Bot disconnected');
+      log.info('Discord Bot disconnected');
       this.isInitialized = false;
     });
-    
+
     this.client.on('reconnecting', () => {
-      console.log('Discord Bot reconnecting...');
+      log.info('Discord Bot reconnecting');
     });
-    
+
     this.client.on('ready', () => {
-      console.log(`Discord Bot ready: ${this.client.user?.tag}`);
+      log.info('Discord Bot ready', { tag: this.client.user?.tag });
       this.isInitialized = true;
       this.isConnecting = false;
       this.reconnectAttempts = 0;
@@ -64,13 +67,13 @@ class DiscordBot {
 
     // shardError 이벤트 처리 (handle 에러의 주요 원인)
     this.client.on('shardError', (error) => {
-      console.error('Discord Shard error:', error);
+      log.error('Discord Shard error', { error: error.message });
       this.isInitialized = false;
     });
 
     // shardDisconnect 이벤트 처리
     this.client.on('shardDisconnect', () => {
-      console.log('Discord Shard disconnected');
+      log.info('Discord Shard disconnected');
       this.isInitialized = false;
     });
   }
@@ -98,7 +101,7 @@ class DiscordBot {
     try {
       // 기존 연결이 있다면 정리
       if (this.client.readyTimestamp) {
-        console.log('Cleaning up existing Discord connection...');
+        log.info('Cleaning up existing Discord connection');
         this.client.destroy();
         // 새 클라이언트 인스턴스 생성 (전송 전용)
         this.client = new Client({
@@ -107,21 +110,21 @@ class DiscordBot {
         this.setupErrorHandlers();
       }
 
-      console.log('Discord Bot logging in...');
+      log.info('Discord Bot logging in');
       await this.client.login(process.env.DISCORD_BOT_TOKEN);
       
       // 준비 상태까지 대기 (최대 15초로 연장)
       await this.waitForReady(15000);
       
-      console.log('Discord Bot initialized successfully');
+      log.info('Discord Bot initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize Discord Bot:', error);
+      log.error('Failed to initialize Discord Bot', { error: error instanceof Error ? error.message : String(error) });
       this.isInitialized = false;
       this.isConnecting = false;
       
       // handle 관련 에러인 경우 더 자세한 로그
       if (error instanceof Error && error.message.includes('handle')) {
-        console.error('Discord handle error. Client recreation may be required.');
+        log.error('Discord handle error. Client recreation may be required.');
       }
       
       throw error;
@@ -181,19 +184,19 @@ class DiscordBot {
     
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        console.log(`Discord send attempt ${attempt}/3`);
+        log.info('Discord send attempt', { attempt, maxAttempts: 3 });
         await this.sendVideoToDiscordInternal(params);
-        console.log(`Discord send succeeded (attempt ${attempt})`);
+        log.info('Discord send succeeded', { attempt });
         return; // 성공하면 종료
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.error(`Discord send failed ${attempt}/3:`, lastError.message);
+        log.error('Discord send failed', { attempt, maxAttempts: 3, error: lastError.message });
         
         // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러인 경우 특별 처리
         if (lastError.message.includes('handle') || 
             lastError.message.includes('MESSAGE_CREATE') ||
             lastError.message.includes('GUILD_UPDATE')) {
-          console.log('Client reinitialization due to Discord event handler error...');
+          log.info('Client reinitialization due to Discord event handler error');
           this.isInitialized = false;
           // 클라이언트 완전 재생성 (전송 전용)
           this.client.destroy();
@@ -206,7 +209,7 @@ class DiscordBot {
         if (attempt < 3) {
           // 다음 시도 전 대기 (지수 백오프)
           const delay = Math.pow(2, attempt) * 1000;
-          console.log(`Retrying after ${delay}ms...`);
+          log.info('Retrying after delay', { delay });
           await new Promise(resolve => setTimeout(resolve, delay));
           
           // 재초기화 시도
@@ -235,7 +238,7 @@ class DiscordBot {
   }): Promise<void> {
     // 초기화 상태와 클라이언트 준비 상태 확인
     if (!this.isInitialized || !this.client.isReady()) {
-      console.log('Discord Bot not ready. Attempting initialization...');
+      log.info('Discord Bot not ready, attempting initialization');
       await this.initialize();
     }
 
@@ -258,7 +261,7 @@ class DiscordBot {
       : process.env.DISCORD_CHANNEL_ID!;
 
     try {
-      console.log('Discord Guild and Channel info:', {
+      log.info('Discord Guild and Channel info', {
         guildId: process.env.DISCORD_GUILD_ID,
         channelId: targetChannelId,
         isNSFW: params.isNSFW
@@ -278,7 +281,7 @@ class DiscordBot {
         throw new Error(`Channel is not text-based: ${targetChannelId}`);
       }
       
-      console.log(`Discord channel access success: ${channel.name} (${channel.id})`);
+      log.info('Discord channel access success', { channelName: channel.name, channelId: channel.id });
 
       let attachment: AttachmentBuilder;
 
@@ -291,12 +294,12 @@ class DiscordBot {
         const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://localhost:8188';
         const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=temp`;
         
-        console.log('🎬 Downloading video from ComfyUI:', {
+        log.info('Downloading video from ComfyUI', {
           videoUrl,
           filename: params.filename,
-          subfolder: subfolder,
+          subfolder,
           type: 'temp',
-          serverUrl: serverUrl
+          serverUrl
         });
         
         const controller = new AbortController();
@@ -319,7 +322,7 @@ class DiscordBot {
           throw new Error('다운로드된 비디오 파일이 비어있습니다');
         }
         
-        console.log(`Video download complete: ${arrayBuffer.byteLength} bytes`);
+        log.info('Video download complete', { bytes: arrayBuffer.byteLength });
         const buffer = Buffer.from(arrayBuffer);
         attachment = new AttachmentBuilder(buffer, { name: params.filename });
       } else {
@@ -346,9 +349,9 @@ class DiscordBot {
         files: [attachment]
       });
 
-      console.log('Video sent to Discord successfully');
+      log.info('Video sent to Discord successfully');
     } catch (error) {
-      console.error('Failed to send video to Discord:', error);
+      log.error('Failed to send video to Discord', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -416,9 +419,9 @@ class DiscordBot {
         files: [attachment]
       });
 
-      console.log('Image sent to Discord successfully');
+      log.info('Image sent to Discord successfully');
     } catch (error) {
-      console.error('Failed to send image to Discord:', error);
+      log.error('Failed to send image to Discord', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -427,7 +430,7 @@ class DiscordBot {
     if (this.isInitialized) {
       this.client.destroy();
       this.isInitialized = false;
-      console.log('Discord Bot disconnected');
+      log.info('Discord Bot disconnected');
     }
   }
 
