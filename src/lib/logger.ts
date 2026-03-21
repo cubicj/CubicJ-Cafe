@@ -51,6 +51,7 @@ let flushInterval: ReturnType<typeof setInterval> | null = null;
 const CLIENT_BUFFER_MAX = 200;
 const FLUSH_INTERVAL_MS = 3000;
 const INGEST_URL = '/api/admin/logs/ingest';
+const STORAGE_KEY = 'client_log_transport_enabled';
 
 function flushClientBuffer(): void {
   if (clientBuffer.length === 0) return;
@@ -127,6 +128,7 @@ export function enableClientLogTransport(): void {
   flushInterval = setInterval(flushClientBuffer, FLUSH_INTERVAL_MS);
   window.addEventListener('beforeunload', handleBeforeUnload);
   installConsoleOverride();
+  try { localStorage.setItem(STORAGE_KEY, '1'); } catch {}
 }
 
 export function isClientLogTransportEnabled(): boolean {
@@ -143,6 +145,16 @@ export function disableClientLogTransport(): void {
     window.removeEventListener('beforeunload', handleBeforeUnload);
   }
   uninstallConsoleOverride();
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+}
+
+export function restoreClientLogTransport(): void {
+  if (!isBrowser) return;
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === '1') {
+      enableClientLogTransport();
+    }
+  } catch {}
 }
 
 export function createLogger(category: string): CategoryLogger {
