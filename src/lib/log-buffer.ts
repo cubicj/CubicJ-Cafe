@@ -76,4 +76,5 @@ class LogBuffer {
   }
 }
 
-export const logBuffer = new LogBuffer();
+const globalForLogBuffer = globalThis as unknown as { __logBuffer?: LogBuffer };
+export const logBuffer = globalForLogBuffer.__logBuffer ?? (globalForLogBuffer.__logBuffer = new LogBuffer());

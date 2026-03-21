@@ -52,11 +52,11 @@ export function writeLogEntry(entry: { timestamp: string; level: string; categor
   });
 }
 
-let initialized = false;
+const globalForFileLogging = globalThis as unknown as { __fileLoggingInit?: boolean };
 
 export function initFileLogging(): void {
-  if (initialized) return;
-  initialized = true;
+  if (globalForFileLogging.__fileLoggingInit) return;
+  globalForFileLogging.__fileLoggingInit = true;
 
   logBuffer.onPush((entry) => {
     writeLogEntry(entry);
