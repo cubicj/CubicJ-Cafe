@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Cog, Shield, AlertCircle, ScrollText, Power } from 'lucide-react';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
-import SystemSettingsTab from './tabs/SystemSettingsTab';
 import ModelSettingsTab from './tabs/ModelSettingsTab';
 import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
@@ -107,8 +106,7 @@ export default function AdminDashboard() {
 
     const initializeAdminSettings = async () => {
       try {
-        const [, , comfyState] = await Promise.all([
-          adminSettings.fetchSystemSettings(),
+        const [, comfyState] = await Promise.all([
           adminSettings.fetchModelSettings(),
           fetchComfyUIState()
         ]);
@@ -239,7 +237,6 @@ export default function AdminDashboard() {
         </TabsList>
 
         <TabsContent value="advanced" className="space-y-4">
-          <SystemSettingsTab {...adminSettings} />
           <ModelSettingsTab {...adminSettings} />
         </TabsContent>
 

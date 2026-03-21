@@ -720,7 +720,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "103": {
     "inputs": {
-      "value": -533870583392261
+      "value": 5
     },
     "class_type": "PrimitiveInt",
     "_meta": {
