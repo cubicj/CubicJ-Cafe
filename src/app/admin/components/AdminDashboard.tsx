@@ -31,18 +31,20 @@ export default function AdminDashboard() {
   const [comfyuiLoading, setComfyuiLoading] = useState(true);
   const [comfyuiMessage, setComfyuiMessage] = useState('');
 
-  const fetchComfyUIState = async () => {
+  const fetchComfyUIState = async (): Promise<boolean> => {
     try {
       const response = await fetch('/api/admin/comfyui-toggle', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setComfyuiEnabled(data.enabled);
+        return data.enabled;
       }
     } catch {
       // ignore
     } finally {
       setComfyuiLoading(false);
     }
+    return false;
   };
 
   const toggleComfyUI = async (enabled: boolean) => {
@@ -59,6 +61,9 @@ export default function AdminDashboard() {
         setComfyuiEnabled(data.enabled);
         setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
         setTimeout(() => setComfyuiMessage(''), 3000);
+        if (data.enabled) {
+          adminSettings.fetchAvailableModels();
+        }
       }
     } catch {
       // ignore
@@ -102,14 +107,15 @@ export default function AdminDashboard() {
 
     const initializeAdminSettings = async () => {
       try {
-        // 필수 설정만 먼저 로드 (빠른 API들)
-        await Promise.all([
+        const [, , comfyState] = await Promise.all([
           adminSettings.fetchSystemSettings(),
           adminSettings.fetchModelSettings(),
           fetchComfyUIState()
         ]);
 
-        adminSettings.fetchAvailableModels();
+        if (comfyState) {
+          adminSettings.fetchAvailableModels();
+        }
       } catch (error) {
         log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
       }
