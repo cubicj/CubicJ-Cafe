@@ -1,4 +1,6 @@
 import { Client, GatewayIntentBits, TextChannel, AttachmentBuilder } from 'discord.js';
+import { MODEL_REGISTRY } from './comfyui/workflows/registry';
+import type { VideoModel } from './comfyui/workflows/types';
 
 // Discord Bot 전송 전용 모드
 // - 메시지 수신/처리 없음
@@ -171,7 +173,8 @@ class DiscordBot {
     inputImage?: string;
     isNSFW?: boolean;
     discordId?: string;
-    comfyUIServerUrl?: string; // 동적 서버 URL 추가
+    comfyUIServerUrl?: string;
+    videoModel?: string;
   }): Promise<void> {
     // 재시도 로직 (3회 시도)
     let lastError: Error | null = null;
@@ -228,6 +231,7 @@ class DiscordBot {
     isNSFW?: boolean;
     discordId?: string;
     comfyUIServerUrl?: string;
+    videoModel?: string;
   }): Promise<void> {
     // 초기화 상태와 클라이언트 준비 상태 확인
     if (!this.isInitialized || !this.client.isReady()) {
@@ -322,8 +326,9 @@ class DiscordBot {
         throw new Error('videoPath 또는 filename 중 하나는 반드시 제공되어야 합니다');
       }
       
+      const modelDisplayName = MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName || 'I2V';
       const embed = {
-        title: `🔗 Wan 2.2 I2V ${params.isNSFW ? '🔞' : ''}`,
+        title: `🔗 ${modelDisplayName} I2V ${params.isNSFW ? '🔞' : ''}`,
         description: `\`\`\`${params.prompt}\`\`\``,
         color: params.isNSFW ? 0xff6b6b : 0x10b981,
         url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
@@ -453,4 +458,5 @@ export type SendVideoParams = {
   isNSFW?: boolean;
   discordId?: string;
   comfyUIServerUrl?: string;
+  videoModel?: string;
 };

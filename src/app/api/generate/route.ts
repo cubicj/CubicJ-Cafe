@@ -7,6 +7,8 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { ServerType } from '@prisma/client';
+import { getActiveModel } from '@/lib/database/model-settings';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 
 async function selectBestServer() {
   await serverManager.checkServerHealth();
@@ -56,17 +58,19 @@ export async function POST(request: NextRequest) {
       url: selectedServer.url
     });
 
+    const activeModel = await getActiveModel();
+    const capabilities = MODEL_REGISTRY[activeModel].capabilities;
+
     const formData = await request.formData();
     const prompt = formData.get('prompt') as string;
     const imageFile = formData.get('image') as File | null;
-    const endImageFile = formData.get('endImage') as File | null;
-    const loraName = formData.get('lora') as string;
-    const loraStrength = parseFloat(formData.get('loraStrength') as string || '0.8');
-    const loraPresetData = formData.get('loraPreset') as string;
+    const endImageFile = capabilities.endImage ? formData.get('endImage') as File | null : null;
+    const loraName = capabilities.loraPresets ? formData.get('lora') as string : null;
+    const loraStrength = capabilities.loraPresets ? parseFloat(formData.get('loraStrength') as string || '0.8') : 0;
+    const loraPresetData = capabilities.loraPresets ? formData.get('loraPreset') as string : null;
     const isNSFW = formData.get('isNSFW') === 'true';
     const duration = parseInt(formData.get('duration') as string || '5');
-    
-    // duration 유효성 검사 (4-7초만 허용)
+
     const validDuration = Math.min(Math.max(duration, 4), 7);
     const workflowLength = 16 * validDuration + 1;
 
@@ -102,8 +106,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '시작 이미지 파일은 이미지 형식이어야 합니다.' }, { status: 400 });
     }
 
-    // 끝 이미지 파일 유효성 검사 (선택적)
-    if (endImageFile) {
+    if (capabilities.endImage && endImageFile) {
       if (endImageFile.size > 10 * 1024 * 1024) {
         return NextResponse.json({ error: '끝 이미지 파일이 너무 큽니다 (최대 10MB).' }, { status: 400 });
       }
@@ -114,9 +117,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // LoRA 프리셋 데이터 파싱
       let loraPreset = null;
-      if (loraPresetData) {
+      if (capabilities.loraPresets && loraPresetData) {
         try {
           loraPreset = JSON.parse(loraPresetData);
         } catch (parseError) {
@@ -147,10 +149,9 @@ export async function POST(request: NextRequest) {
         size: imageFile.size
       })
 
-      // 끝 이미지 저장 (선택적)
       let endTempFileName = null
       let endTempFilePath = null
-      if (endImageFile) {
+      if (capabilities.endImage && endImageFile) {
         const endUuid = randomUUID()
         const endFileExtension = endImageFile.name.split('.').pop() || 'png'
         endTempFileName = `end_${endUuid}_${userId}_${timestamp}.${endFileExtension}`
@@ -181,7 +182,8 @@ export async function POST(request: NextRequest) {
         duration: validDuration,
         workflowLength: workflowLength,
         serverType: selectedServer.serverType,
-        serverId: selectedServer.serverId
+        serverId: selectedServer.serverId,
+        videoModel: activeModel
       });
 
       console.log(`🎬 큐에 요청 추가됨 - Request ID: ${requestId}, User: ${session.user.nickname}`);

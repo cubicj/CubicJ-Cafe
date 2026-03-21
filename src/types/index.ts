@@ -26,6 +26,7 @@ export interface GenerationJob {
   promptId?: string;
   error?: string;
   isNSFW?: boolean;
+  videoModel?: string;
   userInfo?: {
     name: string;
     email?: string;
