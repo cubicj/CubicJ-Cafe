@@ -1,4 +1,3 @@
-// 메인 인터페이스들
 export interface LoRAPreset {
   id: string;
   name: string;
@@ -47,7 +46,6 @@ export interface SelectOption {
   label: string;
 }
 
-// 컴포넌트 Props 타입들
 export * from './preset.types';
 export * from './editor.types';
 export * from './bundle.types';
