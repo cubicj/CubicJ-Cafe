@@ -1,32 +1,25 @@
-import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createUser, createQueueRequest } from '../../helpers/fixtures'
-
-const mockGetServerSession = vi.fn()
-vi.mock('@/lib/auth/server', () => ({
-  getServerSession: (...args: unknown[]) => mockGetServerSession(...args),
-}))
+import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 
 import { GET } from '@/app/api/user/stats/route'
 
 beforeEach(async () => {
   await cleanTables()
-  mockGetServerSession.mockReset()
 })
 
 describe('GET /api/user/stats', () => {
   it('returns 401 when not authenticated', async () => {
-    mockGetServerSession.mockResolvedValue(null)
-    const res = await GET()
+    const req = buildRequest('/api/user/stats')
+    const res = await GET(req)
     expect(res.status).toBe(401)
   })
 
   it('returns zero stats for new user', async () => {
     const user = await createUser()
-    mockGetServerSession.mockResolvedValue({
-      user: { id: user.id, discordId: user.discordId, discordUsername: user.discordUsername, nickname: user.nickname },
-    })
-    const res = await GET()
+    const session = await createTestSession(user.id)
+    const req = buildAuthenticatedRequest('/api/user/stats', session.id)
+    const res = await GET(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -39,10 +32,9 @@ describe('GET /api/user/stats', () => {
     await createQueueRequest(user.id)
     await createQueueRequest(user.id, { prompt: 'second prompt', position: 2 })
 
-    mockGetServerSession.mockResolvedValue({
-      user: { id: user.id, discordId: user.discordId, discordUsername: user.discordUsername, nickname: user.nickname },
-    })
-    const res = await GET()
+    const session = await createTestSession(user.id)
+    const req = buildAuthenticatedRequest('/api/user/stats', session.id)
+    const res = await GET(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)

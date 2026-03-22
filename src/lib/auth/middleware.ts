@@ -9,10 +9,10 @@ export interface AuthenticatedRequest extends NextRequest {
 
 export async function withAuth(
   request: NextRequest,
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
-): Promise<NextResponse> {
+  handler: (req: AuthenticatedRequest) => Promise<Response>
+): Promise<Response> {
   const sessionId = sessionManager.getSessionIdFromRequest(request);
-  
+
   if (!sessionId) {
     return NextResponse.json(
       { error: '로그인이 필요합니다' },
@@ -21,7 +21,7 @@ export async function withAuth(
   }
 
   const sessionData = await sessionManager.validateSession(sessionId);
-  
+
   if (!sessionData) {
     const response = NextResponse.json(
       { error: '유효하지 않은 세션입니다' },
@@ -39,8 +39,8 @@ export async function withAuth(
 
 export async function withAdmin(
   request: NextRequest,
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
-): Promise<NextResponse> {
+  handler: (req: AuthenticatedRequest) => Promise<Response>
+): Promise<Response> {
   return withAuth(request, async (req) => {
     if (!req.user?.discordId || !isAdmin(req.user.discordId)) {
       return NextResponse.json(
@@ -54,11 +54,11 @@ export async function withAdmin(
 
 export async function withOptionalAuth(
   request: NextRequest,
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
-): Promise<NextResponse> {
+  handler: (req: AuthenticatedRequest) => Promise<Response>
+): Promise<Response> {
   const sessionId = sessionManager.getSessionIdFromRequest(request);
   const authenticatedRequest = request as AuthenticatedRequest;
-  
+
   if (sessionId) {
     const sessionData = await sessionManager.validateSession(sessionId);
     if (sessionData) {

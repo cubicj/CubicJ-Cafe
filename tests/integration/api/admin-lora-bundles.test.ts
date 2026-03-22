@@ -1,56 +1,15 @@
-import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createUser, createAdminUser } from '../../helpers/fixtures'
-import { buildRequest } from '../../helpers/auth'
-import type { User } from '@prisma/client'
+import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 
-vi.mock('@/lib/auth/server', () => ({
-  getServerSession: vi.fn(),
-}))
-
-import { getServerSession } from '@/lib/auth/server'
 import { GET, POST } from '@/app/api/admin/lora-bundles/route'
 import {
   PUT,
   DELETE,
 } from '@/app/api/admin/lora-bundles/[id]/route'
 
-const mockedGetServerSession = vi.mocked(getServerSession)
-
-function mockAdminSession(user: User) {
-  mockedGetServerSession.mockResolvedValue({
-    user: {
-      id: String(user.id),
-      discordId: user.discordId,
-      discordUsername: user.discordUsername,
-      nickname: user.nickname,
-      avatar: user.avatar || undefined,
-      name: user.discordUsername,
-      image: null,
-    },
-  })
-}
-
-function mockUserSession(user: User) {
-  mockedGetServerSession.mockResolvedValue({
-    user: {
-      id: String(user.id),
-      discordId: user.discordId,
-      discordUsername: user.discordUsername,
-      nickname: user.nickname,
-      avatar: user.avatar || undefined,
-      name: user.discordUsername,
-      image: null,
-    },
-  })
-}
-
-function mockNoSession() {
-  mockedGetServerSession.mockResolvedValue(null)
-}
-
-async function createBundleViaAPI(displayName: string, highLoRAFilename = 'test-high.safetensors') {
-  const req = buildRequest('/api/admin/lora-bundles', {
+async function createBundleViaAPI(sessionId: string, displayName: string, highLoRAFilename = 'test-high.safetensors') {
+  const req = buildAuthenticatedRequest('/api/admin/lora-bundles', sessionId, {
     method: 'POST',
     body: JSON.stringify({ displayName, highLoRAFilename }),
   })
@@ -60,27 +19,28 @@ async function createBundleViaAPI(displayName: string, highLoRAFilename = 'test-
 
 beforeEach(async () => {
   await cleanTables()
-  mockedGetServerSession.mockReset()
 })
 
 describe('GET /api/admin/lora-bundles', () => {
   it('returns 401 when not authenticated', async () => {
-    mockNoSession()
-    const res = await GET()
+    const req = buildRequest('/api/admin/lora-bundles')
+    const res = await GET(req)
     expect(res.status).toBe(401)
   })
 
   it('returns 403 for non-admin', async () => {
     const user = await createUser()
-    mockUserSession(user)
-    const res = await GET()
+    const session = await createTestSession(user.id)
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles', session.id)
+    const res = await GET(req)
     expect(res.status).toBe(403)
   })
 
   it('returns bundles list for admin', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
-    const res = await GET()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles', session.id)
+    const res = await GET(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -92,7 +52,6 @@ describe('GET /api/admin/lora-bundles', () => {
 
 describe('POST /api/admin/lora-bundles', () => {
   it('returns 401 when not authenticated', async () => {
-    mockNoSession()
     const req = buildRequest('/api/admin/lora-bundles', {
       method: 'POST',
       body: JSON.stringify({ displayName: 'Test', highLoRAFilename: 'test.safetensors' }),
@@ -103,9 +62,9 @@ describe('POST /api/admin/lora-bundles', () => {
 
   it('creates bundle with name and lora files for admin', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const req = buildRequest('/api/admin/lora-bundles', {
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles', session.id, {
       method: 'POST',
       body: JSON.stringify({
         displayName: 'My Bundle',
@@ -125,9 +84,9 @@ describe('POST /api/admin/lora-bundles', () => {
 
   it('returns 400 when no lora files provided', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const req = buildRequest('/api/admin/lora-bundles', {
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles', session.id, {
       method: 'POST',
       body: JSON.stringify({ displayName: 'Empty Bundle' }),
     })
@@ -139,11 +98,11 @@ describe('POST /api/admin/lora-bundles', () => {
 describe('PUT /api/admin/lora-bundles/[id]', () => {
   it('updates bundle name and files', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const created = await createBundleViaAPI('Original Bundle')
+    const created = await createBundleViaAPI(session.id, 'Original Bundle')
 
-    const req = buildRequest(`/api/admin/lora-bundles/${created.bundle.id}`, {
+    const req = buildAuthenticatedRequest(`/api/admin/lora-bundles/${created.bundle.id}`, session.id, {
       method: 'PUT',
       body: JSON.stringify({
         displayName: 'Updated Bundle',
@@ -161,9 +120,9 @@ describe('PUT /api/admin/lora-bundles/[id]', () => {
 
   it('returns 404 for non-existent id', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const req = buildRequest('/api/admin/lora-bundles/nonexistent-id', {
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles/nonexistent-id', session.id, {
       method: 'PUT',
       body: JSON.stringify({ displayName: 'Nope' }),
     })
@@ -177,11 +136,11 @@ describe('PUT /api/admin/lora-bundles/[id]', () => {
 describe('DELETE /api/admin/lora-bundles/[id]', () => {
   it('deletes bundle', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const created = await createBundleViaAPI('Delete Me')
+    const created = await createBundleViaAPI(session.id, 'Delete Me')
 
-    const req = buildRequest(`/api/admin/lora-bundles/${created.bundle.id}`, {
+    const req = buildAuthenticatedRequest(`/api/admin/lora-bundles/${created.bundle.id}`, session.id, {
       method: 'DELETE',
     })
     const res = await DELETE(req, { params: Promise.resolve({ id: created.bundle.id }) })
@@ -193,9 +152,9 @@ describe('DELETE /api/admin/lora-bundles/[id]', () => {
 
   it('returns 404 for non-existent id', async () => {
     const admin = await createAdminUser()
-    mockAdminSession(admin)
+    const session = await createTestSession(admin.id)
 
-    const req = buildRequest('/api/admin/lora-bundles/nonexistent-id', {
+    const req = buildAuthenticatedRequest('/api/admin/lora-bundles/nonexistent-id', session.id, {
       method: 'DELETE',
     })
     const res = await DELETE(req, { params: Promise.resolve({ id: 'nonexistent-id' }) })
