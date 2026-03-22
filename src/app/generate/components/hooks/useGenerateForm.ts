@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createLogger } from '@/lib/logger';
 import { useSession } from '@/contexts/SessionContext';
+import { useGenerateFormContext } from '@/contexts/GenerateFormContext';
 import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
 
 const log = createLogger('generate');
@@ -82,10 +83,14 @@ interface UseGenerateFormReturn {
 }
 
 export function useGenerateForm(): UseGenerateFormReturn {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [endImageFile, setEndImageFile] = useState<File | null>(null);
-  const [isLoopEnabled, setIsLoopEnabled] = useState(false);
-  const [prompt, setPrompt] = useState("");
+  const {
+    selectedFile, setSelectedFile,
+    endImageFile, setEndImageFile,
+    isLoopEnabled, setIsLoopEnabled,
+    prompt, setPrompt,
+    isNSFW, setIsNSFW,
+    clearForm,
+  } = useGenerateFormContext();
   
   const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
@@ -102,7 +107,6 @@ export function useGenerateForm(): UseGenerateFormReturn {
   const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
   const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isNSFW, setIsNSFW] = useState(false);
   
   const [videoDuration, setVideoDuration] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -255,10 +259,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
           requestId: result.requestId
         });
         
-        setSelectedFile(null);
-        setEndImageFile(null);
-        setIsLoopEnabled(false);
-        setPrompt("");
+        clearForm();
       }
       
     } catch (error) {
@@ -279,10 +280,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
   };
 
   const handleNewGeneration = () => {
-    setSelectedFile(null);
-    setEndImageFile(null);
-    setIsLoopEnabled(false);
-    setPrompt("");
+    clearForm();
     setSubmitMessage(null);
   };
 
