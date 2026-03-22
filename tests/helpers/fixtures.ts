@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/database/prisma'
-import type { User } from '@prisma/client'
+import { queueService } from '@/lib/database/queue'
+import { QueueStatus, type User } from '@prisma/client'
 
 export const TEST_USER = {
   discordId: 'test-user-123',
@@ -29,4 +30,27 @@ export async function createAdminUser(): Promise<User> {
   return prisma.user.create({
     data: ADMIN_USER,
   })
+}
+
+export async function createQueueRequest(userId: number, overrides?: {
+  prompt?: string
+  status?: QueueStatus
+  position?: number
+  videoModel?: string
+  nickname?: string
+}) {
+  const request = await prisma.queueRequest.create({
+    data: {
+      userId,
+      nickname: overrides?.nickname || 'TestUser',
+      prompt: overrides?.prompt || 'test prompt',
+      status: overrides?.status || QueueStatus.PENDING,
+      position: overrides?.position || 1,
+      videoModel: overrides?.videoModel || 'wan',
+      duration: 5,
+      workflowLength: 81,
+    },
+  })
+  queueService.invalidateCache()
+  return request
 }
