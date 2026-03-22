@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createLogger } from '@/lib/logger';
 import { useSession } from '@/contexts/SessionContext';
 
@@ -8,7 +8,7 @@ const log = createLogger('ui');
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, User, Play, CheckCircle, XCircle, AlertCircle, BarChart3, List, Trash2, RefreshCw } from "lucide-react";
+import { Clock, User, Play, CheckCircle, XCircle, AlertCircle, BarChart3, List, Trash2, RefreshCw, Wrench } from "lucide-react";
 import { isAdmin } from "@/lib/auth/admin";
 
 interface QueueRequest {
@@ -42,6 +42,8 @@ export function QueueMonitor() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [pauseAfterPosition, setPauseAfterPosition] = useState<number | null>(null);
+  const [removingPause, setRemovingPause] = useState(false);
 
   const fetchQueueData = useCallback(async () => {
     try {
@@ -54,6 +56,7 @@ export function QueueMonitor() {
 
       if (queueResult) {
         setQueueList(queueResult.data || []);
+        setPauseAfterPosition(queueResult.pauseAfterPosition ?? null);
       }
       if (statsResult) {
         setStats(statsResult.data);
@@ -102,6 +105,22 @@ export function QueueMonitor() {
         newSet.delete(requestId);
         return newSet;
       });
+    }
+  };
+
+  const handleRemovePause = async () => {
+    setRemovingPause(true);
+    try {
+      const response = await fetch('/api/admin/queue-pause', {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setPauseAfterPosition(null);
+      }
+    } catch {
+    } finally {
+      setRemovingPause(false);
     }
   };
 
@@ -243,72 +262,114 @@ export function QueueMonitor() {
             </div>
           ) : (
             <div className="space-y-3">
-              {queueList.map((request) => (
-                <div key={request.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge variant="outline" className="text-xs">
-                      #{request.position}
-                    </Badge>
-                    <Badge 
-                      variant={getStatusColor(request.status) as "default" | "secondary" | "destructive" | "outline"}
-                      className="flex items-center gap-1"
+              {pauseAfterPosition !== null && !queueList.some(item => item.position === pauseAfterPosition) && (
+                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
+                    <Wrench className="h-4 w-4" />
+                    큐 일시정지 활성 — 패치 진행 중
+                  </div>
+                  {currentUser && isAdmin(currentUser.discordId) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemovePause}
+                      disabled={removingPause}
+                      className="text-amber-600 border-amber-300 hover:bg-amber-100"
                     >
-                      {getStatusIcon(request.status)}
-                      {getStatusText(request.status)}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{request.nickname}</span>
-                    {currentUser && request.nickname === currentUser.nickname && (
-                      <Badge variant="secondary" className="text-xs">
-                        내 요청
-                      </Badge>
-                    )}
-                    {currentUser && isAdmin(currentUser.discordId) && request.nickname !== currentUser.nickname && (
-                      <Badge variant="outline" className="text-xs text-red-600 border-red-200">
-                        관리자 권한
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-ellipsis overflow-hidden whitespace-nowrap" title={request.prompt}>
-                      {request.prompt}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="text-xs text-muted-foreground min-w-16">
-                      {formatRelativeTime(request.createdAt)}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                    {request.error && (
-                      <div className="text-xs text-red-600 max-w-xs truncate" title={request.error}>
-                        {request.error}
-                      </div>
-                    )}
-                    
-                    {canDeleteRequest(request) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteQueue(request.id, request.nickname)}
-                        disabled={deletingIds.has(request.id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                      >
-                        {deletingIds.has(request.id) ? (
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
-                        ) : (
-                          <Trash2 className="h-3 w-3" />
-                        )}
-                      </Button>
-                    )}
-                    </div>
-                  </div>
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      해제
+                    </Button>
+                  )}
                 </div>
+              )}
+              {queueList.map((request) => (
+                <React.Fragment key={request.id}>
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge variant="outline" className="text-xs">
+                        #{request.position}
+                      </Badge>
+                      <Badge
+                        variant={getStatusColor(request.status) as "default" | "secondary" | "destructive" | "outline"}
+                        className="flex items-center gap-1"
+                      >
+                        {getStatusIcon(request.status)}
+                        {getStatusText(request.status)}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{request.nickname}</span>
+                      {currentUser && request.nickname === currentUser.nickname && (
+                        <Badge variant="secondary" className="text-xs">
+                          내 요청
+                        </Badge>
+                      )}
+                      {currentUser && isAdmin(currentUser.discordId) && request.nickname !== currentUser.nickname && (
+                        <Badge variant="outline" className="text-xs text-red-600 border-red-200">
+                          관리자 권한
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-ellipsis overflow-hidden whitespace-nowrap" title={request.prompt}>
+                        {request.prompt}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="text-xs text-muted-foreground min-w-16">
+                        {formatRelativeTime(request.createdAt)}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                      {request.error && (
+                        <div className="text-xs text-red-600 max-w-xs truncate" title={request.error}>
+                          {request.error}
+                        </div>
+                      )}
+
+                      {canDeleteRequest(request) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteQueue(request.id, request.nickname)}
+                          disabled={deletingIds.has(request.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                        >
+                          {deletingIds.has(request.id) ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
+                      </div>
+                    </div>
+                  </div>
+                  {request.position === pauseAfterPosition && (
+                    <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
+                        <Wrench className="h-4 w-4" />
+                        #{pauseAfterPosition} 이후 패치 예정 — 큐 일시정지 예약됨
+                      </div>
+                      {currentUser && isAdmin(currentUser.discordId) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRemovePause}
+                          disabled={removingPause}
+                          className="text-amber-600 border-amber-300 hover:bg-amber-100"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          해제
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
           )}
