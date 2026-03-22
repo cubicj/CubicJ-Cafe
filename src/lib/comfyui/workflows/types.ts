@@ -30,6 +30,7 @@ export interface WanGenerationParams extends BaseGenerationParams {
 export interface LtxGenerationParams extends BaseGenerationParams {
   model: 'ltx'
   endImage?: string
+  loraPreset?: LoRAPresetData
 }
 
 export type GenerationParams = WanGenerationParams | LtxGenerationParams
