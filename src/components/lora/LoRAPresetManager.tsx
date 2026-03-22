@@ -35,6 +35,7 @@ export function LoRAPresetManager({
   } = useLoRABundles();
 
   const {
+    availableLoRAs,
     isRefreshingLoRAs,
     fetchAvailableLoRAs,
     isLoRAAvailable,
@@ -267,6 +268,7 @@ export function LoRAPresetManager({
           onAddLoRA={() => setIsAddLoRADialogOpen(true)}
           isLoRAAvailable={isLoRAAvailable}
           activeModel={activeModel}
+          availableLoRAs={availableLoRAs}
         />
 
         {activeModel !== 'ltx' && (
