@@ -11,6 +11,7 @@ import { existsSync } from 'fs';
 import { scheduleFileCleanup } from '@/lib/utils/file-cleanup';
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from './comfyui-state';
+import { getQueuePauseAfterPosition } from './queue-pause-state';
 
 const log = createLogger('queue');
 
@@ -19,7 +20,8 @@ class QueueMonitor {
   private intervalId: NodeJS.Timeout | null = null;
   private checkInterval = 5000; // 5초마다 확인
   private comfyUIClient: ComfyUIClient;
-  private currentlyProcessing = new Set<string>(); // 현재 처리 중인 요청 추적
+  private currentlyProcessing = new Set<string>();
+  private pauseLoggedOnce = false;
   private activeServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
 
   constructor() {
@@ -200,7 +202,20 @@ class QueueMonitor {
     const promises: Promise<void>[] = [];
 
     for (let i = 0; i < actualAvailableSlots; i++) {
-      // 사용 가능한 서버 선택
+      const pauseAfterPosition = getQueuePauseAfterPosition();
+      if (pauseAfterPosition !== null) {
+        const nextPendingPosition = await queueService.peekNextPendingPosition();
+        if (nextPendingPosition === null || nextPendingPosition > pauseAfterPosition) {
+          if (!this.pauseLoggedOnce) {
+            log.info('Queue paused by reservation', { pauseAfterPosition });
+            this.pauseLoggedOnce = true;
+          }
+          break;
+        }
+      } else {
+        this.pauseLoggedOnce = false;
+      }
+
       const selectedServer = this.selectAvailableServer();
       if (!selectedServer) {
         break;
