@@ -9,8 +9,10 @@ class DiscordBot {
   private client: Client;
   private isInitialized = false;
   private isConnecting = false;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private cachedChannel: TextChannel | null = null;
+  private cachedNsfwChannel: TextChannel | null = null;
+  private cachedChannelTimestamp = 0;
+  private channelCacheTTL = 300000; // 5분
 
   constructor() {
     this.client = new Client({
@@ -23,15 +25,6 @@ class DiscordBot {
     this.client.removeAllListeners();
     this.client.on('error', (error) => {
       log.error('Discord Client error', { error: error.message });
-      if (error.message && (
-        error.message.includes('handle') || 
-        error.message.includes('MESSAGE_CREATE') ||
-        error.message.includes('GUILD_UPDATE')
-      )) {
-        log.info('Discord event handler error (ignored in send-only mode) - attempting reinit');
-        this.isInitialized = false;
-        return;
-      }
     });
     
     this.client.on('warn', (warning) => {
@@ -41,6 +34,7 @@ class DiscordBot {
     this.client.on('disconnect', () => {
       log.info('Discord Bot disconnected');
       this.isInitialized = false;
+      this.invalidateChannelCache();
     });
 
     this.client.on('reconnecting', () => {
@@ -51,7 +45,6 @@ class DiscordBot {
       log.info('Discord Bot ready', { tag: this.client.user?.tag });
       this.isInitialized = true;
       this.isConnecting = false;
-      this.reconnectAttempts = 0;
     });
 
     this.client.on('shardError', (error) => {
@@ -62,6 +55,7 @@ class DiscordBot {
     this.client.on('shardDisconnect', () => {
       log.info('Discord Shard disconnected');
       this.isInitialized = false;
+      this.invalidateChannelCache();
     });
   }
 
@@ -82,32 +76,18 @@ class DiscordBot {
     }
 
     this.isConnecting = true;
-    
-    try {
-      if (this.client.readyTimestamp) {
-        log.debug('Cleaning up existing Discord connection');
-        this.client.destroy();
-        this.client = new Client({
-          intents: [GatewayIntentBits.Guilds]
-        });
-        this.setupErrorHandlers();
-      }
 
+    try {
       log.debug('Discord Bot logging in');
       await this.client.login(process.env.DISCORD_BOT_TOKEN);
-      
+
       await this.waitForReady(15000);
-      
+
       log.info('Discord Bot initialized successfully');
     } catch (error) {
       log.error('Failed to initialize Discord Bot', { error: error instanceof Error ? error.message : String(error) });
       this.isInitialized = false;
       this.isConnecting = false;
-      
-      if (error instanceof Error && error.message.includes('handle')) {
-        log.error('Discord handle error. Client recreation may be required.');
-      }
-      
       throw error;
     } finally {
       this.isConnecting = false;
@@ -126,6 +106,40 @@ class DiscordBot {
     }
   }
   
+  private invalidateChannelCache(): void {
+    this.cachedChannel = null;
+    this.cachedNsfwChannel = null;
+    this.cachedChannelTimestamp = 0;
+  }
+
+  private async getChannel(isNSFW: boolean): Promise<TextChannel> {
+    const now = Date.now();
+    const isCacheValid = now - this.cachedChannelTimestamp < this.channelCacheTTL;
+
+    if (isCacheValid) {
+      const cached = isNSFW ? this.cachedNsfwChannel : this.cachedChannel;
+      if (cached) return cached;
+    }
+
+    const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID!);
+    if (!guild) throw new Error(`Guild not found: ${process.env.DISCORD_GUILD_ID}`);
+
+    const channelId = process.env.DISCORD_CHANNEL_ID!;
+    const nsfwChannelId = process.env.DISCORD_NSFW_CHANNEL_ID;
+
+    const channel = await guild.channels.fetch(channelId) as TextChannel;
+    if (!channel?.isTextBased()) throw new Error(`Channel not found or not text-based: ${channelId}`);
+    this.cachedChannel = channel;
+
+    if (nsfwChannelId) {
+      const nsfwChannel = await guild.channels.fetch(nsfwChannelId) as TextChannel;
+      if (nsfwChannel?.isTextBased()) this.cachedNsfwChannel = nsfwChannel;
+    }
+
+    this.cachedChannelTimestamp = now;
+    return isNSFW && this.cachedNsfwChannel ? this.cachedNsfwChannel : this.cachedChannel!;
+  }
+
   private async waitForReady(timeout = 10000): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.client.isReady()) {
@@ -173,24 +187,12 @@ class DiscordBot {
         lastError = error instanceof Error ? error : new Error(String(error));
         log.error('Discord send failed', { attempt, maxAttempts: 3, error: lastError.message });
         
-        if (lastError.message.includes('handle') ||
-            lastError.message.includes('MESSAGE_CREATE') ||
-            lastError.message.includes('GUILD_UPDATE')) {
-          log.warn('Client reinitialization due to Discord event handler error');
-          this.isInitialized = false;
-          this.client.destroy();
-          this.client = new Client({
-            intents: [GatewayIntentBits.Guilds]
-          });
-          this.setupErrorHandlers();
-        }
-        
         if (attempt < 3) {
           const delay = Math.pow(2, attempt) * 1000;
           log.debug('Retrying after delay', { delay });
           await new Promise(resolve => setTimeout(resolve, delay));
-          
-          this.isInitialized = false;
+
+          this.invalidateChannelCache();
         }
       }
     }
@@ -222,33 +224,13 @@ class DiscordBot {
       throw new Error('Discord Bot 초기화에 실패했습니다');
     }
 
-    if (!process.env.DISCORD_GUILD_ID) {
-      throw new Error('DISCORD_GUILD_ID is not configured');
+    if (!process.env.DISCORD_GUILD_ID || !process.env.DISCORD_CHANNEL_ID) {
+      throw new Error('DISCORD_GUILD_ID and DISCORD_CHANNEL_ID are required');
     }
-    
-    if (!process.env.DISCORD_CHANNEL_ID) {
-      throw new Error('DISCORD_CHANNEL_ID is not configured');
-    }
-
-    const targetChannelId = params.isNSFW && process.env.DISCORD_NSFW_CHANNEL_ID
-      ? process.env.DISCORD_NSFW_CHANNEL_ID 
-      : process.env.DISCORD_CHANNEL_ID!;
 
     try {
-      const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID!);
-      if (!guild) {
-        throw new Error(`Guild not found: ${process.env.DISCORD_GUILD_ID}`);
-      }
-      
-      const channel = await guild.channels.fetch(targetChannelId) as TextChannel;
-      if (!channel) {
-        throw new Error(`Channel not found: ${targetChannelId}`);
-      }
-      
-      if (!channel.isTextBased()) {
-        throw new Error(`Channel is not text-based: ${targetChannelId}`);
-      }
-      
+      const channel = await this.getChannel(params.isNSFW ?? false);
+
       let attachment: AttachmentBuilder;
 
       if (params.videoPath) {
@@ -326,25 +308,16 @@ class DiscordBot {
     userAvatar?: string;
     processingTime?: number;
   }): Promise<void> {
-    if (!this.isInitialized) {
+    if (!this.isInitialized || !this.client.isReady()) {
       await this.initialize();
     }
 
-    if (!process.env.DISCORD_GUILD_ID) {
-      throw new Error('DISCORD_GUILD_ID is not configured');
-    }
-    
-    if (!process.env.DISCORD_CHANNEL_ID) {
-      throw new Error('DISCORD_CHANNEL_ID is not configured');
+    if (!process.env.DISCORD_GUILD_ID || !process.env.DISCORD_CHANNEL_ID) {
+      throw new Error('DISCORD_GUILD_ID and DISCORD_CHANNEL_ID are required');
     }
 
     try {
-      const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID!);
-      const channel = await guild.channels.fetch(process.env.DISCORD_CHANNEL_ID!) as TextChannel;
-
-      if (!channel || !channel.isTextBased()) {
-        throw new Error('Channel not found or is not a text channel');
-      }
+      const channel = await this.getChannel(false);
 
       const attachment = new AttachmentBuilder(params.imagePath);
       
@@ -393,6 +366,7 @@ class DiscordBot {
     if (this.isInitialized) {
       this.client.destroy();
       this.isInitialized = false;
+      this.invalidateChannelCache();
       log.info('Discord Bot disconnected');
     }
   }
