@@ -52,18 +52,18 @@ describe('buildWanWorkflow', () => {
     const w1 = await buildWanWorkflow(baseParams)
     const w2 = await buildWanWorkflow(baseParams)
 
-    expect(typeof w1['291'].inputs.seed).toBe('number')
-    expect(w1['291'].inputs.seed).not.toBe(w2['291'].inputs.seed)
+    expect(typeof w1['291']!.inputs!.seed).toBe('number')
+    expect(w1['291']!.inputs!.seed).not.toBe(w2['291']!.inputs!.seed)
   })
 
   it('sets filename prefix with WAN/ prefix based on inputImage', async () => {
     const workflow = await buildWanWorkflow(baseParams)
-    expect(workflow['285'].inputs.filename_prefix).toBe('WAN/dragon-input')
+    expect(workflow['285']!.inputs!.filename_prefix).toBe('WAN/dragon-input')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: WanGenerationParams = { ...baseParams, inputImage: 'photo.jpeg' }
     const workflow = await buildWanWorkflow(params)
-    expect(workflow['285'].inputs.filename_prefix).toBe('WAN/photo')
+    expect(workflow['285']!.inputs!.filename_prefix).toBe('WAN/photo')
   })
 })
