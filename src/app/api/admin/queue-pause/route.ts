@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/auth/admin';
 import { sessionManager } from '@/lib/auth/session';
-import { getQueuePauseAfterPosition, setQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
+import { setQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
 import { queueService } from '@/lib/database/queue';
 import { createLogger } from '@/lib/logger';
 
