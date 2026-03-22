@@ -23,7 +23,12 @@ export function initializeServices() {
       log.error('Failed to initialize model settings', { error: error instanceof Error ? error.message : String(error) });
     });
 
-    initComfyUIState().then(() => {
+    initQueuePauseState().catch(error => {
+      log.error('Queue pause state init failed', { error: error instanceof Error ? error.message : String(error) });
+    });
+
+    initComfyUIState().then(async () => {
+      await initQueuePauseState();
       if (isComfyUIEnabled()) {
         queueMonitor.start();
         log.info('Queue Monitor auto-started (ComfyUI enabled)');
@@ -33,10 +38,6 @@ export function initializeServices() {
     }).catch(error => {
       log.error('ComfyUI state init failed, starting queue monitor as fallback', { error: error instanceof Error ? error.message : String(error) });
       queueMonitor.start();
-    });
-
-    initQueuePauseState().catch(error => {
-      log.error('Queue pause state init failed', { error: error instanceof Error ? error.message : String(error) });
     });
 
     global.__queueMonitorInitialized = true;
