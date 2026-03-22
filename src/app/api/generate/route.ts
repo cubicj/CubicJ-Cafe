@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error('Queue request processing error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
+      { error: '서버 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

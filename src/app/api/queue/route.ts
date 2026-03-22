@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error('Queue API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
+      { error: '서버 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -95,9 +95,17 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'requestId가 필요합니다.' }, { status: 400 });
         }
 
-        const userIsAdmin = isAdmin(session.user.discordId);
-        await queueService.cancelRequest(requestId, parseInt(session.user.id), userIsAdmin);
-        return NextResponse.json({ success: true, message: '요청이 취소되었습니다.' });
+        try {
+          const userIsAdmin = isAdmin(session.user.discordId);
+          await queueService.cancelRequest(requestId, parseInt(session.user.id), userIsAdmin);
+          return NextResponse.json({ success: true, message: '요청이 취소되었습니다.' });
+        } catch (cancelError) {
+          log.error('Queue cancel error', { error: cancelError instanceof Error ? cancelError.message : String(cancelError) });
+          return NextResponse.json(
+            { error: cancelError instanceof Error ? cancelError.message : '취소에 실패했습니다.' },
+            { status: 500 }
+          );
+        }
 
 
       default:
@@ -106,7 +114,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error('Queue POST API error', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '서버 오류가 발생했습니다.' },
+      { error: '서버 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

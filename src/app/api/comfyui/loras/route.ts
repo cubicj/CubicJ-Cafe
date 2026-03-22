@@ -84,14 +84,13 @@ export async function GET() {
     log.error('Failed to fetch WAN LoRA list', { error: error instanceof Error ? error.message : String(error) })
     
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'LoRA 목록 조회에 실패했습니다.',
+      {
+        error: 'LoRA 목록 조회에 실패했습니다.',
         loras: [],
         serverInfo: {
           url: null,
           healthy: false
         },
-        details: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     )

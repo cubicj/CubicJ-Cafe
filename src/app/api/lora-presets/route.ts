@@ -26,7 +26,7 @@ export async function GET() {
   } catch (error) {
     log.error('Failed to fetch LoRA preset list', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 프리셋 목록 조회에 실패했습니다.' },
+      { error: 'LoRA 프리셋 목록 조회에 실패했습니다.' },
       { status: 500 }
     );
   }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error('Failed to create LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 프리셋 생성에 실패했습니다.' },
+      { error: 'LoRA 프리셋 생성에 실패했습니다.' },
       { status: 500 }
     );
   }
