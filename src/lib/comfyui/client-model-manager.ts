@@ -39,28 +39,28 @@ export class ComfyUIModelManager {
     }
   }
 
-  async getLoRAList(): Promise<string[]> {
+  async getLoRAList(model: string = 'wan'): Promise<string[]> {
     try {
       const activeRunpodServers = await this.serverManager.checkActiveRunpodServers()
 
       if (activeRunpodServers.length > 0) {
         try {
-          const runpodLoras = await this.getLoRAListFromRunpod(activeRunpodServers[0])
-          log.info('LoRA list fetched from Runpod', { server: activeRunpodServers[0], count: runpodLoras.length })
+          const runpodLoras = await this.getLoRAListFromRunpod(activeRunpodServers[0], model)
+          log.info('LoRA list fetched from Runpod', { server: activeRunpodServers[0], model, count: runpodLoras.length })
           return runpodLoras
         } catch (runpodError) {
           log.warn('Runpod LoRA fetch failed, fallback to local', { error: runpodError instanceof Error ? runpodError.message : String(runpodError) })
         }
       }
 
-      return this.getLoRAListFromLocal()
+      return this.getLoRAListFromLocal(model)
     } catch (error) {
       log.error('Failed to fetch LoRA list', { error: error instanceof Error ? error.message : String(error) })
       return []
     }
   }
 
-  private async getLoRAListFromLocal(): Promise<string[]> {
+  private async getLoRAListFromLocal(model: string = 'wan'): Promise<string[]> {
     const objectInfo = await this.getObjectInfo()
 
     const possibleLoraNodes = [
@@ -80,15 +80,17 @@ export class ComfyUIModelManager {
         const loraData = node.input.required.lora_name || []
         const loras = extractOptions(loraData)
 
-        const filteredLoras = this.filterWANLoRAs(loras)
+        const filteredLoras = model === 'ltx'
+          ? this.filterLTXLoRAs(loras)
+          : this.filterWANLoRAs(loras)
 
         if (filteredLoras.length === 0) {
-          log.warn('No LoRAs found in WAN folder, returning full list')
+          log.warn(`No LoRAs found in ${model} folder, returning full list`)
           return this.filterAllLoRAs(loras)
         }
 
         if (filteredLoras.length > 0) {
-          log.info('Local LoRA list fetched', { node: nodeName, count: filteredLoras.length })
+          log.info('Local LoRA list fetched', { node: nodeName, model, count: filteredLoras.length })
           return filteredLoras.sort()
         }
       }
@@ -104,7 +106,7 @@ export class ComfyUIModelManager {
     return []
   }
 
-  private async getLoRAListFromRunpod(serverUrl: string): Promise<string[]> {
+  private async getLoRAListFromRunpod(serverUrl: string, model: string = 'wan'): Promise<string[]> {
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
@@ -142,7 +144,9 @@ export class ComfyUIModelManager {
           const loraData = node.input.required.lora_name || []
           const loras = extractOptions(loraData)
 
-          const filteredLoras = this.filterWANLoRAs(loras, true)
+          const filteredLoras = model === 'ltx'
+            ? this.filterLTXLoRAs(loras, true)
+            : this.filterWANLoRAs(loras, true)
 
           if (filteredLoras.length === 0) {
             log.warn('No LoRAs found in Runpod WAN folder, returning full list')
@@ -200,6 +204,32 @@ export class ComfyUIModelManager {
         } else {
           return fileStr
         }
+      })
+  }
+
+  private filterLTXLoRAs(loras: unknown[], isRunpod = false): string[] {
+    return loras
+      .filter((file: unknown) => {
+        if (typeof file !== 'string') return false
+
+        const normalizedPath = file.replace(/\\/g, '/').toLowerCase()
+
+        const isInLtxCustomFolder = normalizedPath.includes('ltx/custom/') ||
+                                    file.toLowerCase().includes('ltx\\custom\\')
+
+        if (!isInLtxCustomFolder) return false
+
+        const fileName = file.toLowerCase()
+        return fileName.endsWith('.safetensors') ||
+               fileName.endsWith('.ckpt') ||
+               fileName.endsWith('.pt')
+      })
+      .map((file: unknown) => {
+        const fileStr = file as string
+        if (isRunpod || this.isRunpodServer) {
+          return fileStr.replace(/\\/g, '/')
+        }
+        return fileStr
       })
   }
 

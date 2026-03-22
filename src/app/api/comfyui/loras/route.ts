@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { serverManager } from '@/lib/comfyui/server-manager'
 
 import { createLogger } from '@/lib/logger';
@@ -6,7 +6,7 @@ import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     if (!isComfyUIEnabled()) {
       return NextResponse.json({
@@ -19,6 +19,9 @@ export async function GET() {
         timestamp: new Date().toISOString()
       });
     }
+    const { searchParams } = new URL(request.url)
+    const model = searchParams.get('model') || 'wan'
+
     await serverManager.checkServerHealth()
     const bestServer = serverManager.selectBestServer()
     
@@ -37,7 +40,7 @@ export async function GET() {
 
     let loras: string[]
     try {
-      loras = await quickClient.getLoRAList()
+      loras = await quickClient.getLoRAList(model)
     } catch (connectionError) {
       log.error('Selected server connection failed', { serverId: bestServer.id, error: connectionError instanceof Error ? connectionError.message : String(connectionError) })
       return NextResponse.json(
@@ -55,16 +58,25 @@ export async function GET() {
       )
     }
     
-    log.info('WAN LoRA list success', { count: loras.length })
+    log.info('LoRA list fetched', { model, count: loras.length })
 
-    const categorizedLoras = {
-      all: loras,
-      safetensors: loras.filter(f => f.endsWith('.safetensors')),
-      ckpt: loras.filter(f => f.endsWith('.ckpt')),
-      pt: loras.filter(f => f.endsWith('.pt')),
-      high: loras.filter(f => f.includes('WAN\\High\\')),
-      low: loras.filter(f => f.includes('WAN\\Low\\'))
-    }
+    const categorizedLoras = model === 'ltx'
+      ? {
+          all: loras,
+          safetensors: loras.filter(f => f.endsWith('.safetensors')),
+          ckpt: [] as string[],
+          pt: [] as string[],
+          high: [] as string[],
+          low: [] as string[],
+        }
+      : {
+          all: loras,
+          safetensors: loras.filter(f => f.endsWith('.safetensors')),
+          ckpt: loras.filter(f => f.endsWith('.ckpt')),
+          pt: loras.filter(f => f.endsWith('.pt')),
+          high: loras.filter(f => f.includes('WAN\\High\\')),
+          low: loras.filter(f => f.includes('WAN\\Low\\')),
+        }
 
     return NextResponse.json({
       success: true,
