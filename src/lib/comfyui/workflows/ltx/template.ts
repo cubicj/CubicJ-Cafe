@@ -162,7 +162,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "18": {
     "inputs": {
-      "cfg": 2,
+      "cfg": 3,
       "model": [
         "72",
         0
@@ -492,7 +492,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "72": {
     "inputs": {
-      "nag_scale": 7,
+      "nag_scale": 9,
       "nag_alpha": 0.25,
       "nag_tau": 2.5,
       "inplace": true,
@@ -579,7 +579,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "86": {
     "inputs": {
-      "megapixels": 0.15,
+      "megapixels": 0.18,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -723,7 +723,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "264": {
     "inputs": {
-      "megapixels": 0.15,
+      "megapixels": 0.18,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -770,7 +770,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "266": {
     "inputs": {
-      "img_compression": 20,
+      "img_compression": 16,
       "image": [
         "86",
         0
@@ -783,7 +783,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "267": {
     "inputs": {
-      "img_compression": 20,
+      "img_compression": 16,
       "image": [
         "264",
         0
