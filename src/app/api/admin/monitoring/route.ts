@@ -319,7 +319,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    log.info('Monitoring data requested', {
+    log.debug('Monitoring data requested', {
       user: 'admin',
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     });
@@ -357,7 +357,7 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    log.info('Monitoring data collected', {
+    log.debug('Monitoring data collected', {
       user: 'admin',
       responseTime,
       dataSize: JSON.stringify(monitoringData).length,

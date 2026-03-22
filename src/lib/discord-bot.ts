@@ -85,7 +85,7 @@ class DiscordBot {
     
     try {
       if (this.client.readyTimestamp) {
-        log.info('Cleaning up existing Discord connection');
+        log.debug('Cleaning up existing Discord connection');
         this.client.destroy();
         this.client = new Client({
           intents: [GatewayIntentBits.Guilds]
@@ -93,7 +93,7 @@ class DiscordBot {
         this.setupErrorHandlers();
       }
 
-      log.info('Discord Bot logging in');
+      log.debug('Discord Bot logging in');
       await this.client.login(process.env.DISCORD_BOT_TOKEN);
       
       await this.waitForReady(15000);
@@ -165,9 +165,9 @@ class DiscordBot {
     
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        log.info('Discord send attempt', { attempt, maxAttempts: 3 });
+        log.debug('Discord send attempt', { attempt, maxAttempts: 3 });
         await this.sendVideoToDiscordInternal(params);
-        log.info('Discord send succeeded', { attempt });
+
         return;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -176,7 +176,7 @@ class DiscordBot {
         if (lastError.message.includes('handle') ||
             lastError.message.includes('MESSAGE_CREATE') ||
             lastError.message.includes('GUILD_UPDATE')) {
-          log.info('Client reinitialization due to Discord event handler error');
+          log.warn('Client reinitialization due to Discord event handler error');
           this.isInitialized = false;
           this.client.destroy();
           this.client = new Client({
@@ -187,7 +187,7 @@ class DiscordBot {
         
         if (attempt < 3) {
           const delay = Math.pow(2, attempt) * 1000;
-          log.info('Retrying after delay', { delay });
+          log.debug('Retrying after delay', { delay });
           await new Promise(resolve => setTimeout(resolve, delay));
           
           this.isInitialized = false;
@@ -214,7 +214,7 @@ class DiscordBot {
     videoModel?: string;
   }): Promise<void> {
     if (!this.isInitialized || !this.client.isReady()) {
-      log.info('Discord Bot not ready, attempting initialization');
+      log.debug('Discord Bot not ready, attempting initialization');
       await this.initialize();
     }
 
@@ -235,12 +235,6 @@ class DiscordBot {
       : process.env.DISCORD_CHANNEL_ID!;
 
     try {
-      log.info('Discord Guild and Channel info', {
-        guildId: process.env.DISCORD_GUILD_ID,
-        channelId: targetChannelId,
-        isNSFW: params.isNSFW
-      });
-      
       const guild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID!);
       if (!guild) {
         throw new Error(`Guild not found: ${process.env.DISCORD_GUILD_ID}`);
@@ -255,8 +249,6 @@ class DiscordBot {
         throw new Error(`Channel is not text-based: ${targetChannelId}`);
       }
       
-      log.info('Discord channel access success', { channelName: channel.name, channelId: channel.id });
-
       let attachment: AttachmentBuilder;
 
       if (params.videoPath) {
@@ -267,7 +259,7 @@ class DiscordBot {
         const fileType = params.fileType || 'output';
         const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=${fileType}`;
 
-        log.info('Downloading video from ComfyUI', {
+        log.debug('Downloading video from ComfyUI', {
           videoUrl,
           filename: params.filename,
           subfolder,
@@ -295,7 +287,7 @@ class DiscordBot {
           throw new Error('다운로드된 비디오 파일이 비어있습니다');
         }
         
-        log.info('Video download complete', { bytes: arrayBuffer.byteLength });
+        log.debug('Video download complete', { bytes: arrayBuffer.byteLength });
         const buffer = Buffer.from(arrayBuffer);
         attachment = new AttachmentBuilder(buffer, { name: params.filename });
       } else {
