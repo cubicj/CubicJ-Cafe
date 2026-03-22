@@ -313,6 +313,21 @@ export class QueueService {
     });
   }
 
+  async peekNextPendingPosition(): Promise<number | null> {
+    const next = await prisma.queueRequest.findFirst({
+      where: { status: QueueStatus.PENDING },
+      orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
+      select: { position: true }
+    });
+    return next?.position ?? null;
+  }
+
+  async getRequestByPosition(position: number) {
+    return await prisma.queueRequest.findFirst({
+      where: { position }
+    });
+  }
+
   async cancelAllPending(): Promise<number> {
     const result = await prisma.queueRequest.updateMany({
       where: {
