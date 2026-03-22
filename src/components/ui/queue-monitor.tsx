@@ -42,7 +42,11 @@ export function QueueMonitor() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const [pauseAfterPosition, setPauseAfterPosition] = useState<number | null>(null);
+  const [pauseAfterPosition, setPauseAfterPosition] = useState<number | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const cached = localStorage.getItem('queuePauseAfterPosition');
+    return cached ? Number(cached) : null;
+  });
   const [removingPause, setRemovingPause] = useState(false);
 
   const fetchQueueData = useCallback(async () => {
@@ -56,7 +60,13 @@ export function QueueMonitor() {
 
       if (queueResult) {
         setQueueList(queueResult.data || []);
-        setPauseAfterPosition(queueResult.pauseAfterPosition ?? null);
+        const pause = queueResult.pauseAfterPosition ?? null;
+        setPauseAfterPosition(pause);
+        if (pause !== null) {
+          localStorage.setItem('queuePauseAfterPosition', String(pause));
+        } else {
+          localStorage.removeItem('queuePauseAfterPosition');
+        }
       }
       if (statsResult) {
         setStats(statsResult.data);
