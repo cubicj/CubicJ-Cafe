@@ -16,6 +16,7 @@ export function LoRAPresetManager({
   selectedPresetIds,
   onPresetChange,
   onPresetApply,
+  activeModel,
   className,
 }: LoRAPresetManagerProps) {
   const {
@@ -26,7 +27,7 @@ export function LoRAPresetManager({
     reorderPresets,
     savePreset: hookSavePreset,
     deletePreset: hookDeletePreset,
-  } = useLoRAPresets();
+  } = useLoRAPresets(activeModel);
 
   const {
     availableBundles,
@@ -37,7 +38,7 @@ export function LoRAPresetManager({
     isRefreshingLoRAs,
     fetchAvailableLoRAs,
     isLoRAAvailable,
-  } = useAvailableLoRAs();
+  } = useAvailableLoRAs(activeModel);
 
   const { handleDragEnd } = useDragAndDrop({
     presets,
@@ -253,6 +254,7 @@ export function LoRAPresetManager({
           copySuccess={copySuccess}
           onDragEnd={handleDragEnd}
           isLoRAAvailable={isLoRAAvailable}
+          activeModel={activeModel}
         />
 
         <LoRAPresetEditor
@@ -264,18 +266,21 @@ export function LoRAPresetManager({
           onSave={savePreset}
           onAddLoRA={() => setIsAddLoRADialogOpen(true)}
           isLoRAAvailable={isLoRAAvailable}
+          activeModel={activeModel}
         />
 
-        <LoRABundleSelector
-          isOpen={isAddLoRADialogOpen}
-          onOpenChange={setIsAddLoRADialogOpen}
-          availableBundles={availableBundles}
-          isLoadingBundles={isLoadingBundles}
-          newLoRAForm={newLoRAForm}
-          onFormChange={setNewLoRAForm}
-          onAdd={addLoRAItem}
-          getUsedBundleIds={getUsedBundleIds}
-        />
+        {activeModel !== 'ltx' && (
+          <LoRABundleSelector
+            isOpen={isAddLoRADialogOpen}
+            onOpenChange={setIsAddLoRADialogOpen}
+            availableBundles={availableBundles}
+            isLoadingBundles={isLoadingBundles}
+            newLoRAForm={newLoRAForm}
+            onFormChange={setNewLoRAForm}
+            onAdd={addLoRAItem}
+            getUsedBundleIds={getUsedBundleIds}
+          />
+        )}
       </div>
     </Card>
   );

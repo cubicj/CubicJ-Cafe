@@ -5,6 +5,7 @@ export interface LoRAPresetManagerProps {
   selectedPresetIds: string[];
   onPresetChange: (presetIds: string[]) => void;
   onPresetApply: (presets: LoRAPreset[]) => void;
+  activeModel: string;
   className?: string;
 }
 
@@ -24,5 +25,6 @@ export interface LoRAPresetListProps {
   onCopyBundleNames: () => void;
   copySuccess: boolean;
   onDragEnd: (result: DropResult) => void;
+  activeModel: string;
   isLoRAAvailable: (filename: string) => boolean;
 }

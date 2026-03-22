@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { LoRAPresetEditorProps } from "@/types/lora";
 import { LoRAItemEditor } from "./LoRAItemEditor";
 
@@ -17,6 +17,7 @@ export function LoRAPresetEditor({
   onSave,
   onAddLoRA,
   isLoRAAvailable,
+  activeModel,
 }: LoRAPresetEditorProps) {
   const removeLoRAItem = (index: number) => {
     const newLoraItems = editForm.loraItems.filter((_, i) => i !== index);
@@ -71,34 +72,60 @@ export function LoRAPresetEditor({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>포함된 LoRA</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onAddLoRA}
-                className="h-7 px-2"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                LoRA 추가
-              </Button>
+              {activeModel !== 'ltx' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddLoRA}
+                  className="h-7 px-2"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  LoRA 추가
+                </Button>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <LoRAItemEditor
-                items={editForm.loraItems}
-                group="HIGH"
-                onRemove={removeLoRAItem}
-                onUpdateStrength={updateLoRAStrength}
-                isLoRAAvailable={isLoRAAvailable}
-              />
+            {activeModel === 'ltx' ? (
+              <div className="space-y-2">
+                {editForm.loraItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">추가된 LoRA가 없습니다</p>
+                ) : (
+                  editForm.loraItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between gap-2 p-2 rounded border">
+                      <span className="text-sm truncate flex-1" title={item.loraFilename}>
+                        {item.loraName}
+                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-muted-foreground">
+                          강도: {item.strength.toFixed(1)}
+                        </span>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeLoRAItem(index)}>
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <LoRAItemEditor
+                  items={editForm.loraItems}
+                  group="HIGH"
+                  onRemove={removeLoRAItem}
+                  onUpdateStrength={updateLoRAStrength}
+                  isLoRAAvailable={isLoRAAvailable}
+                />
 
-              <LoRAItemEditor
-                items={editForm.loraItems}
-                group="LOW"
-                onRemove={removeLoRAItem}
-                onUpdateStrength={updateLoRAStrength}
-                isLoRAAvailable={isLoRAAvailable}
-              />
-            </div>
+                <LoRAItemEditor
+                  items={editForm.loraItems}
+                  group="LOW"
+                  onRemove={removeLoRAItem}
+                  onUpdateStrength={updateLoRAStrength}
+                  isLoRAAvailable={isLoRAAvailable}
+                />
+              </div>
+            )}
           </div>
         </div>
 
