@@ -1,6 +1,7 @@
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
 import { initializeModelSettings } from '@/lib/database/model-settings';
 import { initComfyUIState, isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { initQueuePauseState } from '@/lib/comfyui/queue-pause-state';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('system');
@@ -32,6 +33,10 @@ export function initializeServices() {
     }).catch(error => {
       log.error('ComfyUI state init failed, starting queue monitor as fallback', { error: error instanceof Error ? error.message : String(error) });
       queueMonitor.start();
+    });
+
+    initQueuePauseState().catch(error => {
+      log.error('Queue pause state init failed', { error: error instanceof Error ? error.message : String(error) });
     });
 
     global.__queueMonitorInitialized = true;
