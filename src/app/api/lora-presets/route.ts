@@ -6,7 +6,7 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session) {
@@ -16,7 +16,10 @@ export async function GET() {
       );
     }
 
-    const presets = await LoRAPresetService.getUserPresets(Number(session.user.id));
+    const { searchParams } = new URL(request.url);
+    const model = searchParams.get('model') || 'wan';
+
+    const presets = await LoRAPresetService.getUserPresets(Number(session.user.id), model);
 
     return NextResponse.json({
       success: true,
@@ -52,7 +55,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const { name, isPublic, loraItems } = body;
+    const { name, isPublic, loraItems, model: bodyModel } = body;
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -71,6 +74,7 @@ export async function POST(request: NextRequest) {
     const preset = await LoRAPresetService.createPreset(Number(session.user.id), {
       name: name.trim(),
       isPublic: !!isPublic,
+      model: bodyModel || 'wan',
       loraItems: loraItems.map((item: { loraFilename: string; loraName?: string; strength?: number; group?: 'HIGH' | 'LOW'; order?: number }, index: number) => ({
         loraFilename: item.loraFilename,
         loraName: item.loraName || item.loraFilename,

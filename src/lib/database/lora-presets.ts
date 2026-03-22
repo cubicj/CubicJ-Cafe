@@ -12,6 +12,7 @@ export interface CreateLoRAPresetData {
   name: string;
   isDefault?: boolean;
   isPublic?: boolean;
+  model?: string;
   loraItems: Array<{
     loraFilename: string;
     loraName: string;
@@ -38,14 +39,19 @@ export interface UpdateLoRAPresetData {
 
 export class LoRAPresetService {
   // 사용자의 모든 프리셋 조회 (기본 프리셋 + 공개 프리셋 포함)
-  static async getUserPresets(userId: number): Promise<LoRAPresetWithItems[]> {
+  static async getUserPresets(userId: number, model: string = 'wan'): Promise<LoRAPresetWithItems[]> {
     try {
       const presets = await prisma.loRAPreset.findMany({
         where: {
-          OR: [
-            { userId }, // 사용자가 만든 프리셋
-            { isPublic: true }, // 공개 프리셋
-            { isDefault: true }, // 기본 프리셋
+          AND: [
+            {
+              OR: [
+                { userId },
+                { isPublic: true },
+                { isDefault: true },
+              ],
+            },
+            { model },
           ],
         },
         include: {
@@ -105,6 +111,7 @@ export class LoRAPresetService {
           name: data.name,
           isDefault: data.isDefault || false,
           isPublic: data.isPublic || false,
+          model: data.model || 'wan',
           loraItems: {
             create: data.loraItems.map((item, index) => ({
               loraFilename: item.loraFilename,
@@ -123,7 +130,7 @@ export class LoRAPresetService {
         },
       });
 
-      log.info('LoRA preset created', { name: preset.name, id: preset.id });
+      log.info('LoRA preset created', { name: preset.name, id: preset.id, model: preset.model });
       return preset;
     } catch (error) {
       log.error('Failed to create LoRA preset', { error: error instanceof Error ? error.message : String(error) });
