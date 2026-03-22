@@ -3,7 +3,7 @@ import { cleanTables } from '../helpers/db'
 import { createUser } from '../helpers/fixtures'
 import { createTestSession, createExpiredSession, buildRequest, buildAuthenticatedRequest } from '../helpers/auth'
 import { withAuth, withOptionalAuth, AuthenticatedRequest } from '@/lib/auth/middleware'
-import { SessionManager, sessionManager } from '@/lib/auth/session'
+import { sessionManager } from '@/lib/auth/session'
 import { prisma } from '@/lib/database/prisma'
 
 beforeEach(async () => {
