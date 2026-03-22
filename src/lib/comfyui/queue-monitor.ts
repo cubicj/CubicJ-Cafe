@@ -292,8 +292,9 @@ class QueueMonitor {
         throw new Error('이미지 파일이 없습니다.')
       }
 
+      const actualServerId = this.resolveServerId(server);
       const serverInfo = {
-        id: server.type === 'runpod' ? 'runpod-temp' : 'local',
+        id: actualServerId,
         type: server.type === 'runpod' ? 'RUNPOD' as const : 'LOCAL' as const,
         url: server.url,
         isActive: true,
@@ -356,7 +357,8 @@ class QueueMonitor {
 
       // 요청 상태 업데이트 (prompt_id 저장)
       await queueService.updateRequest(requestId, {
-        jobId: response.prompt_id
+        jobId: response.prompt_id,
+        serverId: actualServerId
       });
 
 
@@ -382,6 +384,8 @@ class QueueMonitor {
 
     } catch (error) {
       log.error('Request processing failed', { server: server.name, requestId, error: error instanceof Error ? error.message : String(error) });
+
+      this.releaseServerJob(requestId);
 
       await queueService.updateRequest(requestId, {
         status: QueueStatus.FAILED,
@@ -413,6 +417,13 @@ class QueueMonitor {
     };
   }
   
+  private resolveServerId(server: { type: 'local' | 'runpod'; url: string }): string {
+    if (server.type === 'local') return 'local';
+    const runpodUrls = (process.env.COMFYUI_RUNPOD_URLS || '').split(',').map(u => u.trim()).filter(Boolean);
+    const index = runpodUrls.indexOf(server.url);
+    return index !== -1 ? `runpod-${index}` : 'runpod-0';
+  }
+
   // 서버에 작업 할당
   private assignJobToServer(server: { client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }, requestId: string): void {
     const serverIndex = this.activeServers.findIndex(s => s.url === server.url);
@@ -421,15 +432,7 @@ class QueueMonitor {
     }
   }
   
-  // 서버에서 작업 해제
-  private releaseJobFromServer(server: { client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }, requestId: string): void {
-    const serverIndex = this.activeServers.findIndex(s => s.url === server.url);
-    if (serverIndex !== -1 && this.activeServers[serverIndex].currentJobId === requestId) {
-      this.activeServers[serverIndex].currentJobId = undefined;
-    }
-  }
-  
-  // 외부에서 작업 완료 시 호출할 수 있는 메서드
+  // 작업 완료/실패 시 서버 슬롯 해제
   public releaseServerJob(requestId: string): void {
     const server = this.activeServers.find(s => s.currentJobId === requestId);
     if (server) {

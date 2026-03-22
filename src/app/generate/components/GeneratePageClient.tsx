@@ -4,9 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoRAPresetManager } from "@/components/ui/lora-preset-manager";
 import { QueueMonitor } from "@/components/ui/queue-monitor";
-import { Badge } from "@/components/ui/badge";
 import { Sparkles, Bot, CheckCircle, XCircle } from "lucide-react";
-import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
 import { ServerStatusSection } from "./sections/ServerStatusSection";
 import { ImageUploadSection } from "./sections/ImageUploadSection";
 import { ContentSettingsSection } from "./sections/ContentSettingsSection";
@@ -105,9 +103,8 @@ export default function GeneratePageClient() {
       <div className="container mx-auto px-4 sm:px-6 pt-8 pb-32">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           <div className="text-center space-y-4 py-4">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               AI 이미지-비디오 변환
-              <Badge variant="outline">{MODEL_REGISTRY[activeModel].displayName}</Badge>
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               이미지를 업로드하고 프롬프트를 입력하여 비디오를 생성하세요.
@@ -118,6 +115,7 @@ export default function GeneratePageClient() {
             serverStatus={serverStatus}
             isRefreshing={isRefreshing}
             isLoadingServerStatus={isLoadingServerStatus}
+            activeModel={activeModel}
             onRefreshStatus={handleRefreshStatus}
           />
 
