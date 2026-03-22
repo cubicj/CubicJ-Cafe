@@ -21,6 +21,14 @@ export async function buildLtxWorkflow(
     workflow['103'].inputs.value = params.durationSeconds
   }
 
+  if (params.endImage) {
+    if (workflow['260']) {
+      workflow['260'].inputs.image = params.endImage
+    }
+  } else {
+    handleEndImageBypass(workflow)
+  }
+
   if (workflow['16']) {
     workflow['16'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
   }
@@ -34,4 +42,18 @@ export async function buildLtxWorkflow(
   }
 
   return workflow
+}
+
+function handleEndImageBypass(workflow: ComfyUIWorkflow) {
+  if (workflow['265']?.inputs) {
+    workflow['265'].inputs['num_images'] = '1'
+    delete workflow['265'].inputs['num_images.image_2']
+    delete workflow['265'].inputs['num_images.index_2']
+    delete workflow['265'].inputs['num_images.strength_2']
+  }
+
+  delete workflow['260']
+  delete workflow['261']
+  delete workflow['264']
+  delete workflow['267']
 }

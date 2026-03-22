@@ -303,7 +303,7 @@ class QueueMonitor {
       }
 
       let uploadedEndImageName = null;
-      if (videoModel === 'wan' && request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
+      if (request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
         const endImageBuffer = await readFile(request.endImageData);
         const endImageBlob = new Blob([new Uint8Array(endImageBuffer)], { type: 'image/png' });
         const endImageFile = new File([endImageBlob], request.endImageFile, { type: 'image/png' });
@@ -330,6 +330,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           durationSeconds: request.duration || 5,
+          endImage: uploadedEndImageName || undefined,
         };
       }
 

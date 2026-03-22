@@ -8,7 +8,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   },
   ltx: {
     displayName: 'LTX 2.3',
-    capabilities: { loraPresets: false, endImage: false, videoDuration: false, audio: true },
+    capabilities: { loraPresets: false, endImage: true, videoDuration: false, audio: true },
     defaultSubfolder: 'LTX',
   },
 }

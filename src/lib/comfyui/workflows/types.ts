@@ -30,6 +30,7 @@ export interface WanGenerationParams extends BaseGenerationParams {
 export interface LtxGenerationParams extends BaseGenerationParams {
   model: 'ltx'
   durationSeconds: number
+  endImage?: string
 }
 
 export type GenerationParams = WanGenerationParams | LtxGenerationParams
