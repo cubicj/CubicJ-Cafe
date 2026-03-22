@@ -13,18 +13,21 @@ export function LoRAItemEditor({
   onUpdateStrength,
   isLoRAAvailable,
 }: LoRAItemEditorProps) {
-  const groupItems = items.filter(item => item.group === group);
-  const groupColor = group === 'HIGH' ? 'green' : 'blue';
-  const groupTitle = group === 'HIGH' ? 'High 모델' : 'Low 모델';
+  const isFlat = !group;
+  const groupItems = isFlat ? items : items.filter(item => item.group === group);
+  const groupColor = isFlat ? 'slate' : group === 'HIGH' ? 'green' : 'blue';
+  const groupTitle = isFlat ? 'LoRA' : group === 'HIGH' ? 'High 모델' : 'Low 모델';
 
   if (groupItems.length === 0) {
     return (
       <div className="space-y-2">
-        <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
-          {groupTitle}
-        </h5>
+        {!isFlat && (
+          <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
+            {groupTitle}
+          </h5>
+        )}
         <div className={`text-center py-2 text-xs text-muted-foreground border border-dashed border-${groupColor}-300 dark:border-${groupColor}-700 rounded`}>
-          {groupTitle}에 LoRA가 없습니다
+          {isFlat ? '추가된 LoRA가 없습니다' : `${groupTitle}에 LoRA가 없습니다`}
         </div>
       </div>
     );
@@ -32,13 +35,15 @@ export function LoRAItemEditor({
 
   return (
     <div className="space-y-2">
-      <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
-        {groupTitle}
-      </h5>
+      {!isFlat && (
+        <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
+          {groupTitle}
+        </h5>
+      )}
       <div className="space-y-2">
         {groupItems.map((item, index) => {
-          const originalIndex = items.findIndex(originalItem => 
-            originalItem.loraFilename === item.loraFilename && 
+          const originalIndex = isFlat ? index : items.findIndex(originalItem =>
+            originalItem.loraFilename === item.loraFilename &&
             originalItem.group === item.group &&
             originalItem.strength === item.strength
           );
@@ -46,7 +51,7 @@ export function LoRAItemEditor({
 
           return (
             <div 
-              key={`${group.toLowerCase()}-${index}`} 
+              key={`${(group || 'lora').toLowerCase()}-${index}`}
               className={`p-3 bg-${groupColor}-50 dark:bg-${groupColor}-900/20 rounded border border-${groupColor}-200 dark:border-${groupColor}-800`}
             >
               <div className="flex flex-col space-y-2">
