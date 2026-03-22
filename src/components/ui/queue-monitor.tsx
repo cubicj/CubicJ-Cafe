@@ -256,32 +256,32 @@ export function QueueMonitor() {
           전체 실행 큐
         </h2>
         <Card className="p-6">
+          {pauseAfterPosition !== null && !queueList.some(item => item.position === pauseAfterPosition) && (
+            <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-3">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
+                <Wrench className="h-4 w-4" />
+                큐 일시정지 활성 — 패치 진행 중
+              </div>
+              {currentUser && isAdmin(currentUser.discordId) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRemovePause}
+                  disabled={removingPause}
+                  className="text-amber-600 border-amber-300 hover:bg-amber-100"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  해제
+                </Button>
+              )}
+            </div>
+          )}
           {queueList.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {isLoading ? "큐 데이터를 불러오는 중..." : "현재 실행 대기 중인 요청이 없습니다."}
             </div>
           ) : (
             <div className="space-y-3">
-              {pauseAfterPosition !== null && !queueList.some(item => item.position === pauseAfterPosition) && (
-                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                    <Wrench className="h-4 w-4" />
-                    큐 일시정지 활성 — 패치 진행 중
-                  </div>
-                  {currentUser && isAdmin(currentUser.discordId) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemovePause}
-                      disabled={removingPause}
-                      className="text-amber-600 border-amber-300 hover:bg-amber-100"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      해제
-                    </Button>
-                  )}
-                </div>
-              )}
               {queueList.map((request) => (
                 <React.Fragment key={request.id}>
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
