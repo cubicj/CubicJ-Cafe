@@ -32,7 +32,7 @@ async function selectBestServer() {
 
 export async function POST(request: NextRequest) {
   try {
-    log.info('Generate API request started', {
+    log.debug('Generate API request started', {
       method: request.method,
       url: request.url,
       contentType: request.headers.get('content-type'),
@@ -42,11 +42,9 @@ export async function POST(request: NextRequest) {
     const sessionId = sessionManager.getSessionIdFromRequest(request);
     const session = sessionId ? await sessionManager.validateSession(sessionId) : null;
     if (!session?.user) {
-      log.info('Auth failed: login required.');
+      log.warn('Auth failed: login required.');
       return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
     }
-
-    log.info('User authenticated', { nickname: session.user.nickname });
 
     if (!isComfyUIEnabled()) {
       return NextResponse.json(
@@ -57,13 +55,13 @@ export async function POST(request: NextRequest) {
 
     const selectedServer = await selectBestServer();
     if (!selectedServer) {
-      log.info('Server selection failed: no available ComfyUI servers.');
+      log.warn('Server selection failed: no available ComfyUI servers.');
       return NextResponse.json({ 
         error: '현재 사용 가능한 서버가 없습니다. 잠시 후 다시 시도해주세요.' 
       }, { status: 503 });
     }
 
-    log.info('Server selected', {
+    log.debug('Server selected', {
       serverId: selectedServer.serverId,
       serverType: selectedServer.serverType,
       url: selectedServer.url
@@ -85,7 +83,7 @@ export async function POST(request: NextRequest) {
     const validDuration = Math.min(Math.max(duration, 4), 7);
     const workflowLength = 16 * validDuration + 1;
 
-    log.info('FormData parsed', {
+    log.debug('FormData parsed', {
       prompt: prompt?.substring(0, 50) + '...',
       imageFile: imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'null',
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
@@ -152,7 +150,7 @@ export async function POST(request: NextRequest) {
       const imageBuffer = await imageFile.arrayBuffer()
       await writeFile(tempFilePath, Buffer.from(imageBuffer))
       
-      log.info('Start image temp file saved', {
+      log.debug('Start image temp file saved', {
         originalName: imageFile.name,
         tempFileName,
         size: imageFile.size
@@ -169,7 +167,7 @@ export async function POST(request: NextRequest) {
         const endImageBuffer = await endImageFile.arrayBuffer()
         await writeFile(endTempFilePath, Buffer.from(endImageBuffer))
         
-        log.info('End image temp file saved', {
+        log.debug('End image temp file saved', {
           originalName: endImageFile.name,
           tempFileName: endTempFileName,
           size: endImageFile.size

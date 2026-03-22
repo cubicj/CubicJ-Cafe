@@ -54,7 +54,7 @@ class ComfyUIJobMonitor {
     }
 
     if (this.monitoringJobs.has(job.promptId)) {
-      log.info('Already monitoring job', { promptId: job.promptId });
+      log.debug('Already monitoring job', { promptId: job.promptId });
       return;
     }
 
@@ -220,7 +220,7 @@ class ComfyUIJobMonitor {
           generationStore.updateJob(job.promptId!, failedJob);
         } else {
           const retryDelay = Math.min(this.monitoringInterval * retryCount, 30000);
-          log.info('Retrying monitoring', { retryDelay, retryCount, maxRetries });
+          log.debug('Retrying monitoring', { retryDelay, retryCount, maxRetries });
           setTimeout(monitor, retryDelay);
         }
       }
@@ -231,7 +231,7 @@ class ComfyUIJobMonitor {
 
   stopMonitoring(promptId: string): void {
     this.monitoringJobs.delete(promptId);
-    log.info('Job monitoring stopped', { promptId });
+    log.debug('Job monitoring stopped', { promptId });
   }
 
   isMonitoring(promptId: string): boolean {
@@ -274,7 +274,7 @@ class ComfyUIJobMonitor {
   private async sendVideoToDiscord(job: GenerationJob, outputs: Record<string, ComfyUINodeOutput>): Promise<void> {
     try {
       if (!job.userInfo) {
-        log.info('No user info, skipping Discord send', { jobId: job.id });
+        log.warn('No user info, skipping Discord send', { jobId: job.id });
         return;
       }
 
@@ -303,7 +303,7 @@ class ComfyUIJobMonitor {
             ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
             : undefined;
 
-          log.info('Discord video send started', {
+          log.debug('Discord video send started', {
             jobId: job.id,
             videoFile: video.filename,
             videoModel,
@@ -324,23 +324,23 @@ class ComfyUIJobMonitor {
             videoModel
           });
 
-          log.info('Discord video send complete', { jobId: job.id });
+          log.debug('Discord video send complete', { jobId: job.id });
           break;
         }
       }
 
       if (!videoFound) {
-        log.info('No output field, attempting filename extraction from history', { jobId: job.id });
+        log.debug('No output field, attempting filename extraction from history', { jobId: job.id });
 
         const queueRequest = await queueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
-          log.info('No server info, skipping Discord send', { jobId: job.id });
+          log.warn('No server info, skipping Discord send', { jobId: job.id });
           return;
         }
 
         const server = serverManager.getServerById(queueRequest.serverId);
         if (!server) {
-          log.info('Server not found, skipping Discord send', { serverId: queueRequest.serverId });
+          log.warn('Server not found, skipping Discord send', { serverId: queueRequest.serverId });
           return;
         }
 
@@ -351,7 +351,7 @@ class ComfyUIJobMonitor {
           const promptData = history[job.promptId!];
 
           if (!promptData) {
-            log.info('No prompt data found in history');
+            log.warn('No prompt data found in history');
             return;
           }
 
@@ -370,7 +370,7 @@ class ComfyUIJobMonitor {
                         const subfolderPattern = new RegExp('^' + modelConfig.defaultSubfolder + '/');
                         const baseFilename = filenamePrefix.replace(subfolderPattern, '');
                         videoFilename = `${baseFilename}_00001.mp4`;
-                        log.info('Filename extracted from video node', {
+                        log.debug('Filename extracted from video node', {
                           nodeId,
                           classType: node.class_type,
                           filenamePrefix,
@@ -387,11 +387,11 @@ class ComfyUIJobMonitor {
           }
 
           if (!videoFilename) {
-            log.info('No video output node found in history');
+            log.warn('No video output node found in history');
             return;
           }
 
-          log.info('Discord send with extracted filename', {
+          log.debug('Discord send with extracted filename', {
             jobId: job.id,
             videoFilename,
             serverUrl: server.url
@@ -415,7 +415,7 @@ class ComfyUIJobMonitor {
             videoModel
           });
 
-          log.info('Discord send with extracted filename complete', { jobId: job.id });
+          log.debug('Discord send with extracted filename complete', { jobId: job.id });
           return;
 
         } catch (error) {

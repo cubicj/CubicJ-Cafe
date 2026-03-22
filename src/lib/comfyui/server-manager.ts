@@ -95,7 +95,7 @@ export class ComfyUIServerManager {
 
       const localServer = this.servers.find(s => s.type === 'LOCAL')
       if (localServer) {
-        log.info('Fallback to local server', { url: localServer.url })
+        log.debug('Fallback to local server', { url: localServer.url })
         return localServer
       }
 
@@ -104,7 +104,7 @@ export class ComfyUIServerManager {
     }
 
     const bestServer = availableServers[0]
-    log.info('Best server selected', { type: bestServer.type, id: bestServer.id, url: bestServer.url })
+    log.debug('Best server selected', { type: bestServer.type, id: bestServer.id, url: bestServer.url })
     
     return bestServer
   }

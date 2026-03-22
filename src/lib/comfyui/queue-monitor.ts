@@ -235,7 +235,7 @@ class QueueMonitor {
 
     // 모든 병렬 처리 시작 (await하지 않음 - 비동기 실행)
     if (promises.length > 0) {
-      log.info('Parallel processing started', { count: promises.length });
+      log.debug('Parallel processing started', { count: promises.length });
     }
   }
 
@@ -335,7 +335,7 @@ class QueueMonitor {
 
       const workflow = await buildWorkflow(params, serverInfo);
 
-      log.info('Workflow built', {
+      log.debug('Workflow built', {
         server: server.name,
         requestId: requestId,
         videoModel,
@@ -434,7 +434,7 @@ class QueueMonitor {
     const server = this.activeServers.find(s => s.currentJobId === requestId);
     if (server) {
       server.currentJobId = undefined;
-      log.info('Server job released', { server: server.name, requestId });
+      log.debug('Server job released', { server: server.name, requestId });
     }
   }
 }
