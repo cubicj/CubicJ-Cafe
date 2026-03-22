@@ -10,7 +10,6 @@ export interface LoRAPresetEditorProps {
   onAddLoRA: () => void;
   isLoRAAvailable: (filename: string) => boolean;
   activeModel: string;
-  availableLoRAs?: string[];
 }
 
 export interface EditForm {
@@ -21,7 +20,7 @@ export interface EditForm {
 
 export interface LoRAItemEditorProps {
   items: LoRAPresetItem[];
-  group: 'HIGH' | 'LOW';
+  group?: 'HIGH' | 'LOW';
   onRemove: (index: number) => void;
   onUpdateStrength: (index: number, strength: number) => void;
   isLoRAAvailable: (filename: string) => boolean;

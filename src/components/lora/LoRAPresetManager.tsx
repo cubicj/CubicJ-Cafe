@@ -11,6 +11,7 @@ import { LoRAPresetManagerProps, LoRAPreset, EditForm, NewLoRAForm } from "@/typ
 import { LoRAPresetList } from "./LoRAPresetList";
 import { LoRAPresetEditor } from "./LoRAPresetEditor";
 import { LoRABundleSelector } from "./LoRABundleSelector";
+import { LoRAFileSelector } from "./LoRAFileSelector";
 
 export function LoRAPresetManager({
   selectedPresetIds,
@@ -268,10 +269,32 @@ export function LoRAPresetManager({
           onAddLoRA={() => setIsAddLoRADialogOpen(true)}
           isLoRAAvailable={isLoRAAvailable}
           activeModel={activeModel}
-          availableLoRAs={availableLoRAs}
         />
 
-        {activeModel !== 'ltx' && (
+        {activeModel === 'ltx' ? (
+          <LoRAFileSelector
+            isOpen={isAddLoRADialogOpen}
+            onOpenChange={setIsAddLoRADialogOpen}
+            availableLoRAs={availableLoRAs}
+            usedFilenames={new Set(editForm.loraItems.map(item => item.loraFilename))}
+            onAdd={(filename, strength) => {
+              const displayName = filename.split(/[/\\]/).pop()?.replace(/\.\w+$/, '') || filename;
+              setEditForm(prev => ({
+                ...prev,
+                loraItems: [
+                  ...prev.loraItems,
+                  {
+                    loraFilename: filename,
+                    loraName: displayName,
+                    strength,
+                    group: 'HIGH' as const,
+                    order: prev.loraItems.length,
+                  },
+                ],
+              }));
+            }}
+          />
+        ) : (
           <LoRABundleSelector
             isOpen={isAddLoRADialogOpen}
             onOpenChange={setIsAddLoRADialogOpen}
