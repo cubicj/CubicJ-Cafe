@@ -34,7 +34,7 @@ export async function GET() {
   } catch (error) {
     log.error('Failed to fetch LoRA bundle list', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 번들 목록 조회에 실패했습니다.' },
+      { error: 'LoRA 번들 목록 조회에 실패했습니다.' },
       { status: 500 }
     );
   }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error('Failed to create LoRA bundle', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 번들 생성에 실패했습니다.' },
+      { error: 'LoRA 번들 생성에 실패했습니다.' },
       { status: 500 }
     );
   }

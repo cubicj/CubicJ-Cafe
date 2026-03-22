@@ -1,61 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
+import { withAdmin } from '@/lib/auth/middleware';
 
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('queue');
 
 export async function POST(request: NextRequest) {
-  try {
-    const { action } = await request.json();
+  return withAdmin(request, async () => {
+    try {
+      const { action } = await request.json();
 
-    switch (action) {
-      case 'start':
-        queueMonitor.start();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Queue Monitor가 시작되었습니다.',
-          status: queueMonitor.getStatus()
-        });
+      switch (action) {
+        case 'start':
+          queueMonitor.start();
+          return NextResponse.json({
+            success: true,
+            message: 'Queue Monitor가 시작되었습니다.',
+            status: queueMonitor.getStatus()
+          });
 
-      case 'stop':
-        queueMonitor.stop();
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Queue Monitor가 중단되었습니다.',
-          status: queueMonitor.getStatus()
-        });
+        case 'stop':
+          queueMonitor.stop();
+          return NextResponse.json({
+            success: true,
+            message: 'Queue Monitor가 중단되었습니다.',
+            status: queueMonitor.getStatus()
+          });
 
-      case 'status':
-        return NextResponse.json({ 
-          success: true, 
-          data: queueMonitor.getStatus()
-        });
+        case 'status':
+          return NextResponse.json({
+            success: true,
+            data: queueMonitor.getStatus()
+          });
 
-      default:
-        return NextResponse.json({ 
-          error: '잘못된 액션입니다. (start, stop, status 중 선택)' 
-        }, { status: 400 });
+        default:
+          return NextResponse.json({
+            error: '잘못된 액션입니다. (start, stop, status 중 선택)'
+          }, { status: 400 });
+      }
+
+    } catch (error) {
+      log.error('Queue Monitor API error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({
+        error: '서버 오류가 발생했습니다.'
+      }, { status: 500 });
     }
-
-  } catch (error) {
-    log.error('Queue Monitor API error', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ 
-      error: '서버 오류가 발생했습니다.' 
-    }, { status: 500 });
-  }
+  });
 }
 
-export async function GET() {
-  try {
-    return NextResponse.json({ 
-      success: true, 
-      data: queueMonitor.getStatus()
-    });
-  } catch (error) {
-    log.error('Queue Monitor status fetch error', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ 
-      error: '서버 오류가 발생했습니다.' 
-    }, { status: 500 });
-  }
+export async function GET(request: NextRequest) {
+  return withAdmin(request, async () => {
+    try {
+      return NextResponse.json({
+        success: true,
+        data: queueMonitor.getStatus()
+      });
+    } catch (error) {
+      log.error('Queue Monitor status fetch error', { error: error instanceof Error ? error.message : String(error) });
+      return NextResponse.json({
+        error: '서버 오류가 발생했습니다.'
+      }, { status: 500 });
+    }
+  });
 }

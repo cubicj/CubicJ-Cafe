@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sessionManager, SessionData } from './session';
+import { isAdmin } from './admin';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: SessionData['user'];
@@ -34,6 +35,21 @@ export async function withAuth(
   authenticatedRequest.sessionId = sessionData.sessionId;
 
   return handler(authenticatedRequest);
+}
+
+export async function withAdmin(
+  request: NextRequest,
+  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+): Promise<NextResponse> {
+  return withAuth(request, async (req) => {
+    if (!req.user?.discordId || !isAdmin(req.user.discordId)) {
+      return NextResponse.json(
+        { error: '관리자 권한이 필요합니다' },
+        { status: 403 }
+      );
+    }
+    return handler(req);
+  });
 }
 
 export async function withOptionalAuth(

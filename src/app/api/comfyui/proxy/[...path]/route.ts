@@ -2,15 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { withAdmin, AuthenticatedRequest } from '@/lib/auth/middleware';
 
 const log = createLogger('comfyui');
+
+const ALLOWED_PATH_PREFIXES = [
+  'system_stats',
+  'object_info',
+  'prompt',
+  'queue',
+  'history',
+  'view',
+  'upload/image',
+  'embeddings',
+  'extensions',
+]
+
+function isPathAllowed(pathSegments: string[]): boolean {
+  const path = pathSegments.join('/')
+  return ALLOWED_PATH_PREFIXES.some(prefix => path.startsWith(prefix))
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params
-  return handleProxy(request, path, 'GET')
+  return withAdmin(request, (req) => handleProxy(req, path, 'GET'))
 }
 
 export async function POST(
@@ -18,7 +36,7 @@ export async function POST(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params
-  return handleProxy(request, path, 'POST')
+  return withAdmin(request, (req) => handleProxy(req, path, 'POST'))
 }
 
 export async function PUT(
@@ -26,7 +44,7 @@ export async function PUT(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params
-  return handleProxy(request, path, 'PUT')
+  return withAdmin(request, (req) => handleProxy(req, path, 'PUT'))
 }
 
 export async function DELETE(
@@ -34,11 +52,11 @@ export async function DELETE(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params
-  return handleProxy(request, path, 'DELETE')
+  return withAdmin(request, (req) => handleProxy(req, path, 'DELETE'))
 }
 
 async function handleProxy(
-  request: NextRequest,
+  request: AuthenticatedRequest,
   pathSegments: string[],
   method: string
 ) {
@@ -49,11 +67,20 @@ async function handleProxy(
         { status: 503 }
       );
     }
+
+    if (!isPathAllowed(pathSegments)) {
+      log.warn('Blocked proxy request to disallowed path', { path: pathSegments.join('/') })
+      return NextResponse.json(
+        { error: '허용되지 않은 경로입니다.' },
+        { status: 403 }
+      );
+    }
+
     const path = pathSegments.join('/')
     const comfyUrl = `${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/${path}`
-    
+
     const proxyHeaders = new Headers()
-    
+
     const contentType = request.headers.get('content-type')
     if (contentType && !contentType.includes('multipart/form-data')) {
       proxyHeaders.set('content-type', contentType)
@@ -79,38 +106,22 @@ async function handleProxy(
     })
 
     const responseData = await response.text()
-    
+
     return new NextResponse(responseData, {
       status: response.status,
       statusText: response.statusText,
       headers: {
         'Content-Type': response.headers.get('content-type') || 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     })
-    
+
   } catch {
     log.error('ComfyUI proxy error: backend server connection failed')
-    
+
     return NextResponse.json({
       error: '백엔드 서비스 연결 실패',
-      timestamp: new Date().toISOString()
-    }, { 
+    }, {
       status: 503,
-      statusText: 'Service Unavailable'
     })
   }
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  })
 }

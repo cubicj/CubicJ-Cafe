@@ -36,7 +36,7 @@ export async function GET(
   } catch (error) {
     log.error('Failed to fetch LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 프리셋 조회에 실패했습니다.' },
+      { error: 'LoRA 프리셋 조회에 실패했습니다.' },
       { status: 500 }
     );
   }
@@ -109,7 +109,7 @@ export async function PUT(
   } catch (error) {
     log.error('Failed to update LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 프리셋 수정에 실패했습니다.' },
+      { error: 'LoRA 프리셋 수정에 실패했습니다.' },
       { status: 500 }
     );
   }
@@ -145,7 +145,7 @@ export async function DELETE(
   } catch (error) {
     log.error('Failed to delete LoRA preset', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'LoRA 프리셋 삭제에 실패했습니다.' },
+      { error: 'LoRA 프리셋 삭제에 실패했습니다.' },
       { status: 500 }
     );
   }

@@ -16,7 +16,7 @@ export async function POST() {
   } catch (error) {
     log.error('Failed to initialize default LoRA presets', { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : '기본 프리셋 초기화에 실패했습니다.' },
+      { error: '기본 프리셋 초기화에 실패했습니다.' },
       { status: 500 }
     );
   }

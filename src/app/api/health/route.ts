@@ -1,45 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { sessionManager } from '@/lib/auth/session';
+import { isAdmin } from '@/lib/auth/admin';
 import fs from 'fs/promises';
 
 const log = createLogger('system');
-
-interface HealthCheck {
-  status: 'healthy' | 'unhealthy' | 'degraded';
-  timestamp: string;
-  uptime: number;
-  version: string;
-  environment: string;
-  services: {
-    database: ServiceStatus;
-    comfyui: ServiceStatus;
-    discord: ServiceStatus;
-    filesystem: ServiceStatus;
-  };
-  system: {
-    memory: {
-      used: number;
-      total: number;
-      percentage: number;
-    };
-    disk: {
-      used: number;
-      free: number;
-      total: number;
-      percentage: number;
-    };
-    process: {
-      pid: number;
-      uptime: number;
-      memoryUsage: NodeJS.MemoryUsage;
-    };
-  };
-  performance: {
-    responseTime: number;
-    lastCheck: string;
-  };
-}
 
 interface ServiceStatus {
   status: 'healthy' | 'unhealthy' | 'unknown';
@@ -60,28 +26,24 @@ async function checkComfyUIService(): Promise<ServiceStatus> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
+
     const response = await fetch(`${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/system_stats`, {
       method: 'GET',
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     const responseTime = Date.now() - start;
-    
+
     if (response.ok) {
-      return {
-        status: 'healthy',
-        responseTime,
-        lastCheck: new Date().toISOString(),
-      };
+      return { status: 'healthy', responseTime, lastCheck: new Date().toISOString() };
     } else {
       return {
         status: 'unhealthy',
         responseTime,
         lastCheck: new Date().toISOString(),
-        error: `HTTP ${response.status}: ${response.statusText}`,
+        error: `HTTP ${response.status}`,
       };
     }
   } catch (error) {
@@ -99,18 +61,14 @@ async function checkDatabaseService(): Promise<ServiceStatus> {
   try {
     const dbPath = (process.env.DATABASE_URL || '').replace('file:', '');
     await fs.access(dbPath);
-    
-    return {
-      status: 'healthy',
-      responseTime: Date.now() - start,
-      lastCheck: new Date().toISOString(),
-    };
-  } catch (error) {
+
+    return { status: 'healthy', responseTime: Date.now() - start, lastCheck: new Date().toISOString() };
+  } catch {
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
       lastCheck: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Database file not accessible',
+      error: 'Database file not accessible',
     };
   }
 }
@@ -129,30 +87,23 @@ async function checkDiscordService(): Promise<ServiceStatus> {
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
+
     const response = await fetch('https://discord.com/api/v10/gateway', {
-      headers: {
-        'Authorization': `Bot ${process.env.DISCORD_BOT_TOKEN}`,
-      },
+      headers: { 'Authorization': `Bot ${process.env.DISCORD_BOT_TOKEN}` },
       signal: controller.signal,
     });
-    
-    clearTimeout(timeoutId);
 
+    clearTimeout(timeoutId);
     const responseTime = Date.now() - start;
 
     if (response.ok) {
-      return {
-        status: 'healthy',
-        responseTime,
-        lastCheck: new Date().toISOString(),
-      };
+      return { status: 'healthy', responseTime, lastCheck: new Date().toISOString() };
     } else {
       return {
         status: 'unhealthy',
         responseTime,
         lastCheck: new Date().toISOString(),
-        error: `HTTP ${response.status}: ${response.statusText}`,
+        error: `HTTP ${response.status}`,
       };
     }
   } catch (error) {
@@ -170,94 +121,49 @@ async function checkFilesystemService(): Promise<ServiceStatus> {
   try {
     const tempDir = process.env.UPLOAD_TEMP_DIR || './public/temp';
     await fs.access(tempDir);
-    
+
     const stats = await fs.stat(tempDir);
     if (!stats.isDirectory()) {
       throw new Error('Temp directory is not a directory');
     }
 
-    return {
-      status: 'healthy',
-      responseTime: Date.now() - start,
-      lastCheck: new Date().toISOString(),
-    };
-  } catch (error) {
+    return { status: 'healthy', responseTime: Date.now() - start, lastCheck: new Date().toISOString() };
+  } catch {
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
       lastCheck: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Filesystem error',
+      error: 'Filesystem error',
     };
   }
 }
 
-async function getSystemMetrics() {
-  const memoryUsage = process.memoryUsage();
-  const uptime = process.uptime();
-  
-  const stats = {
-    memory: {
-      used: memoryUsage.heapUsed,
-      total: memoryUsage.heapTotal,
-      percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
-    },
-    disk: {
-      used: 0,
-      free: 0,
-      total: 0,
-      percentage: 0,
-    },
-    process: {
-      pid: process.pid,
-      uptime: uptime,
-      memoryUsage: memoryUsage,
-    },
-  };
-
-  try {
-    const diskStats = await fs.stat('./');
-    stats.disk = {
-      used: diskStats.size || 0,
-      free: 0,
-      total: diskStats.size || 0,
-      percentage: 0,
-    };
-  } catch (error) {
-    log.warn('Failed to get disk statistics', { error: error instanceof Error ? error.message : error });
-  }
-
-  return stats;
+async function isAdminRequest(request: NextRequest): Promise<boolean> {
+  const sessionId = sessionManager.getSessionIdFromRequest(request);
+  if (!sessionId) return false;
+  const session = await sessionManager.validateSession(sessionId);
+  return !!session?.user?.discordId && isAdmin(session.user.discordId);
 }
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  
-  try {
-    log.info('Health check requested', {
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-    });
 
-    const [comfyui, database, discord, filesystem, systemMetrics] = await Promise.all([
+  try {
+    const admin = await isAdminRequest(request);
+
+    const [comfyui, database, discord, filesystem] = await Promise.all([
       checkComfyUIService(),
       checkDatabaseService(),
       checkDiscordService(),
       checkFilesystemService(),
-      getSystemMetrics(),
     ]);
 
-    const services = {
-      database,
-      comfyui,
-      discord,
-      filesystem,
-    };
+    const services = { database, comfyui, discord, filesystem };
 
     const servicesHealthy = Object.values(services).filter(s => s.status === 'healthy').length;
     const totalServices = Object.values(services).length;
-    
+
     let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-    
     if (servicesHealthy === 0) {
       overallStatus = 'unhealthy';
     } else if (servicesHealthy < totalServices) {
@@ -265,50 +171,49 @@ export async function GET(request: NextRequest) {
     }
 
     const responseTime = Date.now() - startTime;
-
-    const healthCheck: HealthCheck = {
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: process.env.npm_package_version || '0.1.0',
-      environment: process.env.NODE_ENV || 'development' || 'development',
-      services,
-      system: systemMetrics,
-      performance: {
-        responseTime,
-        lastCheck: new Date().toISOString(),
-      },
-    };
-
-    log.info('System metrics', {
-      memoryUsage: {
-        rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
-        heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
-      },
-      uptime: `${Math.round(process.uptime() / 60)}min`,
-    });
-
     const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
 
-    return NextResponse.json(healthCheck, { status: statusCode });
-
-  } catch (error) {
-    const responseTime = Date.now() - startTime;
-    
-    log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
-
-    const errorResponse: Partial<HealthCheck> = {
-      status: 'unhealthy',
+    const publicResponse = {
+      status: overallStatus,
       timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
       version: process.env.npm_package_version || '0.1.0',
-      environment: process.env.NODE_ENV || 'development' || 'development',
-      performance: {
-        responseTime,
-        lastCheck: new Date().toISOString(),
-      },
+      services: Object.fromEntries(
+        Object.entries(services).map(([key, val]) => [key, { status: val.status }])
+      ),
+      performance: { responseTime },
     };
 
-    return NextResponse.json(errorResponse, { status: 503 });
+    if (!admin) {
+      return NextResponse.json(publicResponse, { status: statusCode });
+    }
+
+    const memoryUsage = process.memoryUsage();
+
+    return NextResponse.json({
+      ...publicResponse,
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      services,
+      system: {
+        memory: {
+          used: memoryUsage.heapUsed,
+          total: memoryUsage.heapTotal,
+          percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
+        },
+        process: {
+          pid: process.pid,
+          uptime: process.uptime(),
+          memoryUsage,
+        },
+      },
+    }, { status: statusCode });
+
+  } catch (error) {
+    log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
+
+    return NextResponse.json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+    }, { status: 503 });
   }
 }
