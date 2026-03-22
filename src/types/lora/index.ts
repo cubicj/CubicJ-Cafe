@@ -4,6 +4,7 @@ export interface LoRAPreset {
   isDefault: boolean;
   isPublic: boolean;
   order: number;
+  model: string;
   loraItems: LoRAPresetItem[];
   createdAt: string;
   updatedAt: string;
