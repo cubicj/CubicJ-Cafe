@@ -19,7 +19,6 @@ export async function GET() {
         timestamp: new Date().toISOString()
       });
     }
-    // 서버 헬스 체크 후 사용 가능한 서버 선택
     await serverManager.checkServerHealth()
     const bestServer = serverManager.selectBestServer()
     
@@ -34,12 +33,8 @@ export async function GET() {
       )
     }
 
-    // 선택된 서버의 클라이언트 생성
     const quickClient = serverManager.getClient(bestServer)
-    
-    // 디버깅: 서버 선택 로그 완전 제거
 
-    // WAN 경로의 실제 LoRA 파일 목록 조회 (서버 연결 실패 시 적절한 에러 처리)
     let loras: string[]
     try {
       loras = await quickClient.getLoRAList()
@@ -62,13 +57,11 @@ export async function GET() {
     
     log.info('WAN LoRA list success', { count: loras.length })
 
-    // LoRA 파일들을 카테고리별로 분류
     const categorizedLoras = {
       all: loras,
       safetensors: loras.filter(f => f.endsWith('.safetensors')),
       ckpt: loras.filter(f => f.endsWith('.ckpt')),
       pt: loras.filter(f => f.endsWith('.pt')),
-      // High/Low 폴더별 분류 (실제 폴더 구조 기반)
       high: loras.filter(f => f.includes('WAN\\High\\')),
       low: loras.filter(f => f.includes('WAN\\Low\\'))
     }

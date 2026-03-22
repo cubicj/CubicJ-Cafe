@@ -7,7 +7,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
 
-// GET: 특정 LoRA 번들 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -51,7 +50,6 @@ export async function GET(
   }
 }
 
-// PUT: LoRA 번들 수정
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -76,7 +74,6 @@ export async function PUT(
     const body = await request.json();
     const { displayName, highLoRAFilename, lowLoRAFilename, order } = body;
 
-    // 입력 검증
     if (displayName !== undefined && (!displayName || !displayName.trim())) {
       return NextResponse.json(
         { error: '표시명은 비워둘 수 없습니다.' },
@@ -115,7 +112,6 @@ export async function PUT(
   }
 }
 
-// DELETE: LoRA 번들 삭제
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -53,7 +53,6 @@ export function ImageResult({
         log.error('Share failed', { error: error instanceof Error ? error.message : String(error) });
       }
     } else {
-      // 폴백: URL 복사
       try {
         await navigator.clipboard.writeText(imageUrl);
         log.info('Image URL copied to clipboard');
@@ -66,14 +65,12 @@ export function ImageResult({
   return (
     <Card className={cn("overflow-hidden", className)}>
       <div className="relative">
-        {/* 이미지 로딩 스켈레톤 */}
         {isLoading && (
           <div className="aspect-square bg-muted animate-pulse flex items-center justify-center">
             <div className="w-16 h-16 border-4 border-muted-foreground/20 border-t-muted-foreground/40 rounded-full animate-spin" />
           </div>
         )}
         
-        {/* 생성된 이미지 */}
         <Image
           src={imageUrl}
           alt="AI 생성 이미지"
@@ -86,7 +83,6 @@ export function ImageResult({
           onLoad={handleImageLoad}
         />
 
-        {/* 좋아요 버튼 */}
         <Button
           variant="ghost"
           size="sm"
@@ -100,7 +96,6 @@ export function ImageResult({
         </Button>
       </div>
 
-      {/* 이미지 정보 및 액션 */}
       <div className="p-4 space-y-4">
         <div className="space-y-2">
           <h3 className="font-semibold text-sm">생성된 이미지</h3>
@@ -109,7 +104,6 @@ export function ImageResult({
           </p>
         </div>
 
-        {/* 액션 버튼들 */}
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -148,7 +142,6 @@ export function ImageResult({
           )}
         </div>
 
-        {/* 메타 정보 */}
         <div className="pt-2 border-t border-border text-xs text-muted-foreground">
           <div className="flex justify-between items-center">
             <span>생성 시간: {new Date().toLocaleTimeString()}</span>

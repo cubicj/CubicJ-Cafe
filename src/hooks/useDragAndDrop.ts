@@ -26,10 +26,8 @@ export function useDragAndDrop({ presets, setPresets, reorderPresets }: UseDragA
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     
-    // 기본 프리셋과 공개 프리셋은 드래그할 수 없도록 필터링
     const userPresets = items.filter(preset => !preset.isDefault && !preset.isPublic);
     
-    // 사용자 프리셋만 순서 변경
     if (userPresets.length > 0) {
       setPresets(items);
       reorderPresets(userPresets.map(preset => preset.id));

@@ -39,7 +39,6 @@ export default function AdminDashboard() {
         return data.enabled;
       }
     } catch {
-      // ignore
     } finally {
       setComfyuiLoading(false);
     }
@@ -65,7 +64,6 @@ export default function AdminDashboard() {
         }
       }
     } catch {
-      // ignore
     } finally {
       setComfyuiLoading(false);
     }
@@ -83,12 +81,10 @@ export default function AdminDashboard() {
         
         if (response.ok) {
           setIsAuthorized(true);
-          // 권한 확인 후 관리자 설정 로드
           await initializeAdminSettings();
         } else {
           const data = await response.json();
           setAuthError(data.error || '관리자 권한이 없습니다.');
-          // 2초 후 홈으로 리디렉션
           setTimeout(() => {
             router.push('/');
           }, 2000);
@@ -123,7 +119,6 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 권한이 없는 경우 - 오류 메시지와 리디렉션 안내
   if (!isAuthorized && authError) {
     return (
       <div className="container mx-auto py-8">
@@ -141,7 +136,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // 로딩 중인 경우
   if (loading) {
     return (
       <div className="container mx-auto py-8">
@@ -155,7 +149,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // 권한이 확인되지 않은 경우 (예상치 못한 상황)
   if (!isAuthorized) {
     return (
       <div className="container mx-auto py-8">

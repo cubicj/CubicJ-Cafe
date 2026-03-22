@@ -68,7 +68,6 @@ export function QueueMonitor() {
   }, []);
 
 
-  // 큐 삭제 함수
   const handleDeleteQueue = async (requestId: string, nickname: string) => {
     if (!confirm(`"${nickname}"님의 요청을 취소하시겠습니까?`)) {
       return;
@@ -89,7 +88,6 @@ export function QueueMonitor() {
       });
 
       if (response.ok) {
-        // 성공시 즉시 큐 데이터 새로고침
         await fetchQueueData();
       } else {
         const errorData = await response.json();
@@ -107,24 +105,19 @@ export function QueueMonitor() {
     }
   };
 
-  // 사용자가 삭제 가능한지 확인
   const canDeleteRequest = (request: QueueRequest): boolean => {
     if (!currentUser) return false;
     if (request.status === 'COMPLETED' || request.status === 'FAILED' || request.status === 'CANCELLED') {
       return false;
     }
-    // 관리자는 모든 요청을 삭제할 수 있음
     if (isAdmin(currentUser.discordId)) {
       return true;
     }
-    // 일반 사용자는 본인 요청만 삭제 가능
     return request.nickname === currentUser.nickname;
   };
 
   useEffect(() => {
     fetchQueueData();
-    
-    // 5초마다 자동 새로고침
     const interval = setInterval(fetchQueueData, 5000);
     return () => clearInterval(interval);
   }, [fetchQueueData]);
@@ -189,12 +182,10 @@ export function QueueMonitor() {
     );
   }
 
-  // 데이터가 없어도 UI를 표시하고, 부분적으로만 에러 표시
   const hasAnyData = queueList.length > 0 || stats;
 
   return (
     <div className="space-y-6">
-      {/* 큐 통계 */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -240,7 +231,6 @@ export function QueueMonitor() {
         </Card>
       )}
 
-      {/* 전체 큐 리스트 */}
       <div className="space-y-2">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <List className="h-5 w-5" />

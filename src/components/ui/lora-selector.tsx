@@ -63,7 +63,6 @@ export function LoRASelector({
       
       log.info('LoRA list fetched', { count: data.count });
       
-      // 서버에서 가져온 LoRA 파일들을 LoRAModel 형태로 변환
       const loraModels: LoRAModel[] = [
         {
           id: "none",
@@ -74,7 +73,7 @@ export function LoRASelector({
         },
         ...data.loras.map((filename: string) => ({
           id: filename,
-          name: filename.replace(/\.(safetensors|ckpt|pt)$/i, ''), // 확장자 제거
+          name: filename.replace(/\.(safetensors|ckpt|pt)$/i, ''),
           filename: filename,
           description: `ComfyUI LoRA 모델: ${filename}`,
           type: "서버",
@@ -85,13 +84,11 @@ export function LoRASelector({
       setAvailableLoRAs(loraModels);
       
     } catch (err) {
-      // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
         log.error('Failed to fetch LoRA list', { error: err instanceof Error ? err.message : String(err) });
       }
       setError(err instanceof Error ? err.message : 'LoRA 목록 조회 실패');
       
-      // 에러 시 기본 "없음" 옵션만 유지
       setAvailableLoRAs([{
         id: "none",
         name: "없음",

@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'requestId가 필요합니다.' }, { status: 400 });
         }
 
-        // 관리자인지 확인
         const userIsAdmin = isAdmin(session.user.discordId);
         await queueService.cancelRequest(requestId, parseInt(session.user.id), userIsAdmin);
         return NextResponse.json({ success: true, message: '요청이 취소되었습니다.' });

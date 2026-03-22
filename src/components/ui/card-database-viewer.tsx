@@ -252,7 +252,6 @@ export default function CardDatabaseViewer({ className }: CardDatabaseViewerProp
                           {presetData.loraItems && presetData.loraItems.length > 0 && (
                             <div className="space-y-1">
                               {presetData.loraItems.map((item: any, index: number) => {
-                                // loraName에 번들명이 저장됨, 없으면 파일명 표시
                                 const displayName = item.loraName || item.loraFilename || '알 수 없는 LoRA';
                                 
                                 return (

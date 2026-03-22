@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
 }
 
 async function translateWithGoogle(text: string, sourceLang: string, targetLang: string): Promise<string> {
-  // Google Translate 무료 API 사용
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
   
   const response = await fetch(url);
@@ -68,7 +67,6 @@ async function translateWithGoogle(text: string, sourceLang: string, targetLang:
   
   const data = await response.json();
   
-  // Google Translate API 응답 파싱
   if (data && data[0] && Array.isArray(data[0])) {
     return data[0].map((item: any[]) => item[0]).join('');
   }

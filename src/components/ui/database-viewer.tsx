@@ -82,7 +82,6 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
       return <span className="text-gray-400 italic">(null)</span>;
     }
     
-    // LoRA 프리셋의 loraItems 특별 처리
     if (tableName === 'lora_presets' && key === 'loraItems' && Array.isArray(value)) {
       return (
         <div className="space-y-1">
@@ -98,7 +97,6 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
       );
     }
     
-    // User 관계 특별 처리
     if (key === 'user' && typeof value === 'object' && value !== null) {
       const user = value as any;
       return (
@@ -109,7 +107,6 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
       );
     }
     
-    // _count 객체 특별 처리
     if (key === '_count' && typeof value === 'object' && value !== null) {
       const counts = value as any;
       return (
@@ -143,7 +140,6 @@ export default function DatabaseViewer({ className }: DatabaseViewerProps) {
       return <span className="text-sm">{new Date(value).toLocaleString('ko-KR')}</span>;
     }
     
-    // 긴 문자열은 줄바꿈 처리
     const stringValue = String(value);
     if (stringValue.length > 50) {
       return (

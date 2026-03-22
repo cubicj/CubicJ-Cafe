@@ -5,10 +5,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('discord');
 
-// Discord Bot 전송 전용 모드
-// - 메시지 수신/처리 없음
-// - Guild 정보 접근만 허용 (채널/서버 정보)
-// - MESSAGE_CREATE, GUILD_UPDATE 등 이벤트 수신 차단
 class DiscordBot {
   private client: Client;
   private isInitialized = false;
@@ -17,23 +13,16 @@ class DiscordBot {
   private maxReconnectAttempts = 5;
 
   constructor() {
-    // 전송 전용 모드: 최소한의 Intent만 사용 (메시지 수신 차단)
     this.client = new Client({
-      intents: [GatewayIntentBits.Guilds] // GuildMessages 제거로 메시지 이벤트 차단
+      intents: [GatewayIntentBits.Guilds]
     });
-    
-    // 에러 핸들링 설정
     this.setupErrorHandlers();
   }
   
   private setupErrorHandlers(): void {
-    // 모든 이벤트 리스너 제거 후 새로 등록 (중복 방지)
     this.client.removeAllListeners();
-    
-    // 전송 전용 모드: 핵심 에러만 처리
     this.client.on('error', (error) => {
       log.error('Discord Client error', { error: error.message });
-      // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러는 무시하고 재초기화
       if (error.message && (
         error.message.includes('handle') || 
         error.message.includes('MESSAGE_CREATE') ||
@@ -65,13 +54,11 @@ class DiscordBot {
       this.reconnectAttempts = 0;
     });
 
-    // shardError 이벤트 처리 (handle 에러의 주요 원인)
     this.client.on('shardError', (error) => {
       log.error('Discord Shard error', { error: error.message });
       this.isInitialized = false;
     });
 
-    // shardDisconnect 이벤트 처리
     this.client.on('shardDisconnect', () => {
       log.info('Discord Shard disconnected');
       this.isInitialized = false;
@@ -81,7 +68,6 @@ class DiscordBot {
   async initialize(): Promise<void> {
     if (this.isInitialized && this.client.isReady()) return;
     if (this.isConnecting) {
-      // 이미 연결 시도 중이면 대기
       await this.waitForConnection();
       return;
     }
@@ -90,7 +76,6 @@ class DiscordBot {
       throw new Error('DISCORD_BOT_TOKEN is not configured');
     }
 
-    // 프로덕션 환경에서 플레이스홀더 토큰 검증
     if (process.env.DISCORD_BOT_TOKEN.includes('production-discord-bot-token') ||
         process.env.DISCORD_BOT_TOKEN.includes('placeholder')) {
       throw new Error('Discord Bot 토큰이 프로덕션 환경에서 제대로 설정되지 않았습니다');
@@ -99,13 +84,11 @@ class DiscordBot {
     this.isConnecting = true;
     
     try {
-      // 기존 연결이 있다면 정리
       if (this.client.readyTimestamp) {
         log.info('Cleaning up existing Discord connection');
         this.client.destroy();
-        // 새 클라이언트 인스턴스 생성 (전송 전용)
         this.client = new Client({
-          intents: [GatewayIntentBits.Guilds] // 메시지 이벤트 수신 차단
+          intents: [GatewayIntentBits.Guilds]
         });
         this.setupErrorHandlers();
       }
@@ -113,7 +96,6 @@ class DiscordBot {
       log.info('Discord Bot logging in');
       await this.client.login(process.env.DISCORD_BOT_TOKEN);
       
-      // 준비 상태까지 대기 (최대 15초로 연장)
       await this.waitForReady(15000);
       
       log.info('Discord Bot initialized successfully');
@@ -122,7 +104,6 @@ class DiscordBot {
       this.isInitialized = false;
       this.isConnecting = false;
       
-      // handle 관련 에러인 경우 더 자세한 로그
       if (error instanceof Error && error.message.includes('handle')) {
         log.error('Discord handle error. Client recreation may be required.');
       }
@@ -135,7 +116,7 @@ class DiscordBot {
   
   private async waitForConnection(): Promise<void> {
     const startTime = Date.now();
-    const timeout = 30000; // 30초 타임아웃
+    const timeout = 30000;
     
     while (this.isConnecting && !this.isInitialized) {
       if (Date.now() - startTime > timeout) {
@@ -180,7 +161,6 @@ class DiscordBot {
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
-    // 재시도 로직 (3회 시도)
     let lastError: Error | null = null;
     
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -188,38 +168,33 @@ class DiscordBot {
         log.info('Discord send attempt', { attempt, maxAttempts: 3 });
         await this.sendVideoToDiscordInternal(params);
         log.info('Discord send succeeded', { attempt });
-        return; // 성공하면 종료
+        return;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         log.error('Discord send failed', { attempt, maxAttempts: 3, error: lastError.message });
         
-        // handle, MESSAGE_CREATE, GUILD_UPDATE 관련 에러인 경우 특별 처리
-        if (lastError.message.includes('handle') || 
+        if (lastError.message.includes('handle') ||
             lastError.message.includes('MESSAGE_CREATE') ||
             lastError.message.includes('GUILD_UPDATE')) {
           log.info('Client reinitialization due to Discord event handler error');
           this.isInitialized = false;
-          // 클라이언트 완전 재생성 (전송 전용)
           this.client.destroy();
           this.client = new Client({
-            intents: [GatewayIntentBits.Guilds] // 메시지 이벤트 수신 차단
+            intents: [GatewayIntentBits.Guilds]
           });
           this.setupErrorHandlers();
         }
         
         if (attempt < 3) {
-          // 다음 시도 전 대기 (지수 백오프)
           const delay = Math.pow(2, attempt) * 1000;
           log.info('Retrying after delay', { delay });
           await new Promise(resolve => setTimeout(resolve, delay));
           
-          // 재초기화 시도
           this.isInitialized = false;
         }
       }
     }
     
-    // 모든 시도 실패
     throw lastError || new Error('Discord 전송 실패');
   }
   
@@ -238,13 +213,11 @@ class DiscordBot {
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
-    // 초기화 상태와 클라이언트 준비 상태 확인
     if (!this.isInitialized || !this.client.isReady()) {
       log.info('Discord Bot not ready, attempting initialization');
       await this.initialize();
     }
 
-    // 초기화 후에도 준비되지 않았다면 에러
     if (!this.client.isReady()) {
       throw new Error('Discord Bot 초기화에 실패했습니다');
     }
@@ -257,8 +230,7 @@ class DiscordBot {
       throw new Error('DISCORD_CHANNEL_ID is not configured');
     }
 
-    // NSFW 여부에 따라 채널 선택
-    const targetChannelId = params.isNSFW && process.env.DISCORD_NSFW_CHANNEL_ID 
+    const targetChannelId = params.isNSFW && process.env.DISCORD_NSFW_CHANNEL_ID
       ? process.env.DISCORD_NSFW_CHANNEL_ID 
       : process.env.DISCORD_CHANNEL_ID!;
 
@@ -288,10 +260,8 @@ class DiscordBot {
       let attachment: AttachmentBuilder;
 
       if (params.videoPath) {
-        // 로컬 파일 경로가 제공된 경우
         attachment = new AttachmentBuilder(params.videoPath);
       } else if (params.filename) {
-        // ComfyUI에서 파일명만 제공된 경우, 직접 다운로드
         const subfolder = params.subfolder || '';
         const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://localhost:8188';
         const fileType = params.fileType || 'output';
@@ -306,7 +276,7 @@ class DiscordBot {
         });
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
         
         const response = await fetch(videoUrl, {
           method: 'GET',
@@ -340,14 +310,12 @@ class DiscordBot {
         url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
       };
 
-      // Discord 멘션과 함께 embed 메시지 전송
       const mentionText = params.discordId ? `<@${params.discordId}>` : '';
       await channel.send({
         content: mentionText,
         embeds: [embed]
       });
 
-      // 그 다음에 비디오 파일 전송
       await channel.send({
         files: [attachment]
       });

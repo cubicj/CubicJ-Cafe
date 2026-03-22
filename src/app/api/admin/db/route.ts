@@ -46,7 +46,6 @@ export async function GET(request: NextRequest) {
     let data: unknown[] = [];
     let totalCount = 0;
 
-    // 테이블별 기본 정렬 및 허용 정렬 필드 정의
     const getOrderBy = (table: string, orderBy: string | null, orderDirection: string) => {
       const direction = orderDirection === 'asc' ? 'asc' as const : 'desc' as const;
       
@@ -56,21 +55,21 @@ export async function GET(request: NextRequest) {
           if (orderBy && userFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
-          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 가입순
+          return { createdAt: 'desc' as const };
         
         case 'queue_requests':
           const queueFields = ['nickname', 'status', 'position', 'createdAt', 'startedAt', 'completedAt'];
           if (orderBy && queueFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
-          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 요청순
+          return { createdAt: 'desc' as const };
         
         case 'lora_presets':
           const presetFields = ['name', 'createdAt', 'isDefault', 'isPublic'];
           if (orderBy && presetFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
-          return { createdAt: 'desc' as const }; // 기본 정렬: 최신 생성순
+          return { createdAt: 'desc' as const };
         
         default:
           return { createdAt: 'desc' as const };

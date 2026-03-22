@@ -7,7 +7,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
 
-// GET: 모든 LoRA 번들 조회 (관리자용)
 export async function GET() {
   try {
     const session = await getServerSession();
@@ -41,7 +40,6 @@ export async function GET() {
   }
 }
 
-// POST: 새 LoRA 번들 생성
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
@@ -62,7 +60,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { displayName, highLoRAFilename, lowLoRAFilename, order } = body;
 
-    // 입력 검증
     if (!displayName || !displayName.trim()) {
       return NextResponse.json(
         { error: '표시명은 필수입니다.' },
@@ -70,7 +67,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 적어도 하나의 LoRA 파일은 필요
     const hasHighLoRA = highLoRAFilename && highLoRAFilename.trim();
     const hasLowLoRA = lowLoRAFilename && lowLoRAFilename.trim();
     

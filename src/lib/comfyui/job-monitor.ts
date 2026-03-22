@@ -42,10 +42,9 @@ interface ComfyUIWorkflowNode {
 
 class ComfyUIJobMonitor {
   private monitoringJobs = new Set<string>();
-  private monitoringInterval = 5000; // 5초마다 확인
+  private monitoringInterval = 5000;
 
   constructor() {
-    // 서버 매니저를 통해 동적으로 서버별 클라이언트 사용
   }
 
   async startMonitoring(job: GenerationJob): Promise<void> {
@@ -64,13 +63,11 @@ class ComfyUIJobMonitor {
 
     let retryCount = 0;
     const maxRetries = 10;
-    const maxMonitoringTime = 30 * 60 * 1000; // 30분 최대 모니터링 시간
+    const maxMonitoringTime = 30 * 60 * 1000;
     const startTime = Date.now();
 
     const monitor = async () => {
-      // 디버깅: 모니터링 체크 로그 완전 제거
       try {
-        // 0. 모니터링 시간 초과 확인
         const elapsedTime = Date.now() - startTime;
         if (elapsedTime > maxMonitoringTime) {
           log.warn('Monitoring timeout', { minutes: Math.round(elapsedTime / 1000 / 60), promptId: job.promptId });
@@ -88,20 +85,17 @@ class ComfyUIJobMonitor {
           };
           generationStore.updateJob(job.promptId!, failedJob);
           
-          // 모니터링 시간 초과로 서버 해제
           queueMonitor.releaseServerJob(job.id);
           
           this.monitoringJobs.delete(job.promptId!);
           return;
         }
 
-        // 작업이 처리된 서버 정보 가져오기
         const queueRequest = await queueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
           throw new Error('서버 정보를 찾을 수 없습니다');
         }
 
-        // CANCELLED 상태인 경우 모니터링 중단
         if (queueRequest.status === 'CANCELLED') {
           log.info('Cancelled job monitoring stopped', { jobId: job.id });
           queueMonitor.releaseServerJob(job.id);
@@ -115,46 +109,36 @@ class ComfyUIJobMonitor {
         }
 
         const comfyUIClient = serverManager.getClient(server);
-        // 디버깅: 서버 객체 및 클라이언트 생성 로그 제거
-        // 1. 서버 연결 상태 먼저 확인
         const isHealthy = await comfyUIClient.checkServerHealth();
         if (!isHealthy) {
           throw new Error('ComfyUI 서버 연결 실패');
         }
 
-        // 2. 큐 상태 확인 (작업이 큐에서 제거되었는지 확인)
         const queueStatus = await comfyUIClient.getQueue();
         const isInRunning = queueStatus?.queue_running.some(item => item[1] === job.promptId) || false;
         const isInPending = queueStatus?.queue_pending.some(item => item[1] === job.promptId) || false;
         const isInQueue = isInRunning || isInPending;
 
-        // 3. 히스토리 확인 (완료된 결과물 확인)
         const history = await comfyUIClient.getHistory(job.promptId!);
         const promptData = history[job.promptId!];
         const hasOutputs = promptData && promptData.outputs;
 
-        // 4. 작업 완료 판정 (outputs 존재)
         if (hasOutputs) {
           log.info('ComfyUI job completed', { promptId: job.promptId });
           
           try {
-            // 데이터베이스 상태 업데이트
             await queueService.updateRequest(job.id, {
               status: QueueStatus.COMPLETED,
               completedAt: new Date()
             });
 
-            // generationStore도 업데이트 (호환성 유지)
             const updatedJob: Partial<GenerationJob> = {
               status: 'completed',
               updatedAt: new Date()
             };
             generationStore.updateJob(job.promptId!, updatedJob);
             
-            // 작업 완료로 서버 해제
             queueMonitor.releaseServerJob(job.id);
-            
-            // Discord로 바로 전송 (파일 다운로드하지 않음)
             await this.sendVideoToDiscord(job, promptData.outputs);
             
           } catch (error) {
@@ -166,18 +150,13 @@ class ComfyUIJobMonitor {
               username: job.userInfo?.name
             });
             
-            // Discord 전송 실패는 작업 자체를 실패로 처리하지 않고 완료로 처리
-            // 대신 에러 로그만 남김
             log.warn('Job completed but Discord send failed', { jobId: job.id });
-            
-            // 데이터베이스는 COMPLETED로 업데이트 (전송 실패를 에러 필드에 기록)
             await queueService.updateRequest(job.id, {
               status: QueueStatus.COMPLETED,
               completedAt: new Date(),
               error: `작업 완료, Discord 전송 실패: ${errorMessage}`
             });
 
-            // generationStore도 COMPLETED로 업데이트 (호환성 유지)
             const completedJob: Partial<GenerationJob> = {
               status: 'completed',
               error: `Discord 전송 실패: ${errorMessage}`,
@@ -185,7 +164,6 @@ class ComfyUIJobMonitor {
             };
             generationStore.updateJob(job.promptId!, completedJob);
             
-            // 작업 완료로 서버 해제
             queueMonitor.releaseServerJob(job.id);
           }
 
@@ -193,11 +171,9 @@ class ComfyUIJobMonitor {
           return;
         }
 
-        // 5. 작업 실패 판정 (큐에서 사라졌지만 outputs가 없는 경우)
         if (!isInQueue && !hasOutputs && promptData) {
           log.error('ComfyUI job failed (removed from queue but no outputs)', { promptId: job.promptId });
           
-          // 히스토리에서 오류 정보 확인
           const errorInfo = this.extractErrorFromHistory(promptData);
           
           await queueService.updateRequest(job.id, {
@@ -213,38 +189,29 @@ class ComfyUIJobMonitor {
           };
           generationStore.updateJob(job.promptId!, failedJob);
           
-          // 작업 실패로 서버 해제
           queueMonitor.releaseServerJob(job.id);
-          
           this.monitoringJobs.delete(job.promptId!);
           return;
         }
 
-        // 6. 작업이 아직 진행 중이면 계속 모니터링
-        // 디버깅: 작업 진행 중 로그 완전 제거
-        retryCount = 0; // 성공하면 재시도 카운트 리셋
+        retryCount = 0;
         setTimeout(monitor, this.monitoringInterval);
 
       } catch (error) {
         retryCount++;
         log.error('Job monitoring error', { retryCount, maxRetries, error: error instanceof Error ? error.message : String(error) });
         
-        // 최대 재시도 후 실패 처리
         if (retryCount >= maxRetries) {
           log.error('Max retries exceeded, monitoring stopped', { promptId: job.promptId });
           this.monitoringJobs.delete(job.promptId!);
           
-          // 최대 재시도 초과로 서버 해제
           queueMonitor.releaseServerJob(job.id);
-          
-          // 데이터베이스 상태 업데이트
           await queueService.updateRequest(job.id, {
             status: QueueStatus.FAILED,
             failedAt: new Date(),
             error: error instanceof Error ? error.message : '모니터링 실패'
           });
 
-          // generationStore도 업데이트 (호환성 유지)
           const failedJob: Partial<GenerationJob> = {
             status: 'failed',
             error: error instanceof Error ? error.message : '모니터링 실패',
@@ -252,7 +219,6 @@ class ComfyUIJobMonitor {
           };
           generationStore.updateJob(job.promptId!, failedJob);
         } else {
-          // 재시도
           const retryDelay = Math.min(this.monitoringInterval * retryCount, 30000);
           log.info('Retrying monitoring', { retryDelay, retryCount, maxRetries });
           setTimeout(monitor, retryDelay);
@@ -260,7 +226,6 @@ class ComfyUIJobMonitor {
       }
     };
 
-    // 최초 모니터링 시작
     setTimeout(monitor, this.monitoringInterval);
   }
 
@@ -279,12 +244,10 @@ class ComfyUIJobMonitor {
 
   private extractErrorFromHistory(promptData: ComfyUIHistoryData): string | null {
     try {
-      // ComfyUI 히스토리에서 오류 정보 추출
       if (promptData.status && promptData.status.status_str === 'error') {
         return `ComfyUI 실행 오류: ${promptData.status.completed ? 'completed with error' : 'execution failed'}`;
       }
       
-      // 노드별 오류 확인
       if (promptData.outputs) {
         for (const [nodeId, nodeOutput] of Object.entries(promptData.outputs)) {
           if (nodeOutput.error || nodeOutput.exception) {
@@ -293,7 +256,6 @@ class ComfyUIJobMonitor {
         }
       }
       
-      // 프롬프트 오류 확인
       if (promptData.prompt && Array.isArray(promptData.prompt)) {
         for (const promptItem of promptData.prompt) {
           if (promptItem.error) {
