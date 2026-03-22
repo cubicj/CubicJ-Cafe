@@ -3,7 +3,7 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('hook');
 
-export function useAvailableLoRAs() {
+export function useAvailableLoRAs(model: string = 'wan') {
   const [availableLoRAs, setAvailableLoRAs] = useState<string[]>([]);
   const [isRefreshingLoRAs, setIsRefreshingLoRAs] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export function useAvailableLoRAs() {
     }
     
     try {
-      const response = await fetch('/api/comfyui/loras');
+      const response = await fetch(`/api/comfyui/loras?model=${model}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -48,9 +48,10 @@ export function useAvailableLoRAs() {
     );
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchAvailableLoRAs();
-  }, []);
+  }, [model]);
 
   return {
     availableLoRAs,

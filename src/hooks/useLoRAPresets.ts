@@ -10,12 +10,13 @@ interface LoRAPreset {
   isDefault: boolean;
   isPublic: boolean;
   order: number;
+  model: string;
   loraItems: LoRAPresetItem[];
   createdAt: string;
   updatedAt: string;
 }
 
-export function useLoRAPresets() {
+export function useLoRAPresets(model: string = 'wan') {
   const [presets, setPresets] = useState<LoRAPreset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function useLoRAPresets() {
     setError(null);
     
     try {
-      const response = await fetch('/api/lora-presets');
+      const response = await fetch(`/api/lora-presets?model=${model}`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -72,6 +73,7 @@ export function useLoRAPresets() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: preset.name,
+          model,
           loraItems: preset.loraItems,
         }),
       });
@@ -116,9 +118,10 @@ export function useLoRAPresets() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchPresets();
-  }, []);
+  }, [model]);
 
   return {
     presets,
