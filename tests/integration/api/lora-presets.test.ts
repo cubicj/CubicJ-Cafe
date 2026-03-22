@@ -26,11 +26,11 @@ const LORA_ITEMS = [
 function mockSession(user: User) {
   mockedGetServerSession.mockResolvedValue({
     user: {
-      id: user.id,
+      id: String(user.id),
       discordId: user.discordId,
       discordUsername: user.discordUsername,
       nickname: user.nickname,
-      avatar: null,
+      avatar: user.avatar || undefined,
       name: user.discordUsername,
       image: null,
     },
