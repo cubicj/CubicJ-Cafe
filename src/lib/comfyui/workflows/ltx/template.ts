@@ -770,7 +770,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "266": {
     "inputs": {
-      "img_compression": 16,
+      "img_compression": 10,
       "image": [
         "86",
         0
@@ -783,7 +783,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "267": {
     "inputs": {
-      "img_compression": 16,
+      "img_compression": 10,
       "image": [
         "264",
         0
