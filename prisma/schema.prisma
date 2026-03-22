@@ -78,6 +78,7 @@ model LoRAPreset {
   isDefault Boolean          @default(false) @map("is_default")
   isPublic  Boolean          @default(false) @map("is_public")
   order     Int              @default(0)
+  model     String           @default("wan")
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime         @updatedAt @map("updated_at")
   loraItems LoRAPresetItem[]
