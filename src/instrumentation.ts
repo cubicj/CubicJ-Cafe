@@ -8,6 +8,11 @@ export async function register() {
     const { initFileLogging } = await import('./lib/logger-file');
     initFileLogging();
 
+    const { mkdirSync } = await import('fs');
+    const { join } = await import('path');
+    const tempDir = join(process.cwd(), 'public', 'temp');
+    mkdirSync(tempDir, { recursive: true });
+
     log.info('Server starting: setting up global error handlers');
     setupGlobalErrorHandlers();
   }

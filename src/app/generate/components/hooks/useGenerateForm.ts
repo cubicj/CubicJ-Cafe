@@ -168,9 +168,10 @@ export function useGenerateForm(): UseGenerateFormReturn {
     }
   };
 
-  const fetchPresets = async () => {
+  const fetchPresets = async (model?: string) => {
     try {
-      const response = await fetch('/api/lora-presets');
+      const m = model || activeModel;
+      const response = await fetch(`/api/lora-presets?model=${m}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -305,7 +306,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
         setActiveModel(modelData.model);
         setCapabilities(modelData.capabilities);
         if (modelData.capabilities.loraPresets) {
-          const allPresets = await fetchPresets();
+          const allPresets = await fetchPresets(modelData.model);
           setPresets(allPresets);
         }
       }
