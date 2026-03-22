@@ -10,6 +10,7 @@ export interface LoRAPresetEditorProps {
   onAddLoRA: () => void;
   isLoRAAvailable: (filename: string) => boolean;
   activeModel: string;
+  availableLoRAs?: string[];
 }
 
 export interface EditForm {
