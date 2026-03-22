@@ -62,8 +62,7 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json();
         setComfyuiEnabled(data.enabled);
-        const cancelInfo = data.cancelledCount ? ` (대기 중 ${data.cancelledCount}건 취소됨)` : '';
-        setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨${cancelInfo}`);
+        setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
         setTimeout(() => setComfyuiMessage(''), 3000);
         if (data.enabled) {
           adminSettings.fetchAvailableModels();
