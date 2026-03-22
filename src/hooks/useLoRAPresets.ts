@@ -118,7 +118,6 @@ export function useLoRAPresets(model: string = 'wan') {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchPresets();
   }, [model]);
