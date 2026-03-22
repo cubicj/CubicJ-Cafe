@@ -3,6 +3,7 @@ import { isAdmin } from '@/lib/auth/admin';
 import { sessionManager } from '@/lib/auth/session';
 import { isComfyUIEnabled, setComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
+import { queueService } from '@/lib/database/queue';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
@@ -44,19 +45,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'enabled 값은 boolean이어야 합니다.' }, { status: 400 });
     }
 
+    let cancelledCount = 0;
+
     if (enabled) {
       await setComfyUIEnabled(true);
       queueMonitor.start();
     } else {
       queueMonitor.stop();
       await setComfyUIEnabled(false);
+      cancelledCount = await queueService.cancelAllPending();
+      if (cancelledCount > 0) {
+        log.info('Cancelled pending queue on disable', { count: cancelledCount });
+      }
     }
 
     log.info('ComfyUI toggled by admin', { enabled, admin: session.user.discordId });
 
     return NextResponse.json({
       enabled: isComfyUIEnabled(),
-      queueMonitor: queueMonitor.getStatus()
+      queueMonitor: queueMonitor.getStatus(),
+      ...(cancelledCount > 0 && { cancelledCount })
     });
   } catch (error) {
     log.error('ComfyUI toggle POST error', { error: error instanceof Error ? error.message : String(error) });

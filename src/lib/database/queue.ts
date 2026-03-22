@@ -313,6 +313,22 @@ export class QueueService {
     });
   }
 
+  async cancelAllPending(): Promise<number> {
+    const result = await prisma.queueRequest.updateMany({
+      where: {
+        status: QueueStatus.PENDING
+      },
+      data: {
+        status: QueueStatus.CANCELLED,
+        failedAt: new Date(),
+        error: 'ComfyUI 비활성화로 자동 취소됨'
+      }
+    });
+
+    this.invalidateCache();
+    return result.count;
+  }
+
   async cleanupExpiredRequests() {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
