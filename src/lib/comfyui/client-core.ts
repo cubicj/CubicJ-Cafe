@@ -185,8 +185,8 @@ export class ComfyUIClient {
     return this.modelManager.getObjectInfo()
   }
 
-  async getLoRAList(): Promise<string[]> {
-    return this.modelManager.getLoRAList()
+  async getLoRAList(model: string = 'wan'): Promise<string[]> {
+    return this.modelManager.getLoRAList(model)
   }
 
   async getSamplerList(): Promise<string[]> {
