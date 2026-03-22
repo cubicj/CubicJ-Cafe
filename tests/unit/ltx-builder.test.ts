@@ -5,7 +5,6 @@ const baseParams: LtxGenerationParams = {
   model: 'ltx',
   prompt: 'a cat dancing on the moon',
   inputImage: 'test-image.png',
-  durationSeconds: 5,
 }
 
 describe('buildLtxWorkflow', () => {
@@ -17,11 +16,6 @@ describe('buildLtxWorkflow', () => {
   it('sets input image in node 87', async () => {
     const workflow = await buildLtxWorkflow(baseParams)
     expect(workflow['87']!.inputs!.image).toBe('test-image.png')
-  })
-
-  it('sets duration in node 103', async () => {
-    const workflow = await buildLtxWorkflow(baseParams)
-    expect(workflow['103']!.inputs!.value).toBe(5)
   })
 
   it('generates random seeds that differ between calls', async () => {
