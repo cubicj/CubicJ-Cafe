@@ -3,6 +3,7 @@ import { queueService } from "@/lib/database/queue";
 import { sessionManager } from "@/lib/auth/session";
 import { initializeServices } from "@/lib/startup/init";
 import { isAdmin } from "@/lib/auth/admin";
+import { getQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
 
 import { createLogger } from '@/lib/logger';
 
@@ -19,7 +20,11 @@ export async function GET(request: NextRequest) {
       case 'list':
         try {
           const queueList = await queueService.getQueueList();
-          return NextResponse.json({ success: true, data: queueList || [] });
+          return NextResponse.json({
+            success: true,
+            data: queueList || [],
+            pauseAfterPosition: getQueuePauseAfterPosition()
+          });
         } catch (dbError) {
           log.error('Queue list fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
           return NextResponse.json(
