@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { cleanTables } from '../helpers/db'
 import { createUser, createAdminUser, createQueueRequest } from '../helpers/fixtures'
 import { queueService } from '@/lib/database/queue'
