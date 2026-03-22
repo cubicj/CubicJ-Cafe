@@ -27,17 +27,6 @@ const settingsNavItems = [
     label: '번역 설정',
     icon: Languages
   },
-  // 나중에 추가될 설정들
-  // {
-  //   href: '/settings/notifications',
-  //   label: '알림 설정',
-  //   icon: Bell
-  // },
-  // {
-  //   href: '/settings/privacy',
-  //   label: '개인정보 설정',
-  //   icon: Shield
-  // }
 ];
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
@@ -46,7 +35,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200">
       <div className="container mx-auto px-4 py-8">
-        {/* 헤더 */}
         <div className="mb-8">
           <div className="flex items-center space-x-3">
             <ClientIcon icon={Settings} fallback="⚙️" className="h-8 w-8 text-slate-700" />
@@ -55,7 +43,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* 사이드바 네비게이션 */}
           <div className="lg:w-80">
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-slate-800 mb-4">설정 메뉴</h2>
@@ -91,7 +78,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
             </Card>
           </div>
 
-          {/* 메인 콘텐츠 */}
           <div className="flex-1">
             {children}
           </div>

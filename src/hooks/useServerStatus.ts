@@ -45,7 +45,6 @@ export function useServerStatus() {
         setServerStatus(data)
       }
     } catch (error) {
-      // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
         log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) })
       }

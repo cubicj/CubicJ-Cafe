@@ -6,7 +6,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
-// GET: 활성화된 LoRA 번들 목록 조회 (사용자용)
 export async function GET() {
   try {
     const session = await getServerSession();

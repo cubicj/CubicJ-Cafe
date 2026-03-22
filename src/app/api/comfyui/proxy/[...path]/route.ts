@@ -4,7 +4,6 @@ import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
-// env removed - using process.env directly
 
 export async function GET(
   request: NextRequest,
@@ -55,8 +54,6 @@ async function handleProxy(
     
     const proxyHeaders = new Headers()
     
-    // 필요한 헤더만 전달 (Origin, Host 등 민감한 정보 제외)
-    // FormData의 경우 content-type을 설정하지 않아 브라우저가 자동으로 설정하도록 함
     const contentType = request.headers.get('content-type')
     if (contentType && !contentType.includes('multipart/form-data')) {
       proxyHeaders.set('content-type', contentType)
@@ -67,7 +64,6 @@ async function handleProxy(
 
     let body: string | FormData | undefined
     if (method !== 'GET' && method !== 'DELETE') {
-      // FormData인지 확인 (파일 업로드용)
       if (contentType?.includes('multipart/form-data')) {
         body = await request.formData()
       } else {
@@ -79,7 +75,7 @@ async function handleProxy(
       method,
       headers: proxyHeaders,
       body,
-      signal: AbortSignal.timeout(30000), // 30초 타임아웃
+      signal: AbortSignal.timeout(30000),
     })
 
     const responseData = await response.text()

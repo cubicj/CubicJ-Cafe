@@ -38,7 +38,6 @@ export default function NicknameSetupPage() {
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
-            // 이미 닉네임이 설정된 사용자는 홈으로
             if (data.user.nickname) {
               router.push('/');
               return;
@@ -59,7 +58,6 @@ export default function NicknameSetupPage() {
     checkAuthStatus();
   }, [router]);
 
-  // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
@@ -68,7 +66,6 @@ export default function NicknameSetupPage() {
     };
   }, []);
 
-  // 닉네임 중복 확인
   const checkNickname = async (value: string) => {
     if (value.length < 2) {
       setIsAvailable(null);
@@ -90,24 +87,20 @@ export default function NicknameSetupPage() {
     }
   };
 
-  // 닉네임 입력 처리
   const handleNicknameChange = (value: string) => {
     setNickname(value);
     setError('');
-    setIsAvailable(null); // 즉시 상태 초기화로 반짝임 방지
-    
-    // 이전 타이머 정리
+    setIsAvailable(null);
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
     
-    // 새 타이머 설정 (1초로 증가)
     debounceTimer.current = setTimeout(() => {
       checkNickname(value);
     }, 1000);
   };
 
-  // 닉네임 설정 제출
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,7 +126,6 @@ export default function NicknameSetupPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // 성공 시 홈페이지로 이동
         router.push('/');
       } else {
         setError(data.error || '닉네임 설정에 실패했습니다.');
@@ -214,7 +206,6 @@ export default function NicknameSetupPage() {
                 </div>
               </div>
               
-              {/* 상태 메시지 - 항상 표시하여 레이아웃 안정화 */}
               <p className={`text-sm transition-colors duration-200 min-h-[20px] ${
                 nickname.length < 2
                   ? 'text-gray-400'
@@ -238,12 +229,10 @@ export default function NicknameSetupPage() {
                 }
               </p>
               
-              {/* 에러 메시지 */}
               {error && (
                 <p className="text-sm text-red-600">{error}</p>
               )}
               
-              {/* 도움말 */}
               <p className="text-xs text-gray-500">
                 한글, 영문, 숫자, _, -, 공백만 사용 가능합니다.
               </p>

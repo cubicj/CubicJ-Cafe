@@ -161,7 +161,6 @@ export class ComfyUIClient {
     return this.baseURL
   }
 
-  // Server Manager 메소드들
   async checkServerHealth(): Promise<boolean> {
     return this.serverManager.checkServerHealth()
   }
@@ -182,7 +181,6 @@ export class ComfyUIClient {
     return this.serverManager.checkActiveRunpodServers()
   }
 
-  // Model Manager 메소드들
   async getObjectInfo(): Promise<Record<string, unknown>> {
     return this.modelManager.getObjectInfo()
   }
@@ -199,7 +197,6 @@ export class ComfyUIClient {
     return this.modelManager.getModelList()
   }
 
-  // Media Manager 메소드들
   async uploadImage(file: File): Promise<string> {
     return this.mediaManager.uploadImage(file)
   }

@@ -28,14 +28,12 @@ export function LoRABundleManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // LoRA 파일 목록 상태
   const [availableLoRAs, setAvailableLoRAs] = useState<{
     high: string[];
     low: string[];
   }>({ high: [], low: [] });
   const [isLoadingLoRAs, setIsLoadingLoRAs] = useState(false);
   
-  // 번들 추가/편집 다이얼로그 상태
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBundle, setEditingBundle] = useState<LoRABundle | null>(null);
   const [formData, setFormData] = useState({
@@ -44,7 +42,6 @@ export function LoRABundleManager() {
     lowLoRAFilename: '',
   });
 
-  // 번들 목록 조회
   const fetchBundles = async () => {
     setIsLoading(true);
     setError(null);
@@ -67,7 +64,6 @@ export function LoRABundleManager() {
     }
   };
 
-  // LoRA 파일 목록 조회
   const fetchAvailableLoRAs = async () => {
     setIsLoadingLoRAs(true);
     
@@ -85,7 +81,6 @@ export function LoRABundleManager() {
       });
       log.info('LoRA file list fetched', { high: data.categorized?.high?.length || 0, low: data.categorized?.low?.length || 0 });
     } catch (err) {
-      // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
         log.error('Failed to fetch LoRA file list', { error: err instanceof Error ? err.message : String(err) });
       }
@@ -95,7 +90,6 @@ export function LoRABundleManager() {
     }
   };
 
-  // 번들 생성/수정
   const handleSubmit = async () => {
     try {
       const url = editingBundle 
@@ -120,10 +114,7 @@ export function LoRABundleManager() {
 
       log.info('LoRA bundle saved successfully', { action: editingBundle ? 'updated' : 'created' });
       
-      // 목록 새로고침
       await fetchBundles();
-      
-      // 다이얼로그 닫기
       setIsDialogOpen(false);
       setEditingBundle(null);
       resetForm();
@@ -134,7 +125,6 @@ export function LoRABundleManager() {
     }
   };
 
-  // 번들 삭제
   const handleDelete = async (bundleId: string) => {
     if (!confirm('정말로 이 번들을 삭제하시겠습니까?')) {
       return;
@@ -152,8 +142,6 @@ export function LoRABundleManager() {
       }
 
       log.info('LoRA bundle deleted successfully');
-      
-      // 목록 새로고침
       await fetchBundles();
       
     } catch (err) {
@@ -164,7 +152,6 @@ export function LoRABundleManager() {
 
 
 
-  // 폼 초기화
   const resetForm = () => {
     setFormData({
       displayName: '',
@@ -173,12 +160,10 @@ export function LoRABundleManager() {
     });
   };
 
-  // 사용된 LoRA 파일들을 식별하는 함수
   const getUsedLoRAFiles = () => {
     const usedFiles = new Set<string>();
     bundles.forEach(bundle => {
       if (editingBundle && bundle.id === editingBundle.id) {
-        // 편집 중인 번들은 제외 (자기 자신의 LoRA는 사용 가능)
         return;
       }
       usedFiles.add(bundle.highLoRAFilename);
@@ -187,7 +172,6 @@ export function LoRABundleManager() {
     return usedFiles;
   };
 
-  // LoRA 파일을 사용 여부에 따라 정렬하는 함수
   const sortLoRAsByUsage = (loraFiles: string[]) => {
     const usedFiles = getUsedLoRAFiles();
     const unused = loraFiles.filter(file => !usedFiles.has(file));
@@ -195,13 +179,11 @@ export function LoRABundleManager() {
     return [...unused, ...used];
   };
 
-  // LoRA 파일이 사용 중인지 확인하는 함수
   const isLoRAUsed = (filename: string) => {
     const usedFiles = getUsedLoRAFiles();
     return usedFiles.has(filename);
   };
 
-  // 편집 모드로 전환
   const handleEdit = (bundle: LoRABundle) => {
     setEditingBundle(bundle);
     setFormData({
@@ -212,7 +194,6 @@ export function LoRABundleManager() {
     setIsDialogOpen(true);
   };
 
-  // 새 번들 추가 모드
   const handleAdd = () => {
     setEditingBundle(null);
     resetForm();
@@ -323,7 +304,6 @@ export function LoRABundleManager() {
         )}
       </div>
 
-      {/* 번들 추가/편집 다이얼로그 */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
           <DialogHeader className="space-y-3 pb-4">

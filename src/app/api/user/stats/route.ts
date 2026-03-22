@@ -18,14 +18,10 @@ export async function GET() {
 
     const userId = parseInt(user.id);
     
-    // 병렬로 통계 데이터 수집
     const [queueRequestCount, loraPresetCount] = await Promise.all([
-      // 큐 요청 총 횟수
       prisma.queueRequest.count({
         where: { userId: userId }
       }),
-      
-      // LoRA 프리셋 개수
       prisma.loRAPreset.count({
         where: { userId: userId }
       })

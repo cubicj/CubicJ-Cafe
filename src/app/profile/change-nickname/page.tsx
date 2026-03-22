@@ -58,7 +58,6 @@ export default function NicknameChangeePage() {
     checkAuthStatus();
   }, [router]);
 
-  // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
@@ -67,7 +66,6 @@ export default function NicknameChangeePage() {
     };
   }, []);
 
-  // 닉네임 중복 확인
   const checkNickname = async (value: string) => {
     if (value.length < 2 || value === currentNickname) {
       setIsAvailable(value === currentNickname ? true : null);
@@ -89,24 +87,20 @@ export default function NicknameChangeePage() {
     }
   };
 
-  // 닉네임 입력 처리
   const handleNicknameChange = (value: string) => {
     setNickname(value);
     setError('');
-    setIsAvailable(null); // 즉시 상태 초기화로 반짝임 방지
-    
-    // 이전 타이머 정리
+    setIsAvailable(null);
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
     
-    // 새 타이머 설정 (1초로 증가)
     debounceTimer.current = setTimeout(() => {
       checkNickname(value);
     }, 1000);
   };
 
-  // 닉네임 변경 제출
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -136,7 +130,6 @@ export default function NicknameChangeePage() {
       const data = await response.json();
 
       if (response.ok) {
-        // 성공 시 홈페이지로 이동하고 새로고침
         window.location.href = '/';
       } else {
         setError(data.error || '닉네임 변경에 실패했습니다.');
@@ -163,7 +156,6 @@ export default function NicknameChangeePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 p-6">
       <div className="max-w-2xl mx-auto pt-12">
-        {/* 뒤로 가기 버튼 */}
         <div className="mb-8">
           <Link 
             href="/" 
@@ -229,7 +221,6 @@ export default function NicknameChangeePage() {
                   </div>
                 </div>
                 
-                {/* 상태 메시지 - 항상 표시하여 레이아웃 안정화 */}
                 <p className={`text-sm transition-colors duration-200 min-h-[20px] ${
                   nickname.length < 2
                     ? 'text-gray-400'
@@ -257,12 +248,10 @@ export default function NicknameChangeePage() {
                   }
                 </p>
                 
-                {/* 에러 메시지 */}
                 {error && (
                   <p className="text-sm text-red-600">{error}</p>
                 )}
                 
-                {/* 도움말 */}
                 <p className="text-xs text-gray-500">
                   한글, 영문, 숫자, _, -, 공백만 사용 가능합니다.
                 </p>

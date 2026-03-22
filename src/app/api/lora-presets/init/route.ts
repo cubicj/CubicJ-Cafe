@@ -5,7 +5,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
-// POST: 기본 LoRA 프리셋들 초기화
 export async function POST() {
   try {
     await LoRAPresetService.createDefaultPresets();

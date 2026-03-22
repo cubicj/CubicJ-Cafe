@@ -42,14 +42,12 @@ export default function Header() {
     <header className="bg-white border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* 로고 */}
           <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
             <ClientIcon icon={Coffee} fallback="☕" className="h-6 w-6 sm:h-7 sm:w-7 text-amber-700" />
             <span className="font-bold text-lg sm:text-xl text-gray-800 hidden sm:block">CubicJ Cafe</span>
             <span className="font-bold text-lg text-gray-800 block sm:hidden">Cafe</span>
           </Link>
 
-          {/* 네비게이션 탭 */}
           <nav className="flex items-center">
             <div className="flex bg-muted rounded-lg p-1">
               <Link
@@ -77,7 +75,6 @@ export default function Header() {
             </div>
           </nav>
 
-          {/* 사용자 영역 */}
           <div className="flex items-center space-x-4">
             {isLoading ? (
               <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full"></div>

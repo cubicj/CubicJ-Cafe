@@ -5,7 +5,6 @@ import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 const log = createLogger('comfyui');
-// env removed - using process.env directly
 
 interface ServerStatus {
   type: 'local' | 'runpod'
@@ -32,18 +31,15 @@ export async function GET() {
         timestamp: new Date().toISOString()
       });
     }
-    // 서버 체크 함수들을 병렬로 실행
     const serverCheckPromises: Promise<ServerStatus>[] = []
-    
-    // 로컬 서버 체크 (빠른 ping 사용)
+
     const localServerPromise = async (): Promise<ServerStatus> => {
       try {
         const localClient = new ComfyUIClient({ 
-          timeout: 2000, // 2초로 단축
-          maxRetries: 0   // 재시도 없음
+          timeout: 2000,
+          maxRetries: 0
         })
-        
-        // 빠른 ping 체크
+
         const isHealthy = await localClient.pingServer()
         let queueInfo = null
         
@@ -51,7 +47,6 @@ export async function GET() {
           try {
             queueInfo = await localClient.getQueueStatus()
           } catch {
-            // 큐 정보 조회 실패해도 서버는 연결된 것으로 처리
           }
         }
         
@@ -75,18 +70,16 @@ export async function GET() {
     
     serverCheckPromises.push(localServerPromise())
 
-    // Runpod 서버들 체크 (병렬로)
     const runpodUrls = (process.env.COMFYUI_RUNPOD_URLS || '').split(',').filter(url => url.trim());
     runpodUrls.forEach((url, i) => {
       const runpodServerPromise = async (): Promise<ServerStatus> => {
         try {
           const runpodClient = new ComfyUIClient({ 
             baseURL: url,
-            timeout: 2000, // 2초로 단축
-            maxRetries: 0   // 재시도 없음
+            timeout: 2000,
+            maxRetries: 0
           })
-          
-          // 빠른 ping 체크
+
           const isHealthy = await runpodClient.pingServer()
           let queueInfo = null
           
@@ -94,7 +87,6 @@ export async function GET() {
             try {
               queueInfo = await runpodClient.getQueueStatus()
             } catch {
-              // 큐 정보 조회 실패해도 서버는 연결된 것으로 처리
             }
           }
           
@@ -119,10 +111,8 @@ export async function GET() {
       serverCheckPromises.push(runpodServerPromise())
     })
     
-    // 모든 서버 체크를 병렬로 실행
     const servers = await Promise.all(serverCheckPromises)
 
-    // 통계 계산
     const localServers = servers.filter(s => s.type === 'local')
     const runpodServers = servers.filter(s => s.type === 'runpod')
     

@@ -319,23 +319,8 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   
   try {
-    // TODO: 커스텀 세션 인증으로 교체 필요
-    // const session = await getServerSession(authOptions);
-    // 
-    // if (!session?.user) {
-    //   log.warn('Unauthorized monitoring access attempt', {
-    //     ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-    //     userAgent: request.headers.get('user-agent'),
-    //   });
-    //   
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
-
     log.info('Monitoring data requested', {
-      user: 'admin', // TODO: 실제 사용자 정보로 교체
+      user: 'admin',
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     });
 
@@ -373,7 +358,7 @@ export async function GET(request: NextRequest) {
     };
 
     log.info('Monitoring data collected', {
-      user: 'admin', // TODO: 실제 사용자 정보로 교체
+      user: 'admin',
       responseTime,
       dataSize: JSON.stringify(monitoringData).length,
     });

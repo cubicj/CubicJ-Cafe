@@ -92,15 +92,12 @@ export default function LanguageSettingsPage() {
     setSaveMessage('');
     
     try {
-      // 로컬 스토리지에 저장
       localStorage.setItem(`translation_service_${user.id}`, selectedService);
       
-      // UI 피드백을 위한 지연
       await new Promise(resolve => setTimeout(resolve, 800));
       
       setSaveMessage('번역 설정이 저장되었습니다.');
       
-      // 3초 후 메시지 숨기기
       setTimeout(() => setSaveMessage(''), 3000);
       
       log.info('Translation service saved', { service: selectedService });
@@ -129,7 +126,6 @@ export default function LanguageSettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* 번역 툴 선택 카드 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-3">

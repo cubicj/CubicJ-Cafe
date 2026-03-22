@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 최적 서버 선택
     const selectedServer = await selectBestServer();
     if (!selectedServer) {
       log.info('Server selection failed: no available ComfyUI servers.');
@@ -138,13 +137,11 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 이미지 파일을 임시 디렉토리에 저장
       const tempDir = join(process.cwd(), 'public', 'temp')
       if (!existsSync(tempDir)) {
         await mkdir(tempDir, { recursive: true })
       }
       
-      // 시작 이미지 저장 - UUID + 타임스탬프 + 사용자ID로 고유 파일명 생성
       const uuid = randomUUID()
       const timestamp = Date.now()
       const userId = session.user.id

@@ -6,7 +6,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
-// GET: 사용자의 LoRA 프리셋 목록 조회
 export async function GET() {
   try {
     const session = await getServerSession();
@@ -33,7 +32,6 @@ export async function GET() {
   }
 }
 
-// POST: 새 LoRA 프리셋 생성
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();

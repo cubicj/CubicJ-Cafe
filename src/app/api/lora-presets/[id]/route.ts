@@ -6,7 +6,6 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
-// GET: 특정 LoRA 프리셋 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,7 +42,6 @@ export async function GET(
   }
 }
 
-// PUT: LoRA 프리셋 수정
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -117,7 +115,6 @@ export async function PUT(
   }
 }
 
-// DELETE: LoRA 프리셋 삭제
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -36,7 +36,6 @@ export function TranslationControls({
 
   const [translationService, setTranslationService] = useState<'google' | 'gemini'>('google');
 
-  // 사용자 설정에서 번역 서비스 로드
   useEffect(() => {
     const loadTranslationSettings = async () => {
       try {
@@ -58,7 +57,6 @@ export function TranslationControls({
     loadTranslationSettings();
   }, []);
 
-  // 외부에서 텍스트가 변경되면 상태 업데이트
   useEffect(() => {
     if (!state.isTranslated && text !== state.currentText) {
       setState(prev => ({

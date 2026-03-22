@@ -9,7 +9,6 @@ import { Palette, Zap } from 'lucide-react';
 export default function Home() {
   return (
     <div className="bg-gradient-to-br from-slate-50 to-slate-200 min-h-full">
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center space-y-6">
           <h1 className="text-5xl font-bold text-slate-800">
@@ -21,7 +20,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services Section */}
       <section className="container mx-auto px-4 py-16 pb-32">
         <h2 className="text-3xl font-bold text-center mb-12 text-slate-800">
           서비스

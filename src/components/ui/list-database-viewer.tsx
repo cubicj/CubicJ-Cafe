@@ -86,7 +86,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
   const handleTableSelect = (tableName: string) => {
     setSelectedTable(tableName);
     setCurrentPage(1);
-    // 정렬 상태 초기화
     setOrderBy(null);
     setOrderDirection('desc');
     fetchTableData(tableName, 1);
@@ -103,7 +102,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
       let newDirection: 'asc' | 'desc' = 'desc';
       
       if (orderBy === field) {
-        // 같은 필드를 클릭한 경우 방향 토글
         newDirection = orderDirection === 'desc' ? 'asc' : 'desc';
       }
       
@@ -182,7 +180,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
 
     return (
       <div className="border rounded-lg overflow-hidden">
-        {/* 헤더 */}
         <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
           <div className="col-span-3">
             <SortableHeader field="nickname">닉네임</SortableHeader>
@@ -199,7 +196,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
           <div className="col-span-2">큐/프리셋</div>
         </div>
 
-        {/* 데이터 행들 */}
         <div className="divide-y">
           {tableData.data.map((user: any, index: number) => {
             const itemId = `user-${index}`;
@@ -255,7 +251,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
 
     return (
       <div className="border rounded-lg overflow-hidden">
-        {/* 헤더 */}
         <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
           <div className="col-span-2">
             <SortableHeader field="nickname">닉네임</SortableHeader>
@@ -273,7 +268,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
           <div className="col-span-2">작업 정보</div>
         </div>
 
-        {/* 데이터 행들 */}
         <div className="divide-y">
           {tableData.data.map((request: any, index: number) => {
             const itemId = `queue-${index}`;
@@ -388,7 +382,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
 
     return (
       <div className="border rounded-lg overflow-hidden">
-        {/* 헤더 */}
         <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
           <div className="col-span-3">
             <SortableHeader field="name">프리셋 이름</SortableHeader>
@@ -403,7 +396,6 @@ export default function ListDatabaseViewer({ className }: ListDatabaseViewerProp
           </div>
         </div>
 
-        {/* 데이터 행들 */}
         <div className="divide-y">
           {tableData.data.map((preset: any, index: number) => {
             const itemId = `preset-${index}`;

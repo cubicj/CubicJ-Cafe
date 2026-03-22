@@ -162,7 +162,6 @@ export default function LogViewerTab() {
           return next.length > MAX_ENTRIES ? next.slice(-MAX_ENTRIES) : next;
         });
       } catch {
-        // ignore parse errors
       }
     };
 
