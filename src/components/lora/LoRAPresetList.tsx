@@ -24,13 +24,14 @@ export function LoRAPresetList({
   copySuccess,
   onDragEnd,
   isLoRAAvailable,
+  activeModel,
 }: LoRAPresetListProps) {
   const selectedPresets = presets.filter(p => selectedPresetIds.includes(p.id));
 
   const getCombinedLoRAItems = () => {
     const highLoRAMap = new Map();
     const lowLoRAMap = new Map();
-    
+
     selectedPresets.forEach(preset => {
       preset.loraItems.forEach(item => {
         if (item.group === 'HIGH') {
@@ -50,11 +51,26 @@ export function LoRAPresetList({
         }
       });
     });
-    
+
     return [...Array.from(highLoRAMap.values()), ...Array.from(lowLoRAMap.values())];
   };
 
+  const getFlatCombinedLoRAItems = () => {
+    const loRAMap = new Map();
+    selectedPresets.forEach(preset => {
+      preset.loraItems.forEach(item => {
+        loRAMap.set(item.loraFilename, {
+          loraFilename: item.loraFilename,
+          loraName: item.loraName,
+          strength: item.strength,
+        });
+      });
+    });
+    return Array.from(loRAMap.values());
+  };
+
   const combinedLoRAItems = getCombinedLoRAItems();
+  const flatCombinedLoRAItems = getFlatCombinedLoRAItems();
 
   return (
     <div className="space-y-4">
@@ -208,60 +224,87 @@ export function LoRAPresetList({
 
                             {isExpanded && preset.loraItems.length > 0 && (
                               <div className="px-3 sm:px-6 pb-3 space-y-3 bg-muted/25">
-                                {preset.loraItems.filter(item => item.group === 'HIGH').length > 0 && (
-                                  <div className="space-y-2">
-                                    <p className="text-xs text-muted-foreground font-medium">High 모델:</p>
-                                    <div className="space-y-1 pl-2">
-                                      {preset.loraItems.filter(item => item.group === 'HIGH').map((item, index) => {
-                                        const isAvailable = isLoRAAvailable(item.loraFilename);
-                                        return (
-                                          <div key={`high-${index}`} className="flex items-center justify-between gap-2 text-xs">
-                                            <Badge 
-                                              variant="outline" 
-                                              className={cn(
-                                                "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
-                                              )}
-                                              title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
-                                            >
-                                              {item.loraName}
-                                            </Badge>
-                                            <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
-                                              강도: {item.strength.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
+                                {activeModel === 'ltx' ? (
+                                  <div className="space-y-1 pl-2">
+                                    {preset.loraItems.map((item, index) => {
+                                      const isAvailable = isLoRAAvailable(item.loraFilename);
+                                      return (
+                                        <div key={`lora-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                                          <Badge
+                                            variant="outline"
+                                            className={cn(
+                                              "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                                              !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                            )}
+                                            title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                                          >
+                                            {item.loraName}
+                                          </Badge>
+                                          <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                                            강도: {item.strength.toFixed(1)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                )}
-                                
-                                {preset.loraItems.filter(item => item.group === 'LOW').length > 0 && (
-                                  <div className="space-y-2">
-                                    <p className="text-xs text-muted-foreground font-medium">Low 모델:</p>
-                                    <div className="space-y-1 pl-2">
-                                      {preset.loraItems.filter(item => item.group === 'LOW').map((item, index) => {
-                                        const isAvailable = isLoRAAvailable(item.loraFilename);
-                                        return (
-                                          <div key={`low-${index}`} className="flex items-center justify-between gap-2 text-xs">
-                                            <Badge 
-                                              variant="secondary" 
-                                              className={cn(
-                                                "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
-                                              )}
-                                              title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
-                                            >
-                                              {item.loraName}
-                                            </Badge>
-                                            <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
-                                              강도: {item.strength.toFixed(1)}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
+                                ) : (
+                                  <>
+                                    {preset.loraItems.filter(item => item.group === 'HIGH').length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs text-muted-foreground font-medium">High 모델:</p>
+                                        <div className="space-y-1 pl-2">
+                                          {preset.loraItems.filter(item => item.group === 'HIGH').map((item, index) => {
+                                            const isAvailable = isLoRAAvailable(item.loraFilename);
+                                            return (
+                                              <div key={`high-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                                                <Badge
+                                                  variant="outline"
+                                                  className={cn(
+                                                    "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                                  )}
+                                                  title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                                                >
+                                                  {item.loraName}
+                                                </Badge>
+                                                <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                                                  강도: {item.strength.toFixed(1)}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {preset.loraItems.filter(item => item.group === 'LOW').length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs text-muted-foreground font-medium">Low 모델:</p>
+                                        <div className="space-y-1 pl-2">
+                                          {preset.loraItems.filter(item => item.group === 'LOW').map((item, index) => {
+                                            const isAvailable = isLoRAAvailable(item.loraFilename);
+                                            return (
+                                              <div key={`low-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                                                <Badge
+                                                  variant="secondary"
+                                                  className={cn(
+                                                    "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                                  )}
+                                                  title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                                                >
+                                                  {item.loraName}
+                                                </Badge>
+                                                <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                                                  강도: {item.strength.toFixed(1)}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             )}
@@ -281,65 +324,92 @@ export function LoRAPresetList({
       {selectedPresets.length > 0 && (
         <div className="space-y-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
           <h4 className="font-medium text-sm text-muted-foreground">최종 적용될 LoRA</h4>
-          
-          {combinedLoRAItems.length > 0 && (
-            <div className="space-y-3">
-              {combinedLoRAItems.filter(item => item.group === 'HIGH').length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">High 모델:</p>
-                  <div className="space-y-1 pl-2">
-                    {combinedLoRAItems.filter(item => item.group === 'HIGH').map((item, index) => {
-                      const isAvailable = isLoRAAvailable(item.loraFilename);
-                      return (
-                        <div key={`combined-high-${index}`} className="flex items-center justify-between gap-2 text-xs">
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                              !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
-                            )}
-                            title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
-                          >
-                            {item.loraName}
-                          </Badge>
-                          <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
-                            강도: {item.strength.toFixed(1)}
-                          </span>
-                        </div>
-                      );
-                    })}
+
+          {activeModel === 'ltx' ? (
+            flatCombinedLoRAItems.length > 0 && (
+              <div className="space-y-1 pl-2">
+                {flatCombinedLoRAItems.map((item, index) => {
+                  const isAvailable = isLoRAAvailable(item.loraFilename);
+                  return (
+                    <div key={`flat-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                          !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                        )}
+                        title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                      >
+                        {item.loraName}
+                      </Badge>
+                      <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                        강도: {item.strength.toFixed(1)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            combinedLoRAItems.length > 0 && (
+              <div className="space-y-3">
+                {combinedLoRAItems.filter(item => item.group === 'HIGH').length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">High 모델:</p>
+                    <div className="space-y-1 pl-2">
+                      {combinedLoRAItems.filter(item => item.group === 'HIGH').map((item, index) => {
+                        const isAvailable = isLoRAAvailable(item.loraFilename);
+                        return (
+                          <div key={`combined-high-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                              )}
+                              title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                            >
+                              {item.loraName}
+                            </Badge>
+                            <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                              강도: {item.strength.toFixed(1)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {combinedLoRAItems.filter(item => item.group === 'LOW').length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Low 모델:</p>
-                  <div className="space-y-1 pl-2">
-                    {combinedLoRAItems.filter(item => item.group === 'LOW').map((item, index) => {
-                      const isAvailable = isLoRAAvailable(item.loraFilename);
-                      return (
-                        <div key={`combined-low-${index}`} className="flex items-center justify-between gap-2 text-xs">
-                          <Badge 
-                            variant="secondary" 
-                            className={cn(
-                              "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                              !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
-                            )}
-                            title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
-                          >
-                            {item.loraName}
-                          </Badge>
-                          <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
-                            강도: {item.strength.toFixed(1)}
-                          </span>
-                        </div>
-                      );
-                    })}
+                )}
+
+                {combinedLoRAItems.filter(item => item.group === 'LOW').length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">Low 모델:</p>
+                    <div className="space-y-1 pl-2">
+                      {combinedLoRAItems.filter(item => item.group === 'LOW').map((item, index) => {
+                        const isAvailable = isLoRAAvailable(item.loraFilename);
+                        return (
+                          <div key={`combined-low-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "font-mono text-xs truncate cursor-help flex-1 min-w-0",
+                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                              )}
+                              title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
+                            >
+                              {item.loraName}
+                            </Badge>
+                            <span className="text-muted-foreground flex-shrink-0 text-xs whitespace-nowrap">
+                              강도: {item.strength.toFixed(1)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )
           )}
         </div>
       )}

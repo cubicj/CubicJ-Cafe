@@ -145,6 +145,7 @@ export default function GeneratePageClient() {
                     selectedPresetIds={selectedPresetIds}
                     onPresetChange={setSelectedPresetIds}
                     onPresetApply={setCurrentPresets}
+                    activeModel={activeModel}
                   />
                 </div>
               )}
