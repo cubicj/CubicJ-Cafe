@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { sessionManager } from '@/lib/auth/session';
+import { withOptionalAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
 import { isAdmin } from '@/lib/auth/admin';
 import fs from 'fs/promises';
 
@@ -138,82 +138,77 @@ async function checkFilesystemService(): Promise<ServiceStatus> {
   }
 }
 
-async function isAdminRequest(request: NextRequest): Promise<boolean> {
-  const sessionId = sessionManager.getSessionIdFromRequest(request);
-  if (!sessionId) return false;
-  const session = await sessionManager.validateSession(sessionId);
-  return !!session?.user?.discordId && isAdmin(session.user.discordId);
-}
-
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  return withOptionalAuth(request, async (req: AuthenticatedRequest) => {
+    const startTime = Date.now();
 
-  try {
-    const admin = await isAdminRequest(request);
+    try {
+      const admin = !!req.user?.discordId && isAdmin(req.user.discordId);
 
-    const [comfyui, database, discord, filesystem] = await Promise.all([
-      checkComfyUIService(),
-      checkDatabaseService(),
-      checkDiscordService(),
-      checkFilesystemService(),
-    ]);
+      const [comfyui, database, discord, filesystem] = await Promise.all([
+        checkComfyUIService(),
+        checkDatabaseService(),
+        checkDiscordService(),
+        checkFilesystemService(),
+      ]);
 
-    const services = { database, comfyui, discord, filesystem };
+      const services = { database, comfyui, discord, filesystem };
 
-    const servicesHealthy = Object.values(services).filter(s => s.status === 'healthy').length;
-    const totalServices = Object.values(services).length;
+      const servicesHealthy = Object.values(services).filter(s => s.status === 'healthy').length;
+      const totalServices = Object.values(services).length;
 
-    let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-    if (servicesHealthy === 0) {
-      overallStatus = 'unhealthy';
-    } else if (servicesHealthy < totalServices) {
-      overallStatus = 'degraded';
-    }
+      let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
+      if (servicesHealthy === 0) {
+        overallStatus = 'unhealthy';
+      } else if (servicesHealthy < totalServices) {
+        overallStatus = 'degraded';
+      }
 
-    const responseTime = Date.now() - startTime;
-    const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
+      const responseTime = Date.now() - startTime;
+      const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
 
-    const publicResponse = {
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '0.1.0',
-      services: Object.fromEntries(
-        Object.entries(services).map(([key, val]) => [key, { status: val.status }])
-      ),
-      performance: { responseTime },
-    };
+      const publicResponse = {
+        status: overallStatus,
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || '0.1.0',
+        services: Object.fromEntries(
+          Object.entries(services).map(([key, val]) => [key, { status: val.status }])
+        ),
+        performance: { responseTime },
+      };
 
-    if (!admin) {
-      return NextResponse.json(publicResponse, { status: statusCode });
-    }
+      if (!admin) {
+        return NextResponse.json(publicResponse, { status: statusCode });
+      }
 
-    const memoryUsage = process.memoryUsage();
+      const memoryUsage = process.memoryUsage();
 
-    return NextResponse.json({
-      ...publicResponse,
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development',
-      services,
-      system: {
-        memory: {
-          used: memoryUsage.heapUsed,
-          total: memoryUsage.heapTotal,
-          percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
+      return NextResponse.json({
+        ...publicResponse,
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        services,
+        system: {
+          memory: {
+            used: memoryUsage.heapUsed,
+            total: memoryUsage.heapTotal,
+            percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
+          },
+          process: {
+            pid: process.pid,
+            uptime: process.uptime(),
+            memoryUsage,
+          },
         },
-        process: {
-          pid: process.pid,
-          uptime: process.uptime(),
-          memoryUsage,
-        },
-      },
-    }, { status: statusCode });
+      }, { status: statusCode });
 
-  } catch (error) {
-    log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
+    } catch (error) {
+      log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
 
-    return NextResponse.json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-    }, { status: 503 });
-  }
+      return NextResponse.json({
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+      }, { status: 503 });
+    }
+  });
 }

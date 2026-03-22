@@ -1,7 +1,6 @@
 import { prisma } from './prisma';
 import type { Session, User } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { NextRequest } from 'next/server';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');
@@ -164,17 +163,3 @@ export class SessionService {
   }
 }
 
-// NextRequest에서 세션 정보를 가져오는 헬퍼 함수
-export async function getSession(request: NextRequest): Promise<SessionWithUser | null> {
-  try {
-    const sessionId = request.cookies.get('session_id')?.value;
-    if (!sessionId) {
-      return null;
-    }
-
-    return await SessionService.findValidSession(sessionId);
-  } catch (error) {
-    log.error('Session lookup failed', { error: error instanceof Error ? error.message : String(error) });
-    return null;
-  }
-}

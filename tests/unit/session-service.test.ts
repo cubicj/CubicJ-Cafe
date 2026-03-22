@@ -1,7 +1,7 @@
 import { cleanTables } from '../helpers/db'
 import { createUser } from '../helpers/fixtures'
-import { createTestSession, createExpiredSession, buildRequest, buildAuthenticatedRequest } from '../helpers/auth'
-import { SessionService, getSession } from '@/lib/database/sessions'
+import { createTestSession, createExpiredSession } from '../helpers/auth'
+import { SessionService } from '@/lib/database/sessions'
 import { prisma } from '@/lib/database/prisma'
 
 beforeEach(async () => {
@@ -164,32 +164,3 @@ describe('SessionService', () => {
   })
 })
 
-describe('getSession', () => {
-  it('returns valid session from request cookie', async () => {
-    const user = await createUser()
-    const session = await createTestSession(user.id)
-    const request = buildAuthenticatedRequest('http://localhost:3000/api/test', session.id)
-
-    const found = await getSession(request)
-
-    expect(found).not.toBeNull()
-    expect(found!.id).toBe(session.id)
-    expect(found!.user.id).toBe(user.id)
-  })
-
-  it('returns null when no session cookie', async () => {
-    const request = buildRequest('http://localhost:3000/api/test')
-
-    const found = await getSession(request)
-    expect(found).toBeNull()
-  })
-
-  it('returns null for expired session cookie', async () => {
-    const user = await createUser()
-    const session = await createExpiredSession(user.id)
-    const request = buildAuthenticatedRequest('http://localhost:3000/api/test', session.id)
-
-    const found = await getSession(request)
-    expect(found).toBeNull()
-  })
-})

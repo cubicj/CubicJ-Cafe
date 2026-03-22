@@ -1,14 +1,7 @@
-import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createUser } from '../../helpers/fixtures'
-import { buildRequest } from '../../helpers/auth'
-import type { User } from '@prisma/client'
+import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 
-vi.mock('@/lib/auth/server', () => ({
-  getServerSession: vi.fn(),
-}))
-
-import { getServerSession } from '@/lib/auth/server'
 import { GET, POST } from '@/app/api/lora-presets/route'
 import {
   GET as GET_BY_ID,
@@ -16,35 +9,17 @@ import {
   DELETE,
 } from '@/app/api/lora-presets/[id]/route'
 
-const mockedGetServerSession = vi.mocked(getServerSession)
-
 const LORA_ITEMS = [
   { loraFilename: 'test-lora-1.safetensors', loraName: 'Test LoRA 1', strength: 0.8, group: 'HIGH' as const },
   { loraFilename: 'test-lora-2.safetensors', loraName: 'Test LoRA 2', strength: 0.6, group: 'LOW' as const },
 ]
 
-function mockSession(user: User) {
-  mockedGetServerSession.mockResolvedValue({
-    user: {
-      id: String(user.id),
-      discordId: user.discordId,
-      discordUsername: user.discordUsername,
-      nickname: user.nickname,
-      avatar: user.avatar || undefined,
-      name: user.discordUsername,
-      image: null,
-    },
-  })
-}
+let sessionId: string
 
-function mockNoSession() {
-  mockedGetServerSession.mockResolvedValue(null)
-}
-
-async function createPresetViaAPI(name: string, loraItems = LORA_ITEMS) {
-  const req = buildRequest('/api/lora-presets', {
+async function createPresetViaAPI(name: string, loraItems = LORA_ITEMS, model?: string) {
+  const req = buildAuthenticatedRequest('/api/lora-presets', sessionId, {
     method: 'POST',
-    body: JSON.stringify({ name, loraItems }),
+    body: JSON.stringify({ name, loraItems, model }),
   })
   const res = await POST(req)
   return res.json()
@@ -52,23 +27,22 @@ async function createPresetViaAPI(name: string, loraItems = LORA_ITEMS) {
 
 beforeEach(async () => {
   await cleanTables()
-  mockedGetServerSession.mockReset()
 })
 
 describe('GET /api/lora-presets', () => {
   it('returns 401 when not authenticated', async () => {
-    mockNoSession()
     const res = await GET(buildRequest('/api/lora-presets'))
     expect(res.status).toBe(401)
   })
 
   it("returns user's presets", async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
     await createPresetViaAPI('My Preset')
 
-    const res = await GET(buildRequest('/api/lora-presets'))
+    const res = await GET(buildAuthenticatedRequest('/api/lora-presets', sessionId))
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -83,7 +57,6 @@ describe('GET /api/lora-presets', () => {
 
 describe('POST /api/lora-presets', () => {
   it('returns 401 when not authenticated', async () => {
-    mockNoSession()
     const req = buildRequest('/api/lora-presets', {
       method: 'POST',
       body: JSON.stringify({ name: 'test', loraItems: LORA_ITEMS }),
@@ -94,9 +67,10 @@ describe('POST /api/lora-presets', () => {
 
   it('creates preset with name and lora items', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
-    const req = buildRequest('/api/lora-presets', {
+    const req = buildAuthenticatedRequest('/api/lora-presets', sessionId, {
       method: 'POST',
       body: JSON.stringify({ name: 'New Preset', loraItems: LORA_ITEMS }),
     })
@@ -112,9 +86,9 @@ describe('POST /api/lora-presets', () => {
 
   it('returns 400 when name is missing', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
 
-    const req = buildRequest('/api/lora-presets', {
+    const req = buildAuthenticatedRequest('/api/lora-presets', session.id, {
       method: 'POST',
       body: JSON.stringify({ name: '', loraItems: LORA_ITEMS }),
     })
@@ -125,7 +99,6 @@ describe('POST /api/lora-presets', () => {
 
 describe('GET /api/lora-presets/[id]', () => {
   it('returns 401 when not authenticated', async () => {
-    mockNoSession()
     const req = buildRequest('/api/lora-presets/some-id')
     const res = await GET_BY_ID(req, { params: Promise.resolve({ id: 'some-id' }) })
     expect(res.status).toBe(401)
@@ -133,11 +106,12 @@ describe('GET /api/lora-presets/[id]', () => {
 
   it('returns preset by id', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
     const created = await createPresetViaAPI('Fetch Me')
 
-    const req = buildRequest(`/api/lora-presets/${created.preset.id}`)
+    const req = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId)
     const res = await GET_BY_ID(req, { params: Promise.resolve({ id: created.preset.id }) })
     const body = await res.json()
 
@@ -149,9 +123,9 @@ describe('GET /api/lora-presets/[id]', () => {
 
   it('returns 404 for non-existent id', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
 
-    const req = buildRequest('/api/lora-presets/nonexistent')
+    const req = buildAuthenticatedRequest('/api/lora-presets/nonexistent', session.id)
     const res = await GET_BY_ID(req, { params: Promise.resolve({ id: 'nonexistent' }) })
     expect(res.status).toBe(404)
   })
@@ -160,7 +134,8 @@ describe('GET /api/lora-presets/[id]', () => {
 describe('PUT /api/lora-presets/[id]', () => {
   it('updates preset name and items', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
     const created = await createPresetViaAPI('Original')
 
@@ -168,7 +143,7 @@ describe('PUT /api/lora-presets/[id]', () => {
       { loraFilename: 'updated-lora.safetensors', loraName: 'Updated LoRA', strength: 1.0, group: 'LOW' as const },
     ]
 
-    const req = buildRequest(`/api/lora-presets/${created.preset.id}`, {
+    const req = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId, {
       method: 'PUT',
       body: JSON.stringify({ name: 'Updated', loraItems: updatedItems }),
     })
@@ -184,9 +159,9 @@ describe('PUT /api/lora-presets/[id]', () => {
 
   it('returns error for non-existent id', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
 
-    const req = buildRequest('/api/lora-presets/nonexistent', {
+    const req = buildAuthenticatedRequest('/api/lora-presets/nonexistent', session.id, {
       method: 'PUT',
       body: JSON.stringify({ name: 'Nope' }),
     })
@@ -200,42 +175,27 @@ describe('PUT /api/lora-presets/[id]', () => {
 describe('model-scoped presets', () => {
   it('GET filters presets by model query param', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
-    const wanReq = buildRequest('/api/lora-presets', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'WAN Preset',
-        model: 'wan',
-        loraItems: [{ loraFilename: 'wan-lora.safetensors', loraName: 'WAN', strength: 0.8, group: 'HIGH', order: 0 }],
-      }),
-    })
-    await POST(wanReq)
+    await createPresetViaAPI('WAN Preset', [{ loraFilename: 'wan-lora.safetensors', loraName: 'WAN', strength: 0.8, group: 'HIGH' as const }], 'wan')
+    await createPresetViaAPI('LTX Preset', [{ loraFilename: 'ltx-lora.safetensors', loraName: 'LTX', strength: 0.7, group: 'HIGH' as const }], 'ltx')
 
-    const ltxReq = buildRequest('/api/lora-presets', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'LTX Preset',
-        model: 'ltx',
-        loraItems: [{ loraFilename: 'ltx-lora.safetensors', loraName: 'LTX', strength: 0.7, group: 'HIGH', order: 0 }],
-      }),
-    })
-    await POST(ltxReq)
-
-    const wanRes = await GET(buildRequest('/api/lora-presets?model=wan'))
+    const wanRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=wan', sessionId))
     const wanData = await wanRes.json()
     const userWanPresets = wanData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
     expect(userWanPresets.every((p: any) => p.model === 'wan')).toBe(true)
 
-    const ltxRes = await GET(buildRequest('/api/lora-presets?model=ltx'))
+    const ltxRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=ltx', sessionId))
     const ltxData = await ltxRes.json()
     expect(ltxData.presets.every((p: any) => p.model === 'ltx')).toBe(true)
   })
 
   it('GET defaults to wan when no model param', async () => {
     const user = await createUser()
-    mockSession(user)
-    const res = await GET(buildRequest('/api/lora-presets'))
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/lora-presets', session.id))
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.success).toBe(true)
@@ -243,8 +203,9 @@ describe('model-scoped presets', () => {
 
   it('POST stores model field on preset', async () => {
     const user = await createUser()
-    mockSession(user)
-    const req = buildRequest('/api/lora-presets', {
+    const session = await createTestSession(user.id)
+
+    const req = buildAuthenticatedRequest('/api/lora-presets', session.id, {
       method: 'POST',
       body: JSON.stringify({
         name: 'LTX Test',
@@ -261,11 +222,12 @@ describe('model-scoped presets', () => {
 describe('DELETE /api/lora-presets/[id]', () => {
   it('deletes own preset', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
+    sessionId = session.id
 
     const created = await createPresetViaAPI('Delete Me')
 
-    const req = buildRequest(`/api/lora-presets/${created.preset.id}`, {
+    const req = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId, {
       method: 'DELETE',
     })
     const res = await DELETE(req, { params: Promise.resolve({ id: created.preset.id }) })
@@ -274,16 +236,16 @@ describe('DELETE /api/lora-presets/[id]', () => {
     expect(res.status).toBe(200)
     expect(body.success).toBe(true)
 
-    const checkReq = buildRequest(`/api/lora-presets/${created.preset.id}`)
+    const checkReq = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId)
     const checkRes = await GET_BY_ID(checkReq, { params: Promise.resolve({ id: created.preset.id }) })
     expect(checkRes.status).toBe(404)
   })
 
   it('returns error for non-existent id', async () => {
     const user = await createUser()
-    mockSession(user)
+    const session = await createTestSession(user.id)
 
-    const req = buildRequest('/api/lora-presets/nonexistent', {
+    const req = buildAuthenticatedRequest('/api/lora-presets/nonexistent', session.id, {
       method: 'DELETE',
     })
     const res = await DELETE(req, { params: Promise.resolve({ id: 'nonexistent' }) })
