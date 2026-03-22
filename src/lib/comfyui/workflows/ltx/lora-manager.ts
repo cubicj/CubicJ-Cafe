@@ -61,7 +61,10 @@ export async function applyLtxLoraChain(
     previousNodeId = newNodeId
   }
 
-  workflow[AUDIO_NORM_NODE]!.inputs.model = [previousNodeId, 0]
+  const audioNormNode = workflow[AUDIO_NORM_NODE]
+  if (audioNormNode?.inputs) {
+    audioNormNode.inputs.model = [previousNodeId, 0]
+  }
 
   log.info('LTX LoRA chain applied', {
     presetName: loraPreset.presetName,

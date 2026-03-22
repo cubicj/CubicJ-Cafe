@@ -346,6 +346,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           endImage: uploadedEndImageName || undefined,
+          loraPreset: loraPreset || undefined,
         };
       }
 
