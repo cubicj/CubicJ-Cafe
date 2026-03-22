@@ -1,4 +1,5 @@
 import type { LtxGenerationParams } from '@/lib/comfyui/workflows/types'
+import type { LoRAPresetData } from '@/types/lora'
 import { buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
 
 const baseParams: LtxGenerationParams = {
@@ -74,6 +75,34 @@ describe('buildLtxWorkflow', () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['266']).toBeDefined()
       expect(workflow['266']!.class_type).toBe('LTXVPreprocess')
+    })
+  })
+
+  describe('LoRA preset integration', () => {
+    it('applies LoRA chain when preset provided', async () => {
+      const loraPreset: LoRAPresetData = {
+        presetId: '1',
+        presetName: 'test',
+        loraItems: [{
+          loraFilename: 'LTX\\Custom\\style.safetensors',
+          loraName: 'Style',
+          strength: 0.7,
+          group: 'HIGH',
+          order: 0,
+        }],
+      }
+      const params: LtxGenerationParams = { ...baseParams, loraPreset }
+      const workflow = await buildLtxWorkflow(params)
+
+      expect(workflow['400']).toBeDefined()
+      expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
+      expect(workflow['268']!.inputs!.model).toEqual(['400', 0])
+    })
+
+    it('does not add LoRA nodes when no preset', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['400']).toBeUndefined()
+      expect(workflow['268']!.inputs!.model).toEqual(['81', 0])
     })
   })
 })

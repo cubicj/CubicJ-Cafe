@@ -2,10 +2,11 @@ import type { LtxGenerationParams } from '../types'
 import type { ComfyUIWorkflow } from '@/types'
 import type { ComfyUIServer } from '../../server-manager'
 import { LTX_WORKFLOW_TEMPLATE } from './template'
+import { applyLtxLoraChain } from './lora-manager'
 
 export async function buildLtxWorkflow(
   params: LtxGenerationParams,
-  _server?: ComfyUIServer
+  server?: ComfyUIServer
 ): Promise<ComfyUIWorkflow> {
   const workflow = JSON.parse(JSON.stringify(LTX_WORKFLOW_TEMPLATE))
 
@@ -23,6 +24,10 @@ export async function buildLtxWorkflow(
     }
   } else {
     handleEndImageBypass(workflow)
+  }
+
+  if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
+    await applyLtxLoraChain(workflow, params.loraPreset, server)
   }
 
   if (workflow['16']) {
