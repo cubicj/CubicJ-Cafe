@@ -17,10 +17,6 @@ export async function buildLtxWorkflow(
     workflow['87'].inputs.image = params.inputImage
   }
 
-  if (workflow['103']) {
-    workflow['103'].inputs.value = params.durationSeconds
-  }
-
   if (params.endImage) {
     if (workflow['260']) {
       workflow['260'].inputs.image = params.endImage

@@ -329,7 +329,6 @@ class QueueMonitor {
           model: 'ltx',
           prompt: request.prompt,
           inputImage,
-          durationSeconds: request.duration || 5,
           endImage: uploadedEndImageName || undefined,
         };
       }
