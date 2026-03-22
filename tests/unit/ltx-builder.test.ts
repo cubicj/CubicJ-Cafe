@@ -45,4 +45,41 @@ describe('buildLtxWorkflow', () => {
     const workflow = await buildLtxWorkflow(params)
     expect(workflow['38']!.inputs!.filename_prefix).toBe('LTX/photo')
   })
+
+  describe('end image handling', () => {
+    it('sets end image in node 260 when provided', async () => {
+      const params: LtxGenerationParams = { ...baseParams, endImage: 'end-photo.png' }
+      const workflow = await buildLtxWorkflow(params)
+      expect(workflow['260']!.inputs!.image).toBe('end-photo.png')
+    })
+
+    it('keeps two-image mode in node 265 when endImage provided', async () => {
+      const params: LtxGenerationParams = { ...baseParams, endImage: 'end-photo.png' }
+      const workflow = await buildLtxWorkflow(params)
+      expect(workflow['265']!.inputs!['num_images']).toBe('2')
+      expect(workflow['265']!.inputs!['num_images.image_2']).toBeDefined()
+    })
+
+    it('switches to single-image mode when no endImage', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['265']!.inputs!['num_images']).toBe('1')
+      expect(workflow['265']!.inputs!['num_images.image_2']).toBeUndefined()
+      expect(workflow['265']!.inputs!['num_images.index_2']).toBeUndefined()
+      expect(workflow['265']!.inputs!['num_images.strength_2']).toBeUndefined()
+    })
+
+    it('removes end image nodes when no endImage', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['260']).toBeUndefined()
+      expect(workflow['261']).toBeUndefined()
+      expect(workflow['264']).toBeUndefined()
+      expect(workflow['267']).toBeUndefined()
+    })
+
+    it('preserves start image preprocess node 266 when no endImage', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['266']).toBeDefined()
+      expect(workflow['266']!.class_type).toBe('LTXVPreprocess')
+    })
+  })
 })
