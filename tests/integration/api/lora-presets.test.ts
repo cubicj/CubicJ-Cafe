@@ -58,7 +58,7 @@ beforeEach(async () => {
 describe('GET /api/lora-presets', () => {
   it('returns 401 when not authenticated', async () => {
     mockNoSession()
-    const res = await GET()
+    const res = await GET(buildRequest('/api/lora-presets'))
     expect(res.status).toBe(401)
   })
 
@@ -68,7 +68,7 @@ describe('GET /api/lora-presets', () => {
 
     await createPresetViaAPI('My Preset')
 
-    const res = await GET()
+    const res = await GET(buildRequest('/api/lora-presets'))
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -194,6 +194,67 @@ describe('PUT /api/lora-presets/[id]', () => {
     expect(res.status).toBeGreaterThanOrEqual(400)
     const body = await res.json()
     expect(body.error).toBeDefined()
+  })
+})
+
+describe('model-scoped presets', () => {
+  it('GET filters presets by model query param', async () => {
+    const user = await createUser()
+    mockSession(user)
+
+    const wanReq = buildRequest('/api/lora-presets', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'WAN Preset',
+        model: 'wan',
+        loraItems: [{ loraFilename: 'wan-lora.safetensors', loraName: 'WAN', strength: 0.8, group: 'HIGH', order: 0 }],
+      }),
+    })
+    await POST(wanReq)
+
+    const ltxReq = buildRequest('/api/lora-presets', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'LTX Preset',
+        model: 'ltx',
+        loraItems: [{ loraFilename: 'ltx-lora.safetensors', loraName: 'LTX', strength: 0.7, group: 'HIGH', order: 0 }],
+      }),
+    })
+    await POST(ltxReq)
+
+    const wanRes = await GET(buildRequest('/api/lora-presets?model=wan'))
+    const wanData = await wanRes.json()
+    const userWanPresets = wanData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
+    expect(userWanPresets.every((p: any) => p.model === 'wan')).toBe(true)
+
+    const ltxRes = await GET(buildRequest('/api/lora-presets?model=ltx'))
+    const ltxData = await ltxRes.json()
+    expect(ltxData.presets.every((p: any) => p.model === 'ltx')).toBe(true)
+  })
+
+  it('GET defaults to wan when no model param', async () => {
+    const user = await createUser()
+    mockSession(user)
+    const res = await GET(buildRequest('/api/lora-presets'))
+    const data = await res.json()
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+  })
+
+  it('POST stores model field on preset', async () => {
+    const user = await createUser()
+    mockSession(user)
+    const req = buildRequest('/api/lora-presets', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'LTX Test',
+        model: 'ltx',
+        loraItems: [{ loraFilename: 'test.safetensors', loraName: 'Test', strength: 0.5, group: 'HIGH', order: 0 }],
+      }),
+    })
+    const res = await POST(req)
+    const data = await res.json()
+    expect(data.preset.model).toBe('ltx')
   })
 })
 
