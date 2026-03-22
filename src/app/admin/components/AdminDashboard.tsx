@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Cog, Shield, AlertCircle, ScrollText, Power } from 'lucide-react';
+import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import ModelSettingsTab from './tabs/ModelSettingsTab';
@@ -29,6 +30,10 @@ export default function AdminDashboard() {
   const [comfyuiEnabled, setComfyuiEnabled] = useState(false);
   const [comfyuiLoading, setComfyuiLoading] = useState(true);
   const [comfyuiMessage, setComfyuiMessage] = useState('');
+  const [pausePosition, setPausePosition] = useState('');
+  const [currentPause, setCurrentPause] = useState<number | null>(null);
+  const [pauseLoading, setPauseLoading] = useState(false);
+  const [pauseMessage, setPauseMessage] = useState('');
 
   const fetchComfyUIState = async (): Promise<boolean> => {
     try {
@@ -67,6 +72,47 @@ export default function AdminDashboard() {
     } catch {
     } finally {
       setComfyuiLoading(false);
+    }
+  };
+
+  const fetchPauseState = async () => {
+    try {
+      const response = await fetch('/api/queue?action=list', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentPause(data.pauseAfterPosition ?? null);
+      }
+    } catch {}
+  };
+
+  const handleSetPause = async () => {
+    const position = parseInt(pausePosition);
+    if (!position || position < 1) return;
+
+    setPauseLoading(true);
+    try {
+      const response = await fetch('/api/admin/queue-pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ position })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentPause(data.pauseAfterPosition);
+        setPausePosition('');
+        setPauseMessage(`#${data.pauseAfterPosition} 이후 큐 일시정지 예약됨`);
+        setTimeout(() => setPauseMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        setPauseMessage(errorData.error || '설정 실패');
+        setTimeout(() => setPauseMessage(''), 3000);
+      }
+    } catch {
+      setPauseMessage('네트워크 오류');
+      setTimeout(() => setPauseMessage(''), 3000);
+    } finally {
+      setPauseLoading(false);
     }
   };
 
@@ -111,6 +157,8 @@ export default function AdminDashboard() {
         if (comfyState) {
           adminSettings.fetchAvailableModels();
         }
+
+        fetchPauseState();
       } catch (error) {
         log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
       }
@@ -208,6 +256,44 @@ export default function AdminDashboard() {
             disabled={comfyuiLoading}
           />
         </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Pause className={`h-5 w-5 ${currentPause !== null ? 'text-amber-500' : 'text-gray-400'}`} />
+            <div>
+              <h3 className="font-semibold">큐 일시정지 예약</h3>
+              <p className="text-sm text-muted-foreground">
+                {currentPause !== null
+                  ? `#${currentPause} 이후 큐 일시정지 예약됨`
+                  : '지정한 큐 번호 이후 처리를 일시정지합니다'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min="1"
+              value={pausePosition}
+              onChange={(e) => setPausePosition(e.target.value)}
+              placeholder="#"
+              className="w-20 px-2 py-1 text-sm border rounded-md"
+              disabled={pauseLoading}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSetPause}
+              disabled={pauseLoading || !pausePosition}
+            >
+              설정
+            </Button>
+          </div>
+        </div>
+        {pauseMessage && (
+          <p className="text-sm text-muted-foreground mt-2">{pauseMessage}</p>
+        )}
       </Card>
 
       <Tabs defaultValue="advanced" className="w-full">
