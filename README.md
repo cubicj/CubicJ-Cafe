@@ -1,102 +1,86 @@
 # CubicJ Cafe
 
-AI-powered Image-to-Video generation platform built for self-hosted deployment on Mini PC servers.
+AI Image-to-Video generation web frontend powered by ComfyUI.
 
-## Overview
+## Features
 
-CubicJ Cafe is a web application that transforms static images into dynamic videos using AI technology. The system integrates with ComfyUI for video generation and Discord for community sharing, designed to run efficiently on Mini PC hardware with Ubuntu Server and domain connectivity.
+- **Image-to-Video** — Upload an image with a prompt, get a generated video
+- **Multi-Model** — WAN 2.2 (LoRA support, end image, variable duration) / LTX 2.3 (audio support)
+- **LoRA Presets** — Create and manage style presets with drag-and-drop ordering
+- **Queue System** — Serializable queue with real-time status tracking
+- **Discord Integration** — OAuth2 auth + bot delivery of completed videos
+- **Admin Dashboard** — Live log viewer (SSE), queue control, ComfyUI monitoring, DB tools
+- **Multi-Server** — Auto-selects between local and cloud (RunPod) ComfyUI instances
 
-## Key Features
+## Tech Stack
 
-- **Image-to-Video Generation**: Convert static images to videos using advanced AI models
-- **Discord Integration**: OAuth2 authentication and automatic result sharing
-- **LoRA Preset System**: Customizable style presets with drag-and-drop management
-- **Queue Management**: Real-time processing queue with user permissions
-- **Admin Dashboard**: Comprehensive system monitoring and configuration
-- **NSFW Content Handling**: Automatic content classification and routing
-- **Multi-Server Support**: Local and cloud server integration (Runpod)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15, React 19, TailwindCSS 4, Shadcn/ui |
+| Backend | Next.js API Routes, Prisma 6, SQLite |
+| Auth | Custom Discord OAuth2 (HttpOnly cookie sessions) |
+| Validation | Zod v4 schemas across all route handlers |
+| AI Backend | ComfyUI API (JSON workflow graphs) |
+| Bot | Discord.js (in-process) |
+| Testing | Vitest, SQLite test DB, route handler direct invocation |
+| Logging | Custom unified logger (server + client → files + SSE) |
+| Deployment | PM2 standalone + Nginx + SSL |
 
-## Technology Stack
+## Project Structure
 
-- **Frontend**: Next.js 15.4.6, React 19.1.0, TailwindCSS 4.0, Shadcn/ui
-- **Backend**: Next.js API Routes, Prisma ORM, SQLite
-- **Authentication**: Discord OAuth2 with custom session management  
-- **AI Integration**: ComfyUI API, Wan 2.2 I2V models
-- **Deployment**: PM2, Nginx, SSL certificates
-- **Monitoring**: Winston logging, performance tracking
-
-## System Requirements
-
-- **Mini PC Server**: Ubuntu Server 20.04+ recommended
-- **Node.js**: v22.17.0 or higher
-- **ComfyUI Server**: Separate instance for AI processing
-- **Domain**: Configured for HTTPS access
-- **Discord Application**: For OAuth2 and bot integration
-
-## Installation & Setup
-
-1. **Clone Repository**
-   ```bash
-   git clone <repository-url>
-   cd mini
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Configuration**
-   - Configure `ecosystem.config.js` with your environment variables
-   - Set up Discord OAuth2 application credentials
-   - Configure ComfyUI server endpoints
-
-4. **Database Setup**
-   ```bash
-   npx prisma migrate dev
-   npx prisma generate
-   ```
-
-5. **Build & Deploy**
-   ```bash
-   npm run build
-   npm run start
-   ```
+```
+src/
+├── app/
+│   ├── api/          # 33 API route handlers
+│   │   ├── i2v/      # Video generation endpoint
+│   │   ├── queue/    # Queue management + monitoring
+│   │   ├── admin/    # Protected admin routes
+│   │   └── auth/     # Discord OAuth2 flow
+│   ├── i2v/          # Generation page
+│   └── admin/        # Admin dashboard
+├── lib/
+│   ├── comfyui/      # Workflow builders, queue/job monitors, server management
+│   │   └── workflows/  # Per-model builders (WAN, LTX) + registry
+│   ├── database/     # Prisma service layer
+│   ├── auth/         # Session management, withAuth/withAdmin HOF
+│   ├── validations/  # Zod schemas + parse helpers
+│   └── logger.ts     # Client-safe unified logger
+├── components/       # Shadcn/ui base + domain components
+├── contexts/         # React Context (session, form state)
+└── hooks/            # Custom React hooks
+tests/
+├── integration/api/  # Route handler tests (real DB sessions)
+└── unit/             # Module tests
+```
 
 ## Development
 
 ```bash
-npm run dev     # Development server
-npm run build   # Production build  
-npm run lint    # Code linting
-npm test        # Run tests
+npm install
+npm run prisma:migrate    # Set up database
+npm run dev               # Dev server
+npm test                  # 169 tests
+npm run type-check        # tsc --noEmit
+npm run lint              # ESLint
 ```
 
-## Architecture
+## Deployment
 
-- **Standalone Deployment**: Next.js standalone mode for efficient server deployment
-- **Session Management**: HttpOnly cookies with custom session handling
-- **Real-time Updates**: WebSocket integration for live status monitoring
-- **File Processing**: Automatic cleanup and optimization
-- **Error Handling**: Comprehensive logging and error tracking
+Runs on PM2 with Next.js standalone output. Environment variables are managed through `ecosystem.config.js` (not checked into version control for production secrets).
 
-## Contributing
+```bash
+npm run build
+npm run pm2:start
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+## Architecture Notes
 
-### Development Guidelines
-- Follow the existing code style and conventions
-- Add appropriate tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting
+- ComfyUI workflows are JSON node graphs — each model has a completely different structure, dispatched via `workflow-router.ts`
+- Queue uses Serializable isolation for atomic position assignment
+- Logger is split: `logger.ts` stays client-safe (no `fs`), file I/O in `logger-file.ts` connected via `instrumentation.ts`
+- Discord bot runs in-process (not a separate service)
+- All state singletons use `globalThis` to survive Next.js dev hot reload
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### MIT License Summary
-- ✅ Commercial use allowed
-- ✅ Modification allowed  
-- ✅ Distribution allowed
-- ✅ Private use allowed
-- ⚠️ License and copyright notice required
+[MIT](LICENSE)
