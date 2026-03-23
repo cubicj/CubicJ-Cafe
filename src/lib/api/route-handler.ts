@@ -26,10 +26,10 @@ export function createRouteHandler<
 
   return async (
     request: NextRequest,
-    context?: { params: Promise<P> }
+    context: { params: Promise<P> } = { params: Promise.resolve({} as P) }
   ): Promise<Response> => {
     try {
-      const params = context ? await context.params : ({} as P);
+      const params = await context.params;
       const req = request as AuthenticatedRequest;
 
       if (authLevel === 'user' || authLevel === 'admin') {
