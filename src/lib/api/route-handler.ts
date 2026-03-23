@@ -15,21 +15,26 @@ export interface AuthenticatedRequest extends NextRequest {
   sessionId?: string;
 }
 
+interface NextRouteHandler<P extends Record<string, string | string[]>> {
+  (request: NextRequest, context: { params: Promise<P> }): Promise<Response>;
+  (request: NextRequest): Promise<Response>;
+}
+
 export function createRouteHandler<
   P extends Record<string, string | string[]> = Record<string, string>,
 >(
   options: RouteOptions,
   handler: (req: AuthenticatedRequest, context: { params: P }) => Promise<unknown>
-) {
+): NextRouteHandler<P> {
   const log = createLogger(options.category || 'api');
   const authLevel = options.auth || 'none';
 
-  return async (
+  const routeHandler = async (
     request: NextRequest,
-    context: { params: Promise<P> } = { params: Promise.resolve({} as P) }
+    context?: { params: Promise<P> }
   ): Promise<Response> => {
     try {
-      const params = await context.params;
+      const params = context ? await context.params : {} as P;
       const req = request as AuthenticatedRequest;
 
       if (authLevel === 'user' || authLevel === 'admin') {
@@ -78,4 +83,6 @@ export function createRouteHandler<
       );
     }
   };
+
+  return routeHandler as NextRouteHandler<P>;
 }
