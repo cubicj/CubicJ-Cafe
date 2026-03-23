@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
@@ -23,30 +23,30 @@ function isPathAllowed(pathSegments: string[]): boolean {
   return ALLOWED_PATH_PREFIXES.some(prefix => path.startsWith(prefix))
 }
 
-export const GET = createRouteHandler(
+export const GET = createRouteHandler<{ path: string[] }>(
   { auth: 'admin', category: 'comfyui' },
-  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+  async (request, { params }) => {
     return handleProxy(request, params.path, 'GET')
   }
 )
 
-export const POST = createRouteHandler(
+export const POST = createRouteHandler<{ path: string[] }>(
   { auth: 'admin', category: 'comfyui' },
-  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+  async (request, { params }) => {
     return handleProxy(request, params.path, 'POST')
   }
 )
 
-export const PUT = createRouteHandler(
+export const PUT = createRouteHandler<{ path: string[] }>(
   { auth: 'admin', category: 'comfyui' },
-  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+  async (request, { params }) => {
     return handleProxy(request, params.path, 'PUT')
   }
 )
 
-export const DELETE = createRouteHandler(
+export const DELETE = createRouteHandler<{ path: string[] }>(
   { auth: 'admin', category: 'comfyui' },
-  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+  async (request, { params }) => {
     return handleProxy(request, params.path, 'DELETE')
   }
 )
