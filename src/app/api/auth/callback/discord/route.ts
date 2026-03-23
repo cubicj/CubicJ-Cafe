@@ -25,6 +25,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/', baseUrl));
   }
 
+  const state = searchParams.get('state');
+  const cookieState = request.cookies.get('oauth_state')?.value;
+
+  if (!state || !cookieState || state !== cookieState) {
+    log.warn('OAuth state validation failed', {
+      hasState: !!state,
+      hasCookie: !!cookieState,
+      match: state === cookieState,
+    });
+    const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+    const response = NextResponse.redirect(new URL('/', baseUrl));
+    response.cookies.delete('oauth_state');
+    return response;
+  }
+
   if (code) {
     try {
       log.info('Starting token exchange with Discord');
@@ -121,7 +136,9 @@ export async function GET(request: NextRequest) {
         baseUrl
       });
 
-      return sessionManager.setSessionCookie(response, sessionData.sessionId, sessionData.expiresAt);
+      const result = sessionManager.setSessionCookie(response, sessionData.sessionId, sessionData.expiresAt);
+      result.cookies.delete('oauth_state');
+      return result;
     } catch (error) {
       log.error('Discord OAuth error', { error: error instanceof Error ? error.message : String(error) });
       const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;

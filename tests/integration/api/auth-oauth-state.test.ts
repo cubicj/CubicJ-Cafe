@@ -1,4 +1,5 @@
 import { POST } from '@/app/api/auth/discord/route'
+import { GET as callbackGET } from '@/app/api/auth/callback/discord/route'
 import { buildRequest } from '../../helpers/auth'
 
 describe('POST /api/auth/discord', () => {
@@ -37,5 +38,35 @@ describe('POST /api/auth/discord', () => {
 
     expect(urlState).toBeTruthy()
     expect(urlState).toBe(cookieState)
+  })
+})
+
+describe('GET /api/auth/callback/discord — state validation', () => {
+  it('rejects callback when state parameter is missing', async () => {
+    const req = buildRequest('/api/auth/callback/discord?code=test-code', {
+      headers: { cookie: 'oauth_state=valid-state' },
+    })
+    const res = await callbackGET(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/')
+  })
+
+  it('rejects callback when cookie is missing', async () => {
+    const req = buildRequest('/api/auth/callback/discord?code=test-code&state=some-state')
+    const res = await callbackGET(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/')
+  })
+
+  it('rejects callback when state does not match cookie', async () => {
+    const req = buildRequest('/api/auth/callback/discord?code=test-code&state=wrong-state', {
+      headers: { cookie: 'oauth_state=correct-state' },
+    })
+    const res = await callbackGET(req)
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/')
   })
 })
