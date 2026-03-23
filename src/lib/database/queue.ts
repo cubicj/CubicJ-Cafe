@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { QueueStatus, ServerType, type QueueRequest } from "@prisma/client";
 import type { LoRAPresetData } from "@/types";
 import { createLogger } from '@/lib/logger';
+import { ExpiringCache } from '@/lib/utils/expiring-cache';
 
 const log = createLogger('queue');
 
@@ -50,11 +51,8 @@ export interface QueueRequestUpdate {
   error?: string;
 }
 
-const QUEUE_LIST_CACHE_EXPIRY = 15000;
-const STATS_CACHE_EXPIRY = 30000;
-
-let queueListCache: { data: QueueRequestWithUser[]; timestamp: number } | null = null;
-let statsCache: { data: QueueStatsData; timestamp: number } | null = null;
+const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
+const statsCache = new ExpiringCache<QueueStatsData>(30000);
 
 export class QueueService {
   static async getUserActiveRequestCount(userId: number): Promise<number> {
@@ -117,9 +115,8 @@ export class QueueService {
   }
 
   static async getQueueList() {
-    if (queueListCache && Date.now() - queueListCache.timestamp < QUEUE_LIST_CACHE_EXPIRY) {
-      return queueListCache.data;
-    }
+    const cached = queueListCache.get();
+    if (cached) return cached;
 
     const queueList = await prisma.queueRequest.findMany({
       where: {
@@ -141,11 +138,7 @@ export class QueueService {
       }
     });
 
-    queueListCache = {
-      data: queueList,
-      timestamp: Date.now()
-    };
-
+    queueListCache.set(queueList);
     return queueList;
   }
 
@@ -178,8 +171,8 @@ export class QueueService {
   }
 
   static invalidateCache() {
-    queueListCache = null;
-    statsCache = null;
+    queueListCache.invalidate();
+    statsCache.invalidate();
   }
 
   static async updateRequestIfPending(requestId: string, updates: QueueRequestUpdate) {
@@ -228,9 +221,8 @@ export class QueueService {
   }
 
   static async getQueueStats() {
-    if (statsCache && Date.now() - statsCache.timestamp < STATS_CACHE_EXPIRY) {
-      return statsCache.data;
-    }
+    const cached = statsCache.get();
+    if (cached) return cached;
 
     const [pending, processing, todayCompleted] = await Promise.all([
       prisma.queueRequest.count({
@@ -256,11 +248,7 @@ export class QueueService {
       total: pending + processing
     };
 
-    statsCache = {
-      data: stats,
-      timestamp: Date.now()
-    };
-
+    statsCache.set(stats);
     return stats;
   }
 
