@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { createLogger } from '@/lib/logger';
 import { useSession } from '@/contexts/SessionContext';
-import { useGenerateFormContext } from '@/contexts/GenerateFormContext';
+import { useI2VFormContext } from '@/contexts/I2VFormContext';
 import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
 
-const log = createLogger('generate');
+const log = createLogger('i2v');
 
 interface ServerInfo {
   type: 'local' | 'runpod'
@@ -42,7 +42,7 @@ interface SubmitMessage {
   requestId?: string;
 }
 
-interface UseGenerateFormReturn {
+interface UseI2VFormReturn {
   selectedFile: File | null;
   setSelectedFile: (file: File | null) => void;
   endImageFile: File | null;
@@ -75,14 +75,14 @@ interface UseGenerateFormReturn {
   capabilities: ModelCapabilities;
   isLoadingAuth: boolean;
   isFormValid: boolean;
-  handleGenerate: () => Promise<void>;
-  handleNewGeneration: () => void;
+  handleSubmit: () => Promise<void>;
+  handleReset: () => void;
   handleRefreshStatus: () => Promise<void>;
   fetchServerStatus: () => Promise<void>;
   fetchPresets: () => Promise<any[]>;
 }
 
-export function useGenerateForm(): UseGenerateFormReturn {
+export function useI2VForm(): UseI2VFormReturn {
   const {
     selectedFile, setSelectedFile,
     endImageFile, setEndImageFile,
@@ -90,8 +90,8 @@ export function useGenerateForm(): UseGenerateFormReturn {
     prompt, setPrompt,
     isNSFW, setIsNSFW,
     clearForm,
-  } = useGenerateFormContext();
-  
+  } = useI2VFormContext();
+
   const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -103,11 +103,11 @@ export function useGenerateForm(): UseGenerateFormReturn {
     }
     return [];
   });
-  
+
   const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
   const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
   const [videoDuration, setVideoDuration] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -159,7 +159,6 @@ export function useGenerateForm(): UseGenerateFormReturn {
         setServerStatus(data);
       }
     } catch (error) {
-      // 503 상태코드는 정상적인 상황(서버 다운)이므로 에러 로깅하지 않음
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
         log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) });
       }
@@ -173,7 +172,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
       const m = model || activeModel;
       const response = await fetch(`/api/lora-presets?model=${m}`);
       const data = await response.json();
-      
+
       if (response.ok) {
         return data.presets || [];
       }
@@ -183,12 +182,12 @@ export function useGenerateForm(): UseGenerateFormReturn {
     return [];
   };
 
-  const handleGenerate = async () => {
+  const handleSubmit = async () => {
     if (!selectedFile) {
       setSubmitMessage({ type: 'error', message: '이미지를 업로드해주세요.' });
       return;
     }
-    
+
     if (!prompt.trim()) {
       setSubmitMessage({ type: 'error', message: '프롬프트를 입력해주세요.' });
       return;
@@ -196,7 +195,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
 
     setIsGenerating(true);
     setSubmitMessage(null);
-    
+
     try {
       const formData = new FormData();
       formData.append('image', selectedFile);
@@ -206,10 +205,10 @@ export function useGenerateForm(): UseGenerateFormReturn {
       formData.append('prompt', prompt.trim());
       formData.append('isNSFW', isNSFW.toString());
       formData.append('duration', videoDuration.toString());
-      
+
       if (currentPresets && currentPresets.length > 0) {
         const mergedLoRAMap = new Map();
-        
+
         currentPresets.forEach(preset => {
           preset.loraItems.forEach(item => {
             mergedLoRAMap.set(item.loraFilename, {
@@ -219,9 +218,9 @@ export function useGenerateForm(): UseGenerateFormReturn {
             });
           });
         });
-        
+
         const mergedLoRAItems = Array.from(mergedLoRAMap.values());
-        
+
         if (mergedLoRAItems.length > 0) {
           formData.append('loraPreset', JSON.stringify({
             presetIds: selectedPresetIds,
@@ -231,48 +230,48 @@ export function useGenerateForm(): UseGenerateFormReturn {
         }
       }
 
-      const response = await fetch('/api/generate', {
+      const response = await fetch('/api/i2v', {
         method: 'POST',
         body: formData,
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
         if (response.status === 429) {
-          setSubmitMessage({ 
-            type: 'error', 
-            message: result.error || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.' 
+          setSubmitMessage({
+            type: 'error',
+            message: result.error || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
           });
         } else {
-          setSubmitMessage({ 
-            type: 'error', 
-            message: result.error || '요청 처리 중 오류가 발생했습니다.' 
+          setSubmitMessage({
+            type: 'error',
+            message: result.error || '요청 처리 중 오류가 발생했습니다.'
           });
         }
         return;
       }
 
       if (result.success) {
-        setSubmitMessage({ 
-          type: 'success', 
+        setSubmitMessage({
+          type: 'success',
           message: '요청이 큐에 추가되었습니다! 위쪽 실행 큐에서 진행 상황을 확인하세요.',
           requestId: result.requestId
         });
-        
+
         clearForm();
       }
-      
+
     } catch (error) {
       log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
-      
+
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
-      const errorMessage = isNetworkError 
+      const errorMessage = isNetworkError
         ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
         : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
-      
-      setSubmitMessage({ 
-        type: 'error', 
+
+      setSubmitMessage({
+        type: 'error',
         message: errorMessage
       });
     } finally {
@@ -280,7 +279,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
     }
   };
 
-  const handleNewGeneration = () => {
+  const handleReset = () => {
     clearForm();
     setSubmitMessage(null);
   };
@@ -317,7 +316,7 @@ export function useGenerateForm(): UseGenerateFormReturn {
 
   useEffect(() => {
     if (presets.length > 0 && selectedPresetIds.length > 0) {
-      const restoredPresets = presets.filter(preset => 
+      const restoredPresets = presets.filter(preset =>
         selectedPresetIds.includes(preset.id)
       );
       if (restoredPresets.length > 0) {
@@ -363,8 +362,8 @@ export function useGenerateForm(): UseGenerateFormReturn {
     activeModel,
     capabilities,
     isFormValid,
-    handleGenerate,
-    handleNewGeneration,
+    handleSubmit,
+    handleReset,
     handleRefreshStatus,
     fetchServerStatus,
     fetchPresets,

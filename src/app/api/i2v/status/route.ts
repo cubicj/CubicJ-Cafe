@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generationStore } from '@/lib/generation-store';
 import { parseQuery } from '@/lib/validations/parse';
-import { generateStatusQuerySchema } from '@/lib/validations/schemas/generate';
+import { i2vStatusQuerySchema } from '@/lib/validations/schemas/i2v';
 
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
 export async function GET(request: NextRequest) {
-  const queryResult = parseQuery(generateStatusQuerySchema, request.nextUrl.searchParams);
+  const queryResult = parseQuery(i2vStatusQuerySchema, request.nextUrl.searchParams);
   if (!queryResult.success) return queryResult.response;
   const { jobId } = queryResult.data;
 

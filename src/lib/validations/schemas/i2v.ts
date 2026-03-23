@@ -16,30 +16,30 @@ const optionalImageSchema = z.instanceof(File)
   )
   .optional()
 
-const generateLoraItemSchema = loraItemSchema.extend({
+const i2vLoraItemSchema = loraItemSchema.extend({
   loraName: z.string().default(''),
   order: z.coerce.number().int().min(0).default(0),
 })
 
-const generateLoraPresetDataSchema = z.object({
+const i2vLoraPresetDataSchema = z.object({
   presetId: z.string().min(1),
   presetName: z.string(),
-  loraItems: z.array(generateLoraItemSchema),
+  loraItems: z.array(i2vLoraItemSchema),
 })
 
-export const generateSchema = z.object({
+export const i2vSchema = z.object({
   prompt: z.string().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)').transform((s) => s.trim()),
   image: imageSchema,
   endImage: optionalImageSchema,
   lora: z.string().optional(),
   loraStrength: z.coerce.number().min(0).max(2).default(0.8),
-  loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(generateLoraPresetDataSchema).optional(),
+  loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   duration: z.coerce.number().int().min(4).max(7).default(5),
 })
 
-export const generateStatusQuerySchema = z.object({
+export const i2vStatusQuerySchema = z.object({
   jobId: z.string().min(1, 'Job ID is required'),
 })
 
-export type GenerateInput = z.infer<typeof generateSchema>
+export type I2VInput = z.infer<typeof i2vSchema>

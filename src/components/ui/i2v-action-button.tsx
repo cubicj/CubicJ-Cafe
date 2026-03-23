@@ -2,19 +2,19 @@ import React from 'react';
 import { Button } from './button';
 import { Wand2 } from 'lucide-react';
 
-interface GenerateActionButtonProps {
+interface I2VActionButtonProps {
   isGenerating: boolean;
   isFormValid: boolean;
   isNSFW: boolean;
   onGenerate: () => void;
 }
 
-export function GenerateActionButton({ 
-  isGenerating, 
-  isFormValid, 
-  isNSFW, 
-  onGenerate 
-}: GenerateActionButtonProps) {
+export function I2VActionButton({
+  isGenerating,
+  isFormValid,
+  isNSFW,
+  onGenerate
+}: I2VActionButtonProps) {
   return (
     <div className="flex items-center justify-center">
       <Button

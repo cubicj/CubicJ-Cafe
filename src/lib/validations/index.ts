@@ -12,4 +12,4 @@ export {
   loraPresetQuerySchema,
   loraPresetDataSchema,
 } from './schemas/lora-preset'
-export { generateSchema, generateStatusQuerySchema } from './schemas/generate'
+export { i2vSchema, i2vStatusQuerySchema } from './schemas/i2v'

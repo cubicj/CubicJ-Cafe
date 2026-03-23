@@ -11,7 +11,7 @@ import { getActiveModel } from '@/lib/database/model-settings';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { parseFormData } from '@/lib/validations/parse';
-import { generateSchema } from '@/lib/validations/schemas/generate';
+import { i2vSchema } from '@/lib/validations/schemas/i2v';
 
 import { createLogger } from '@/lib/logger';
 
@@ -35,7 +35,7 @@ async function selectBestServer() {
 export async function POST(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
     try {
-      log.debug('Generate API request started', {
+      log.debug('I2V API request started', {
         method: req.method,
         url: req.url,
         contentType: req.headers.get('content-type'),
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       } catch {
         return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
       }
-      const formResult = parseFormData(generateSchema, formData);
+      const formResult = parseFormData(i2vSchema, formData);
       if (!formResult.success) return formResult.response;
       const validated = formResult.data;
 

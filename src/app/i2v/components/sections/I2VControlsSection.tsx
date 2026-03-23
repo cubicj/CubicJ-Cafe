@@ -4,25 +4,25 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wand2 } from "lucide-react";
 
-interface GenerationControlsSectionProps {
+interface I2VControlsSectionProps {
   videoDuration: number;
   onVideoDurationChange: (duration: number) => void;
   isFormValid: boolean;
   isGenerating: boolean;
   isNSFW: boolean;
-  onGenerate: () => Promise<void>;
+  onSubmit: () => Promise<void>;
   showDuration?: boolean;
 }
 
-export function GenerationControlsSection({
+export function I2VControlsSection({
   videoDuration,
   onVideoDurationChange,
   isFormValid,
   isGenerating,
   isNSFW,
-  onGenerate,
+  onSubmit,
   showDuration = true,
-}: GenerationControlsSectionProps) {
+}: I2VControlsSectionProps) {
   return (
     <div className="space-y-2">
       <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -48,7 +48,7 @@ export function GenerationControlsSection({
 
         <div className="flex items-center justify-center">
         <Button
-          onClick={onGenerate}
+          onClick={onSubmit}
           disabled={!isFormValid || isGenerating}
           className="w-full"
           size="lg"
