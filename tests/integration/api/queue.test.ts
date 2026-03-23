@@ -121,7 +121,6 @@ describe('POST /api/queue', () => {
         headers: { 'content-type': 'application/json' },
       })
       const res = await POST(req)
-      const body = await res.json()
 
       expect(res.status).toBe(200)
 
@@ -179,7 +178,6 @@ describe('POST /api/queue', () => {
         headers: { 'content-type': 'application/json' },
       })
       const res = await POST(req)
-      const body = await res.json()
 
       expect(res.status).toBe(200)
     })

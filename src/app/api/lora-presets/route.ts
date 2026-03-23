@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
-import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseBody, parseQuery } from '@/lib/validations/parse';
 import { createLoraPresetSchema, loraPresetQuerySchema } from '@/lib/validations/schemas/lora-preset';
 

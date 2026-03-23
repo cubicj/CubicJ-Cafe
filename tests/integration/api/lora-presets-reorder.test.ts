@@ -84,7 +84,6 @@ describe('PUT /api/lora-presets/reorder', () => {
       headers: { 'content-type': 'application/json' },
     })
     const res = await PUT(req)
-    const body = await res.json()
 
     expect(res.status).toBe(200)
     const updated = await prisma.loRAPreset.findMany({
