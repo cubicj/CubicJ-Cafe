@@ -2,14 +2,14 @@
 
 import type { ReactNode } from 'react';
 import { SessionProvider } from '@/contexts/SessionContext';
-import { GenerateFormProvider } from '@/contexts/GenerateFormContext';
+import { I2VFormProvider } from '@/contexts/I2VFormContext';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <GenerateFormProvider>
+      <I2VFormProvider>
         {children}
-      </GenerateFormProvider>
+      </I2VFormProvider>
     </SessionProvider>
   );
 }

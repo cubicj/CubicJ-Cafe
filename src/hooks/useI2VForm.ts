@@ -19,7 +19,7 @@ export interface LoRAPreset {
   }>;
 }
 
-export function useGenerateForm() {
+export function useI2VForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [endImageFile, setEndImageFile] = useState<File | null>(null);
   const [isLoopEnabled, setIsLoopEnabled] = useState(false);
@@ -92,7 +92,7 @@ export function useGenerateForm() {
     return Array.from(mergedLoRAMap.values());
   };
 
-  const handleGenerate = async () => {
+  const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
       setSubmitMessage({ type: 'error', message: validationError });
@@ -126,7 +126,7 @@ export function useGenerateForm() {
         }
       }
 
-      const response = await fetch('/api/generate', {
+      const response = await fetch('/api/i2v', {
         method: 'POST',
         body: formData,
       });
@@ -182,7 +182,7 @@ export function useGenerateForm() {
     setPrompt('');
   };
 
-  const handleNewGeneration = () => {
+  const handleReset = () => {
     setSelectedFile(null);
     setEndImageFile(null);
     setIsLoopEnabled(false);
@@ -213,8 +213,8 @@ export function useGenerateForm() {
     videoDuration,
     setVideoDuration,
     submitMessage,
-    handleGenerate,
-    handleNewGeneration,
+    handleSubmit,
+    handleReset,
     clearSubmitMessage,
   };
 }

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-interface GenerateFormState {
+interface I2VFormState {
   selectedFile: File | null;
   setSelectedFile: (file: File | null) => void;
   endImageFile: File | null;
@@ -16,7 +16,7 @@ interface GenerateFormState {
   clearForm: () => void;
 }
 
-const GenerateFormContext = createContext<GenerateFormState>({
+const I2VFormContext = createContext<I2VFormState>({
   selectedFile: null,
   setSelectedFile: () => {},
   endImageFile: null,
@@ -30,11 +30,11 @@ const GenerateFormContext = createContext<GenerateFormState>({
   clearForm: () => {},
 });
 
-export function useGenerateFormContext() {
-  return useContext(GenerateFormContext);
+export function useI2VFormContext() {
+  return useContext(I2VFormContext);
 }
 
-export function GenerateFormProvider({ children }: { children: ReactNode }) {
+export function I2VFormProvider({ children }: { children: ReactNode }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [endImageFile, setEndImageFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -50,7 +50,7 @@ export function GenerateFormProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <GenerateFormContext.Provider value={{
+    <I2VFormContext.Provider value={{
       selectedFile, setSelectedFile,
       endImageFile, setEndImageFile,
       prompt, setPrompt,
@@ -59,6 +59,6 @@ export function GenerateFormProvider({ children }: { children: ReactNode }) {
       clearForm,
     }}>
       {children}
-    </GenerateFormContext.Provider>
+    </I2VFormContext.Provider>
   );
 }
