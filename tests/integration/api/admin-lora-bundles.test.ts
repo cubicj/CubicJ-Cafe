@@ -44,7 +44,6 @@ describe('GET /api/admin/lora-bundles', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.bundles).toEqual([])
     expect(body.count).toBe(0)
   })
@@ -76,7 +75,6 @@ describe('POST /api/admin/lora-bundles', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.bundle.displayName).toBe('My Bundle')
     expect(body.bundle.highLoRAFilename).toBe('high.safetensors')
     expect(body.bundle.lowLoRAFilename).toBe('low.safetensors')
@@ -113,7 +111,6 @@ describe('PUT /api/admin/lora-bundles/[id]', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.bundle.displayName).toBe('Updated Bundle')
     expect(body.bundle.lowLoRAFilename).toBe('new-low.safetensors')
   })
@@ -147,7 +144,7 @@ describe('DELETE /api/admin/lora-bundles/[id]', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
+    expect(body.message).toBeDefined()
   })
 
   it('returns 404 for non-existent id', async () => {

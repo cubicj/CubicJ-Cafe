@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import fs from 'fs/promises';
-
-const log = createLogger('admin');
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
+const log = createLogger('admin');
 const execAsync = promisify(exec);
 
 interface MonitoringData {
@@ -98,7 +98,7 @@ async function checkPM2Status(): Promise<PM2Status[]> {
         restart_time: number;
       };
     }>;
-    
+
     return processes.map(proc => ({
       name: proc.name,
       pid: proc.pid,
@@ -118,12 +118,12 @@ async function checkNginxStatus(): Promise<ServiceStatus> {
   try {
     const { stdout } = await execAsync('systemctl is-active nginx');
     const status = stdout.trim();
-    
+
     if (status === 'active') {
       const { stdout: statusOutput } = await execAsync('systemctl status nginx --no-pager -l');
       const pidMatch = statusOutput.match(/Main PID: (\d+)/);
       const pid = pidMatch ? parseInt(pidMatch[1]) : undefined;
-      
+
       return {
         status: 'running',
         pid,
@@ -145,7 +145,7 @@ async function checkDatabaseStatus(): Promise<ServiceStatus> {
   try {
     const dbPath = process.env.DATABASE_URL || ''.replace('file:', '');
     const stats = await fs.stat(dbPath);
-    
+
     return {
       status: 'running',
       memory: Math.round(stats.size / 1024 / 1024),
@@ -162,7 +162,7 @@ async function getSystemMetrics() {
   try {
     const memoryUsage = process.memoryUsage();
     const uptime = process.uptime();
-    
+
     const systemInfo = {
       uptime: uptime,
       loadAverage: [0, 0, 0],
@@ -220,7 +220,7 @@ async function getSystemMetrics() {
     return systemInfo;
   } catch (error) {
     log.warn('Failed to get system metrics', { error: error instanceof Error ? error.message : error });
-    
+
     const memoryUsage = process.memoryUsage();
     return {
       uptime: process.uptime(),
@@ -251,7 +251,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
     const today = new Date().toISOString().split('T')[0];
     const applicationLogPath = path.join(logDir, `application-${today}.log`);
     const errorLogPath = path.join(logDir, `error-${today}.log`);
-    
+
     const recent: LogEntry[] = [];
     const errors: LogEntry[] = [];
     const size = { application: 0, error: 0, total: 0 };
@@ -259,7 +259,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
     try {
       const applicationLogContent = await fs.readFile(applicationLogPath, 'utf8');
       const applicationLines = applicationLogContent.split('\n').filter(line => line.trim()).slice(-50);
-      
+
       for (const line of applicationLines) {
         try {
           const logEntry = JSON.parse(line) as LogEntry;
@@ -272,7 +272,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
           });
         }
       }
-      
+
       const stats = await fs.stat(applicationLogPath);
       size.application = stats.size;
     } catch (error) {
@@ -282,7 +282,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
     try {
       const errorLogContent = await fs.readFile(errorLogPath, 'utf8');
       const errorLines = errorLogContent.split('\n').filter(line => line.trim()).slice(-20);
-      
+
       for (const line of errorLines) {
         try {
           const logEntry = JSON.parse(line) as LogEntry;
@@ -295,7 +295,7 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
           });
         }
       }
-      
+
       const stats = await fs.stat(errorLogPath);
       size.error = stats.size;
     } catch (error) {
@@ -315,13 +315,14 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
   }
 }
 
-export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  
-  try {
+export const GET = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async (req) => {
+    const startTime = Date.now();
+
     log.debug('Monitoring data requested', {
       user: 'admin',
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
     });
 
     const [systemMetrics, pm2Status, nginxStatus, databaseStatus, logs] = await Promise.all([
@@ -363,20 +364,6 @@ export async function GET(request: NextRequest) {
       dataSize: JSON.stringify(monitoringData).length,
     });
 
-    return NextResponse.json(monitoringData);
-
-  } catch (error) {
-    const responseTime = Date.now() - startTime;
-    
-    log.error('Failed to collect monitoring data', { error: error instanceof Error ? error.message : String(error) });
-
-    return NextResponse.json(
-      { 
-        error: 'Failed to collect monitoring data',
-        timestamp: new Date().toISOString(),
-        responseTime,
-      },
-      { status: 500 }
-    );
+    return monitoringData;
   }
-}
+);

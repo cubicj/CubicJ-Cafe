@@ -31,7 +31,6 @@ describe('GET /api/admin/model-settings', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.settings).toBeDefined()
     expect(body.settings.ksampler).toBe('euler_ancestral')
     expect(body.settings.highCfg).toBe(3.0)
@@ -73,7 +72,6 @@ describe('PUT /api/admin/model-settings', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.settings.ksampler).toBe('dpmpp_2m')
     expect(body.settings.highCfg).toBe(5.0)
   })

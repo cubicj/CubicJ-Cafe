@@ -36,7 +36,6 @@ describe('GET /api/admin/cleanup', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.result.deletedFiles).toBe(3)
   })
 })
@@ -64,7 +63,6 @@ describe('POST /api/admin/cleanup', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.message).toContain('3개 파일')
   })
 
@@ -80,6 +78,6 @@ describe('POST /api/admin/cleanup', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
+    expect(body.result).toBeDefined()
   })
 })
