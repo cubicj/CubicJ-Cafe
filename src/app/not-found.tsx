@@ -22,8 +22,8 @@ export default function NotFound() {
           
           <div className="text-sm text-gray-500">
             또는{' '}
-            <Link href="/generate" className="text-blue-600 hover:text-blue-800 underline">
-              AI 생성 페이지
+            <Link href="/i2v" className="text-blue-600 hover:text-blue-800 underline">
+              Img to Vid
             </Link>
             로 이동하세요
           </div>

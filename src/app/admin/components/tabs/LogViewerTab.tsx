@@ -39,7 +39,7 @@ interface LogEntry {
 const LEVELS = ['all', 'error', 'warn', 'info', 'debug'] as const;
 const CATEGORIES = [
   'system', 'auth', 'api', 'queue', 'comfyui', 'discord', 'admin', 'database',
-  'hook', 'ui', 'page', 'generate', 'console',
+  'hook', 'ui', 'page', 'i2v', 'console',
 ] as const;
 
 const MAX_ENTRIES = 500;

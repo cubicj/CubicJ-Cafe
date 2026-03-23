@@ -8,7 +8,7 @@ import { useSession } from '@/contexts/SessionContext';
 const log = createLogger('ui');
 import { Button } from '@/components/ui/button';
 import { ClientIcon } from '@/components/ui/client-icon';
-import { Home, Video, User, LogOut, Coffee, Settings, Shield } from 'lucide-react';
+import { Home, Video, Image, User, LogOut, Coffee, Settings, Shield } from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
@@ -19,7 +19,7 @@ export default function Header() {
       const response = await fetch('/api/auth/signout', { method: 'POST' });
       if (response.ok) {
         if (window.location.pathname.startsWith('/settings') ||
-            window.location.pathname.startsWith('/generate') ||
+            window.location.pathname.startsWith('/i2v') ||
             window.location.pathname.startsWith('/profile')) {
           window.location.href = '/';
         } else {
@@ -61,10 +61,17 @@ export default function Header() {
                 <ClientIcon icon={Home} fallback="🏠" className="h-4 w-4" />
                 <span className="hidden sm:block">홈</span>
               </Link>
+              <span
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-muted-foreground/50 cursor-default"
+                title="준비중"
+              >
+                <ClientIcon icon={Image} fallback="🖼️" className="h-4 w-4" />
+                <span className="hidden sm:block">Txt to Img</span>
+              </span>
               <Link
-                href="/generate"
+                href="/i2v"
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                  pathname === '/generate'
+                  pathname === '/i2v'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
