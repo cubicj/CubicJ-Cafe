@@ -6,7 +6,7 @@ vi.mock('@/lib/comfyui/comfyui-state', () => ({
 }))
 
 vi.mock('@/lib/comfyui/client', () => {
-  const MockClient = function() {
+  const MockClient = function(this: Record<string, unknown>) {
     this.pingServer = vi.fn(() => Promise.resolve(false))
     this.getQueueStatus = vi.fn(() => Promise.resolve({ exec_info: { queue_remaining: 0 } }))
   }
