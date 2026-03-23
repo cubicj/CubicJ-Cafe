@@ -4,19 +4,23 @@ import type { LoRAPresetData } from '@/types/lora'
 
 function createBaseWorkflow(): ComfyUIWorkflow {
   return {
-    '3': { inputs: { unet_name: 'test.gguf' }, class_type: 'UnetLoaderGGUF' },
-    '81': {
+    '297': { inputs: { unet_name: 'test.safetensors', weight_dtype: 'default' }, class_type: 'UNETLoader' },
+    '298': {
+      inputs: { triton_kernels: true, model: ['297', 0] },
+      class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    },
+    '296': {
       inputs: {
-        lora_name: 'LTX\\REDACTED_MODEL.safetensors',
-        strength_model: 0.25,
-        model: ['3', 0],
+        lora_name: 'LTX\\Custom\\REDACTED_MODEL.safetensors',
+        strength_model: 0,
+        model: ['298', 0],
       },
       class_type: 'LoraLoaderModelOnly',
     },
     '268': {
       inputs: {
-        audio_normalization_factors: '1,1,1,0.25,1,1,1',
-        model: ['81', 0],
+        audio_normalization_factors: '1,1,1',
+        model: ['296', 0],
       },
       class_type: 'LTX2AudioLatentNormalizingSampling',
     },
@@ -30,11 +34,12 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['268']!.inputs!.model).toEqual(['81', 0])
+    expect(workflow['296']).toBeDefined()
+    expect(workflow['268']!.inputs!.model).toEqual(['296', 0])
     expect(workflow['400']).toBeUndefined()
   })
 
-  it('inserts a single LoRA node between distilled(81) and AudioNorm(268)', async () => {
+  it('removes placeholder(296) and chains LoRA from SageAttention(298)', async () => {
     const workflow = createBaseWorkflow()
     const preset: LoRAPresetData = {
       presetId: '1',
@@ -50,11 +55,12 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
+    expect(workflow['296']).toBeUndefined()
     expect(workflow['400']).toBeDefined()
     expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
     expect(workflow['400']!.inputs!.lora_name).toBe('LTX\\Custom\\style-lora.safetensors')
     expect(workflow['400']!.inputs!.strength_model).toBe(0.7)
-    expect(workflow['400']!.inputs!.model).toEqual(['81', 0])
+    expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
     expect(workflow['268']!.inputs!.model).toEqual(['400', 0])
   })
 
@@ -72,7 +78,8 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['400']!.inputs!.model).toEqual(['81', 0])
+    expect(workflow['296']).toBeUndefined()
+    expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
     expect(workflow['401']!.inputs!.model).toEqual(['400', 0])
     expect(workflow['402']!.inputs!.model).toEqual(['401', 0])
     expect(workflow['268']!.inputs!.model).toEqual(['402', 0])
@@ -118,18 +125,10 @@ describe('applyLtxLoraChain', () => {
     expect(workflow['400']!.inputs!.lora_name).toBe('LTX/Custom/style.safetensors')
   })
 
-  it('does not touch 2nd pass chain (node 27)', async () => {
+  it('does not touch 2nd pass chain (node 298 → 67)', async () => {
     const workflow = createBaseWorkflow()
-    workflow['27'] = {
-      inputs: {
-        lora_name: 'LTX\\REDACTED_MODEL.safetensors',
-        strength_model: 0.6,
-        model: ['3', 0],
-      },
-      class_type: 'LoraLoaderModelOnly',
-    }
     workflow['67'] = {
-      inputs: { model: ['27', 0], conditioning: ['21', 0] },
+      inputs: { model: ['298', 0], conditioning: ['21', 0] },
       class_type: 'BasicGuider',
     }
 
@@ -147,7 +146,7 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['27']!.inputs!.model).toEqual(['3', 0])
-    expect(workflow['67']!.inputs!.model).toEqual(['27', 0])
+    expect(workflow['298']!.inputs!.model).toEqual(['297', 0])
+    expect(workflow['67']!.inputs!.model).toEqual(['298', 0])
   })
 })

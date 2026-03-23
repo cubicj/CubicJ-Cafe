@@ -21,15 +21,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "title": "VAELoader KJ"
     }
   },
-  "3": {
-    "inputs": {
-      "unet_name": "REDACTED_MODEL.gguf"
-    },
-    "class_type": "UnetLoaderGGUF",
-    "_meta": {
-      "title": "Unet Loader (GGUF)"
-    }
-  },
   "5": {
     "inputs": {
       "text": "",
@@ -125,7 +116,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "16": {
     "inputs": {
-      "noise_seed": 759646541118806
+      "noise_seed": 451090353646370
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -224,7 +215,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "22": {
     "inputs": {
-      "steps": 12,
+      "steps": 8,
       "max_shift": 2.05,
       "base_shift": 0.95,
       "stretch": true,
@@ -279,20 +270,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "title": "spatial"
     }
   },
-  "27": {
-    "inputs": {
-      "lora_name": "LTX\\REDACTED_MODEL.safetensors",
-      "strength_model": 0.6,
-      "model": [
-        "3",
-        0
-      ]
-    },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": {
-      "title": "Load LoRA"
-    }
-  },
   "28": {
     "inputs": {
       "video_latent": [
@@ -311,7 +288,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "32": {
     "inputs": {
-      "noise_seed": 1095007059472467
+      "noise_seed": 541048984909850
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -477,7 +454,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   "67": {
     "inputs": {
       "model": [
-        "27",
+        "298",
         0
       ],
       "conditioning": [
@@ -501,6 +478,10 @@ export const LTX_WORKFLOW_TEMPLATE = {
         0
       ],
       "nag_cond_video": [
+        "23",
+        1
+      ],
+      "nag_cond_audio": [
         "23",
         1
       ]
@@ -548,20 +529,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "title": "VRAM Debug"
     }
   },
-  "81": {
-    "inputs": {
-      "lora_name": "LTX\\REDACTED_MODEL.safetensors",
-      "strength_model": 0.25,
-      "model": [
-        "3",
-        0
-      ]
-    },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": {
-      "title": "Load LoRA"
-    }
-  },
   "82": {
     "inputs": {
       "empty_cache": true,
@@ -579,7 +546,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "86": {
     "inputs": {
-      "megapixels": 0.15,
+      "megapixels": 0.23,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -723,7 +690,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "264": {
     "inputs": {
-      "megapixels": 0.15,
+      "megapixels": 0.23,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -770,7 +737,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "266": {
     "inputs": {
-      "img_compression": 10,
+      "img_compression": 18,
       "image": [
         "86",
         0
@@ -783,7 +750,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "267": {
     "inputs": {
-      "img_compression": 10,
+      "img_compression": 18,
       "image": [
         "264",
         0
@@ -796,15 +763,52 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "268": {
     "inputs": {
-      "audio_normalization_factors": "1,1,1,0.25,1,1,1",
+      "audio_normalization_factors": "1,1,1",
       "model": [
-        "81",
+        "296",
         0
       ]
     },
     "class_type": "LTX2AudioLatentNormalizingSampling",
     "_meta": {
       "title": "LTX2 Audio Latent Normalizing Sampling"
+    }
+  },
+  "296": {
+    "inputs": {
+      "lora_name": "LTX\\Custom\\REDACTED_MODEL.safetensors",
+      "strength_model": 0,
+      "model": [
+        "298",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "297": {
+    "inputs": {
+      "unet_name": "REDACTED_MODEL.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "298": {
+    "inputs": {
+      "triton_kernels": true,
+      "model": [
+        "297",
+        0
+      ]
+    },
+    "class_type": "LTX2MemoryEfficientSageAttentionPatch",
+    "_meta": {
+      "title": "LTX2 Mem Eff Sage Attention Patch"
     }
   }
 }
