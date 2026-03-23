@@ -2,11 +2,11 @@ import { z } from 'zod'
 
 export const loraItemSchema = z.object({
   loraFilename: z.string().min(1),
-  loraName: z.string().optional(),
+  loraName: z.string().nullish(),
   strength: z.coerce.number().min(0).max(2).default(0.8),
   group: z.enum(['HIGH', 'LOW']).default('HIGH'),
-  order: z.coerce.number().int().min(0).optional(),
-  bundleId: z.string().optional(),
+  order: z.coerce.number().int().min(0).nullish(),
+  bundleId: z.string().nullish(),
 })
 
 export const createLoraPresetSchema = z.object({
