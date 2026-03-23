@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/database/prisma';
+import { parseBody } from '@/lib/validations/parse';
+import { reorderPresetsSchema } from '@/lib/validations/schemas/lora-preset';
 
 import { createLogger } from '@/lib/logger';
 
@@ -9,11 +11,15 @@ const log = createLogger('api');
 export async function PUT(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
     try {
-      const { presetIds } = await req.json();
-
-      if (!Array.isArray(presetIds) || presetIds.length === 0) {
-        return NextResponse.json({ error: '프리셋 ID 배열이 필요합니다' }, { status: 400 });
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
       }
+      const result = parseBody(reorderPresetsSchema, body);
+      if (!result.success) return result.response;
+      const { presetIds } = result.data;
 
       const userPresets = await prisma.loRAPreset.findMany({
         where: {
