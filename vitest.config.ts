@@ -14,6 +14,8 @@ export default defineConfig({
     env: {
       DATABASE_URL: `file:${path.resolve(__dirname, 'tests/.test.db')}`,
       ADMIN_DISCORD_IDS: 'admin-discord-123',
+      DISCORD_CLIENT_ID: 'test-client-id',
+      NEXTAUTH_URL: 'http://localhost:3000',
     },
     coverage: {
       provider: 'v8',
