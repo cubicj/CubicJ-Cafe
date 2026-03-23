@@ -1,6 +1,6 @@
 import { cleanTables } from '../helpers/db'
 import { createUser, createAdminUser, createQueueRequest } from '../helpers/fixtures'
-import { queueService } from '@/lib/database/queue'
+import { QueueService } from '@/lib/database/queue'
 import { prisma } from '@/lib/database/prisma'
 import { QueueStatus } from '@prisma/client'
 
@@ -13,12 +13,12 @@ describe('QueueService', () => {
     it('creates a PENDING request with auto-incrementing position', async () => {
       const user = await createUser()
 
-      const id1 = await queueService.createRequest({
+      const id1 = await QueueService.createRequest({
         userId: user.id,
         nickname: user.nickname,
         prompt: 'first',
       })
-      const id2 = await queueService.createRequest({
+      const id2 = await QueueService.createRequest({
         userId: user.id,
         nickname: user.nickname,
         prompt: 'second',
@@ -39,7 +39,7 @@ describe('QueueService', () => {
       await createQueueRequest(user.id, { position: 2 })
 
       await expect(
-        queueService.createRequest({
+        QueueService.createRequest({
           userId: user.id,
           nickname: user.nickname,
           prompt: 'third',
@@ -54,7 +54,7 @@ describe('QueueService', () => {
       await createQueueRequest(user.id, { position: 2, status: QueueStatus.CANCELLED })
       await createQueueRequest(user.id, { position: 3, status: QueueStatus.FAILED })
 
-      const id = await queueService.createRequest({
+      const id = await QueueService.createRequest({
         userId: user.id,
         nickname: user.nickname,
         prompt: 'new one',
@@ -66,7 +66,7 @@ describe('QueueService', () => {
 
   describe('getQueueList', () => {
     it('returns empty array when no pending/processing requests', async () => {
-      const list = await queueService.getQueueList()
+      const list = await QueueService.getQueueList()
       expect(list).toEqual([])
     })
 
@@ -77,7 +77,7 @@ describe('QueueService', () => {
       await createQueueRequest(user.id, { position: 2, status: QueueStatus.PROCESSING, prompt: 'processing1' })
       await createQueueRequest(user.id, { position: 3, status: QueueStatus.PENDING, prompt: 'pending2' })
 
-      const list = await queueService.getQueueList()
+      const list = await QueueService.getQueueList()
 
       expect(list).toHaveLength(3)
       expect(list[0].status).toBe(QueueStatus.PROCESSING)
@@ -93,7 +93,7 @@ describe('QueueService', () => {
       await createQueueRequest(user.id, { position: 3, status: QueueStatus.CANCELLED })
       await createQueueRequest(user.id, { position: 4, status: QueueStatus.PENDING })
 
-      const list = await queueService.getQueueList()
+      const list = await QueueService.getQueueList()
 
       expect(list).toHaveLength(1)
       expect(list[0].status).toBe(QueueStatus.PENDING)
@@ -105,7 +105,7 @@ describe('QueueService', () => {
       const user = await createUser()
       const req = await createQueueRequest(user.id, { status: QueueStatus.PENDING })
 
-      const result = await queueService.cancelRequest(req.id, user.id)
+      const result = await QueueService.cancelRequest(req.id, user.id)
 
       expect(result.status).toBe(QueueStatus.CANCELLED)
     })
@@ -114,7 +114,7 @@ describe('QueueService', () => {
       const user = await createUser()
       const req = await createQueueRequest(user.id, { status: QueueStatus.PROCESSING })
 
-      const result = await queueService.cancelRequest(req.id, user.id)
+      const result = await QueueService.cancelRequest(req.id, user.id)
 
       expect(result.status).toBe(QueueStatus.CANCELLED)
     })
@@ -125,7 +125,7 @@ describe('QueueService', () => {
       const req = await createQueueRequest(owner.id, { status: QueueStatus.PENDING })
 
       await expect(
-        queueService.cancelRequest(req.id, other.id)
+        QueueService.cancelRequest(req.id, other.id)
       ).rejects.toThrow('취소')
     })
 
@@ -134,7 +134,7 @@ describe('QueueService', () => {
       const admin = await createAdminUser()
       const req = await createQueueRequest(owner.id, { status: QueueStatus.PENDING })
 
-      const result = await queueService.cancelRequest(req.id, admin.id, true)
+      const result = await QueueService.cancelRequest(req.id, admin.id, true)
 
       expect(result.status).toBe(QueueStatus.CANCELLED)
     })
@@ -144,7 +144,7 @@ describe('QueueService', () => {
       const req = await createQueueRequest(user.id, { status: QueueStatus.COMPLETED })
 
       await expect(
-        queueService.cancelRequest(req.id, user.id)
+        QueueService.cancelRequest(req.id, user.id)
       ).rejects.toThrow('취소')
     })
 
@@ -153,7 +153,7 @@ describe('QueueService', () => {
       const req = await createQueueRequest(user.id, { status: QueueStatus.CANCELLED })
 
       await expect(
-        queueService.cancelRequest(req.id, user.id)
+        QueueService.cancelRequest(req.id, user.id)
       ).rejects.toThrow('취소')
     })
   })
@@ -163,7 +163,7 @@ describe('QueueService', () => {
       const user = await createUser()
       await createQueueRequest(user.id, { position: 1, status: QueueStatus.PENDING })
 
-      const claimed = await queueService.getAndClaimNextPendingRequest()
+      const claimed = await QueueService.getAndClaimNextPendingRequest()
 
       expect(claimed).not.toBeNull()
       expect(claimed!.status).toBe(QueueStatus.PROCESSING)
@@ -171,7 +171,7 @@ describe('QueueService', () => {
     })
 
     it('returns null when no pending requests exist', async () => {
-      const result = await queueService.getAndClaimNextPendingRequest()
+      const result = await QueueService.getAndClaimNextPendingRequest()
       expect(result).toBeNull()
     })
 
@@ -180,7 +180,7 @@ describe('QueueService', () => {
       await createQueueRequest(user.id, { position: 5, prompt: 'later' })
       await createQueueRequest(user.id, { position: 2, prompt: 'first' })
 
-      const claimed = await queueService.getAndClaimNextPendingRequest()
+      const claimed = await QueueService.getAndClaimNextPendingRequest()
 
       expect(claimed!.prompt).toBe('first')
       expect(claimed!.position).toBe(2)
@@ -199,9 +199,9 @@ describe('QueueService', () => {
         where: { id: completed.id },
         data: { completedAt: new Date() },
       })
-      queueService.invalidateCache()
+      QueueService.invalidateCache()
 
-      const stats = await queueService.getQueueStats()
+      const stats = await QueueService.getQueueStats()
 
       expect(stats.pending).toBe(1)
       expect(stats.processing).toBe(1)
@@ -226,9 +226,9 @@ describe('QueueService', () => {
         where: { id: todayReq.id },
         data: { completedAt: new Date() },
       })
-      queueService.invalidateCache()
+      QueueService.invalidateCache()
 
-      const stats = await queueService.getQueueStats()
+      const stats = await QueueService.getQueueStats()
 
       expect(stats.todayCompleted).toBe(1)
     })
@@ -238,16 +238,16 @@ describe('QueueService', () => {
     it('createRequest invalidates cache', async () => {
       const user = await createUser()
 
-      const list1 = await queueService.getQueueList()
+      const list1 = await QueueService.getQueueList()
       expect(list1).toHaveLength(0)
 
-      await queueService.createRequest({
+      await QueueService.createRequest({
         userId: user.id,
         nickname: user.nickname,
         prompt: 'new',
       })
 
-      const list2 = await queueService.getQueueList()
+      const list2 = await QueueService.getQueueList()
       expect(list2).toHaveLength(1)
     })
 
@@ -255,12 +255,12 @@ describe('QueueService', () => {
       const user = await createUser()
       const req = await createQueueRequest(user.id, { position: 1, status: QueueStatus.PENDING })
 
-      const list1 = await queueService.getQueueList()
+      const list1 = await QueueService.getQueueList()
       expect(list1).toHaveLength(1)
 
-      await queueService.updateRequest(req.id, { status: QueueStatus.COMPLETED })
+      await QueueService.updateRequest(req.id, { status: QueueStatus.COMPLETED })
 
-      const list2 = await queueService.getQueueList()
+      const list2 = await QueueService.getQueueList()
       expect(list2).toHaveLength(0)
     })
 
@@ -268,12 +268,12 @@ describe('QueueService', () => {
       const user = await createUser()
       await createQueueRequest(user.id, { position: 1, status: QueueStatus.PENDING })
 
-      const list1 = await queueService.getQueueList()
+      const list1 = await QueueService.getQueueList()
       expect(list1).toHaveLength(1)
 
-      await queueService.cancelRequest(list1[0].id, user.id)
+      await QueueService.cancelRequest(list1[0].id, user.id)
 
-      const list2 = await queueService.getQueueList()
+      const list2 = await QueueService.getQueueList()
       expect(list2).toHaveLength(0)
     })
   })

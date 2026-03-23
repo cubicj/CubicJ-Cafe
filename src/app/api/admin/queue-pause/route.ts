@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { setQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
-import { queueService } from '@/lib/database/queue';
+import { QueueService } from '@/lib/database/queue';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
@@ -14,7 +14,7 @@ export const POST = createRouteHandler(
       return NextResponse.json({ error: '유효한 큐 번호를 입력해주세요.' }, { status: 400 });
     }
 
-    const existingRequest = await queueService.getRequestByPosition(position);
+    const existingRequest = await QueueService.getRequestByPosition(position);
     if (!existingRequest) {
       return NextResponse.json({ error: `#${position} 큐를 찾을 수 없습니다.` }, { status: 400 });
     }

@@ -13,8 +13,8 @@ export async function register() {
     const tempDir = join(process.cwd(), 'public', 'temp');
     mkdirSync(tempDir, { recursive: true });
 
-    const { queueService } = await import('./lib/database/queue');
-    const stats = await queueService.getQueueStats();
+    const { QueueService } = await import('./lib/database/queue');
+    const stats = await QueueService.getQueueStats();
 
     if (stats.processing > 0) {
       try {
@@ -31,7 +31,7 @@ export async function register() {
         log.warn('ComfyUI interrupt failed (server may be offline), proceeding with reset');
       }
 
-      const result = await queueService.resetProcessingToPending();
+      const result = await QueueService.resetProcessingToPending();
       log.info(`Recovered ${result.count} orphaned PROCESSING jobs to PENDING`);
     }
 

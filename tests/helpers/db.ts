@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/database/prisma'
-import { queueService } from '@/lib/database/queue'
+import { QueueService } from '@/lib/database/queue'
 
 export async function cleanTables() {
   await prisma.loRAPresetItem.deleteMany()
@@ -10,5 +10,5 @@ export async function cleanTables() {
   await prisma.systemSetting.deleteMany()
   await prisma.loRABundle.deleteMany()
 
-  queueService.invalidateCache()
+  QueueService.invalidateCache()
 }

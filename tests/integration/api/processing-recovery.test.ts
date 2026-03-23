@@ -1,6 +1,6 @@
 import { cleanTables } from '../../helpers/db'
 import { createUser, createQueueRequest } from '../../helpers/fixtures'
-import { queueService } from '@/lib/database/queue'
+import { QueueService } from '@/lib/database/queue'
 
 beforeEach(async () => {
   await cleanTables()
@@ -13,11 +13,11 @@ describe('PROCESSING job recovery', () => {
     await createQueueRequest(user.id, { status: 'PROCESSING' })
     await createQueueRequest(user.id, { status: 'PENDING' })
 
-    const result = await queueService.resetProcessingToPending()
+    const result = await QueueService.resetProcessingToPending()
 
     expect(result.count).toBe(2)
 
-    const stats = await queueService.getQueueStats()
+    const stats = await QueueService.getQueueStats()
     expect(stats.processing).toBe(0)
     expect(stats.pending).toBe(3)
   })
@@ -26,7 +26,7 @@ describe('PROCESSING job recovery', () => {
     const user = await createUser()
     await createQueueRequest(user.id, { status: 'PENDING' })
 
-    const result = await queueService.resetProcessingToPending()
+    const result = await QueueService.resetProcessingToPending()
 
     expect(result.count).toBe(0)
   })

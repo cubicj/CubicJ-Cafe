@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
-import { queueService } from '@/lib/database/queue';
+import { QueueService } from '@/lib/database/queue';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -137,7 +137,7 @@ export const POST = createRouteHandler(
         })
       }
 
-      const requestId = await queueService.createRequest({
+      const requestId = await QueueService.createRequest({
         userId: parseInt(req.user!.id),
         nickname: req.user!.nickname,
         prompt: prompt.trim(),
