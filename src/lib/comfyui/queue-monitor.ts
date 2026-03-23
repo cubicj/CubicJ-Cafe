@@ -1,4 +1,4 @@
-import { queueService } from '@/lib/database/queue';
+import { QueueService } from '@/lib/database/queue';
 import { QueueStatus } from '@prisma/client';
 import { ComfyUIClient } from './client';
 import { buildWorkflow } from './workflow-router';
@@ -179,7 +179,7 @@ class QueueMonitor {
     const availableServerCount = this.activeServers.filter(server => !server.currentJobId).length;
     
     // 3. 메모리와 데이터베이스 모두에서 처리 중인 요청 수 확인
-    const actualProcessingCount = await queueService.getProcessingCount();
+    const actualProcessingCount = await QueueService.getProcessingCount();
     const memoryProcessingCount = this.currentlyProcessing.size;
     
     // 더 큰 값을 사용 (Race Condition 방지)
@@ -208,7 +208,7 @@ class QueueMonitor {
     for (let i = 0; i < actualAvailableSlots; i++) {
       const pauseAfterPosition = getQueuePauseAfterPosition();
       if (pauseAfterPosition !== null) {
-        const nextPendingPosition = await queueService.peekNextPendingPosition();
+        const nextPendingPosition = await QueueService.peekNextPendingPosition();
         if (nextPendingPosition === null || nextPendingPosition > pauseAfterPosition) {
           if (!this.pauseLoggedOnce) {
             log.info('Queue paused by reservation', { pauseAfterPosition });
@@ -226,7 +226,7 @@ class QueueMonitor {
       }
 
       // 원자적으로 다음 요청을 가져와서 PROCESSING 상태로 변경
-      const claimedRequest = await queueService.getAndClaimNextPendingRequest();
+      const claimedRequest = await QueueService.getAndClaimNextPendingRequest();
       
       if (!claimedRequest) {
         // 디버깅: 처리할 요청 없음 로그 제거 (정상 상황)
@@ -264,7 +264,7 @@ class QueueMonitor {
     requestId: string, 
     server: { client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }
   ): Promise<void> {
-    const request = await queueService.getRequestById(requestId);
+    const request = await QueueService.getRequestById(requestId);
     if (!request) {
       log.error('Request not found', { requestId });
       return;
@@ -376,7 +376,7 @@ class QueueMonitor {
       });
 
       // 요청 상태 업데이트 (prompt_id 저장)
-      await queueService.updateRequest(requestId, {
+      await QueueService.updateRequest(requestId, {
         jobId: response.prompt_id,
         serverId: actualServerId
       });
@@ -407,7 +407,7 @@ class QueueMonitor {
 
       this.releaseServerJob(requestId);
 
-      await queueService.updateRequest(requestId, {
+      await QueueService.updateRequest(requestId, {
         status: QueueStatus.FAILED,
         failedAt: new Date(),
         error: error instanceof Error ? error.message : '알 수 없는 오류'

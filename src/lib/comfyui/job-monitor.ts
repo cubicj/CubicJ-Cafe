@@ -1,5 +1,5 @@
 import { generationStore } from '../generation-store';
-import { queueService } from '@/lib/database/queue';
+import { QueueService } from '@/lib/database/queue';
 import { QueueStatus } from '@prisma/client';
 import { GenerationJob } from '@/types';
 import { discordBot } from '../discord-bot';
@@ -72,7 +72,7 @@ class ComfyUIJobMonitor {
         if (elapsedTime > maxMonitoringTime) {
           log.warn('Monitoring timeout', { minutes: Math.round(elapsedTime / 1000 / 60), promptId: job.promptId });
           
-          await queueService.updateRequest(job.id, {
+          await QueueService.updateRequest(job.id, {
             status: QueueStatus.FAILED,
             failedAt: new Date(),
             error: '모니터링 시간 초과 (30분)'
@@ -91,7 +91,7 @@ class ComfyUIJobMonitor {
           return;
         }
 
-        const queueRequest = await queueService.getRequestById(job.id);
+        const queueRequest = await QueueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
           throw new Error('서버 정보를 찾을 수 없습니다');
         }
@@ -127,7 +127,7 @@ class ComfyUIJobMonitor {
           log.info('ComfyUI job completed', { promptId: job.promptId });
           
           try {
-            await queueService.updateRequest(job.id, {
+            await QueueService.updateRequest(job.id, {
               status: QueueStatus.COMPLETED,
               completedAt: new Date()
             });
@@ -151,7 +151,7 @@ class ComfyUIJobMonitor {
             });
             
             log.warn('Job completed but Discord send failed', { jobId: job.id });
-            await queueService.updateRequest(job.id, {
+            await QueueService.updateRequest(job.id, {
               status: QueueStatus.COMPLETED,
               completedAt: new Date(),
               error: `작업 완료, Discord 전송 실패: ${errorMessage}`
@@ -176,7 +176,7 @@ class ComfyUIJobMonitor {
           
           const errorInfo = this.extractErrorFromHistory(promptData);
           
-          await queueService.updateRequest(job.id, {
+          await QueueService.updateRequest(job.id, {
             status: QueueStatus.FAILED,
             failedAt: new Date(),
             error: errorInfo || 'ComfyUI에서 작업이 실패했습니다 (outputs 없음)'
@@ -206,7 +206,7 @@ class ComfyUIJobMonitor {
           this.monitoringJobs.delete(job.promptId!);
           
           queueMonitor.releaseServerJob(job.id);
-          await queueService.updateRequest(job.id, {
+          await QueueService.updateRequest(job.id, {
             status: QueueStatus.FAILED,
             failedAt: new Date(),
             error: error instanceof Error ? error.message : '모니터링 실패'
@@ -289,7 +289,7 @@ class ComfyUIJobMonitor {
           const video = outputFiles[0];
           videoFound = true;
 
-          const queueRequest = await queueService.getRequestById(job.id);
+          const queueRequest = await QueueService.getRequestById(job.id);
           if (!queueRequest?.serverId) {
             throw new Error('서버 정보를 찾을 수 없습니다');
           }
@@ -332,7 +332,7 @@ class ComfyUIJobMonitor {
       if (!videoFound) {
         log.debug('No output field, attempting filename extraction from history', { jobId: job.id });
 
-        const queueRequest = await queueService.getRequestById(job.id);
+        const queueRequest = await QueueService.getRequestById(job.id);
         if (!queueRequest?.serverId) {
           log.warn('No server info, skipping Discord send', { jobId: job.id });
           return;

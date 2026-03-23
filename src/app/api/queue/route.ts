@@ -37,7 +37,7 @@ export const GET = createRouteHandler(
 
       case 'stats':
         try {
-          const stats = await queueService.getQueueStats();
+          const stats = await QueueService.getQueueStats();
           return { data: stats || { pending: 0, processing: 0, todayCompleted: 0, total: 0 } };
         } catch (dbError) {
           log.error('Queue stats fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
@@ -53,7 +53,7 @@ export const GET = createRouteHandler(
         }
 
         try {
-          const userRequests = await queueService.getUserRequests(parseInt(req.user.id));
+          const userRequests = await QueueService.getUserRequests(parseInt(req.user.id));
           return { data: userRequests || [] };
         } catch (dbError) {
           log.error('User requests fetch failed', { error: dbError instanceof Error ? dbError.message : String(dbError) });
@@ -84,7 +84,7 @@ export const POST = createRouteHandler(
 
     try {
       const userIsAdmin = isAdmin(req.user!.discordId);
-      await queueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
+      await QueueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
       return { message: '요청이 취소되었습니다.' };
     } catch (cancelError) {
       log.error('Queue cancel error', { error: cancelError instanceof Error ? cancelError.message : String(cancelError) });

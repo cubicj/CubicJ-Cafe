@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/database/prisma'
-import { queueService } from '@/lib/database/queue'
+import { QueueService } from '@/lib/database/queue'
 import { QueueStatus, type User } from '@prisma/client'
 
 export const TEST_USER = {
@@ -51,6 +51,6 @@ export async function createQueueRequest(userId: number, overrides?: {
       workflowLength: 81,
     },
   })
-  queueService.invalidateCache()
+  QueueService.invalidateCache()
   return request
 }
