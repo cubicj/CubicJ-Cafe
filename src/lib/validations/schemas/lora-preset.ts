@@ -12,7 +12,7 @@ export const loraItemSchema = z.object({
 export const createLoraPresetSchema = z.object({
   name: z.string().min(1, '프리셋 이름은 필수입니다').max(100).transform((s) => s.trim()),
   isPublic: z.boolean().default(false),
-  loraItems: z.array(loraItemSchema).min(1, 'LoRA 아이템이 필요합니다').max(20),
+  loraItems: z.array(loraItemSchema).max(20).default([]),
   model: z.enum(['wan', 'ltx']).default('wan'),
 })
 
