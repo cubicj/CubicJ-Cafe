@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createLogger } from '@/lib/logger'
 
 const log = createLogger('auth')
 
-export async function POST() {
+export async function POST(_request: NextRequest) {
   const state = randomUUID()
 
   const clientId = process.env.DISCORD_CLIENT_ID
