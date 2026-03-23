@@ -227,7 +227,6 @@ describe('DELETE /api/lora-presets/[id]', () => {
       method: 'DELETE',
     })
     const res = await DELETE(req, { params: Promise.resolve({ id: created.preset.id }) })
-    const body = await res.json()
 
     expect(res.status).toBe(200)
     const checkReq = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId)
