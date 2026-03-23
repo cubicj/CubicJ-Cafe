@@ -94,15 +94,18 @@ describe('buildLtxWorkflow', () => {
       const params: LtxGenerationParams = { ...baseParams, loraPreset }
       const workflow = await buildLtxWorkflow(params)
 
+      expect(workflow['296']).toBeUndefined()
       expect(workflow['400']).toBeDefined()
       expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
+      expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
       expect(workflow['268']!.inputs!.model).toEqual(['400', 0])
     })
 
-    it('does not add LoRA nodes when no preset', async () => {
+    it('removes placeholder and connects 268 directly to 298 when no preset', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['400']).toBeUndefined()
-      expect(workflow['268']!.inputs!.model).toEqual(['81', 0])
+      expect(workflow['296']).toBeUndefined()
+      expect(workflow['268']!.inputs!.model).toEqual(['298', 0])
     })
   })
 })

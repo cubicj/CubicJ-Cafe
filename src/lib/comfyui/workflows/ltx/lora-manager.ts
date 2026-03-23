@@ -7,7 +7,8 @@ import { deduplicateByFilename } from '../lora-utils'
 const log = createLogger('comfyui')
 
 const LTX_DYNAMIC_NODE_START = 400
-const DISTILLED_LORA_NODE = '81'
+const SAGE_ATTENTION_NODE = '298'
+const LORA_PLACEHOLDER_NODE = '296'
 const AUDIO_NORM_NODE = '268'
 
 export async function applyLtxLoraChain(
@@ -19,7 +20,8 @@ export async function applyLtxLoraChain(
   if (!loraItems || loraItems.length === 0) return
 
   const deduplicated = deduplicateByFilename(loraItems)
-  let previousNodeId = DISTILLED_LORA_NODE
+  delete workflow[LORA_PLACEHOLDER_NODE]
+  let previousNodeId = SAGE_ATTENTION_NODE
 
   for (let i = 0; i < deduplicated.length; i++) {
     const newNodeId = String(LTX_DYNAMIC_NODE_START + i)

@@ -28,6 +28,8 @@ export async function buildLtxWorkflow(
 
   if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     await applyLtxLoraChain(workflow, params.loraPreset, server)
+  } else {
+    removeLoraPlaceholder(workflow)
   }
 
   if (workflow['16']) {
@@ -43,6 +45,13 @@ export async function buildLtxWorkflow(
   }
 
   return workflow
+}
+
+function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
+  if (workflow['268']?.inputs) {
+    workflow['268'].inputs.model = ['298', 0]
+  }
+  delete workflow['296']
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
