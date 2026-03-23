@@ -23,10 +23,6 @@ export function initializeServices() {
       log.error('Failed to initialize model settings', { error: error instanceof Error ? error.message : String(error) });
     });
 
-    initQueuePauseState().catch(error => {
-      log.error('Queue pause state init failed', { error: error instanceof Error ? error.message : String(error) });
-    });
-
     initComfyUIState().then(async () => {
       await initQueuePauseState();
       if (isComfyUIEnabled()) {

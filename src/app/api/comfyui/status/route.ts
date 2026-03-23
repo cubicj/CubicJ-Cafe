@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { ComfyUIClient } from '@/lib/comfyui/client'
-
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+
+const statusCheckOptions = { timeout: 2000, maxRetries: 0 } as const;
+const localStatusClient = new ComfyUIClient(statusCheckOptions);
 
 const log = createLogger('comfyui');
 
@@ -35,17 +37,12 @@ export async function GET() {
 
     const localServerPromise = async (): Promise<ServerStatus> => {
       try {
-        const localClient = new ComfyUIClient({ 
-          timeout: 2000,
-          maxRetries: 0
-        })
-
-        const isHealthy = await localClient.pingServer()
+        const isHealthy = await localStatusClient.pingServer()
         let queueInfo = null
-        
+
         if (isHealthy) {
           try {
-            queueInfo = await localClient.getQueueStatus()
+            queueInfo = await localStatusClient.getQueueStatus()
           } catch {
           }
         }
@@ -74,10 +71,9 @@ export async function GET() {
     runpodUrls.forEach((url, i) => {
       const runpodServerPromise = async (): Promise<ServerStatus> => {
         try {
-          const runpodClient = new ComfyUIClient({ 
+          const runpodClient = new ComfyUIClient({
             baseURL: url,
-            timeout: 2000,
-            maxRetries: 0
+            ...statusCheckOptions,
           })
 
           const isHealthy = await runpodClient.pingServer()
