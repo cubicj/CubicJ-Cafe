@@ -17,7 +17,6 @@ describe('GET /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
       expect(body.data).toEqual([])
     })
 
@@ -38,7 +37,6 @@ describe('GET /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
       expect(body.data).toHaveLength(1)
       expect(body.data[0].prompt).toBe('test prompt')
     })
@@ -51,7 +49,6 @@ describe('GET /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
       expect(body.data).toEqual({
         pending: 0,
         processing: 0,
@@ -78,7 +75,6 @@ describe('GET /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
       expect(body.data).toEqual([])
     })
   })
@@ -128,7 +124,6 @@ describe('POST /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
 
       const cancelled = await prisma.queueRequest.findUnique({ where: { id: queueItem.id } })
       expect(cancelled!.status).toBe(QueueStatus.CANCELLED)
@@ -187,7 +182,6 @@ describe('POST /api/queue', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body.success).toBe(true)
     })
   })
 

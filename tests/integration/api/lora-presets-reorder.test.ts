@@ -87,8 +87,6 @@ describe('PUT /api/lora-presets/reorder', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
-
     const updated = await prisma.loRAPreset.findMany({
       where: { userId: user.id },
       orderBy: { order: 'asc' },

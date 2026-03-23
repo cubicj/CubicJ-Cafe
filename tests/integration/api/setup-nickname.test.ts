@@ -28,7 +28,6 @@ describe('POST /api/setup/nickname', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.user.nickname).toBe('NewNickname')
   })
 
@@ -83,8 +82,16 @@ describe('POST /api/setup/nickname', () => {
 })
 
 describe('GET /api/setup/nickname', () => {
-  it('returns available true for unused nickname', async () => {
+  it('returns 401 when not authenticated', async () => {
     const req = buildRequest('/api/setup/nickname?check=FreshName')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('returns available true for unused nickname', async () => {
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const req = buildAuthenticatedRequest('/api/setup/nickname?check=FreshName', session.id)
     const res = await GET(req)
     const body = await res.json()
 
@@ -94,7 +101,9 @@ describe('GET /api/setup/nickname', () => {
 
   it('returns available false for taken nickname', async () => {
     await createUser({ nickname: 'TakenName' })
-    const req = buildRequest('/api/setup/nickname?check=TakenName')
+    const user = await createUser({ discordId: 'checker-123', discordUsername: 'checker', nickname: 'Checker' })
+    const session = await createTestSession(user.id)
+    const req = buildAuthenticatedRequest('/api/setup/nickname?check=TakenName', session.id)
     const res = await GET(req)
     const body = await res.json()
 

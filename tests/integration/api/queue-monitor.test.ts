@@ -40,7 +40,6 @@ describe('GET /api/queue/monitor', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.data).toBeDefined()
   })
 })
@@ -80,7 +79,6 @@ describe('POST /api/queue/monitor', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.message).toContain('시작')
   })
 
@@ -96,7 +94,6 @@ describe('POST /api/queue/monitor', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.message).toContain('중단')
   })
 
@@ -112,7 +109,6 @@ describe('POST /api/queue/monitor', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.data).toBeDefined()
   })
 

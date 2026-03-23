@@ -1,35 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import { prisma } from '@/lib/database/prisma';
 
-import { createLogger } from '@/lib/logger';
+export const GET = createRouteHandler(
+  { auth: 'user' },
+  async (req) => {
+    const userId = parseInt(req.user!.id);
 
-const log = createLogger('api');
+    const [queueRequestCount, loraPresetCount] = await Promise.all([
+      prisma.queueRequest.count({
+        where: { userId }
+      }),
+      prisma.loRAPreset.count({
+        where: { userId }
+      })
+    ]);
 
-export async function GET(request: NextRequest) {
-  return withAuth(request, async (req: AuthenticatedRequest) => {
-    try {
-      const userId = parseInt(req.user!.id);
-
-      const [queueRequestCount, loraPresetCount] = await Promise.all([
-        prisma.queueRequest.count({
-          where: { userId }
-        }),
-        prisma.loRAPreset.count({
-          where: { userId }
-        })
-      ]);
-
-      return NextResponse.json({
-        totalQueueRequests: queueRequestCount,
-        loraPresetCount
-      });
-    } catch (error) {
-      log.error('Failed to fetch user stats', { error: error instanceof Error ? error.message : String(error) });
-      return NextResponse.json(
-        { error: '통계 정보를 불러오는데 실패했습니다' },
-        { status: 500 }
-      );
-    }
-  });
-}
+    return {
+      totalQueueRequests: queueRequestCount,
+      loraPresetCount
+    };
+  }
+);
