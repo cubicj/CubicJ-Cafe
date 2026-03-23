@@ -1,6 +1,5 @@
 import { prisma } from './prisma';
 import type { User } from '@prisma/client';
-import { LoRAPresetService } from './lora-presets';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');
@@ -71,36 +70,6 @@ export class UserService {
           avatar: userData.avatar,
         },
       });
-
-      // 새 사용자를 위한 기본 LoRA 프리셋 생성
-      if (user) {
-        try {
-          await LoRAPresetService.createPreset(user.id, {
-            name: '베이스 가속로라',
-            isDefault: false,
-            isPublic: false,
-            loraItems: [
-              {
-                loraFilename: 'WAN\\High\\Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1-High.safetensors',
-                loraName: 'Lightning - Seko (High)',
-                strength: 0.5,
-                group: 'HIGH',
-                order: 0,
-              },
-              {
-                loraFilename: 'WAN\\Low\\Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1-Low.safetensors',
-                loraName: 'Lightning - Seko (Low)',
-                strength: 0.9,
-                group: 'LOW',
-                order: 1,
-              },
-            ],
-          });
-          log.info('Default LoRA preset created for new user', { nickname: userData.nickname });
-        } catch (presetError) {
-          log.error('Failed to create default LoRA preset', { error: presetError instanceof Error ? presetError.message : String(presetError) });
-        }
-      }
 
       return user;
     } catch (error) {

@@ -1,6 +1,5 @@
 import { cleanTables } from '../helpers/db'
 import { UserService } from '@/lib/database/users'
-import { prisma } from '@/lib/database/prisma'
 
 beforeEach(async () => {
   await cleanTables()
@@ -26,20 +25,7 @@ describe('UserService', () => {
       expect(user!.avatar).toBe(data.avatar)
     })
 
-    it('creates a default LoRA preset for the new user', async () => {
-      const user = await UserService.create(makeUserData())
-
-      const presets = await prisma.loRAPreset.findMany({
-        where: { userId: user!.id },
-        include: { loraItems: true },
-      })
-
-      expect(presets).toHaveLength(1)
-      expect(presets[0].name).toBe('베이스 가속로라')
-      expect(presets[0].loraItems).toHaveLength(2)
-    })
-
-    it('returns null on duplicate discordId', async () => {
+it('returns null on duplicate discordId', async () => {
       await UserService.create(makeUserData())
       const duplicate = await UserService.create(makeUserData({ nickname: 'Other' }))
 
