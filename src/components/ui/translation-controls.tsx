@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ui');
@@ -39,14 +40,11 @@ export function TranslationControls({
   useEffect(() => {
     const loadTranslationSettings = async () => {
       try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user?.id) {
-            const saved = localStorage.getItem(`translation_service_${data.user.id}`);
-            if (saved && (saved === 'google' || saved === 'gemini')) {
-              setTranslationService(saved);
-            }
+        const data = await apiClient.get<{ user?: { id: string } }>('/api/auth/session');
+        if (data.user?.id) {
+          const saved = localStorage.getItem(`translation_service_${data.user.id}`);
+          if (saved && (saved === 'google' || saved === 'gemini')) {
+            setTranslationService(saved);
           }
         }
       } catch (error) {
@@ -76,25 +74,13 @@ export function TranslationControls({
     }));
 
     try {
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: text.trim(),
-          service: translationService,
-          sourceLang: 'ko',
-          targetLang,
-        }),
+      const data = await apiClient.post<{ translatedText: string }>('/api/translate', {
+        text: text.trim(),
+        service: translationService,
+        sourceLang: 'ko',
+        targetLang,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '번역 실패');
-      }
-
-      const data = await response.json();
       const translatedText = data.translatedText;
 
       setState(prev => ({

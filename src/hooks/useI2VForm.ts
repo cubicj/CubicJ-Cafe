@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createLogger } from '@/lib/logger';
+import { apiClient, ApiError } from '@/lib/api-client';
 
 const log = createLogger('hook');
 
@@ -126,27 +127,7 @@ export function useI2VForm() {
         }
       }
 
-      const response = await fetch('/api/i2v', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-      
-      if (!response.ok) {
-        if (response.status === 429) {
-          setSubmitMessage({ 
-            type: 'error', 
-            message: result.error || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.' 
-          });
-        } else {
-          setSubmitMessage({ 
-            type: 'error', 
-            message: result.error || '요청 처리 중 오류가 발생했습니다.' 
-          });
-        }
-        return;
-      }
+      const result = await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
 
       setSubmitMessage({
         type: 'success',
@@ -158,16 +139,19 @@ export function useI2VForm() {
       
     } catch (error) {
       log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
-      
-      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
-      const errorMessage = isNetworkError 
-        ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
-        : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
-      
-      setSubmitMessage({ 
-        type: 'error', 
-        message: errorMessage
-      });
+
+      if (error instanceof ApiError) {
+        const message = error.status === 429
+          ? (error.errorMessage || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.')
+          : (error.errorMessage || '요청 처리 중 오류가 발생했습니다.');
+        setSubmitMessage({ type: 'error', message });
+      } else {
+        const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
+        const errorMessage = isNetworkError
+          ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
+          : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
+        setSubmitMessage({ type: 'error', message: errorMessage });
+      }
     } finally {
       setIsGenerating(false);
     }

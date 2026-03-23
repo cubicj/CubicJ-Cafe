@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAdminAuth } from './useAdminAuth';
+import { apiClient, ApiError } from '@/lib/api-client';
 
 interface SystemSettings {
   [category: string]: {
@@ -35,6 +36,14 @@ interface ModelList {
 
 export function useAdminSettings() {
   const { checkAdminResponse, setError } = useAdminAuth();
+
+  const handleAdminError = useCallback((err: unknown): boolean => {
+    if (err instanceof ApiError) {
+      checkAdminResponse(new Response(null, { status: err.status }));
+      if (err.status === 401 || err.status === 403) return true;
+    }
+    return false;
+  }, [checkAdminResponse]);
   
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({});
   const [modelSettings, setModelSettings] = useState<ModelSettings>({
@@ -70,54 +79,34 @@ export function useAdminSettings() {
 
   const fetchSystemSettings = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/settings');
-      const isValidResponse = await checkAdminResponse(response);
-      if (!isValidResponse) return;
-      
-      if (!response.ok) {
-        throw new Error('시스템 설정 조회 실패');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<SystemSettings>('/api/admin/settings');
       setSystemSettings(data);
-    } catch {
-      setError('시스템 설정을 불러올 수 없습니다.');
+    } catch (err) {
+      if (!handleAdminError(err)) {
+        setError('시스템 설정을 불러올 수 없습니다.');
+      }
     } finally {
       setSettingsLoading(false);
     }
-  }, [checkAdminResponse, setError]);
+  }, [handleAdminError, setError]);
 
   const fetchModelSettings = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/model-settings');
-      const isValidResponse = await checkAdminResponse(response);
-      if (!isValidResponse) return;
-      
-      if (!response.ok) {
-        throw new Error('모델 설정 조회 실패');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<{ settings: ModelSettings }>('/api/admin/model-settings');
       setModelSettings(data.settings);
-    } catch {
-      setError('모델 설정을 불러올 수 없습니다.');
+    } catch (err) {
+      if (!handleAdminError(err)) {
+        setError('모델 설정을 불러올 수 없습니다.');
+      }
     }
-  }, [checkAdminResponse, setError]);
+  }, [handleAdminError, setError]);
 
   const fetchAvailableModels = useCallback(async () => {
     try {
-      const [modelsResponse, samplersResponse] = await Promise.all([
-        fetch('/api/comfyui/models'),
-        fetch('/api/comfyui/samplers')
+      const [modelsData, samplersData] = await Promise.all([
+        apiClient.get<{ models: Omit<ModelList, 'samplers'> }>('/api/comfyui/models'),
+        apiClient.get<{ samplers: string[] }>('/api/comfyui/samplers')
       ]);
-
-      if (!modelsResponse.ok) {
-        throw new Error('모델 목록 조회 실패');
-      }
-      if (!samplersResponse.ok) {
-        throw new Error('샘플러 목록 조회 실패');
-      }
-
-      const modelsData = await modelsResponse.json();
-      const samplersData = await samplersResponse.json();
 
       setAvailableModels({
         ...modelsData.models,
@@ -132,16 +121,7 @@ export function useAdminSettings() {
 
   const updateSystemSetting = useCallback(async (key: string, value: string, type: string = 'string', category: string = 'general') => {
     try {
-      const response = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, value, type, category })
-      });
-
-      if (!response.ok) {
-        throw new Error('시스템 설정 업데이트 실패');
-      }
-
+      await apiClient.put('/api/admin/settings', { key, value, type, category });
       showSuccess(`${key} 설정이 업데이트되었습니다.`);
       fetchSystemSettings();
     } catch {
@@ -151,17 +131,7 @@ export function useAdminSettings() {
 
   const updateModelSettings = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/model-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(modelSettings)
-      });
-
-      if (!response.ok) {
-        throw new Error('모델 설정 업데이트 실패');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.put<{ settings: ModelSettings }>('/api/admin/model-settings', modelSettings);
       setModelSettings(data.settings);
       showSuccess('모델 설정이 성공적으로 업데이트되었습니다.');
     } catch {

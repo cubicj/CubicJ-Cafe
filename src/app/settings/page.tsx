@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Loader2, BarChart3 } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
@@ -35,15 +36,10 @@ export default function SettingsPage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
-            loadUserStats();
-          } else {
-            router.push('/');
-          }
+        const data = await apiClient.get<{ user: SessionUser | null }>('/api/auth/session');
+        if (data.user) {
+          setUser(data.user);
+          loadUserStats();
         } else {
           router.push('/');
         }
@@ -61,11 +57,8 @@ export default function SettingsPage() {
   const loadUserStats = async () => {
     setIsStatsLoading(true);
     try {
-      const response = await fetch('/api/user/stats');
-      if (response.ok) {
-        const stats = await response.json();
-        setUserStats(stats);
-      }
+      const stats = await apiClient.get<UserStats>('/api/user/stats');
+      setUserStats(stats);
     } catch (error) {
       log.error('Failed to load user stats', { error: error instanceof Error ? error.message : String(error) });
     } finally {

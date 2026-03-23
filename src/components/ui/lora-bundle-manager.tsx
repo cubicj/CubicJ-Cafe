@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 
 const log = createLogger('ui');
 import { Card, CardContent } from "./card";
@@ -45,15 +46,9 @@ export function LoRABundleManager() {
   const fetchBundles = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/admin/lora-bundles');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || '번들 목록을 가져오는데 실패했습니다');
-      }
-      
+      const data = await apiClient.get<{ bundles: LoRABundle[]; count: number }>('/api/admin/lora-bundles');
       setBundles(data.bundles || []);
       log.info('LoRA bundle list fetched', { count: data.count });
     } catch (err) {
@@ -66,15 +61,9 @@ export function LoRABundleManager() {
 
   const fetchAvailableLoRAs = async () => {
     setIsLoadingLoRAs(true);
-    
+
     try {
-      const response = await fetch('/api/comfyui/loras');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'LoRA 파일 목록을 가져오는데 실패했습니다');
-      }
-      
+      const data = await apiClient.get<{ categorized: { high: string[]; low: string[] } }>('/api/comfyui/loras');
       setAvailableLoRAs({
         high: data.categorized?.high || [],
         low: data.categorized?.low || [],
@@ -131,19 +120,9 @@ export function LoRABundleManager() {
     }
 
     try {
-      const response = await fetch(`/api/admin/lora-bundles/${bundleId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || '번들 삭제에 실패했습니다');
-      }
-
+      await apiClient.delete(`/api/admin/lora-bundles/${bundleId}`);
       log.info('LoRA bundle deleted successfully');
       await fetchBundles();
-      
     } catch (err) {
       log.error('Failed to delete LoRA bundle', { error: err instanceof Error ? err.message : String(err) });
       setError(err instanceof Error ? err.message : '번들 삭제 실패');

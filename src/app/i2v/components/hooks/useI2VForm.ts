@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createLogger } from '@/lib/logger';
+import { apiClient, ApiError } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
 import { useI2VFormContext } from '@/contexts/I2VFormContext';
 import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
@@ -153,12 +154,10 @@ export function useI2VForm(): UseI2VFormReturn {
   const fetchServerStatus = async () => {
     setIsLoadingServerStatus(true);
     try {
-      const response = await fetch('/api/comfyui/status');
-      if (response.ok) {
-        const data = await response.json();
-        setServerStatus(data);
-      }
+      const data = await apiClient.get<ComfyUIStatus>('/api/comfyui/status');
+      setServerStatus(data);
     } catch (error) {
+      if (error instanceof ApiError && (error.status === 503)) return;
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
         log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) });
       }
@@ -170,12 +169,8 @@ export function useI2VForm(): UseI2VFormReturn {
   const fetchPresets = async (model?: string) => {
     try {
       const m = model || activeModel;
-      const response = await fetch(`/api/lora-presets?model=${m}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        return data.presets || [];
-      }
+      const data = await apiClient.get<{ presets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }> }>(`/api/lora-presets?model=${m}`);
+      return data.presets || [];
     } catch (err) {
       log.error('Failed to fetch LoRA preset list', { error: err instanceof Error ? err.message : String(err) });
     }
@@ -230,27 +225,7 @@ export function useI2VForm(): UseI2VFormReturn {
         }
       }
 
-      const response = await fetch('/api/i2v', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          setSubmitMessage({
-            type: 'error',
-            message: result.error || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
-          });
-        } else {
-          setSubmitMessage({
-            type: 'error',
-            message: result.error || '요청 처리 중 오류가 발생했습니다.'
-          });
-        }
-        return;
-      }
+      const result = await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
 
       setSubmitMessage({
         type: 'success',
@@ -262,6 +237,21 @@ export function useI2VForm(): UseI2VFormReturn {
 
     } catch (error) {
       log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
+
+      if (error instanceof ApiError) {
+        if (error.status === 429) {
+          setSubmitMessage({
+            type: 'error',
+            message: error.errorMessage || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
+          });
+        } else {
+          setSubmitMessage({
+            type: 'error',
+            message: error.errorMessage || '요청 처리 중 오류가 발생했습니다.'
+          });
+        }
+        return;
+      }
 
       const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
       const errorMessage = isNetworkError
@@ -292,7 +282,7 @@ export function useI2VForm(): UseI2VFormReturn {
     const loadInitialData = async () => {
       const [, modelData] = await Promise.all([
         fetchServerStatus(),
-        fetch('/api/system/active-model').then(res => res.json()).catch((err: unknown) => {
+        apiClient.get<{ model: VideoModel; capabilities: ModelCapabilities }>('/api/system/active-model').catch((err: unknown) => {
           log.error('Failed to load active model', { error: err instanceof Error ? err.message : String(err) });
           return null;
         }),

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
+import { apiClient, ApiError } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
@@ -37,36 +38,25 @@ export default function AdminDashboard() {
 
   const fetchComfyUIState = async (): Promise<boolean> => {
     try {
-      const response = await fetch('/api/admin/comfyui-toggle', { credentials: 'include' });
-      if (response.ok) {
-        const data = await response.json();
-        setComfyuiEnabled(data.enabled);
-        return data.enabled;
-      }
+      const data = await apiClient.get<{ enabled: boolean }>('/api/admin/comfyui-toggle');
+      setComfyuiEnabled(data.enabled);
+      return data.enabled;
     } catch {
+      return false;
     } finally {
       setComfyuiLoading(false);
     }
-    return false;
   };
 
   const toggleComfyUI = async (enabled: boolean) => {
     try {
       setComfyuiLoading(true);
-      const response = await fetch('/api/admin/comfyui-toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ enabled })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setComfyuiEnabled(data.enabled);
-        setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
-        setTimeout(() => setComfyuiMessage(''), 3000);
-        if (data.enabled) {
-          adminSettings.fetchAvailableModels();
-        }
+      const data = await apiClient.post<{ enabled: boolean }>('/api/admin/comfyui-toggle', { enabled });
+      setComfyuiEnabled(data.enabled);
+      setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
+      setTimeout(() => setComfyuiMessage(''), 3000);
+      if (data.enabled) {
+        adminSettings.fetchAvailableModels();
       }
     } catch {
     } finally {
@@ -76,11 +66,8 @@ export default function AdminDashboard() {
 
   const fetchPauseState = async () => {
     try {
-      const response = await fetch('/api/queue?action=list', { credentials: 'include' });
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentPause(data.pauseAfterPosition ?? null);
-      }
+      const data = await apiClient.get<{ pauseAfterPosition?: number }>('/api/queue?action=list');
+      setCurrentPause(data.pauseAfterPosition ?? null);
     } catch {}
   };
 
@@ -90,25 +77,14 @@ export default function AdminDashboard() {
 
     setPauseLoading(true);
     try {
-      const response = await fetch('/api/admin/queue-pause', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ position })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentPause(data.pauseAfterPosition);
-        setPausePosition('');
-        setPauseMessage(`#${data.pauseAfterPosition} 이후 큐 일시정지 예약됨`);
-        setTimeout(() => setPauseMessage(''), 3000);
-      } else {
-        const errorData = await response.json();
-        setPauseMessage(errorData.error || '설정 실패');
-        setTimeout(() => setPauseMessage(''), 3000);
-      }
-    } catch {
-      setPauseMessage('네트워크 오류');
+      const data = await apiClient.post<{ pauseAfterPosition: number }>('/api/admin/queue-pause', { position });
+      setCurrentPause(data.pauseAfterPosition);
+      setPausePosition('');
+      setPauseMessage(`#${data.pauseAfterPosition} 이후 큐 일시정지 예약됨`);
+      setTimeout(() => setPauseMessage(''), 3000);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.errorMessage : '네트워크 오류';
+      setPauseMessage(message);
       setTimeout(() => setPauseMessage(''), 3000);
     } finally {
       setPauseLoading(false);
@@ -121,23 +97,16 @@ export default function AdminDashboard() {
 
     const checkAdminPermission = async () => {
       try {
-        const response = await fetch('/api/auth/admin-check', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          setIsAuthorized(true);
-          await initializeAdminSettings();
-        } else {
-          const data = await response.json();
-          setAuthError(data.error || '관리자 권한이 없습니다.');
-          setTimeout(() => {
-            router.push('/');
-          }, 2000);
-        }
+        await apiClient.get('/api/auth/admin-check');
+        setIsAuthorized(true);
+        await initializeAdminSettings();
       } catch (error) {
-        log.error('Admin permission check failed', { error: error instanceof Error ? error.message : String(error) });
-        setAuthError('서버 오류가 발생했습니다.');
+        if (error instanceof ApiError) {
+          setAuthError(error.errorMessage || '관리자 권한이 없습니다.');
+        } else {
+          log.error('Admin permission check failed', { error: error instanceof Error ? error.message : String(error) });
+          setAuthError('서버 오류가 발생했습니다.');
+        }
         setTimeout(() => {
           router.push('/');
         }, 2000);

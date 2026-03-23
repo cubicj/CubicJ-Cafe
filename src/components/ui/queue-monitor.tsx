@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
 
 const log = createLogger('ui');
@@ -54,8 +55,8 @@ export function QueueMonitor() {
       setError(null);
 
       const [queueResult, statsResult] = await Promise.all([
-        fetch('/api/queue?action=list').then(res => res.ok ? res.json() : null).catch(() => null),
-        fetch('/api/queue?action=stats').then(res => res.ok ? res.json() : null).catch(() => null),
+        apiClient.get<{ data: QueueRequest[]; pauseAfterPosition?: number }>('/api/queue?action=list').catch(() => null),
+        apiClient.get<{ data: QueueStats }>('/api/queue?action=stats').catch(() => null),
       ]);
 
       if (queueResult) {
@@ -89,26 +90,11 @@ export function QueueMonitor() {
     setDeletingIds(prev => new Set([...prev, requestId]));
 
     try {
-      const response = await fetch('/api/queue', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'cancel',
-          requestId: requestId,
-        }),
-      });
-
-      if (response.ok) {
-        await fetchQueueData();
-      } else {
-        const errorData = await response.json();
-        alert(`삭제 실패: ${errorData.error || '알 수 없는 오류'}`);
-      }
+      await apiClient.post('/api/queue', { action: 'cancel', requestId });
+      await fetchQueueData();
     } catch (error) {
       log.error('Queue delete error', { error: error instanceof Error ? error.message : String(error) });
-      alert('네트워크 오류가 발생했습니다.');
+      alert(error instanceof Error ? error.message : '알 수 없는 오류');
     } finally {
       setDeletingIds(prev => {
         const newSet = new Set(prev);
@@ -121,13 +107,8 @@ export function QueueMonitor() {
   const handleRemovePause = async () => {
     setRemovingPause(true);
     try {
-      const response = await fetch('/api/admin/queue-pause', {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (response.ok) {
-        setPauseAfterPosition(null);
-      }
+      await apiClient.delete('/api/admin/queue-pause');
+      setPauseAfterPosition(null);
     } catch {
     } finally {
       setRemovingPause(false);

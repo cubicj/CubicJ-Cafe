@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 
 const log = createLogger('hook');
 
@@ -22,15 +23,9 @@ export function useLoRABundles() {
   const fetchAvailableBundles = async () => {
     setIsLoadingBundles(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/lora-bundles');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || '번들 목록을 가져오는데 실패했습니다');
-      }
-      
+      const data = await apiClient.get<{ bundles: LoRABundle[] }>('/api/lora-bundles');
       setAvailableBundles(data.bundles || []);
     } catch (err) {
       log.error('Failed to fetch LoRA bundle list', { error: err instanceof Error ? err.message : String(err) });

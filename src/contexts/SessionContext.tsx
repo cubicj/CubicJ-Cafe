@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from '@/types';
-import { createLogger, restoreClientLogTransport } from '@/lib/logger';
-
-const log = createLogger('session');
+import { restoreClientLogTransport } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 
 interface SessionContextValue {
   user: User | null;
@@ -31,24 +30,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const fetchSession = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/session');
-      if (response.ok) {
-        const data = await response.json();
-        const sessionUser = data.user || null;
-        setUser(sessionUser);
+      const data = await apiClient.get<{ user: User | null }>('/api/auth/session');
+      const sessionUser = data.user || null;
+      setUser(sessionUser);
 
-        if (sessionUser?.discordId) {
-          const adminIds = process.env.NEXT_PUBLIC_ADMIN_DISCORD_IDS?.split(',').map(id => id.trim()) || [];
-          setIsAdmin(adminIds.includes(sessionUser.discordId));
-        } else {
-          setIsAdmin(false);
-        }
+      if (sessionUser?.discordId) {
+        const adminIds = process.env.NEXT_PUBLIC_ADMIN_DISCORD_IDS?.split(',').map(id => id.trim()) || [];
+        setIsAdmin(adminIds.includes(sessionUser.discordId));
       } else {
-        setUser(null);
         setIsAdmin(false);
       }
-    } catch (error) {
-      log.error('Session fetch failed', { error: error instanceof Error ? error.message : String(error) });
+    } catch {
       setUser(null);
       setIsAdmin(false);
     } finally {
