@@ -16,7 +16,7 @@ export interface AuthenticatedRequest extends NextRequest {
 }
 
 export function createRouteHandler<
-  P extends Record<string, string> = Record<string, string>,
+  P extends Record<string, string | string[]> = Record<string, string>,
 >(
   options: RouteOptions,
   handler: (req: AuthenticatedRequest, context: { params: P }) => Promise<unknown>
