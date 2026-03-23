@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientIcon } from '@/components/ui/client-icon';
-import { Video } from 'lucide-react';
+import { Video, Image } from 'lucide-react';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import { Github } from 'lucide-react';
 
@@ -23,7 +23,17 @@ export default function Home() {
       </section>
 
       <section className="container mx-auto px-4 py-16 pb-32">
-<div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <Card className="text-center opacity-50">
+            <CardHeader>
+              <ClientIcon icon={Image} className="h-12 w-12 mx-auto text-emerald-600" fallback="🖼️" />
+              <CardTitle>Txt to Img</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" disabled>준비중</Button>
+            </CardContent>
+          </Card>
+
           <Card className="text-center">
             <CardHeader>
               <ClientIcon icon={Video} className="h-12 w-12 mx-auto text-blue-600" fallback="🎬" />
@@ -31,7 +41,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/generate">시작하기</Link>
+                <Link href="/i2v">시작하기</Link>
               </Button>
             </CardContent>
           </Card>
