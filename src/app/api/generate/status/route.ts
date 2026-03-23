@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generationStore } from '@/lib/generation-store';
+import { parseQuery } from '@/lib/validations/parse';
+import { generateStatusQuerySchema } from '@/lib/validations/schemas/generate';
 
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const jobId = searchParams.get('jobId');
-
-  if (!jobId) {
-    return NextResponse.json(
-      { error: 'Job ID is required' },
-      { status: 400 }
-    );
-  }
+  const queryResult = parseQuery(generateStatusQuerySchema, request.nextUrl.searchParams);
+  if (!queryResult.success) return queryResult.response;
+  const { jobId } = queryResult.data;
 
   try {
     const job = generationStore.getJob(jobId);

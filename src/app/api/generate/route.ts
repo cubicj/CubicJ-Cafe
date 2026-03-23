@@ -10,6 +10,8 @@ import { ServerType } from '@prisma/client';
 import { getActiveModel } from '@/lib/database/model-settings';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { parseFormData } from '@/lib/validations/parse';
+import { generateSchema } from '@/lib/validations/schemas/generate';
 
 import { createLogger } from '@/lib/logger';
 
@@ -64,71 +66,38 @@ export async function POST(request: NextRequest) {
       const activeModel = await getActiveModel();
       const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
-      const formData = await req.formData();
-      const prompt = formData.get('prompt') as string;
-      const imageFile = formData.get('image') as File | null;
-      const endImageFile = capabilities.endImage ? formData.get('endImage') as File | null : null;
-      const loraName = capabilities.loraPresets ? formData.get('lora') as string : null;
-      const loraStrength = capabilities.loraPresets ? parseFloat(formData.get('loraStrength') as string || '0.8') : 0;
-      const loraPresetData = capabilities.loraPresets ? formData.get('loraPreset') as string : null;
-      const isNSFW = formData.get('isNSFW') === 'true';
-      const duration = parseInt(formData.get('duration') as string || '5');
+      let formData;
+      try {
+        formData = await req.formData();
+      } catch {
+        return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+      }
+      const formResult = parseFormData(generateSchema, formData);
+      if (!formResult.success) return formResult.response;
+      const validated = formResult.data;
 
-      const validDuration = Math.min(Math.max(duration, 4), 7);
-      const workflowLength = 16 * validDuration + 1;
+      const endImageFile = capabilities.endImage ? validated.endImage : undefined;
+      const loraName = capabilities.loraPresets ? validated.lora : undefined;
+      const loraStrength = capabilities.loraPresets ? validated.loraStrength : 0;
+      const loraPresetData = capabilities.loraPresets ? validated.loraPreset : undefined;
+
+      const { prompt, isNSFW } = validated;
+      const imageFile = validated.image;
+      const workflowLength = 16 * validated.duration + 1;
 
       log.debug('FormData parsed', {
-        prompt: prompt?.substring(0, 50) + '...',
-        imageFile: imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'null',
+        prompt: prompt.substring(0, 50) + '...',
+        imageFile: `${imageFile.name} (${imageFile.size} bytes)`,
         endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
         loraName,
         loraStrength,
         hasLoraPreset: !!loraPresetData,
         isNSFW,
-        duration: validDuration,
+        duration: validated.duration,
         workflowLength
       });
 
-      if (!prompt || prompt.trim().length === 0) {
-        return NextResponse.json({ error: '프롬프트를 입력해주세요.' }, { status: 400 });
-      }
-
-      if (!imageFile || imageFile.size === 0) {
-        return NextResponse.json({ error: '이미지를 업로드해주세요.' }, { status: 400 });
-      }
-
-      if (prompt.length > 5000) {
-        return NextResponse.json({ error: '프롬프트가 너무 깁니다 (최대 5000자).' }, { status: 400 });
-      }
-
-      if (imageFile.size > 10 * 1024 * 1024) {
-        return NextResponse.json({ error: '이미지 파일이 너무 큽니다 (최대 10MB).' }, { status: 400 });
-      }
-
-      if (!imageFile.type.startsWith('image/')) {
-        return NextResponse.json({ error: '시작 이미지 파일은 이미지 형식이어야 합니다.' }, { status: 400 });
-      }
-
-      if (capabilities.endImage && endImageFile) {
-        if (endImageFile.size > 10 * 1024 * 1024) {
-          return NextResponse.json({ error: '끝 이미지 파일이 너무 큽니다 (최대 10MB).' }, { status: 400 });
-        }
-
-        if (!endImageFile.type.startsWith('image/')) {
-          return NextResponse.json({ error: '끝 이미지 파일은 이미지 형식이어야 합니다.' }, { status: 400 });
-        }
-      }
-
       try {
-        let loraPreset = null;
-        if (capabilities.loraPresets && loraPresetData) {
-          try {
-            loraPreset = JSON.parse(loraPresetData);
-          } catch (parseError) {
-            log.error('LoRA preset data parse failed', { error: parseError instanceof Error ? parseError.message : String(parseError) });
-          }
-        }
-
         const tempDir = join(process.cwd(), 'public', 'temp')
         if (!existsSync(tempDir)) {
           await mkdir(tempDir, { recursive: true })
@@ -178,9 +147,9 @@ export async function POST(request: NextRequest) {
           endImagePath: endTempFilePath || undefined,
           lora: loraName && loraName !== 'none' ? loraName : undefined,
           loraStrength: loraName && loraName !== 'none' ? loraStrength : undefined,
-          loraPreset: loraPreset,
+          loraPreset: loraPresetData,
           isNSFW: isNSFW,
-          duration: validDuration,
+          duration: validated.duration,
           workflowLength: workflowLength,
           serverType: selectedServer.serverType,
           serverId: selectedServer.serverId,
