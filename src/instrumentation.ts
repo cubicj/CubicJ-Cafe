@@ -18,8 +18,14 @@ export async function register() {
 
     if (stats.processing > 0) {
       try {
-        const { comfyUIClient } = await import('./lib/comfyui/client');
-        await comfyUIClient.interruptProcessing();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        await fetch(`${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/interrupt`, {
+          method: 'POST',
+          body: '{}',
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
         log.info('ComfyUI interrupt sent for orphaned jobs');
       } catch {
         log.warn('ComfyUI interrupt failed (server may be offline), proceeding with reset');

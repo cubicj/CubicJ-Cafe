@@ -66,34 +66,34 @@ class QueueMonitor {
       // 로그 빈도 줄임
     }
 
-    // Runpod 서버들 확인
     const runpodUrls = (process.env.COMFYUI_RUNPOD_URLS || '').split(',').filter(url => url.trim());
-    for (let i = 0; i < runpodUrls.length; i++) {
-      const url = runpodUrls[i];
-      const runpodClient = new ComfyUIClient({ 
-        baseURL: url,
-        timeout: 10000,
-        maxRetries: 1,
-        useProxy: false
-      });
-      
-      try {
-        const isHealthy = await runpodClient.checkServerHealth();
-        if (isHealthy) {
-          // 기존 서버에서 현재 작업 ID 보존
-          const existingServer = this.activeServers.find(s => s.url === url);
-          newActiveServers.push({
-            client: runpodClient,
-            name: `Runpod ${i + 1}`,
-            type: 'runpod',
-            url: url,
-            currentJobId: existingServer?.currentJobId
-          });
+    const runpodResults = await Promise.all(
+      runpodUrls.map(async (url, i) => {
+        const runpodClient = new ComfyUIClient({
+          baseURL: url,
+          timeout: 10000,
+          maxRetries: 1,
+          useProxy: false
+        });
+
+        try {
+          const isHealthy = await runpodClient.checkServerHealth();
+          if (isHealthy) {
+            const existingServer = this.activeServers.find(s => s.url === url);
+            return {
+              client: runpodClient,
+              name: `Runpod ${i + 1}`,
+              type: 'runpod' as const,
+              url: url,
+              currentJobId: existingServer?.currentJobId
+            };
+          }
+        } catch {
         }
-      } catch {
-        // 로그 빈도 줄임
-      }
-    }
+        return null;
+      })
+    );
+    newActiveServers.push(...runpodResults.filter((r): r is NonNullable<typeof r> => r !== null));
 
     this.activeServers = newActiveServers;
     this.lastServerUpdateTime = now;
@@ -145,6 +145,10 @@ class QueueMonitor {
 
     this.isRunning = true;
     log.info('Queue Monitor started');
+
+    this.processQueue().catch(error => {
+      log.error('Initial queue processing error', { error: error instanceof Error ? error.message : String(error) });
+    });
 
     this.intervalId = setInterval(async () => {
       try {
