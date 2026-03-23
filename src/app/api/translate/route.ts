@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-import { createLogger } from '@/lib/logger';
+import { NextResponse } from 'next/server';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseBody } from '@/lib/validations/parse';
 import { translateSchema } from '@/lib/validations/schemas/translate';
 
-const log = createLogger('api');
-
-export async function POST(request: NextRequest) {
-  try {
+export const POST = createRouteHandler(
+  { auth: 'none' },
+  async (req) => {
     let body: unknown;
     try {
-      body = await request.json();
+      body = await req.json();
     } catch {
       return NextResponse.json({ error: '잘못된 JSON 형식입니다.' }, { status: 400 });
     }
@@ -31,22 +29,15 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    return NextResponse.json({
+    return {
       translatedText,
       originalText: text,
       service,
       sourceLang,
       targetLang,
-    });
-
-  } catch (error) {
-    log.error('Translation API error', { error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json(
-      { error: '번역 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    };
   }
-}
+);
 
 async function translateWithGoogle(text: string, sourceLang: string, targetLang: string): Promise<string> {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;

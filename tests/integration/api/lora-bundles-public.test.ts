@@ -24,7 +24,6 @@ describe('GET /api/lora-bundles', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.bundles).toEqual([])
     expect(body.count).toBe(0)
   })

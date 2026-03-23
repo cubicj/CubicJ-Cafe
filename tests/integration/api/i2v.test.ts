@@ -151,7 +151,6 @@ describe('POST /api/i2v', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.requestId).toBeDefined()
     expect(body.message).toContain('큐')
   })

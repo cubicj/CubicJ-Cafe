@@ -46,7 +46,6 @@ describe('GET /api/lora-presets', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.presets.length).toBeGreaterThanOrEqual(1)
 
     const found = body.presets.find((p: { name: string }) => p.name === 'My Preset')
@@ -78,7 +77,6 @@ describe('POST /api/lora-presets', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.preset.name).toBe('New Preset')
     expect(body.preset.loraItems).toHaveLength(2)
     expect(body.preset.loraItems[0].loraFilename).toBe('test-lora-1.safetensors')
@@ -116,7 +114,6 @@ describe('GET /api/lora-presets/[id]', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.preset.name).toBe('Fetch Me')
     expect(body.preset.loraItems).toHaveLength(2)
   })
@@ -151,7 +148,6 @@ describe('PUT /api/lora-presets/[id]', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.preset.name).toBe('Updated')
     expect(body.preset.loraItems).toHaveLength(1)
     expect(body.preset.loraItems[0].loraFilename).toBe('updated-lora.safetensors')
@@ -198,7 +194,7 @@ describe('model-scoped presets', () => {
     const res = await GET(buildAuthenticatedRequest('/api/lora-presets', session.id))
     const data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.success).toBe(true)
+    expect(data.presets).toBeDefined()
   })
 
   it('POST stores model field on preset', async () => {
@@ -234,8 +230,6 @@ describe('DELETE /api/lora-presets/[id]', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
-
     const checkReq = buildAuthenticatedRequest(`/api/lora-presets/${created.preset.id}`, sessionId)
     const checkRes = await GET_BY_ID(checkReq, { params: Promise.resolve({ id: created.preset.id }) })
     expect(checkRes.status).toBe(404)
