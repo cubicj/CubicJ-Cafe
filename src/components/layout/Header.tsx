@@ -8,7 +8,7 @@ import { useSession } from '@/contexts/SessionContext';
 const log = createLogger('ui');
 import { Button } from '@/components/ui/button';
 import { ClientIcon } from '@/components/ui/client-icon';
-import { Home, Palette, User, LogOut, Coffee, Settings, Shield } from 'lucide-react';
+import { Home, Video, User, LogOut, Coffee, Settings, Shield } from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
@@ -69,8 +69,8 @@ export default function Header() {
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
-                <ClientIcon icon={Palette} fallback="🎨" className="h-4 w-4" />
-                <span className="hidden sm:block">ComfyUI</span>
+                <ClientIcon icon={Video} fallback="🎬" className="h-4 w-4" />
+                <span className="hidden sm:block">Img to Vid</span>
               </Link>
             </div>
           </nav>

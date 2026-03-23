@@ -19,7 +19,7 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: 'CubicJ Cafe',
-  description: '미니 서버에서 운영하는 개인 웹 서비스 허브 및 AI 이미지 생성 시스템',
+  description: 'ComfyUI 워크플로우를 위한 웹 프론트엔드',
   icons: {
     icon: '/icon',
     apple: '/apple-icon',
@@ -54,7 +54,7 @@ export default function RootLayout({
         <Providers>
           <div className="min-h-screen flex flex-col">
             <Header />
-            <main className="flex-1">
+            <main className="flex-1 flex flex-col">
               {children}
             </main>
             <Footer />
