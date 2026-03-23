@@ -13,7 +13,12 @@ export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
   return withAuth(request, async (req) => {
     try {
-      const data = await req.json();
+      let data;
+      try {
+        data = await req.json();
+      } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      }
       const result = parseBody(createNicknameSchema, data);
       if (!result.success) return result.response;
       const { nickname } = result.data;
