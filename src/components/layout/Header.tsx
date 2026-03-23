@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
 
 const log = createLogger('ui');
@@ -16,15 +17,13 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      const response = await fetch('/api/auth/signout', { method: 'POST' });
-      if (response.ok) {
-        if (window.location.pathname.startsWith('/settings') ||
-            window.location.pathname.startsWith('/i2v') ||
-            window.location.pathname.startsWith('/profile')) {
-          window.location.href = '/';
-        } else {
-          window.location.reload();
-        }
+      await apiClient.post('/api/auth/signout');
+      if (window.location.pathname.startsWith('/settings') ||
+          window.location.pathname.startsWith('/i2v') ||
+          window.location.pathname.startsWith('/profile')) {
+        window.location.href = '/';
+      } else {
+        window.location.reload();
       }
     } catch (error) {
       log.error('Sign-out failed', { error: error instanceof Error ? error.message : String(error) });
@@ -33,8 +32,7 @@ export default function Header() {
 
   const handleSignIn = async () => {
     try {
-      const res = await fetch('/api/auth/discord', { method: 'POST' });
-      const { url } = await res.json();
+      const { url } = await apiClient.post<{ url: string }>('/api/auth/discord');
       window.location.href = url;
     } catch (error) {
       log.error('Failed to initiate Discord login', { error: error instanceof Error ? error.message : String(error) });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,8 +53,7 @@ export default function ModelSettingsTab({
   const [activeModel, setActiveModel] = useState<VideoModel>('ltx');
 
   useEffect(() => {
-    fetch('/api/system/active-model')
-      .then(res => res.json())
+    apiClient.get<{ model: VideoModel; capabilities: unknown }>('/api/system/active-model')
       .then(data => {
         log.info('Active model loaded', { model: data.model, capabilities: data.capabilities });
         if (data.model) setActiveModel(data.model);
@@ -62,10 +62,9 @@ export default function ModelSettingsTab({
   }, []);
 
   const handleModelChange = async (model: VideoModel) => {
-    const queueRes = await fetch('/api/queue');
-    const queueData = await queueRes.json();
+    const queueData = await apiClient.get<{ data: { status: string }[] }>('/api/queue');
     const activeRequests = queueData.data?.filter(
-      (r: { status: string }) => r.status === 'PENDING' || r.status === 'PROCESSING'
+      (r) => r.status === 'PENDING' || r.status === 'PROCESSING'
     ).length || 0;
 
     if (activeRequests > 0) {
@@ -75,14 +74,10 @@ export default function ModelSettingsTab({
       if (!confirmed) return;
     }
 
-    const res = await fetch('/api/system/active-model', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model }),
-    });
-    if (res.ok) {
+    try {
+      await apiClient.put('/api/system/active-model', { model });
       setActiveModel(model);
-    }
+    } catch {}
   };
 
   return (

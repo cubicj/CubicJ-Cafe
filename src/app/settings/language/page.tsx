@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
+import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -48,16 +49,10 @@ export default function LanguageSettingsPage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
-            loadTranslationSettings(data.user.id);
-          } else {
-            router.push('/');
-            return;
-          }
+        const data = await apiClient.get<{ user: { id: string } | null }>('/api/auth/session');
+        if (data.user) {
+          setUser(data.user);
+          loadTranslationSettings(data.user.id);
         } else {
           router.push('/');
           return;

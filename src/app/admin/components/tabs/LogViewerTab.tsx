@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -223,11 +224,7 @@ export default function LogViewerTab() {
           params.set('category', selectedCategories.join(','));
         if (search) params.set('search', search);
 
-        const res = await fetch(`/api/admin/logs?${params}`, {
-          credentials: 'include',
-        });
-        if (!res.ok) throw new Error('Failed to fetch logs');
-        const data = await res.json();
+        const data = await apiClient.get<{ entries: LogEntry[]; total: number }>(`/api/admin/logs?${params}`);
         setHistoryEntries(data.entries || []);
         setHistoryTotal(data.total || 0);
         setHistoryPage(page);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,11 +37,7 @@ export default function CardDatabaseViewer({ className }: CardDatabaseViewerProp
 
   const fetchTables = async () => {
     try {
-      const response = await fetch('/api/admin/db');
-      if (!response.ok) {
-        throw new Error('테이블 목록 조회 실패');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<{ tables: Table[] }>('/api/admin/db');
       setTables(data.tables);
     } catch {
       setError('테이블 목록을 불러올 수 없습니다.');
@@ -52,11 +49,7 @@ export default function CardDatabaseViewer({ className }: CardDatabaseViewerProp
   const fetchTableData = async (tableName: string, page: number = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/db?table=${tableName}&page=${page}&limit=20`);
-      if (!response.ok) {
-        throw new Error('테이블 데이터 조회 실패');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<DatabaseData>(`/api/admin/db?table=${tableName}&page=${page}&limit=20`);
       setTableData(data);
       setCurrentPage(page);
       setExpandedItems(new Set());

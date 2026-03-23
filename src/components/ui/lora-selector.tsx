@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { apiClient } from '@/lib/api-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ui');
@@ -54,13 +55,8 @@ export function LoRASelector({
     
     try {
       log.info('Fetching LoRA list');
-      const response = await fetch('/api/comfyui/loras');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'LoRA 목록을 가져오는데 실패했습니다');
-      }
-      
+      const data = await apiClient.get<{ loras: string[]; count: number }>('/api/comfyui/loras');
+
       log.info('LoRA list fetched', { count: data.count });
       
       const loraModels: LoRAModel[] = [

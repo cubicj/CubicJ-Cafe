@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
+import { apiClient, ApiError } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,16 +37,11 @@ export default function NicknameChangeePage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
-            setCurrentNickname(data.user.nickname || data.user.name);
-            setNickname(data.user.nickname || data.user.name);
-          } else {
-            router.push('/');
-          }
+        const data = await apiClient.get<{ user: SessionUser | null }>('/api/auth/session');
+        if (data.user) {
+          setUser(data.user);
+          setCurrentNickname(data.user.nickname || data.user.name || '');
+          setNickname(data.user.nickname || data.user.name || '');
         } else {
           router.push('/');
         }
@@ -74,10 +70,7 @@ export default function NicknameChangeePage() {
 
     setIsChecking(true);
     try {
-      const response = await fetch(`/api/setup/nickname?check=${encodeURIComponent(value)}`, {
-        credentials: 'include'
-      });
-      const data = await response.json();
+      const data = await apiClient.get<{ available: boolean }>(`/api/setup/nickname?check=${encodeURIComponent(value)}`);
       setIsAvailable(data.available);
     } catch (error) {
       log.error('Nickname check error', { error: error instanceof Error ? error.message : String(error) });
@@ -118,25 +111,15 @@ export default function NicknameChangeePage() {
     setError('');
 
     try {
-      const response = await fetch('/api/setup/nickname', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ nickname: nickname.trim() }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        window.location.href = '/';
-      } else {
-        setError(data.error || '닉네임 변경에 실패했습니다.');
-      }
+      await apiClient.post('/api/setup/nickname', { nickname: nickname.trim() });
+      window.location.href = '/';
     } catch (error) {
-      log.error('Nickname change error', { error: error instanceof Error ? error.message : String(error) });
-      setError('서버 오류가 발생했습니다.');
+      if (error instanceof ApiError) {
+        setError(error.errorMessage || '닉네임 변경에 실패했습니다.');
+      } else {
+        log.error('Nickname change error', { error: error instanceof Error ? error.message : String(error) });
+        setError('서버 오류가 발생했습니다.');
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createLogger } from '@/lib/logger'
+import { apiClient } from '@/lib/api-client'
 
 const log = createLogger('hook')
 
@@ -39,11 +40,8 @@ export function useServerStatus() {
   const fetchServerStatus = async () => {
     setIsLoadingServerStatus(true)
     try {
-      const response = await fetch('/api/comfyui/status')
-      if (response.ok) {
-        const data = await response.json()
-        setServerStatus(data)
-      }
+      const data = await apiClient.get<ComfyUIStatus>('/api/comfyui/status')
+      setServerStatus(data)
     } catch (error) {
       if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
         log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) })
