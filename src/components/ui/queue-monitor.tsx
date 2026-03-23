@@ -4,13 +4,15 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createLogger } from '@/lib/logger';
 import { apiClient } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { BarChart3, List, RefreshCw } from "lucide-react";
+import { isAdmin } from "@/lib/auth/admin";
+import { QueueStats } from "@/components/queue/QueueStats";
+import { QueueItem } from "@/components/queue/QueueItem";
+import { PauseBanner } from "@/components/queue/PauseBanner";
 
 const log = createLogger('ui');
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Clock, User, Play, CheckCircle, XCircle, AlertCircle, BarChart3, List, Trash2, RefreshCw, Wrench } from "lucide-react";
-import { isAdmin } from "@/lib/auth/admin";
 
 interface QueueRequest {
   id: string;
@@ -29,7 +31,7 @@ interface QueueRequest {
   };
 }
 
-interface QueueStats {
+interface QueueStatsData {
   pending: number;
   processing: number;
   todayCompleted: number;
@@ -39,7 +41,7 @@ interface QueueStats {
 export function QueueMonitor() {
   const { user: currentUser } = useSession();
   const [queueList, setQueueList] = useState<QueueRequest[]>([]);
-  const [stats, setStats] = useState<QueueStats | null>(null);
+  const [stats, setStats] = useState<QueueStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
@@ -50,13 +52,15 @@ export function QueueMonitor() {
   });
   const [removingPause, setRemovingPause] = useState(false);
 
+  const isCurrentUserAdmin = currentUser ? isAdmin(currentUser.discordId) : false;
+
   const fetchQueueData = useCallback(async () => {
     try {
       setError(null);
 
       const [queueResult, statsResult] = await Promise.all([
         apiClient.get<{ data: QueueRequest[]; pauseAfterPosition?: number }>('/api/queue?action=list').catch(() => null),
-        apiClient.get<{ data: QueueStats }>('/api/queue?action=stats').catch(() => null),
+        apiClient.get<{ data: QueueStatsData }>('/api/queue?action=stats').catch(() => null),
       ]);
 
       if (queueResult) {
@@ -81,14 +85,10 @@ export function QueueMonitor() {
     }
   }, []);
 
-
   const handleDeleteQueue = async (requestId: string, nickname: string) => {
-    if (!confirm(`"${nickname}"님의 요청을 취소하시겠습니까?`)) {
-      return;
-    }
+    if (!confirm(`"${nickname}"님의 요청을 취소하시겠습니까?`)) return;
 
     setDeletingIds(prev => new Set([...prev, requestId]));
-
     try {
       await apiClient.post('/api/queue', { action: 'cancel', requestId });
       await fetchQueueData();
@@ -117,12 +117,8 @@ export function QueueMonitor() {
 
   const canDeleteRequest = (request: QueueRequest): boolean => {
     if (!currentUser) return false;
-    if (request.status === 'COMPLETED' || request.status === 'FAILED' || request.status === 'CANCELLED') {
-      return false;
-    }
-    if (isAdmin(currentUser.discordId)) {
-      return true;
-    }
+    if (request.status === 'COMPLETED' || request.status === 'FAILED' || request.status === 'CANCELLED') return false;
+    if (isCurrentUserAdmin) return true;
     return request.nickname === currentUser.nickname;
   };
 
@@ -131,55 +127,6 @@ export function QueueMonitor() {
     const interval = setInterval(fetchQueueData, 5000);
     return () => clearInterval(interval);
   }, [fetchQueueData]);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'PENDING': return <Clock className="h-4 w-4" />;
-      case 'PROCESSING': return <Play className="h-4 w-4" />;
-      case 'COMPLETED': return <CheckCircle className="h-4 w-4" />;
-      case 'FAILED': return <XCircle className="h-4 w-4" />;
-      case 'CANCELLED': return <AlertCircle className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDING': return 'secondary';
-      case 'PROCESSING': return 'default';
-      case 'COMPLETED': return 'outline';
-      case 'FAILED': return 'destructive';
-      case 'CANCELLED': return 'outline';
-      default: return 'secondary';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'PENDING': return '대기중';
-      case 'PROCESSING': return '처리중';
-      case 'COMPLETED': return '완료';
-      case 'FAILED': return '실패';
-      case 'CANCELLED': return '취소됨';
-      default: return status;
-    }
-  };
-
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMins < 1) return '방금 전';
-    if (diffMins < 60) return `${diffMins}분 전`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}시간 전`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}일 전`;
-  };
 
   if (isLoading) {
     return (
@@ -193,6 +140,7 @@ export function QueueMonitor() {
   }
 
   const hasAnyData = queueList.length > 0 || stats;
+  const showTopPauseBanner = pauseAfterPosition !== null && !queueList.some(item => item.position === pauseAfterPosition);
 
   return (
     <div className="space-y-6">
@@ -207,32 +155,7 @@ export function QueueMonitor() {
             새로고침
           </Button>
         </div>
-        <Card className="p-6">
-          <div className="flex justify-center gap-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</div>
-              <div className="text-xs text-muted-foreground">대기중</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats?.processing || 0}</div>
-              <div className="text-xs text-muted-foreground">처리중</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats?.todayCompleted || 0}</div>
-              <div className="text-xs text-muted-foreground">오늘 완료</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{stats?.total || 0}</div>
-              <div className="text-xs text-muted-foreground">전체 대기</div>
-            </div>
-          </div>
-          
-          {!stats && (
-            <div className="text-center text-sm text-muted-foreground mt-2">
-              통계 데이터를 불러오는 중...
-            </div>
-          )}
-        </Card>
+        <QueueStats stats={stats} />
       </div>
 
       {error && !hasAnyData && (
@@ -247,25 +170,13 @@ export function QueueMonitor() {
           전체 실행 큐
         </h2>
         <Card className="p-6">
-          {pauseAfterPosition !== null && !queueList.some(item => item.position === pauseAfterPosition) && (
-            <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 mb-3">
-              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                <Wrench className="h-4 w-4" />
-                큐 일시정지 활성 — 패치 진행 중
-              </div>
-              {currentUser && isAdmin(currentUser.discordId) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRemovePause}
-                  disabled={removingPause}
-                  className="text-amber-600 border-amber-300 hover:bg-amber-100"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  해제
-                </Button>
-              )}
-            </div>
+          {showTopPauseBanner && (
+            <PauseBanner
+              position={pauseAfterPosition}
+              canManage={isCurrentUserAdmin}
+              removing={removingPause}
+              onRemove={handleRemovePause}
+            />
           )}
           {queueList.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -275,90 +186,22 @@ export function QueueMonitor() {
             <div className="space-y-3">
               {queueList.map((request) => (
                 <React.Fragment key={request.id}>
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Badge variant="outline" className="text-xs">
-                        #{request.position}
-                      </Badge>
-                      <Badge
-                        variant={getStatusColor(request.status) as "default" | "secondary" | "destructive" | "outline"}
-                        className="flex items-center gap-1"
-                      >
-                        {getStatusIcon(request.status)}
-                        {getStatusText(request.status)}
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{request.nickname}</span>
-                      {currentUser && request.nickname === currentUser.nickname && (
-                        <Badge variant="secondary" className="text-xs">
-                          내 요청
-                        </Badge>
-                      )}
-                      {currentUser && isAdmin(currentUser.discordId) && request.nickname !== currentUser.nickname && (
-                        <Badge variant="outline" className="text-xs text-red-600 border-red-200">
-                          관리자 권한
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-ellipsis overflow-hidden whitespace-nowrap" title={request.prompt}>
-                        {request.prompt}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="text-xs text-muted-foreground min-w-16">
-                        {formatRelativeTime(request.createdAt)}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                      {request.error && (
-                        <div className="text-xs text-red-600 max-w-xs truncate" title={request.error}>
-                          {request.error}
-                        </div>
-                      )}
-
-                      {canDeleteRequest(request) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteQueue(request.id, request.nickname)}
-                          disabled={deletingIds.has(request.id)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
-                        >
-                          {deletingIds.has(request.id) ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
-                      )}
-                      </div>
-                    </div>
-                  </div>
+                  <QueueItem
+                    request={request}
+                    isCurrentUser={currentUser?.nickname === request.nickname}
+                    isAdminUser={isCurrentUserAdmin}
+                    canDelete={canDeleteRequest(request)}
+                    isDeleting={deletingIds.has(request.id)}
+                    onDelete={handleDeleteQueue}
+                  />
                   {request.position === pauseAfterPosition && (
-                    <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                        <Wrench className="h-4 w-4" />
-                        #{pauseAfterPosition} 이후 패치 예정 — 큐 일시정지 예약됨
-                      </div>
-                      {currentUser && isAdmin(currentUser.discordId) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleRemovePause}
-                          disabled={removingPause}
-                          className="text-amber-600 border-amber-300 hover:bg-amber-100"
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          해제
-                        </Button>
-                      )}
-                    </div>
+                    <PauseBanner
+                      position={pauseAfterPosition}
+                      isInline
+                      canManage={isCurrentUserAdmin}
+                      removing={removingPause}
+                      onRemove={handleRemovePause}
+                    />
                   )}
                 </React.Fragment>
               ))}
@@ -366,7 +209,6 @@ export function QueueMonitor() {
           )}
         </Card>
       </div>
-
     </div>
   );
 }
