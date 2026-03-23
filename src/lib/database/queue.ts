@@ -25,15 +25,15 @@ export interface QueueRequestData {
   nickname: string;
   prompt: string;
   imageFile?: string;
-  imagePath?: string; // 임시 파일 경로
-  endImageFile?: string; // 끝 이미지 파일명
-  endImagePath?: string; // 끝 이미지 임시 파일 경로
+  imagePath?: string;
+  endImageFile?: string;
+  endImagePath?: string;
   lora?: string;
   loraStrength?: number;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
-  duration?: number; // 비디오 길이 (초)
-  workflowLength?: number; // 워크플로우 길이
+  duration?: number;
+  workflowLength?: number;
   serverType?: ServerType;
   serverId?: string;
   videoModel?: string;
@@ -50,8 +50,14 @@ export interface QueueRequestUpdate {
   error?: string;
 }
 
+const QUEUE_LIST_CACHE_EXPIRY = 15000;
+const STATS_CACHE_EXPIRY = 30000;
+
+let queueListCache: { data: QueueRequestWithUser[]; timestamp: number } | null = null;
+let statsCache: { data: QueueStatsData; timestamp: number } | null = null;
+
 export class QueueService {
-  async getUserActiveRequestCount(userId: number): Promise<number> {
+  static async getUserActiveRequestCount(userId: number): Promise<number> {
     return await prisma.queueRequest.count({
       where: {
         userId,
@@ -62,16 +68,15 @@ export class QueueService {
     });
   }
 
-  async createRequest(data: QueueRequestData): Promise<string> {
-    const activeCount = await this.getUserActiveRequestCount(data.userId);
-    
+  static async createRequest(data: QueueRequestData): Promise<string> {
+    const activeCount = await QueueService.getUserActiveRequestCount(data.userId);
+
     if (activeCount >= 2) {
       throw new Error(`닉네임 "${data.nickname}"은 이미 2개의 요청을 처리 중입니다. 기존 요청이 완료된 후 다시 시도해주세요.`);
     }
 
-    const nextPosition = await this.getNextPosition();
-    
-    // LoRA 프리셋 데이터를 JSON 문자열로 변환
+    const nextPosition = await QueueService.getNextPosition();
+
     const requestData = {
       userId: data.userId,
       nickname: data.nickname,
@@ -92,34 +97,28 @@ export class QueueService {
       position: nextPosition,
       status: QueueStatus.PENDING
     };
-    
+
     const request = await prisma.queueRequest.create({
       data: requestData
     });
 
-    // 새 요청 생성 시 캐시 무효화
-    this.invalidateCache();
+    QueueService.invalidateCache();
 
     return request.id;
   }
 
-  async getNextPosition(): Promise<number> {
+  static async getNextPosition(): Promise<number> {
     const lastRequest = await prisma.queueRequest.findFirst({
       orderBy: { position: 'desc' },
       select: { position: true }
     });
-    
+
     return (lastRequest?.position || 0) + 1;
   }
 
-  // 캐시된 큐 목록
-  private queueListCache: { data: QueueRequestWithUser[]; timestamp: number } | null = null;
-  private queueListCacheExpiry = 15000; // 15초 캐시
-
-  async getQueueList() {
-    // 캐시된 데이터가 있고 만료되지 않았으면 반환
-    if (this.queueListCache && Date.now() - this.queueListCache.timestamp < this.queueListCacheExpiry) {
-      return this.queueListCache.data;
+  static async getQueueList() {
+    if (queueListCache && Date.now() - queueListCache.timestamp < QUEUE_LIST_CACHE_EXPIRY) {
+      return queueListCache.data;
     }
 
     const queueList = await prisma.queueRequest.findMany({
@@ -129,8 +128,8 @@ export class QueueService {
         }
       },
       orderBy: [
-        { status: 'desc' }, // PROCESSING 먼저 (PROCESSING > PENDING)
-        { position: 'asc' } // 먼저 들어온 큐가 위에, 나중에 들어온 큐가 아래에
+        { status: 'desc' },
+        { position: 'asc' }
       ],
       include: {
         user: {
@@ -142,8 +141,7 @@ export class QueueService {
       }
     });
 
-    // 결과를 캐시에 저장
-    this.queueListCache = {
+    queueListCache = {
       data: queueList,
       timestamp: Date.now()
     };
@@ -151,7 +149,7 @@ export class QueueService {
     return queueList;
   }
 
-  async getNextPendingRequest() {
+  static async getNextPendingRequest() {
     return await prisma.queueRequest.findFirst({
       where: {
         status: QueueStatus.PENDING
@@ -170,39 +168,35 @@ export class QueueService {
     });
   }
 
-  async updateRequest(requestId: string, updates: QueueRequestUpdate) {
-    // 캐시 무효화
-    this.invalidateCache();
-    
+  static async updateRequest(requestId: string, updates: QueueRequestUpdate) {
+    QueueService.invalidateCache();
+
     return await prisma.queueRequest.update({
       where: { id: requestId },
       data: updates
     });
   }
 
-  // 캐시 무효화 메서드
-  invalidateCache() {
-    this.queueListCache = null;
-    this.statsCache = null;
+  static invalidateCache() {
+    queueListCache = null;
+    statsCache = null;
   }
 
-  // race condition 방지를 위한 조건부 업데이트
-  async updateRequestIfPending(requestId: string, updates: QueueRequestUpdate) {
+  static async updateRequestIfPending(requestId: string, updates: QueueRequestUpdate) {
     try {
       return await prisma.queueRequest.update({
-        where: { 
+        where: {
           id: requestId,
-          status: QueueStatus.PENDING // PENDING 상태일 때만 업데이트
+          status: QueueStatus.PENDING
         },
         data: updates
       });
     } catch {
-      // 이미 다른 인스턴스가 처리한 경우 또는 요청이 없는 경우
       return null;
     }
   }
 
-  async getRequestById(requestId: string) {
+  static async getRequestById(requestId: string) {
     return await prisma.queueRequest.findUnique({
       where: { id: requestId },
       include: {
@@ -217,7 +211,7 @@ export class QueueService {
     });
   }
 
-  async getUserRequests(userId: number, limit: number = 10) {
+  static async getUserRequests(userId: number, limit: number = 10) {
     return await prisma.queueRequest.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -233,14 +227,9 @@ export class QueueService {
     });
   }
 
-  // 캐시된 통계 정보
-  private statsCache: { data: QueueStatsData; timestamp: number } | null = null;
-  private statsCacheExpiry = 30000; // 30초 캐시
-
-  async getQueueStats() {
-    // 캐시된 데이터가 있고 만료되지 않았으면 반환
-    if (this.statsCache && Date.now() - this.statsCache.timestamp < this.statsCacheExpiry) {
-      return this.statsCache.data;
+  static async getQueueStats() {
+    if (statsCache && Date.now() - statsCache.timestamp < STATS_CACHE_EXPIRY) {
+      return statsCache.data;
     }
 
     const [pending, processing, todayCompleted] = await Promise.all([
@@ -267,8 +256,7 @@ export class QueueService {
       total: pending + processing
     };
 
-    // 결과를 캐시에 저장
-    this.statsCache = {
+    statsCache = {
       data: stats,
       timestamp: Date.now()
     };
@@ -276,8 +264,8 @@ export class QueueService {
     return stats;
   }
 
-  async cancelRequest(requestId: string, userId: number, isAdmin: boolean = false) {
-    const whereCondition = isAdmin 
+  static async cancelRequest(requestId: string, userId: number, isAdmin: boolean = false) {
+    const whereCondition = isAdmin
       ? {
           id: requestId,
           status: {
@@ -300,8 +288,7 @@ export class QueueService {
       throw new Error('취소할 수 있는 요청을 찾을 수 없습니다.');
     }
 
-    // 캐시 무효화
-    this.invalidateCache();
+    QueueService.invalidateCache();
 
     return await prisma.queueRequest.update({
       where: { id: requestId },
@@ -313,7 +300,7 @@ export class QueueService {
     });
   }
 
-  async peekNextPendingPosition(): Promise<number | null> {
+  static async peekNextPendingPosition(): Promise<number | null> {
     const next = await prisma.queueRequest.findFirst({
       where: { status: QueueStatus.PENDING },
       orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
@@ -322,13 +309,13 @@ export class QueueService {
     return next?.position ?? null;
   }
 
-  async getRequestByPosition(position: number) {
+  static async getRequestByPosition(position: number) {
     return await prisma.queueRequest.findFirst({
       where: { position }
     });
   }
 
-  async cancelAllPending(): Promise<number> {
+  static async cancelAllPending(): Promise<number> {
     const result = await prisma.queueRequest.updateMany({
       where: {
         status: QueueStatus.PENDING
@@ -340,13 +327,13 @@ export class QueueService {
       }
     });
 
-    this.invalidateCache();
+    QueueService.invalidateCache();
     return result.count;
   }
 
-  async cleanupExpiredRequests() {
+  static async cleanupExpiredRequests() {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
+
     return await prisma.queueRequest.updateMany({
       where: {
         status: QueueStatus.PROCESSING,
@@ -362,7 +349,7 @@ export class QueueService {
     });
   }
 
-  async resetProcessingToPending() {
+  static async resetProcessingToPending() {
     return await prisma.queueRequest.updateMany({
       where: {
         status: QueueStatus.PROCESSING
@@ -375,7 +362,7 @@ export class QueueService {
     });
   }
 
-  async getProcessingCount(): Promise<number> {
+  static async getProcessingCount(): Promise<number> {
     return await prisma.queueRequest.count({
       where: {
         status: QueueStatus.PROCESSING
@@ -383,19 +370,16 @@ export class QueueService {
     });
   }
 
-  // 원자적으로 다음 PENDING 요청을 가져와서 PROCESSING으로 변경
-  async getAndClaimNextPendingRequest(): Promise<QueueRequestWithUser | null> {
+  static async getAndClaimNextPendingRequest(): Promise<QueueRequestWithUser | null> {
     try {
-      // 트랜잭션으로 원자적 처리 (SERIALIZABLE 격리 수준 사용)
       return await prisma.$transaction(async (tx) => {
-        // 1. PENDING 상태인 다음 요청을 position 순서로 찾기 (FOR UPDATE 잠금)
         const nextRequest = await tx.queueRequest.findFirst({
           where: {
             status: QueueStatus.PENDING
           },
           orderBy: [
-            { position: 'asc' },    // 먼저 position으로 정렬
-            { createdAt: 'asc' }    // 같은 position이면 생성 시간순
+            { position: 'asc' },
+            { createdAt: 'asc' }
           ],
           include: {
             user: {
@@ -409,16 +393,15 @@ export class QueueService {
         });
 
         if (!nextRequest) {
-          return null; // 처리할 요청이 없음
+          return null;
         }
 
         log.info('Atomic claim target', { id: nextRequest.id, position: nextRequest.position, nickname: nextRequest.nickname });
 
-        // 2. 즉시 PROCESSING 상태로 변경 (race condition 방지)
         const updatedRequest = await tx.queueRequest.update({
-          where: { 
+          where: {
             id: nextRequest.id,
-            status: QueueStatus.PENDING // 여전히 PENDING인지 확인
+            status: QueueStatus.PENDING
           },
           data: {
             status: QueueStatus.PROCESSING,
@@ -437,14 +420,11 @@ export class QueueService {
 
         return updatedRequest;
       }, {
-        isolationLevel: 'Serializable' // 가장 강한 격리 수준 적용
+        isolationLevel: 'Serializable'
       });
     } catch (error) {
-      // 다른 인스턴스가 이미 처리했거나 요청이 없는 경우
       log.warn('Atomic next request claim failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
 }
-
-export const queueService = new QueueService();

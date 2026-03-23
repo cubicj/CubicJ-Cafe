@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { queueService } from "@/lib/database/queue";
+import { QueueService } from "@/lib/database/queue";
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { initializeServices } from "@/lib/startup/init";
 import { isAdmin } from "@/lib/auth/admin";
@@ -22,7 +22,7 @@ export const GET = createRouteHandler(
     switch (action) {
       case 'list':
         try {
-          const queueList = await queueService.getQueueList();
+          const queueList = await QueueService.getQueueList();
           return {
             data: queueList || [],
             pauseAfterPosition: getQueuePauseAfterPosition()
