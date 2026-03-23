@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { withAdmin, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
 
 const log = createLogger('comfyui');
 
@@ -23,37 +23,33 @@ function isPathAllowed(pathSegments: string[]): boolean {
   return ALLOWED_PATH_PREFIXES.some(prefix => path.startsWith(prefix))
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return withAdmin(request, (req) => handleProxy(req, path, 'GET'))
-}
+export const GET = createRouteHandler(
+  { auth: 'admin', category: 'comfyui' },
+  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+    return handleProxy(request, params.path, 'GET')
+  }
+)
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return withAdmin(request, (req) => handleProxy(req, path, 'POST'))
-}
+export const POST = createRouteHandler(
+  { auth: 'admin', category: 'comfyui' },
+  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+    return handleProxy(request, params.path, 'POST')
+  }
+)
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return withAdmin(request, (req) => handleProxy(req, path, 'PUT'))
-}
+export const PUT = createRouteHandler(
+  { auth: 'admin', category: 'comfyui' },
+  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+    return handleProxy(request, params.path, 'PUT')
+  }
+)
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return withAdmin(request, (req) => handleProxy(req, path, 'DELETE'))
-}
+export const DELETE = createRouteHandler(
+  { auth: 'admin', category: 'comfyui' },
+  async (request: NextRequest, { params }: { params: { path: string[] } }) => {
+    return handleProxy(request, params.path, 'DELETE')
+  }
+)
 
 async function handleProxy(
   request: AuthenticatedRequest,

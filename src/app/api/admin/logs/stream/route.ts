@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server';
 import { logBuffer } from '@/lib/log-buffer';
-import { withAdmin } from '@/lib/auth/middleware';
+import { createRouteHandler } from '@/lib/api/route-handler';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  return withAdmin(request, async () => {
+export const GET = createRouteHandler(
+  { auth: 'admin', category: 'logs' },
+  async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const level = searchParams.get('level') ?? undefined;
     const category = searchParams.get('category') ?? undefined;
@@ -43,5 +44,5 @@ export async function GET(request: NextRequest) {
         'Connection': 'keep-alive',
       },
     });
-  });
-}
+  }
+);
