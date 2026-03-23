@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
 import { withAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { parseBody } from '@/lib/validations/parse';
+import { updateLoraPresetSchema } from '@/lib/validations/schemas/lora-preset';
 
 import { createLogger } from '@/lib/logger';
 
@@ -47,37 +49,24 @@ export async function PUT(
       let body;
       try {
         body = await req.json();
-      } catch (jsonError) {
-        log.error('JSON parse failed', { error: jsonError instanceof Error ? jsonError.message : String(jsonError) });
-        return NextResponse.json(
-          { error: '잘못된 JSON 데이터입니다.' },
-          { status: 400 }
-        );
+      } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
       }
-      const { name, isPublic, loraItems } = body;
+      const result = parseBody(updateLoraPresetSchema, body);
+      if (!result.success) return result.response;
+      const { name, isPublic, loraItems } = result.data;
 
-      const updateData: { name?: string; isPublic?: boolean; loraItems?: Array<{
-        loraFilename: string;
-        loraName: string;
-        strength: number;
-        group: 'HIGH' | 'LOW';
-        order: number;
-      }> } = {};
-
-      if (name !== undefined) updateData.name = name.trim();
-      if (isPublic !== undefined) updateData.isPublic = !!isPublic;
-
-      if (Array.isArray(loraItems)) {
-        updateData.loraItems = loraItems.map((item: unknown, index: number) => {
-          const loraItem = item as Record<string, unknown>;
-          return {
-          loraFilename: loraItem.loraFilename as string,
-          loraName: (loraItem.loraName as string) || (loraItem.loraFilename as string),
-          strength: Number(loraItem.strength) || 0.8,
-          group: (loraItem.group as 'HIGH' | 'LOW') || 'HIGH',
-          order: Number(loraItem.order) || index,
-          };
-        });
+      const updateData: Record<string, unknown> = {};
+      if (name !== undefined) updateData.name = name;
+      if (isPublic !== undefined) updateData.isPublic = isPublic;
+      if (loraItems !== undefined) {
+        updateData.loraItems = loraItems.map((item, index) => ({
+          loraFilename: item.loraFilename,
+          loraName: item.loraName || item.loraFilename,
+          strength: item.strength,
+          group: item.group,
+          order: item.order ?? index,
+        }));
       }
 
       const preset = await LoRAPresetService.updatePreset(id, Number(req.user!.id), updateData);

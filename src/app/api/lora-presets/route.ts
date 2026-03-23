@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
 import { withAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { parseBody, parseQuery } from '@/lib/validations/parse';
+import { createLoraPresetSchema, loraPresetQuerySchema } from '@/lib/validations/schemas/lora-preset';
 
 import { createLogger } from '@/lib/logger';
 
@@ -9,8 +11,9 @@ const log = createLogger('api');
 export async function GET(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
     try {
-      const { searchParams } = new URL(req.url);
-      const model = searchParams.get('model') || 'wan';
+      const queryResult = parseQuery(loraPresetQuerySchema, new URL(req.url).searchParams);
+      if (!queryResult.success) return queryResult.response;
+      const model = queryResult.data.model;
 
       const presets = await LoRAPresetService.getUserPresets(Number(req.user!.id), model);
 
@@ -35,39 +38,23 @@ export async function POST(request: NextRequest) {
       let body;
       try {
         body = await req.json();
-      } catch (jsonError) {
-        log.error('JSON parse failed', { error: jsonError instanceof Error ? jsonError.message : String(jsonError) });
-        return NextResponse.json(
-          { error: '잘못된 JSON 데이터입니다.' },
-          { status: 400 }
-        );
+      } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
       }
-      const { name, isPublic, loraItems, model: bodyModel } = body;
-
-      if (!name || !name.trim()) {
-        return NextResponse.json(
-          { error: '프리셋 이름은 필수입니다.' },
-          { status: 400 }
-        );
-      }
-
-      if (!Array.isArray(loraItems)) {
-        return NextResponse.json(
-          { error: 'LoRA 아이템 배열이 필요합니다.' },
-          { status: 400 }
-        );
-      }
+      const result = parseBody(createLoraPresetSchema, body);
+      if (!result.success) return result.response;
+      const { name, isPublic, loraItems, model } = result.data;
 
       const preset = await LoRAPresetService.createPreset(Number(req.user!.id), {
-        name: name.trim(),
-        isPublic: !!isPublic,
-        model: bodyModel || 'wan',
-        loraItems: loraItems.map((item: { loraFilename: string; loraName?: string; strength?: number; group?: 'HIGH' | 'LOW'; order?: number }, index: number) => ({
+        name,
+        isPublic,
+        model,
+        loraItems: loraItems.map((item, index) => ({
           loraFilename: item.loraFilename,
           loraName: item.loraName || item.loraFilename,
-          strength: Number(item.strength) || 0.8,
-          group: (item.group === 'HIGH' || item.group === 'LOW') ? item.group : 'HIGH',
-          order: Number(item.order) || index,
+          strength: item.strength,
+          group: item.group,
+          order: item.order ?? index,
         })),
       });
 
