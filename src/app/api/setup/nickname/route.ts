@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UserService } from '@/lib/database/users';
 import { withAuth } from '@/lib/auth/middleware';
+import { parseBody, parseQuery } from '@/lib/validations/parse';
+import { createNicknameSchema, checkNicknameQuerySchema } from '@/lib/validations/schemas/nickname';
 
 import { createLogger } from '@/lib/logger';
 
@@ -12,24 +14,11 @@ export async function POST(request: NextRequest) {
   return withAuth(request, async (req) => {
     try {
       const data = await req.json();
-      const nickname = data.nickname;
-      
-      if (!nickname || nickname.trim().length < 2 || nickname.trim().length > 20) {
-        return NextResponse.json(
-          { error: '닉네임은 2-20자 사이여야 합니다.' },
-          { status: 400 }
-        );
-      }
+      const result = parseBody(createNicknameSchema, data);
+      if (!result.success) return result.response;
+      const { nickname } = result.data;
 
-      const nicknameRegex = /^[가-힣a-zA-Z0-9_\-\s]+$/;
-      if (!nicknameRegex.test(nickname.trim())) {
-        return NextResponse.json(
-          { error: '닉네임에는 한글, 영문, 숫자, _, -, 공백만 사용할 수 있습니다.' },
-          { status: 400 }
-        );
-      }
-
-      const existingUser = await UserService.findByNickname(nickname.trim());
+      const existingUser = await UserService.findByNickname(nickname);
       if (existingUser && existingUser.discordId !== req.user!.discordId) {
         return NextResponse.json(
           { error: '이미 사용 중인 닉네임입니다.' },
@@ -38,11 +27,11 @@ export async function POST(request: NextRequest) {
       }
 
       const updatedUser = await UserService.update(req.user!.discordId, {
-        nickname: nickname.trim(),
+        nickname: nickname,
       });
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         user: updatedUser,
       });
     } catch (error) {
@@ -57,16 +46,17 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const nickname = searchParams.get('check');
-    
+    const result = parseQuery(checkNicknameQuerySchema, request.nextUrl.searchParams);
+    if (!result.success) return result.response;
+    const { check: nickname } = result.data;
+
     if (!nickname) {
       return NextResponse.json({ available: false });
     }
 
     const existingUser = await UserService.findByNickname(nickname);
     const isAvailable = !existingUser;
-    
+
     return NextResponse.json({ available: isAvailable });
   } catch (error) {
     log.error('Nickname check error', { error: error instanceof Error ? error.message : String(error) });
