@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createAdminUser, createUser } from '../../helpers/fixtures'
-import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
+import { createTestSession, buildRequest, buildAuthenticatedRequest, noContext } from '../../helpers/auth'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => false),
@@ -16,7 +16,7 @@ beforeEach(async () => {
 describe('GET /api/health', () => {
   it('returns health status without auth (public view)', async () => {
     const req = buildRequest('/api/health')
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(body.status).toBeDefined()
@@ -30,7 +30,7 @@ describe('GET /api/health', () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/health', session.id)
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(body.status).toBeDefined()
@@ -45,7 +45,7 @@ describe('GET /api/health', () => {
     const user = await createUser()
     const session = await createTestSession(user.id)
     const req = buildAuthenticatedRequest('/api/health', session.id)
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(body.services.database.status).toBeDefined()
@@ -54,7 +54,7 @@ describe('GET /api/health', () => {
 
   it('includes performance responseTime', async () => {
     const req = buildRequest('/api/health')
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(body.performance).toBeDefined()

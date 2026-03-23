@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { buildRequest, noContext } from '../../helpers/auth'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => true),
@@ -19,7 +20,7 @@ describe('GET /api/comfyui/status', () => {
   it('returns disabled state when ComfyUI is off', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(false)
 
-    const res = await GET()
+    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -31,7 +32,7 @@ describe('GET /api/comfyui/status', () => {
   it('returns server status when ComfyUI is enabled', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(true)
 
-    const res = await GET()
+    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -45,7 +46,7 @@ describe('GET /api/comfyui/status', () => {
   it('includes local server in results', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(true)
 
-    const res = await GET()
+    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
     const body = await res.json()
 
     const localServer = body.servers.find((s: any) => s.type === 'local')

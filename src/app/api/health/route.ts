@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
 import { isAdmin } from '@/lib/auth/admin';
 import fs from 'fs/promises';
-
-const log = createLogger('system');
 
 interface ServiceStatus {
   status: 'healthy' | 'unhealthy' | 'unknown';
