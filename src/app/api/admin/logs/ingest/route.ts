@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAdmin, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { NextResponse } from 'next/server';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import { logBuffer } from '@/lib/log-buffer';
 
 const MAX_ENTRIES_PER_REQUEST = 100;
@@ -12,8 +12,9 @@ interface IngestEntry {
   meta?: Record<string, unknown>;
 }
 
-export async function POST(request: NextRequest): Promise<Response> {
-  return withAdmin(request, async (req: AuthenticatedRequest) => {
+export const POST = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async (req) => {
     let body: { entries?: IngestEntry[] };
     try {
       body = await req.json();
@@ -42,6 +43,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       accepted++;
     }
 
-    return NextResponse.json({ accepted });
-  });
-}
+    return { accepted };
+  }
+);

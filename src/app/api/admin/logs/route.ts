@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAdmin, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { NextResponse } from 'next/server';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -18,8 +18,9 @@ interface LogsResponse {
   totalPages: number;
 }
 
-export async function GET(request: NextRequest): Promise<Response> {
-  return withAdmin(request, async (req: AuthenticatedRequest) => {
+export const GET = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async (req) => {
     const { searchParams } = req.nextUrl;
     const today = new Date().toISOString().split('T')[0];
     const date = searchParams.get('date') || today;
@@ -64,6 +65,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     const offset = (page - 1) * limit;
     const paged = entries.slice(offset, offset + limit);
 
-    return NextResponse.json({ entries: paged, total, page, totalPages } satisfies LogsResponse);
-  });
-}
+    return { entries: paged, total, page, totalPages } satisfies LogsResponse;
+  }
+);

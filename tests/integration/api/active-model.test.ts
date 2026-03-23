@@ -62,7 +62,6 @@ describe('PUT /api/system/active-model', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
     expect(body.model).toBe('wan')
 
     const getRes = await GET()

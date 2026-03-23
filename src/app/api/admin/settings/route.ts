@@ -1,126 +1,104 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withAdmin, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { NextResponse } from 'next/server';
+import { createRouteHandler } from '@/lib/api/route-handler';
 import { prisma } from '@/lib/database/prisma';
 import { initializeDefaultSettings } from '@/lib/database/system-settings';
 import { initializeModelSettings } from '@/lib/database/model-settings';
-
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
 
-export async function GET(request: NextRequest) {
-  return withAdmin(request, async () => {
-    try {
-      let settings = await prisma.systemSetting.findMany({
+export const GET = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async () => {
+    let settings = await prisma.systemSetting.findMany({
+      orderBy: [
+        { category: 'asc' },
+        { key: 'asc' }
+      ]
+    });
+
+    if (settings.length === 0) {
+      await initializeDefaultSettings();
+      await initializeModelSettings();
+      settings = await prisma.systemSetting.findMany({
         orderBy: [
           { category: 'asc' },
           { key: 'asc' }
         ]
       });
-
-      if (settings.length === 0) {
-        await initializeDefaultSettings();
-        await initializeModelSettings();
-        settings = await prisma.systemSetting.findMany({
-          orderBy: [
-            { category: 'asc' },
-            { key: 'asc' }
-          ]
-        });
-      }
-
-      const settingsMap = settings.reduce((acc, setting) => {
-        if (!acc[setting.category]) {
-          acc[setting.category] = {};
-        }
-        acc[setting.category][setting.key] = {
-          value: setting.value,
-          type: setting.type
-        };
-        return acc;
-      }, {} as Record<string, Record<string, { value: string; type: string }>>);
-
-      return NextResponse.json(settingsMap);
-    } catch (error) {
-      log.error('System settings fetch error', { error: error instanceof Error ? error.message : String(error) });
-      return NextResponse.json(
-        { error: '시스템 설정을 불러올 수 없습니다.' },
-        { status: 500 }
-      );
     }
-  });
-}
 
-export async function PUT(request: NextRequest) {
-  return withAdmin(request, async (req: AuthenticatedRequest) => {
+    const settingsMap = settings.reduce((acc, setting) => {
+      if (!acc[setting.category]) {
+        acc[setting.category] = {};
+      }
+      acc[setting.category][setting.key] = {
+        value: setting.value,
+        type: setting.type
+      };
+      return acc;
+    }, {} as Record<string, Record<string, { value: string; type: string }>>);
+
+    return settingsMap;
+  }
+);
+
+export const PUT = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async (req) => {
+    let key, value, type = 'string', category = 'general';
     try {
-      let key, value, type = 'string', category = 'general';
-      try {
-        const requestText = await req.text();
-        if (!requestText || requestText.trim() === '') {
-          throw new Error('빈 요청 본문입니다.');
-        }
-        const parsedBody = JSON.parse(requestText);
-        ({ key, value, type = 'string', category = 'general' } = parsedBody);
-      } catch (parseError) {
-        log.error('Request JSON parse error', { error: parseError instanceof Error ? parseError.message : String(parseError) });
-        return NextResponse.json(
-          { error: '잘못된 JSON 형식입니다.' },
-          { status: 400 }
-        );
+      const requestText = await req.text();
+      if (!requestText || requestText.trim() === '') {
+        throw new Error('빈 요청 본문입니다.');
       }
-
-      if (!key || value === undefined) {
-        return NextResponse.json(
-          { error: '키와 값이 필요합니다.' },
-          { status: 400 }
-        );
-      }
-
-      const setting = await prisma.systemSetting.upsert({
-        where: { key },
-        update: { value, type, category },
-        create: { key, value, type, category }
-      });
-
-      return NextResponse.json({
-        message: '설정이 업데이트되었습니다.',
-        setting
-      });
-    } catch (error) {
-      log.error('System settings update error', { error: error instanceof Error ? error.message : String(error) });
+      const parsedBody = JSON.parse(requestText);
+      ({ key, value, type = 'string', category = 'general' } = parsedBody);
+    } catch (parseError) {
+      log.error('Request JSON parse error', { error: parseError instanceof Error ? parseError.message : String(parseError) });
       return NextResponse.json(
-        { error: '설정 업데이트에 실패했습니다.' },
-        { status: 500 }
+        { error: '잘못된 JSON 형식입니다.' },
+        { status: 400 }
       );
     }
-  });
-}
 
-export async function DELETE(request: NextRequest) {
-  return withAdmin(request, async (req: AuthenticatedRequest) => {
-    try {
-      const { searchParams } = new URL(req.url);
-      const key = searchParams.get('key');
-
-      if (!key) {
-        return NextResponse.json(
-          { error: '삭제할 설정 키가 필요합니다.' },
-          { status: 400 }
-        );
-      }
-
-      await prisma.systemSetting.delete({
-        where: { key }
-      });
-
-      return NextResponse.json({ message: '설정이 삭제되었습니다.' });
-    } catch (error) {
-      log.error('System settings delete error', { error: error instanceof Error ? error.message : String(error) });
+    if (!key || value === undefined) {
       return NextResponse.json(
-        { error: '설정 삭제에 실패했습니다.' },
-        { status: 500 }
+        { error: '키와 값이 필요합니다.' },
+        { status: 400 }
       );
     }
-  });
-}
+
+    const setting = await prisma.systemSetting.upsert({
+      where: { key },
+      update: { value, type, category },
+      create: { key, value, type, category }
+    });
+
+    return {
+      message: '설정이 업데이트되었습니다.',
+      setting
+    };
+  }
+);
+
+export const DELETE = createRouteHandler(
+  { auth: 'admin', category: 'admin' },
+  async (req) => {
+    const { searchParams } = new URL(req.url);
+    const key = searchParams.get('key');
+
+    if (!key) {
+      return NextResponse.json(
+        { error: '삭제할 설정 키가 필요합니다.' },
+        { status: 400 }
+      );
+    }
+
+    await prisma.systemSetting.delete({
+      where: { key }
+    });
+
+    return { message: '설정이 삭제되었습니다.' };
+  }
+);
