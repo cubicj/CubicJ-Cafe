@@ -1,33 +1,33 @@
-import { NextResponse, NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { serverManager } from '@/lib/comfyui/server-manager'
-
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
 
 const log = createLogger('comfyui');
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = createRouteHandler(
+  { auth: 'none' },
+  async (req: AuthenticatedRequest) => {
     if (!isComfyUIEnabled()) {
-      return NextResponse.json({
+      return {
         enabled: false,
-        success: false,
         loras: [],
         categorized: { all: [], safetensors: [], ckpt: [], pt: [], high: [], low: [] },
         count: 0,
         serverInfo: null,
         timestamp: new Date().toISOString()
-      });
+      };
     }
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(req.url)
     const model = searchParams.get('model') || 'wan'
 
     await serverManager.checkServerHealth()
     const bestServer = serverManager.selectBestServer()
-    
+
     if (!bestServer) {
       return NextResponse.json(
-        { 
+        {
           error: 'ComfyUI 서버에 연결할 수 없습니다. 모든 서버가 사용 불가능합니다.',
           loras: [],
           serverUrl: null
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     } catch (connectionError) {
       log.error('Selected server connection failed', { serverId: bestServer.id, error: connectionError instanceof Error ? connectionError.message : String(connectionError) })
       return NextResponse.json(
-        { 
+        {
           error: `선택된 서버(${bestServer.type})에 연결할 수 없습니다. 서버가 다운되었거나 응답하지 않습니다.`,
           loras: [],
           serverInfo: {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         { status: 503 }
       )
     }
-    
+
     log.info('LoRA list fetched', { model, count: loras.length })
 
     const categorizedLoras = model === 'ltx'
@@ -78,8 +78,7 @@ export async function GET(request: NextRequest) {
           low: loras.filter(f => f.includes('WAN\\Low\\')),
         }
 
-    return NextResponse.json({
-      success: true,
+    return {
       loras,
       categorized: categorizedLoras,
       count: loras.length,
@@ -90,21 +89,6 @@ export async function GET(request: NextRequest) {
         healthy: true
       },
       timestamp: new Date().toISOString()
-    })
-
-  } catch (error) {
-    log.error('Failed to fetch WAN LoRA list', { error: error instanceof Error ? error.message : String(error) })
-    
-    return NextResponse.json(
-      {
-        error: 'LoRA 목록 조회에 실패했습니다.',
-        loras: [],
-        serverInfo: {
-          url: null,
-          healthy: false
-        },
-      },
-      { status: 500 }
-    )
+    }
   }
-}
+);
