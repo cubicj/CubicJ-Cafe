@@ -218,8 +218,8 @@ export function useI2VForm(): UseI2VFormReturn {
 
         if (mergedLoRAItems.length > 0) {
           formData.append('loraPreset', JSON.stringify({
-            presetIds: selectedPresetIds,
-            presetNames: currentPresets.map(p => p.name),
+            presetId: selectedPresetIds.join(','),
+            presetName: currentPresets.map(p => p.name).join(', '),
             loraItems: mergedLoRAItems,
           }));
         }
