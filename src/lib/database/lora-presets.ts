@@ -224,48 +224,4 @@ export class LoRAPresetService {
       throw new Error(error instanceof Error ? error.message : '프리셋 삭제에 실패했습니다.');
     }
   }
-
-  // 기본 프리셋들 생성 (시스템 초기화용)
-  static async createDefaultPresets(): Promise<void> {
-    try {
-      const defaultPresets = [
-        {
-          name: '없음',
-          isDefault: true,
-          isPublic: true,
-        },
-        {
-          name: '애니메이션 스타일',
-          isDefault: true,
-          isPublic: true,
-        },
-        {
-          name: '사실적 인물',
-          isDefault: true,
-          isPublic: true,
-        },
-      ];
-
-      for (const presetData of defaultPresets) {
-        const existing = await prisma.loRAPreset.findFirst({
-          where: {
-            name: presetData.name,
-            isDefault: true,
-          },
-        });
-
-        if (!existing) {
-          await prisma.loRAPreset.create({
-            data: {
-              userId: 1, // 시스템 관리자 ID (존재한다고 가정)
-              ...presetData,
-            },
-          });
-          log.info('Default preset created', { name: presetData.name });
-        }
-      }
-    } catch (error) {
-      log.error('Failed to create default presets', { error: error instanceof Error ? error.message : String(error) });
-    }
-  }
 }

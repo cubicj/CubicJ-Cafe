@@ -316,18 +316,6 @@ export function useGenerateForm(): UseGenerateFormReturn {
   }, []);
 
   useEffect(() => {
-    if (presets.length > 0) {
-      if (selectedPresetIds.length === 0) {
-        const basePreset = presets.find(preset => preset.name === '베이스 가속로라');
-        
-        if (basePreset) {
-          setSelectedPresetIds([basePreset.id]);
-        }
-      }
-    }
-  }, [presets, selectedPresetIds]);
-
-  useEffect(() => {
     if (presets.length > 0 && selectedPresetIds.length > 0) {
       const restoredPresets = presets.filter(preset => 
         selectedPresetIds.includes(preset.id)
