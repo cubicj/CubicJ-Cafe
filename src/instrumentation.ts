@@ -13,6 +13,22 @@ export async function register() {
     const tempDir = join(process.cwd(), 'public', 'temp');
     mkdirSync(tempDir, { recursive: true });
 
+    const { queueService } = await import('./lib/database/queue');
+    const stats = await queueService.getQueueStats();
+
+    if (stats.processing > 0) {
+      try {
+        const { comfyUIClient } = await import('./lib/comfyui/client');
+        await comfyUIClient.interruptProcessing();
+        log.info('ComfyUI interrupt sent for orphaned jobs');
+      } catch {
+        log.warn('ComfyUI interrupt failed (server may be offline), proceeding with reset');
+      }
+
+      const result = await queueService.resetProcessingToPending();
+      log.info(`Recovered ${result.count} orphaned PROCESSING jobs to PENDING`);
+    }
+
     log.info('Server starting: setting up global error handlers');
     setupGlobalErrorHandlers();
   }
