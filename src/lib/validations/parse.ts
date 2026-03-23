@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ZodSchema, ZodError } from 'zod'
+import { ZodType, ZodError } from 'zod'
 
 type ParseSuccess<T> = { success: true; data: T }
 type ParseFailure = { success: false; response: NextResponse }
@@ -13,13 +13,13 @@ function formatZodError(error: ZodError): NextResponse {
   return NextResponse.json({ error: 'Validation failed', details }, { status: 400 })
 }
 
-export function parseBody<T>(schema: ZodSchema<T>, data: unknown): ParseResult<T> {
+export function parseBody<T>(schema: ZodType<T>, data: unknown): ParseResult<T> {
   const result = schema.safeParse(data)
   if (result.success) return { success: true, data: result.data }
   return { success: false, response: formatZodError(result.error) }
 }
 
-export function parseQuery<T>(schema: ZodSchema<T>, params: URLSearchParams): ParseResult<T> {
+export function parseQuery<T>(schema: ZodType<T>, params: URLSearchParams): ParseResult<T> {
   const obj: Record<string, string> = {}
   params.forEach((value, key) => {
     obj[key] = value
@@ -29,7 +29,7 @@ export function parseQuery<T>(schema: ZodSchema<T>, params: URLSearchParams): Pa
   return { success: false, response: formatZodError(result.error) }
 }
 
-export function parseFormData<T>(schema: ZodSchema<T>, formData: FormData): ParseResult<T> {
+export function parseFormData<T>(schema: ZodType<T>, formData: FormData): ParseResult<T> {
   const obj: Record<string, unknown> = {}
   formData.forEach((value, key) => {
     obj[key] = value
