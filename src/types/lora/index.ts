@@ -17,7 +17,7 @@ export interface LoRAPresetItem {
   strength: number;
   group: 'HIGH' | 'LOW';
   order: number;
-  bundleId?: string;
+  bundleId?: string | null;
 }
 
 export interface LoRAPresetData {
