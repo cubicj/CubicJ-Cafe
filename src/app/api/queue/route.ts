@@ -4,8 +4,9 @@ import { withAuth, withOptionalAuth, AuthenticatedRequest } from "@/lib/auth/mid
 import { initializeServices } from "@/lib/startup/init";
 import { isAdmin } from "@/lib/auth/admin";
 import { getQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
-
 import { createLogger } from '@/lib/logger';
+import { parseBody, parseQuery } from '@/lib/validations/parse';
+import { queueQuerySchema, queueActionSchema } from '@/lib/validations/schemas/queue';
 
 const log = createLogger('queue');
 
@@ -14,8 +15,9 @@ export async function GET(request: NextRequest) {
     try {
       initializeServices();
 
-      const url = new URL(req.url);
-      const action = url.searchParams.get('action');
+      const queryResult = parseQuery(queueQuerySchema, new URL(req.url).searchParams);
+      if (!queryResult.success) return queryResult.response;
+      const action = queryResult.data.action;
 
       switch (action) {
         case 'list':
@@ -61,9 +63,6 @@ export async function GET(request: NextRequest) {
               { status: 503 }
             );
           }
-
-        default:
-          return NextResponse.json({ error: '잘못된 action 파라미터입니다.' }, { status: 400 });
       }
     } catch (error) {
       log.error('Queue API error', { error: error instanceof Error ? error.message : String(error) });
@@ -80,31 +79,27 @@ export async function POST(request: NextRequest) {
     try {
       initializeServices();
 
-      const body = await req.json();
-      const { action } = body;
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      }
 
-      switch (action) {
-        case 'cancel':
-          const { requestId } = body;
-          if (!requestId) {
-            return NextResponse.json({ error: 'requestId가 필요합니다.' }, { status: 400 });
-          }
+      const result = parseBody(queueActionSchema, body);
+      if (!result.success) return result.response;
+      const { requestId } = result.data;
 
-          try {
-            const userIsAdmin = isAdmin(req.user!.discordId);
-            await queueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
-            return NextResponse.json({ success: true, message: '요청이 취소되었습니다.' });
-          } catch (cancelError) {
-            log.error('Queue cancel error', { error: cancelError instanceof Error ? cancelError.message : String(cancelError) });
-            return NextResponse.json(
-              { error: cancelError instanceof Error ? cancelError.message : '취소에 실패했습니다.' },
-              { status: 500 }
-            );
-          }
-
-
-        default:
-          return NextResponse.json({ error: '잘못된 action입니다.' }, { status: 400 });
+      try {
+        const userIsAdmin = isAdmin(req.user!.discordId);
+        await queueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
+        return NextResponse.json({ success: true, message: '요청이 취소되었습니다.' });
+      } catch (cancelError) {
+        log.error('Queue cancel error', { error: cancelError instanceof Error ? cancelError.message : String(cancelError) });
+        return NextResponse.json(
+          { error: cancelError instanceof Error ? cancelError.message : '취소에 실패했습니다.' },
+          { status: 500 }
+        );
       }
     } catch (error) {
       log.error('Queue POST API error', { error: error instanceof Error ? error.message : String(error) });
