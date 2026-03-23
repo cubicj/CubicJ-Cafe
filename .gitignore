@@ -12,6 +12,7 @@ out/
 # environment
 .env
 .env.*
+ecosystem.config.js
 
 # database
 prisma/dev.db*
