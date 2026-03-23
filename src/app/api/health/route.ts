@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { withOptionalAuth, AuthenticatedRequest } from '@/lib/auth/middleware';
+import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
 import { isAdmin } from '@/lib/auth/admin';
 import fs from 'fs/promises';
 
@@ -138,77 +138,68 @@ async function checkFilesystemService(): Promise<ServiceStatus> {
   }
 }
 
-export async function GET(request: NextRequest) {
-  return withOptionalAuth(request, async (req: AuthenticatedRequest) => {
+export const GET = createRouteHandler(
+  { auth: 'optional' },
+  async (req: AuthenticatedRequest) => {
     const startTime = Date.now();
 
-    try {
-      const admin = !!req.user?.discordId && isAdmin(req.user.discordId);
+    const admin = !!req.user?.discordId && isAdmin(req.user.discordId);
 
-      const [comfyui, database, discord, filesystem] = await Promise.all([
-        checkComfyUIService(),
-        checkDatabaseService(),
-        checkDiscordService(),
-        checkFilesystemService(),
-      ]);
+    const [comfyui, database, discord, filesystem] = await Promise.all([
+      checkComfyUIService(),
+      checkDatabaseService(),
+      checkDiscordService(),
+      checkFilesystemService(),
+    ]);
 
-      const services = { database, comfyui, discord, filesystem };
+    const services = { database, comfyui, discord, filesystem };
 
-      const servicesHealthy = Object.values(services).filter(s => s.status === 'healthy').length;
-      const totalServices = Object.values(services).length;
+    const servicesHealthy = Object.values(services).filter(s => s.status === 'healthy').length;
+    const totalServices = Object.values(services).length;
 
-      let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
-      if (servicesHealthy === 0) {
-        overallStatus = 'unhealthy';
-      } else if (servicesHealthy < totalServices) {
-        overallStatus = 'degraded';
-      }
-
-      const responseTime = Date.now() - startTime;
-      const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
-
-      const publicResponse = {
-        status: overallStatus,
-        timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '0.1.0',
-        services: Object.fromEntries(
-          Object.entries(services).map(([key, val]) => [key, { status: val.status }])
-        ),
-        performance: { responseTime },
-      };
-
-      if (!admin) {
-        return NextResponse.json(publicResponse, { status: statusCode });
-      }
-
-      const memoryUsage = process.memoryUsage();
-
-      return NextResponse.json({
-        ...publicResponse,
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV || 'development',
-        services,
-        system: {
-          memory: {
-            used: memoryUsage.heapUsed,
-            total: memoryUsage.heapTotal,
-            percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
-          },
-          process: {
-            pid: process.pid,
-            uptime: process.uptime(),
-            memoryUsage,
-          },
-        },
-      }, { status: statusCode });
-
-    } catch (error) {
-      log.error('Health check failed', { error: error instanceof Error ? error.message : String(error) });
-
-      return NextResponse.json({
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-      }, { status: 503 });
+    let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
+    if (servicesHealthy === 0) {
+      overallStatus = 'unhealthy';
+    } else if (servicesHealthy < totalServices) {
+      overallStatus = 'degraded';
     }
-  });
-}
+
+    const responseTime = Date.now() - startTime;
+    const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
+
+    const publicResponse = {
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '0.1.0',
+      services: Object.fromEntries(
+        Object.entries(services).map(([key, val]) => [key, { status: val.status }])
+      ),
+      performance: { responseTime },
+    };
+
+    if (!admin) {
+      return NextResponse.json(publicResponse, { status: statusCode });
+    }
+
+    const memoryUsage = process.memoryUsage();
+
+    return NextResponse.json({
+      ...publicResponse,
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      services,
+      system: {
+        memory: {
+          used: memoryUsage.heapUsed,
+          total: memoryUsage.heapTotal,
+          percentage: Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100),
+        },
+        process: {
+          pid: process.pid,
+          uptime: process.uptime(),
+          memoryUsage,
+        },
+      },
+    }, { status: statusCode });
+  }
+);

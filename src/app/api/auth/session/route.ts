@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withOptionalAuth } from '@/lib/auth/middleware';
+import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
 
-export async function GET(request: NextRequest) {
-  return withOptionalAuth(request, async (req) => {
+export const GET = createRouteHandler(
+  { auth: 'optional' },
+  async (req: AuthenticatedRequest) => {
     if (req.user) {
-      return NextResponse.json({ 
+      return {
         user: {
           id: req.user.id,
           discordId: req.user.discordId,
@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
           name: req.user.discordUsername,
           image: req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.discordId}/${req.user.avatar}.png` : null,
         }
-      });
+      };
     }
-    
-    return NextResponse.json({ user: null });
-  });
-}
+
+    return { user: null };
+  }
+);
