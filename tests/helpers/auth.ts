@@ -26,6 +26,8 @@ export function buildRequest(url: string, options?: NextRequestInit): NextReques
   return new NextRequest(new URL(url, 'http://localhost:3000'), options)
 }
 
+export const noContext = { params: Promise.resolve({}) }
+
 export function buildAuthenticatedRequest(
   url: string,
   sessionId: string,

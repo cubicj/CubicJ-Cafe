@@ -25,14 +25,14 @@ export function createRouteHandler<
   const authLevel = options.auth || 'none';
 
   return async (
-    request?: NextRequest,
+    request: NextRequest,
     context?: { params: Promise<P> }
   ): Promise<Response> => {
     try {
       const params = context ? await context.params : ({} as P);
-      const req = (request ?? new NextRequest('http://localhost')) as AuthenticatedRequest;
+      const req = request as AuthenticatedRequest;
 
-      if (request && (authLevel === 'user' || authLevel === 'admin')) {
+      if (authLevel === 'user' || authLevel === 'admin') {
         const sessionId = sessionManager.getSessionIdFromRequest(request);
         if (!sessionId) {
           return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 });
@@ -50,7 +50,7 @@ export function createRouteHandler<
             return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 });
           }
         }
-      } else if (request && authLevel === 'optional') {
+      } else if (authLevel === 'optional') {
         const sessionId = sessionManager.getSessionIdFromRequest(request);
         if (sessionId) {
           const sessionData = await sessionManager.validateSession(sessionId);

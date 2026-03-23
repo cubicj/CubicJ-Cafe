@@ -1,6 +1,6 @@
 import { cleanTables } from '../../helpers/db'
 import { createUser } from '../../helpers/fixtures'
-import { createTestSession, createExpiredSession, buildAuthenticatedRequest, buildRequest } from '../../helpers/auth'
+import { createTestSession, createExpiredSession, buildAuthenticatedRequest, buildRequest, noContext } from '../../helpers/auth'
 import { GET } from '@/app/api/auth/session/route'
 
 beforeEach(async () => {
@@ -10,7 +10,7 @@ beforeEach(async () => {
 describe('GET /api/auth/session', () => {
   it('returns null user when unauthenticated', async () => {
     const req = buildRequest('/api/auth/session')
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -22,7 +22,7 @@ describe('GET /api/auth/session', () => {
     const session = await createTestSession(user.id)
 
     const req = buildAuthenticatedRequest('/api/auth/session', session.id)
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -37,7 +37,7 @@ describe('GET /api/auth/session', () => {
     const session = await createExpiredSession(user.id)
 
     const req = buildAuthenticatedRequest('/api/auth/session', session.id)
-    const res = await GET(req)
+    const res = await GET(req, noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
