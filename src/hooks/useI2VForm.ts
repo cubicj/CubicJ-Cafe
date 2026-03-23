@@ -148,15 +148,13 @@ export function useI2VForm() {
         return;
       }
 
-      if (result.success) {
-        setSubmitMessage({ 
-          type: 'success', 
-          message: '요청이 큐에 추가되었습니다! 위쪽 실행 큐에서 진행 상황을 확인하세요.',
-          requestId: result.requestId
-        });
-        
-        resetFormAfterSubmit();
-      }
+      setSubmitMessage({
+        type: 'success',
+        message: '요청이 큐에 추가되었습니다! 위쪽 실행 큐에서 진행 상황을 확인하세요.',
+        requestId: result.requestId
+      });
+
+      resetFormAfterSubmit();
       
     } catch (error) {
       log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
