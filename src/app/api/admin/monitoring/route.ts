@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import fs from 'fs/promises';

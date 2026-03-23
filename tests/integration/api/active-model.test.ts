@@ -1,6 +1,6 @@
 import { cleanTables } from '../../helpers/db'
 import { createAdminUser, createUser } from '../../helpers/fixtures'
-import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
+import { createTestSession, buildRequest, buildAuthenticatedRequest, noContext } from '../../helpers/auth'
 
 import { GET, PUT } from '@/app/api/system/active-model/route'
 
@@ -10,7 +10,7 @@ beforeEach(async () => {
 
 describe('GET /api/system/active-model', () => {
   it('returns active model without auth', async () => {
-    const res = await GET()
+    const res = await GET(buildRequest('/api/system/active-model'), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -20,7 +20,7 @@ describe('GET /api/system/active-model', () => {
   })
 
   it('defaults to ltx when no setting exists', async () => {
-    const res = await GET()
+    const res = await GET(buildRequest('/api/system/active-model'), noContext)
     const body = await res.json()
 
     expect(body.model).toBe('ltx')
@@ -64,7 +64,7 @@ describe('PUT /api/system/active-model', () => {
     expect(res.status).toBe(200)
     expect(body.model).toBe('wan')
 
-    const getRes = await GET()
+    const getRes = await GET(buildRequest('/api/system/active-model'), noContext)
     const getBody = await getRes.json()
     expect(getBody.model).toBe('wan')
   })
