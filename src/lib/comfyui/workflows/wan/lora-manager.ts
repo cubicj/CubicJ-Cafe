@@ -2,6 +2,7 @@ import type { ComfyUIWorkflow, LoRAPresetItem } from '@/types';
 import type { ComfyUIServer } from '../../server-manager';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { createLogger } from '@/lib/logger';
+import { deduplicateByFilename } from '../lora-utils';
 
 const log = createLogger('comfyui');
 
@@ -47,29 +48,7 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
 }
 
 function processLoraGroup(groupItems: LoRAPresetItem[], groupName: string) {
-  const loraMap = new Map();
-
-  const sortedItems = groupItems.sort((a: LoRAPresetItem, b: LoRAPresetItem) => a.order - b.order);
-
-  sortedItems.forEach((item: LoRAPresetItem) => {
-    loraMap.set(item.loraFilename, item);
-  });
-
-  const uniqueLoras = Array.from(loraMap.values());
-
-  if (groupItems.length > uniqueLoras.length) {
-    log.info('Duplicates removed from LoRA group', {
-      group: groupName,
-      original: groupItems.length,
-      afterDedup: uniqueLoras.length,
-      removed: groupItems.length - uniqueLoras.length,
-      duplicateFiles: groupItems.filter(item =>
-        !uniqueLoras.some(unique => unique.id === item.id)
-      ).map(item => item.loraFilename)
-    });
-  }
-
-  return uniqueLoras;
+  return deduplicateByFilename(groupItems, groupName);
 }
 
 function applyLorasToNode(node: WorkflowNode, loras: LoRAPresetItem[], groupName: string, nodeNumber: number, server?: ComfyUIServer) {

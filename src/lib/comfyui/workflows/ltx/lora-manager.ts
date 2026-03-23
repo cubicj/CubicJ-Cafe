@@ -1,34 +1,14 @@
 import type { ComfyUIWorkflow } from '@/types'
-import type { LoRAPresetItem, LoRAPresetData } from '@/types/lora'
+import type { LoRAPresetData } from '@/types/lora'
 import type { ComfyUIServer } from '../../server-manager'
 import { createLogger } from '@/lib/logger'
+import { deduplicateByFilename } from '../lora-utils'
 
 const log = createLogger('comfyui')
 
 const LTX_DYNAMIC_NODE_START = 400
 const DISTILLED_LORA_NODE = '81'
 const AUDIO_NORM_NODE = '268'
-
-function deduplicateByFilename(items: LoRAPresetItem[]): LoRAPresetItem[] {
-  const loraMap = new Map<string, LoRAPresetItem>()
-  const sorted = [...items].sort((a, b) => a.order - b.order)
-
-  for (const item of sorted) {
-    loraMap.set(item.loraFilename, item)
-  }
-
-  const result = Array.from(loraMap.values())
-
-  if (items.length > result.length) {
-    log.info('LTX LoRA duplicates removed', {
-      original: items.length,
-      afterDedup: result.length,
-      removed: items.length - result.length,
-    })
-  }
-
-  return result
-}
 
 export async function applyLtxLoraChain(
   workflow: ComfyUIWorkflow,

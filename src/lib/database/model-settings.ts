@@ -54,45 +54,46 @@ const DEFAULT_MODEL_SETTINGS: ModelSettings = {
   lowShift: 5.0
 }
 
-const MODEL_SETTING_KEYS = {
-  HIGH_DIFFUSION: 'model.high_diffusion',
-  LOW_DIFFUSION: 'model.low_diffusion', 
-  TEXT_ENCODER: 'model.text_encoder',
-  VAE: 'model.vae',
-  UPSCALE: 'model.upscale',
-  CLIP_VISION: 'model.clip_vision',
-  KSAMPLER: 'model.ksampler',
-  HIGH_CFG: 'model.high_cfg',
-  LOW_CFG: 'model.low_cfg',
-  HIGH_SHIFT: 'model.high_shift',
-  LOW_SHIFT: 'model.low_shift'
-} as const
+type SettingType = 'string' | 'number'
+
+interface SettingSchema {
+  key: string
+  type: SettingType
+}
+
+const SETTING_SCHEMA: Record<keyof ModelSettings, SettingSchema> = {
+  highDiffusionModel: { key: 'model.high_diffusion', type: 'string' },
+  lowDiffusionModel:  { key: 'model.low_diffusion', type: 'string' },
+  textEncoder:        { key: 'model.text_encoder', type: 'string' },
+  vae:                { key: 'model.vae', type: 'string' },
+  upscaleModel:       { key: 'model.upscale', type: 'string' },
+  clipVision:         { key: 'model.clip_vision', type: 'string' },
+  ksampler:           { key: 'model.ksampler', type: 'string' },
+  highCfg:            { key: 'model.high_cfg', type: 'number' },
+  lowCfg:             { key: 'model.low_cfg', type: 'number' },
+  highShift:          { key: 'model.high_shift', type: 'number' },
+  lowShift:           { key: 'model.low_shift', type: 'number' },
+}
+
+const ALL_SETTING_KEYS = Object.values(SETTING_SCHEMA).map(s => s.key)
 
 export async function getModelSettings(): Promise<ModelSettings> {
   try {
     const settings = await prisma.systemSetting.findMany({
-      where: {
-        key: {
-          in: Object.values(MODEL_SETTING_KEYS)
-        }
-      }
+      where: { key: { in: ALL_SETTING_KEYS } }
     })
 
     const settingMap = new Map(settings.map((s: { key: string; value: string }) => [s.key, s.value]))
 
-    return {
-      highDiffusionModel: settingMap.get(MODEL_SETTING_KEYS.HIGH_DIFFUSION) || DEFAULT_MODEL_SETTINGS.highDiffusionModel,
-      lowDiffusionModel: settingMap.get(MODEL_SETTING_KEYS.LOW_DIFFUSION) || DEFAULT_MODEL_SETTINGS.lowDiffusionModel,
-      textEncoder: settingMap.get(MODEL_SETTING_KEYS.TEXT_ENCODER) || DEFAULT_MODEL_SETTINGS.textEncoder,
-      vae: settingMap.get(MODEL_SETTING_KEYS.VAE) || DEFAULT_MODEL_SETTINGS.vae,
-      upscaleModel: settingMap.get(MODEL_SETTING_KEYS.UPSCALE) || DEFAULT_MODEL_SETTINGS.upscaleModel,
-      clipVision: settingMap.get(MODEL_SETTING_KEYS.CLIP_VISION) || DEFAULT_MODEL_SETTINGS.clipVision,
-      ksampler: settingMap.get(MODEL_SETTING_KEYS.KSAMPLER) || DEFAULT_MODEL_SETTINGS.ksampler,
-      highCfg: parseFloat(settingMap.get(MODEL_SETTING_KEYS.HIGH_CFG) || DEFAULT_MODEL_SETTINGS.highCfg.toString()),
-      lowCfg: parseFloat(settingMap.get(MODEL_SETTING_KEYS.LOW_CFG) || DEFAULT_MODEL_SETTINGS.lowCfg.toString()),
-      highShift: parseFloat(settingMap.get(MODEL_SETTING_KEYS.HIGH_SHIFT) || DEFAULT_MODEL_SETTINGS.highShift.toString()),
-      lowShift: parseFloat(settingMap.get(MODEL_SETTING_KEYS.LOW_SHIFT) || DEFAULT_MODEL_SETTINGS.lowShift.toString())
+    const result = { ...DEFAULT_MODEL_SETTINGS }
+    for (const [prop, schema] of Object.entries(SETTING_SCHEMA)) {
+      const dbValue = settingMap.get(schema.key)
+      if (dbValue !== undefined) {
+        (result as any)[prop] = schema.type === 'number' ? parseFloat(dbValue) : dbValue
+      }
     }
+
+    return result
   } catch (error) {
     log.error('Model settings fetch failed', { error: error instanceof Error ? error.message : String(error) })
     return DEFAULT_MODEL_SETTINGS
@@ -101,103 +102,15 @@ export async function getModelSettings(): Promise<ModelSettings> {
 
 export async function updateModelSettings(settings: Partial<ModelSettings>): Promise<void> {
   try {
-    const updates = []
+    const updates: Array<{ key: string; value: string; type: string; category: string }> = []
 
-    if (settings.highDiffusionModel !== undefined) {
+    for (const [prop, schema] of Object.entries(SETTING_SCHEMA)) {
+      const value = (settings as any)[prop]
+      if (value === undefined) continue
       updates.push({
-        key: MODEL_SETTING_KEYS.HIGH_DIFFUSION,
-        value: settings.highDiffusionModel,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.lowDiffusionModel !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.LOW_DIFFUSION,
-        value: settings.lowDiffusionModel,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.textEncoder !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.TEXT_ENCODER,
-        value: settings.textEncoder,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.vae !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.VAE,
-        value: settings.vae,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.upscaleModel !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.UPSCALE,
-        value: settings.upscaleModel,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.clipVision !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.CLIP_VISION,
-        value: settings.clipVision,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.ksampler !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.KSAMPLER,
-        value: settings.ksampler,
-        type: 'string',
-        category: 'models'
-      })
-    }
-
-    if (settings.highCfg !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.HIGH_CFG,
-        value: settings.highCfg.toString(),
-        type: 'number',
-        category: 'models'
-      })
-    }
-
-    if (settings.lowCfg !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.LOW_CFG,
-        value: settings.lowCfg.toString(),
-        type: 'number',
-        category: 'models'
-      })
-    }
-
-    if (settings.highShift !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.HIGH_SHIFT,
-        value: settings.highShift.toString(),
-        type: 'number',
-        category: 'models'
-      })
-    }
-
-    if (settings.lowShift !== undefined) {
-      updates.push({
-        key: MODEL_SETTING_KEYS.LOW_SHIFT,
-        value: settings.lowShift.toString(),
-        type: 'number',
+        key: schema.key,
+        value: schema.type === 'number' ? String(value) : value,
+        type: schema.type,
         category: 'models'
       })
     }
@@ -223,44 +136,22 @@ export async function updateModelSettings(settings: Partial<ModelSettings>): Pro
 export async function initializeModelSettings(): Promise<void> {
   try {
     const existingSettings = await prisma.systemSetting.findMany({
-      where: {
-        key: {
-          in: Object.values(MODEL_SETTING_KEYS)
-        }
-      }
+      where: { key: { in: ALL_SETTING_KEYS } }
     })
 
     const existingKeys = new Set(existingSettings.map((s: { key: string }) => s.key))
 
-    const newSettings = []
+    const newSettings: Array<{ key: string; value: string; type: string; category: string }> = []
 
-    const keyMapping: Record<string, keyof typeof MODEL_SETTING_KEYS> = {
-      highDiffusionModel: 'HIGH_DIFFUSION',
-      lowDiffusionModel: 'LOW_DIFFUSION',
-      textEncoder: 'TEXT_ENCODER',
-      vae: 'VAE',
-      upscaleModel: 'UPSCALE',
-      clipVision: 'CLIP_VISION',
-      ksampler: 'KSAMPLER',
-      highCfg: 'HIGH_CFG',
-      lowCfg: 'LOW_CFG',
-      highShift: 'HIGH_SHIFT',
-      lowShift: 'LOW_SHIFT'
-    }
-
-    for (const [key, defaultValue] of Object.entries(DEFAULT_MODEL_SETTINGS)) {
-      const settingKeyName = keyMapping[key]
-      const settingKey = MODEL_SETTING_KEYS[settingKeyName]
-      
-      if (!existingKeys.has(settingKey)) {
-        const isNumberField = key === 'highCfg' || key === 'lowCfg' || key === 'highShift' || key === 'lowShift'
-        newSettings.push({
-          key: settingKey,
-          value: typeof defaultValue === 'number' ? defaultValue.toString() : defaultValue,
-          type: isNumberField ? 'number' : 'string',
-          category: 'models'
-        })
-      }
+    for (const [prop, schema] of Object.entries(SETTING_SCHEMA)) {
+      if (existingKeys.has(schema.key)) continue
+      const defaultValue = (DEFAULT_MODEL_SETTINGS as any)[prop]
+      newSettings.push({
+        key: schema.key,
+        value: typeof defaultValue === 'number' ? defaultValue.toString() : defaultValue,
+        type: schema.type,
+        category: 'models'
+      })
     }
 
     const activeModelSetting = await prisma.systemSetting.findUnique({
