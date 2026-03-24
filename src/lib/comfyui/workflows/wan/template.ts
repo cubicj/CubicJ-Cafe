@@ -177,7 +177,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "539": {
     "inputs": {
-      "shift": 8,
+      "shift": 5,
       "model": ["517", 0]
     },
     "class_type": "ModelSamplingSD3",
@@ -197,7 +197,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "541": {
     "inputs": {
-      "shift": 8,
+      "shift": 5,
       "model": ["518", 0]
     },
     "class_type": "ModelSamplingSD3",
@@ -318,7 +318,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "filename_prefix": "WAN\\ComfyUI_WAN",
       "format": "video/h264-mp4",
       "pix_fmt": "yuv420p",
-      "crf": 19,
+      "crf": 20,
       "save_metadata": false,
       "trim_to_audio": false,
       "pingpong": false,
