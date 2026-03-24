@@ -83,7 +83,9 @@ export const POST = createRouteHandler(
 
     const { prompt, isNSFW } = validated;
     const imageFile = validated.image;
-    const workflowLength = 16 * validated.duration + 1;
+    const workflowLength = capabilities.videoDuration
+      ? 16 * validated.duration + 1
+      : undefined;
 
     log.debug('FormData parsed', {
       model: activeModel,

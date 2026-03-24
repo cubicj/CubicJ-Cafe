@@ -1,7 +1,6 @@
 import type { ComfyUIWorkflow } from '@/types'
 import type { ComfyUIServer } from '../../server-manager'
 import type { WanGenerationParams } from '../types'
-import { applyModelSettings } from './model-manager'
 import { applyLoraPreset } from './lora-manager'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { getNegativePrompt } from '@/lib/database/system-settings'
@@ -11,8 +10,6 @@ const log = createLogger('comfyui')
 
 export async function buildWanWorkflow(params: WanGenerationParams, server?: ComfyUIServer): Promise<ComfyUIWorkflow> {
   const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
-
-  await applyModelSettings(workflow)
 
   if (workflow['543']?.inputs) {
     workflow['543'].inputs.text = params.prompt
@@ -35,15 +32,6 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
     handleEndImageBypass(workflow)
   }
 
-  if (params.videoLength) {
-    const videoNodes = ['527', '538']
-    for (const nodeId of videoNodes) {
-      if (workflow[nodeId]?.inputs) {
-        workflow[nodeId].inputs.length = params.videoLength
-      }
-    }
-  }
-
   if (workflow['549']?.inputs) {
     workflow['549'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
   }
@@ -62,7 +50,7 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
   log.info('WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
-    videoLength: params.videoLength,
+    videoLength: 121,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
   })
 
