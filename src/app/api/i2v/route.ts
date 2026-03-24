@@ -4,7 +4,7 @@ import { QueueService } from '@/lib/database/queue';
 import { UserService } from '@/lib/database/users';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { randomUUID } from 'crypto';
-import { ServerType } from '@prisma/client';
+import { ServerType, GenerationMode } from '@prisma/client';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
@@ -77,8 +77,14 @@ export const POST = createRouteHandler(
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
     const loraPresetData = capabilities.loraPresets ? validated.loraPreset : undefined;
 
-    const { prompt, isNSFW } = validated;
+    const { prompt, isNSFW, isLoop } = validated;
     const imageFile = validated.image;
+
+    const generationMode = isLoop
+      ? GenerationMode.LOOP
+      : endImageFile
+        ? GenerationMode.START_END
+        : GenerationMode.START_ONLY;
 
     log.debug('FormData parsed', {
       model: activeModel,
@@ -118,7 +124,8 @@ export const POST = createRouteHandler(
         isNSFW: isNSFW,
         serverType: selectedServer.serverType,
         serverId: selectedServer.serverId,
-        videoModel: activeModel
+        videoModel: activeModel,
+        generationMode
       });
 
       UserService.updateLastLogin(req.user!.discordId).catch(() => {});
