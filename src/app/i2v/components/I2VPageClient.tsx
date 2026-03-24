@@ -31,8 +31,6 @@ export default function I2VPageClient() {
     isGenerating,
     isNSFW,
     setIsNSFW,
-    videoDuration,
-    setVideoDuration,
     submitMessage,
     serverStatus,
     isRefreshing,
@@ -179,13 +177,10 @@ export default function I2VPageClient() {
               />
 
               <I2VControlsSection
-                videoDuration={videoDuration}
-                onVideoDurationChange={setVideoDuration}
                 isFormValid={isFormValid}
                 isGenerating={isGenerating}
                 isNSFW={isNSFW}
                 onSubmit={handleSubmit}
-                showDuration={capabilities.videoDuration}
               />
             </div>
           </div>

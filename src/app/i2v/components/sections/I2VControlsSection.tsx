@@ -5,23 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Wand2 } from "lucide-react";
 
 interface I2VControlsSectionProps {
-  videoDuration: number;
-  onVideoDurationChange: (duration: number) => void;
   isFormValid: boolean;
   isGenerating: boolean;
   isNSFW: boolean;
   onSubmit: () => Promise<void>;
-  showDuration?: boolean;
 }
 
 export function I2VControlsSection({
-  videoDuration,
-  onVideoDurationChange,
   isFormValid,
   isGenerating,
   isNSFW,
   onSubmit,
-  showDuration = true,
 }: I2VControlsSectionProps) {
   return (
     <div className="space-y-2">
@@ -30,22 +24,6 @@ export function I2VControlsSection({
         비디오 생성
       </h2>
       <Card className="p-4 space-y-4">
-        {showDuration && (
-          <div className="grid grid-cols-3 gap-2">
-            {[4, 5, 6].map((seconds) => (
-              <Button
-                key={seconds}
-                variant={videoDuration === seconds ? "default" : "outline"}
-                size="sm"
-                onClick={() => onVideoDurationChange(seconds)}
-                className="text-sm"
-              >
-                {seconds}초
-              </Button>
-            ))}
-          </div>
-        )}
-
         <div className="flex items-center justify-center">
         <Button
           onClick={onSubmit}

@@ -29,12 +29,8 @@ export interface QueueRequestData {
   imagePath?: string;
   endImageFile?: string;
   endImagePath?: string;
-  lora?: string;
-  loraStrength?: number;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
-  duration?: number;
-  workflowLength?: number;
   serverType?: ServerType;
   serverId?: string;
   videoModel?: string;
@@ -83,12 +79,8 @@ export class QueueService {
       imageData: data.imagePath,
       endImageFile: data.endImageFile,
       endImageData: data.endImagePath,
-      lora: data.lora,
-      loraStrength: data.loraStrength,
       loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
       isNSFW: data.isNSFW || false,
-      duration: data.duration || 5,
-      workflowLength: data.workflowLength || (16 * (data.duration || 5) + 1),
       serverType: data.serverType,
       serverId: data.serverId,
       videoModel: data.videoModel || 'wan',

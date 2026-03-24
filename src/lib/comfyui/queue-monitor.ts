@@ -342,7 +342,6 @@ class QueueMonitor {
           inputImage,
           loraPreset: loraPreset || undefined,
           endImage: uploadedEndImageName || undefined,
-          videoLength: request.workflowLength ?? undefined,
         };
       } else {
         params = {

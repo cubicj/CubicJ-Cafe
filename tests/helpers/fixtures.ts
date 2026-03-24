@@ -47,8 +47,6 @@ export async function createQueueRequest(userId: number, overrides?: {
       status: overrides?.status || QueueStatus.PENDING,
       position: overrides?.position || 1,
       videoModel: overrides?.videoModel || 'wan',
-      duration: 5,
-      workflowLength: 81,
     },
   })
   QueueService.invalidateCache()

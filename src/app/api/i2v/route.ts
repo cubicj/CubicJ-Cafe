@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { QueueService } from '@/lib/database/queue';
+import { UserService } from '@/lib/database/users';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -77,27 +78,18 @@ export const POST = createRouteHandler(
     const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
-    const loraName = capabilities.loraPresets ? validated.lora : undefined;
-    const loraStrength = capabilities.loraPresets ? validated.loraStrength : 0;
     const loraPresetData = capabilities.loraPresets ? validated.loraPreset : undefined;
 
     const { prompt, isNSFW } = validated;
     const imageFile = validated.image;
-    const workflowLength = capabilities.videoDuration
-      ? 16 * validated.duration + 1
-      : undefined;
 
     log.debug('FormData parsed', {
       model: activeModel,
       prompt: prompt.substring(0, 50) + '...',
       imageFile: `${imageFile.name} (${imageFile.size} bytes)`,
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
-      loraName,
-      loraStrength,
       hasLoraPreset: !!loraPresetData,
       isNSFW,
-      duration: validated.duration,
-      workflowLength
     });
 
     try {
@@ -148,16 +140,14 @@ export const POST = createRouteHandler(
         imagePath: tempFilePath,
         endImageFile: endTempFileName || undefined,
         endImagePath: endTempFilePath || undefined,
-        lora: loraName && loraName !== 'none' ? loraName : undefined,
-        loraStrength: loraName && loraName !== 'none' ? loraStrength : undefined,
         loraPreset: loraPresetData,
         isNSFW: isNSFW,
-        duration: validated.duration,
-        workflowLength: workflowLength,
         serverType: selectedServer.serverType,
         serverId: selectedServer.serverId,
         videoModel: activeModel
       });
+
+      UserService.updateLastLogin(req.user!.discordId).catch(() => {});
 
       log.info('Request queued', { requestId, user: req.user!.nickname });
 
