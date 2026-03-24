@@ -26,9 +26,9 @@ export interface QueueRequestData {
   nickname: string;
   prompt: string;
   imageFile?: string;
-  imagePath?: string;
+  imageBlob?: Buffer;
   endImageFile?: string;
-  endImagePath?: string;
+  endImageBlob?: Buffer;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
   serverType?: ServerType;
@@ -46,6 +46,28 @@ export interface QueueRequestUpdate {
   failedAt?: Date;
   error?: string;
 }
+
+const QUEUE_SELECT_BASE = {
+  id: true,
+  userId: true,
+  nickname: true,
+  status: true,
+  prompt: true,
+  imageFile: true,
+  endImageFile: true,
+  loraPresetData: true,
+  isNSFW: true,
+  jobId: true,
+  serverType: true,
+  serverId: true,
+  position: true,
+  createdAt: true,
+  startedAt: true,
+  completedAt: true,
+  failedAt: true,
+  error: true,
+  videoModel: true,
+} as const;
 
 const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
 const statsCache = new ExpiringCache<QueueStatsData>(30000);
@@ -76,9 +98,9 @@ export class QueueService {
       nickname: data.nickname,
       prompt: data.prompt,
       imageFile: data.imageFile,
-      imageData: data.imagePath,
+      imageBlob: data.imageBlob,
       endImageFile: data.endImageFile,
-      endImageData: data.endImagePath,
+      endImageBlob: data.endImageBlob,
       loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
       isNSFW: data.isNSFW || false,
       serverType: data.serverType,
@@ -120,7 +142,8 @@ export class QueueService {
         { status: 'desc' },
         { position: 'asc' }
       ],
-      include: {
+      select: {
+        ...QUEUE_SELECT_BASE,
         user: {
           select: {
             nickname: true,
@@ -130,7 +153,7 @@ export class QueueService {
       }
     });
 
-    queueListCache.set(queueList);
+    queueListCache.set(queueList as any);
     return queueList;
   }
 
@@ -142,7 +165,8 @@ export class QueueService {
       orderBy: {
         position: 'asc'
       },
-      include: {
+      select: {
+        ...QUEUE_SELECT_BASE,
         user: {
           select: {
             nickname: true,
@@ -159,6 +183,16 @@ export class QueueService {
     return await prisma.queueRequest.update({
       where: { id: requestId },
       data: updates
+    });
+  }
+
+  static async clearImageBlobs(requestId: string) {
+    await prisma.queueRequest.update({
+      where: { id: requestId },
+      data: {
+        imageBlob: null,
+        endImageBlob: null,
+      }
     });
   }
 
@@ -201,7 +235,8 @@ export class QueueService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
-      include: {
+      select: {
+        ...QUEUE_SELECT_BASE,
         user: {
           select: {
             nickname: true,
@@ -275,7 +310,9 @@ export class QueueService {
       data: {
         status: QueueStatus.CANCELLED,
         failedAt: new Date(),
-        error: isAdmin ? '관리자가 취소함' : '사용자가 취소함'
+        error: isAdmin ? '관리자가 취소함' : '사용자가 취소함',
+        imageBlob: null,
+        endImageBlob: null,
       }
     });
   }
@@ -303,7 +340,9 @@ export class QueueService {
       data: {
         status: QueueStatus.CANCELLED,
         failedAt: new Date(),
-        error: 'ComfyUI 비활성화로 자동 취소됨'
+        error: 'ComfyUI 비활성화로 자동 취소됨',
+        imageBlob: null,
+        endImageBlob: null,
       }
     });
 
@@ -361,7 +400,8 @@ export class QueueService {
             { position: 'asc' },
             { createdAt: 'asc' }
           ],
-          include: {
+          select: {
+            ...QUEUE_SELECT_BASE,
             user: {
               select: {
                 nickname: true,
@@ -387,7 +427,8 @@ export class QueueService {
             status: QueueStatus.PROCESSING,
             startedAt: new Date()
           },
-          include: {
+          select: {
+            ...QUEUE_SELECT_BASE,
             user: {
               select: {
                 nickname: true,
@@ -398,7 +439,7 @@ export class QueueService {
           }
         });
 
-        return updatedRequest;
+        return updatedRequest as any;
       }, {
         isolationLevel: 'Serializable'
       });
