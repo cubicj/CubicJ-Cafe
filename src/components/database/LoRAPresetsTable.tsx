@@ -16,6 +16,8 @@ interface LoRAPresetsTableProps {
 export function LoRAPresetsTable({ data, sort, expandedItems, onSort, onToggleExpand }: LoRAPresetsTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <div className="min-w-[700px]">
       <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
         <div className="col-span-3">
           <SortableHeader field="name" sort={sort} onSort={onSort}>프리셋 이름</SortableHeader>
@@ -84,6 +86,8 @@ export function LoRAPresetsTable({ data, sort, expandedItems, onSort, onToggleEx
             </div>
           );
         })}
+      </div>
+        </div>
       </div>
     </div>
   );

@@ -16,6 +16,8 @@ interface QueueTableProps {
 export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }: QueueTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <div className="min-w-[900px]">
       <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
         <div className="col-span-2">
           <SortableHeader field="nickname" sort={sort} onSort={onSort}>닉네임</SortableHeader>
@@ -123,6 +125,8 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
             </div>
           );
         })}
+      </div>
+        </div>
       </div>
     </div>
   );
