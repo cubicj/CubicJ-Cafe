@@ -278,7 +278,7 @@ class DiscordBot {
       
       const modelDisplayName = MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName || 'I2V';
       const embed = {
-        title: `🔗 ${modelDisplayName} I2V ${params.isNSFW ? '🔞' : ''}`,
+        title: `CubicJ Cafe I2V - ${modelDisplayName} ${params.isNSFW ? '🔞' : ''}`,
         description: `\`\`\`${params.prompt}\`\`\``,
         color: params.isNSFW ? 0xff6b6b : 0x10b981,
         url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
