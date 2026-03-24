@@ -36,7 +36,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "6": {
     "inputs": {
-      "text": "worst quality, inconsistent motion, blurry, jittery, distorted, watermark, text, subtitles, caption, overlay effects, static image, morphing, flickering, artifacts",
+      "text": "cartoon, still image, bad quality, subtitles, text, watermark, overlay effects, test negative prompt",
       "clip": [
         "47",
         0
