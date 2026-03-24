@@ -253,7 +253,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "guider": ["551", 0],
       "sampler": ["545", 0],
       "sigmas": ["554", 1],
-      "latent_image": ["546", 0]
+      "latent_image": ["564", 0]
     },
     "class_type": "SamplerCustomAdvanced",
     "_meta": { "title": "SamplerCustomAdvanced (LOW)" }
@@ -359,5 +359,15 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "ModelPatchTorchSettings",
     "_meta": { "title": "Model Patch Torch Settings (LOW)" }
+  },
+  "564": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "any_input": ["546", 0]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": { "title": "VRAM Debug (between passes)" }
   }
 }
