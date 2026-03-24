@@ -234,6 +234,83 @@ describe('QueueService', () => {
     })
   })
 
+  describe('createRequest with imageBlob', () => {
+    it('stores imageBlob in the database', async () => {
+      const user = await createUser()
+      const testBlob = Buffer.from('fake-image-data')
+
+      const id = await QueueService.createRequest({
+        userId: user.id,
+        nickname: user.nickname,
+        prompt: 'blob test',
+        imageFile: 'test.png',
+        imageBlob: testBlob,
+      })
+
+      const req = await prisma.queueRequest.findUnique({ where: { id } })
+      expect(Buffer.from(req!.imageBlob!)).toEqual(testBlob)
+    })
+  })
+
+  describe('clearImageBlobs', () => {
+    it('sets imageBlob and endImageBlob to null', async () => {
+      const user = await createUser()
+      const req = await createQueueRequest(user.id, {
+        imageBlob: Buffer.from('image-data'),
+        endImageBlob: Buffer.from('end-image-data'),
+      })
+
+      await QueueService.clearImageBlobs(req.id)
+
+      const updated = await prisma.queueRequest.findUnique({ where: { id: req.id } })
+      expect(updated!.imageBlob).toBeNull()
+      expect(updated!.endImageBlob).toBeNull()
+    })
+  })
+
+  describe('getQueueList blob exclusion', () => {
+    it('does not include imageBlob in list results', async () => {
+      const user = await createUser()
+      await createQueueRequest(user.id, {
+        position: 1,
+        imageBlob: Buffer.from('should-not-appear'),
+      })
+
+      const list = await QueueService.getQueueList()
+      expect(list).toHaveLength(1)
+      expect((list[0] as any).imageBlob).toBeUndefined()
+    })
+  })
+
+  describe('getUserRequests blob exclusion', () => {
+    it('does not include imageBlob in user request results', async () => {
+      const user = await createUser()
+      await createQueueRequest(user.id, {
+        position: 1,
+        imageBlob: Buffer.from('should-not-appear'),
+      })
+
+      const requests = await QueueService.getUserRequests(user.id)
+      expect(requests).toHaveLength(1)
+      expect((requests[0] as any).imageBlob).toBeUndefined()
+    })
+  })
+
+  describe('cancelRequest clears blobs', () => {
+    it('sets imageBlob to null on cancel', async () => {
+      const user = await createUser()
+      const req = await createQueueRequest(user.id, {
+        status: QueueStatus.PENDING,
+        imageBlob: Buffer.from('cancel-me'),
+      })
+
+      await QueueService.cancelRequest(req.id, user.id)
+
+      const cancelled = await prisma.queueRequest.findUnique({ where: { id: req.id } })
+      expect(cancelled!.imageBlob).toBeNull()
+    })
+  })
+
   describe('cache invalidation', () => {
     it('createRequest invalidates cache', async () => {
       const user = await createUser()
