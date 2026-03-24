@@ -83,10 +83,7 @@ export class UserService {
     try {
       return await prisma.user.update({
         where: { discordId },
-        data: {
-          ...updateData,
-          updatedAt: new Date(),
-        },
+        data: updateData,
       });
     } catch (error) {
       log.error('User update failed', { error: error instanceof Error ? error.message : String(error) });
@@ -101,7 +98,6 @@ export class UserService {
         where: { discordId },
         data: {
           lastLoginAt: new Date(),
-          updatedAt: new Date(),
         },
       });
     } catch (error) {
