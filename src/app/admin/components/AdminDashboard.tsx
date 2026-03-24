@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
@@ -20,6 +21,14 @@ import WanSettingsTab from './tabs/WanSettingsTab';
 import LtxSettingsTab from './tabs/LtxSettingsTab';
 
 const log = createLogger('admin');
+
+const ADMIN_TABS = [
+  { value: 'lora-bundles', label: 'LoRA 번들', icon: Cog },
+  { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
+  { value: 'ltx-settings', label: 'LTX', icon: SlidersHorizontal },
+  { value: 'database', label: '데이터베이스', icon: Database },
+  { value: 'logs', label: 'Logs', icon: ScrollText },
+] as const;
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -36,6 +45,7 @@ export default function AdminDashboard() {
   const [currentPause, setCurrentPause] = useState<number | null>(null);
   const [pauseLoading, setPauseLoading] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('lora-bundles');
 
   const fetchComfyUIState = async (): Promise<boolean> => {
     try {
@@ -254,28 +264,32 @@ export default function AdminDashboard() {
         )}
       </Card>
 
-      <Tabs defaultValue="lora-bundles" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="lora-bundles" className="flex items-center">
-            <Cog className="w-4 h-4 mr-2" />
-            LoRA 번들
-          </TabsTrigger>
-          <TabsTrigger value="wan-settings" className="flex items-center">
-            <SlidersHorizontal className="w-4 h-4 mr-2" />
-            WAN
-          </TabsTrigger>
-          <TabsTrigger value="ltx-settings" className="flex items-center">
-            <SlidersHorizontal className="w-4 h-4 mr-2" />
-            LTX
-          </TabsTrigger>
-          <TabsTrigger value="database" className="flex items-center">
-            <Database className="w-4 h-4 mr-2" />
-            데이터베이스
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center">
-            <ScrollText className="w-4 h-4 mr-2" />
-            Logs
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="block md:hidden mb-4">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ADMIN_TABS.map((tab) => (
+                <SelectItem key={tab.value} value={tab.value}>
+                  <div className="flex items-center gap-2">
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <TabsList className="hidden md:grid w-full grid-cols-5">
+          {ADMIN_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="flex items-center">
+              <tab.icon className="w-4 h-4 mr-2" />
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="lora-bundles" className="space-y-4">
