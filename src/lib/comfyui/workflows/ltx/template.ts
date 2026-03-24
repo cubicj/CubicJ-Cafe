@@ -351,12 +351,21 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "title": "LTXV Audio VAE Decode"
     }
   },
-  "36": {
+  "300": {
     "inputs": {
-      "fps": [
+      "frame_rate": [
         "12",
         0
       ],
+      "loop_count": 0,
+      "filename_prefix": "LTX\\ComfyUI_LTX2.3",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 20,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
       "images": [
         "73",
         0
@@ -366,24 +375,9 @@ export const LTX_WORKFLOW_TEMPLATE = {
         0
       ]
     },
-    "class_type": "CreateVideo",
+    "class_type": "VHS_VideoCombine",
     "_meta": {
-      "title": "Create Video"
-    }
-  },
-  "38": {
-    "inputs": {
-      "filename_prefix": "LTX/ComfyUI_LTX2.3",
-      "format": "mp4",
-      "codec": "h264",
-      "video": [
-        "74",
-        0
-      ]
-    },
-    "class_type": "SaveVideo",
-    "_meta": {
-      "title": "Save Video"
+      "title": "Video Combine"
     }
   },
   "47": {
@@ -520,7 +514,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "gc_collect": true,
       "unload_all_models": true,
       "any_input": [
-        "36",
+        "300",
         0
       ]
     },
