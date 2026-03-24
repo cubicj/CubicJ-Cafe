@@ -126,7 +126,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "533": {
     "inputs": {
-      "megapixels": 0.75,
+      "megapixels": 0.7,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": ["531", 0]
@@ -136,7 +136,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "534": {
     "inputs": {
-      "megapixels": 0.75,
+      "megapixels": 0.7,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": ["532", 0]
