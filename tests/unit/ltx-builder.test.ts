@@ -1,3 +1,18 @@
+import { vi } from 'vitest'
+
+vi.mock('@/lib/database/system-settings', () => ({
+  getLtxSettings: vi.fn().mockResolvedValue({
+    loraEnabled: true,
+    cfg: 1,
+    steps: 30,
+    nagScale: 5,
+    duration: 97,
+    megapixels: 0.5,
+    imgCompression: 35,
+    negativePrompt: 'test negative prompt',
+  }),
+}))
+
 import type { LtxGenerationParams } from '@/lib/comfyui/workflows/types'
 import type { LoRAPresetData } from '@/types/lora'
 import { buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
