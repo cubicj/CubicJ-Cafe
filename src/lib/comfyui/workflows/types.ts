@@ -24,7 +24,7 @@ export interface WanGenerationParams extends BaseGenerationParams {
   model: 'wan'
   loraPreset?: LoRAPresetData
   endImage?: string
-  videoLength: number
+  videoLength?: number
 }
 
 export interface LtxGenerationParams extends BaseGenerationParams {

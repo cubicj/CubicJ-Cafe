@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { prisma } from '@/lib/database/prisma';
 import { initializeDefaultSettings } from '@/lib/database/system-settings';
-import { initializeModelSettings } from '@/lib/database/model-settings';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
@@ -19,7 +18,6 @@ export const GET = createRouteHandler(
 
     if (settings.length === 0) {
       await initializeDefaultSettings();
-      await initializeModelSettings();
       settings = await prisma.systemSetting.findMany({
         orderBy: [
           { category: 'asc' },

@@ -13,7 +13,6 @@ import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause } from 'lu
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
-import ModelSettingsTab from './tabs/ModelSettingsTab';
 import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
 import LogViewerTab from './tabs/LogViewerTab';
@@ -55,9 +54,6 @@ export default function AdminDashboard() {
       setComfyuiEnabled(data.enabled);
       setComfyuiMessage(`ComfyUI ${data.enabled ? '활성화' : '비활성화'}됨`);
       setTimeout(() => setComfyuiMessage(''), 3000);
-      if (data.enabled) {
-        adminSettings.fetchAvailableModels();
-      }
     } catch {
     } finally {
       setComfyuiLoading(false);
@@ -117,15 +113,7 @@ export default function AdminDashboard() {
 
     const initializeAdminSettings = async () => {
       try {
-        const [, comfyState] = await Promise.all([
-          adminSettings.fetchModelSettings(),
-          fetchComfyUIState()
-        ]);
-
-        if (comfyState) {
-          adminSettings.fetchAvailableModels();
-        }
-
+        await fetchComfyUIState();
         fetchPauseState();
       } catch (error) {
         log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
@@ -264,12 +252,8 @@ export default function AdminDashboard() {
         )}
       </Card>
 
-      <Tabs defaultValue="advanced" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="advanced" className="flex items-center">
-            <Cog className="w-4 h-4 mr-2" />
-            고급 설정
-          </TabsTrigger>
+      <Tabs defaultValue="lora-bundles" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="lora-bundles" className="flex items-center">
             <Cog className="w-4 h-4 mr-2" />
             LoRA 번들
@@ -283,10 +267,6 @@ export default function AdminDashboard() {
             Logs
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="advanced" className="space-y-4">
-          <ModelSettingsTab {...adminSettings} />
-        </TabsContent>
 
         <TabsContent value="lora-bundles" className="space-y-4">
           <LoRABundleTab />

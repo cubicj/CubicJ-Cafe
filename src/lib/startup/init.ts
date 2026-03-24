@@ -1,5 +1,4 @@
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
-import { initializeModelSettings } from '@/lib/database/model-settings';
 import { initComfyUIState, isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { initQueuePauseState } from '@/lib/comfyui/queue-pause-state';
 import { createLogger } from '@/lib/logger';
@@ -8,7 +7,6 @@ const log = createLogger('system');
 
 declare global {
   var __queueMonitorInitialized: boolean | undefined;
-  var __modelSettingsInitialized: boolean | undefined;
 }
 
 export function initializeServices() {
@@ -19,10 +17,6 @@ export function initializeServices() {
   log.info('Initializing services');
 
   try {
-    initializeModelSettings().catch(error => {
-      log.error('Failed to initialize model settings', { error: error instanceof Error ? error.message : String(error) });
-    });
-
     initComfyUIState().then(async () => {
       await initQueuePauseState();
       if (isComfyUIEnabled()) {
@@ -37,7 +31,6 @@ export function initializeServices() {
     });
 
     global.__queueMonitorInitialized = true;
-    global.__modelSettingsInitialized = true;
     log.info('All services initialized');
   } catch (error) {
     log.error('Service initialization failed', { error: error instanceof Error ? error.message : String(error) });

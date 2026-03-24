@@ -1,20 +1,5 @@
 import { vi } from 'vitest'
 
-vi.mock('@/lib/database/model-settings', () => ({
-  getActiveModel: vi.fn().mockResolvedValue('wan'),
-  getModelSettings: vi.fn().mockResolvedValue({
-    highDiffusionModel: 'test-high.safetensors',
-    lowDiffusionModel: 'test-low.safetensors',
-    textEncoder: 'test-encoder.safetensors',
-    vae: 'test-vae.safetensors',
-    upscaleModel: '',
-    clipVision: '',
-    ksampler: 'euler',
-    highCfg: 3.0, lowCfg: 3.0, highShift: 8.0, lowShift: 8.0,
-  }),
-  setActiveModel: vi.fn(),
-}))
-
 vi.mock('@/lib/database/system-settings', () => ({
   getNegativePrompt: vi.fn().mockResolvedValue('test negative prompt'),
   getQualityPrompt: vi.fn().mockResolvedValue('masterpiece, best quality'),
@@ -37,7 +22,6 @@ const baseParams: WanGenerationParams = {
   model: 'wan',
   prompt: 'a dragon flying through clouds',
   inputImage: 'dragon-input.png',
-  videoLength: 97,
 }
 
 describe('buildWanWorkflow', () => {
@@ -77,10 +61,10 @@ describe('buildWanWorkflow', () => {
     expect(workflow['531']!.inputs!.image).toBe('dragon-input.png')
   })
 
-  it('sets video length in WanFirstLastFrameToVideo nodes', async () => {
+  it('uses fixed 121 frame length in WanFirstLastFrameToVideo nodes', async () => {
     const workflow = await buildWanWorkflow(baseParams)
-    expect(workflow['527']!.inputs!.length).toBe(97)
-    expect(workflow['538']!.inputs!.length).toBe(97)
+    expect(workflow['527']!.inputs!.length).toBe(121)
+    expect(workflow['538']!.inputs!.length).toBe(121)
   })
 
   it('sets end image when provided', async () => {
@@ -105,14 +89,4 @@ describe('buildWanWorkflow', () => {
     expect(lowHasLora).toBe(false)
   })
 
-  it('applies model settings to correct nodes', async () => {
-    const workflow = await buildWanWorkflow(baseParams)
-    expect(workflow['517']!.inputs!.unet_name).toBe('test-high.safetensors')
-    expect(workflow['518']!.inputs!.unet_name).toBe('test-low.safetensors')
-    expect(workflow['519']!.inputs!.clip_name).toBe('test-encoder.safetensors')
-    expect(workflow['520']!.inputs!.vae_name).toBe('test-vae.safetensors')
-    expect(workflow['545']!.inputs!.sampler_name).toBe('euler')
-    expect(workflow['539']!.inputs!.shift).toBe(8.0)
-    expect(workflow['541']!.inputs!.shift).toBe(8.0)
-  })
 })

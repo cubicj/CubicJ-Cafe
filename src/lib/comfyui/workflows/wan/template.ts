@@ -83,7 +83,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "inputs": {
       "width": ["533", 1],
       "height": ["533", 2],
-      "length": 97,
+      "length": 121,
       "batch_size": 1,
       "positive": ["530", 0],
       "negative": ["536", 0],
@@ -126,7 +126,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "533": {
     "inputs": {
-      "megapixels": 0.8,
+      "megapixels": 0.75,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": ["531", 0]
@@ -136,7 +136,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "534": {
     "inputs": {
-      "megapixels": 0.8,
+      "megapixels": 0.75,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": ["532", 0]
@@ -164,7 +164,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "inputs": {
       "width": ["533", 1],
       "height": ["533", 2],
-      "length": 97,
+      "length": 121,
       "batch_size": 1,
       "positive": ["529", 0],
       "negative": ["537", 0],
@@ -305,21 +305,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "555": {
     "inputs": {
-      "samples": ["547", 0],
+      "samples": ["563", 0],
       "vae": ["520", 0]
     },
     "class_type": "VAEDecode",
     "_meta": { "title": "VAE Decode" }
-  },
-  "560": {
-    "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "image_pass": ["555", 0]
-    },
-    "class_type": "VRAM_Debug",
-    "_meta": { "title": "VRAM Debug" }
   },
   "562": {
     "inputs": {
@@ -333,11 +323,21 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "trim_to_audio": false,
       "pingpong": false,
       "save_output": false,
-      "images": ["560", 1],
+      "images": ["555", 0],
       "vae": ["520", 0]
     },
     "class_type": "VHS_VideoCombine",
     "_meta": { "title": "Video Combine" }
+  },
+  "563": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "any_input": ["547", 0]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": { "title": "VRAM Debug" }
   },
   "557": {
     "inputs": {},
