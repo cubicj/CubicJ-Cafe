@@ -448,7 +448,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   "67": {
     "inputs": {
       "model": [
-        "298",
+        "72",
         0
       ],
       "conditioning": [
@@ -540,7 +540,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "86": {
     "inputs": {
-      "megapixels": 0.21,
+      "megapixels": 0.3,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -684,7 +684,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "264": {
     "inputs": {
-      "megapixels": 0.21,
+      "megapixels": 0.3,
       "multiple_of": 32,
       "upscale_method": "lanczos",
       "image": [
@@ -771,7 +771,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   "296": {
     "inputs": {
       "lora_name": "LTX\\Custom\\REDACTED_MODEL.safetensors",
-      "strength_model": 0,
+      "strength_model": 1,
       "model": [
         "298",
         0
