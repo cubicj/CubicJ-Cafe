@@ -61,8 +61,10 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   )}
                 </div>
                 <div className="col-span-2 flex items-center">
-                  {request.jobId && (
-                    <Badge variant="outline" className="text-xs">작업중</Badge>
+                  {request.generationMode && (
+                    <Badge variant="outline" className="text-xs">
+                      {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : '기본'}
+                    </Badge>
                   )}
                   {isExpanded ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
                 </div>
