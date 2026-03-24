@@ -369,5 +369,33 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "VRAM_Debug",
     "_meta": { "title": "VRAM Debug (between passes)" }
+  },
+  "565": {
+    "inputs": {
+      "width": ["533", 1],
+      "height": ["533", 2],
+      "length": 121,
+      "batch_size": 1,
+      "positive": ["530", 0],
+      "negative": ["536", 0],
+      "vae": ["520", 0],
+      "start_image": ["533", 0]
+    },
+    "class_type": "WanImageToVideo",
+    "_meta": { "title": "WanImageToVideo (HIGH)" }
+  },
+  "567": {
+    "inputs": {
+      "width": ["533", 1],
+      "height": ["533", 2],
+      "length": 121,
+      "batch_size": 1,
+      "positive": ["529", 0],
+      "negative": ["537", 0],
+      "vae": ["520", 0],
+      "start_image": ["533", 0]
+    },
+    "class_type": "WanImageToVideo",
+    "_meta": { "title": "WanImageToVideo (LOW)" }
   }
 }

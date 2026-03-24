@@ -52,16 +52,16 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
-  for (const nodeId of ['527', '538']) {
-    if (workflow[nodeId]?.inputs) {
-      delete workflow[nodeId].inputs.end_image
-    }
-  }
-
+  delete workflow['527']
+  delete workflow['538']
   delete workflow['532']
   delete workflow['534']
 
-  log.info('End image bypass applied')
+  if (workflow['546']?.inputs) workflow['546'].inputs.latent_image = ['565', 2]
+  if (workflow['550']?.inputs) workflow['550'].inputs.conditioning = ['565', 0]
+  if (workflow['551']?.inputs) workflow['551'].inputs.conditioning = ['567', 0]
+
+  log.info('End image bypass applied — switched to WanImageToVideo')
 }
 
 function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
