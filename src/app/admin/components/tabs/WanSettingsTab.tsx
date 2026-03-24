@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshCw } from 'lucide-react';
 
 interface SettingEntry {
   value: string;
@@ -42,28 +43,39 @@ const WAN_FIELDS = [
   { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'string' },
 ] as const;
 
+let samplerCache: string[] | null = null;
+
 export default function WanSettingsTab() {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [samplers, setSamplers] = useState<string[]>([]);
+  const [samplers, setSamplers] = useState<string[]>(samplerCache ?? []);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [samplerLoading, setSamplerLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchSamplers = async () => {
+    setSamplerLoading(true);
+    try {
+      const data = await apiClient.get<SamplersResponse>('/api/admin/comfyui/samplers');
+      samplerCache = data.samplers;
+      setSamplers(data.samplers);
+    } catch {
+      setSamplers([]);
+    } finally {
+      setSamplerLoading(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [settingsData, samplersData] = await Promise.all([
-          apiClient.get<SettingsResponse>('/api/admin/settings'),
-          apiClient.get<SamplersResponse>('/api/admin/comfyui/samplers').catch(() => ({ samplers: [] })),
-        ]);
-
+        const settingsData = await apiClient.get<SettingsResponse>('/api/admin/settings');
         const wan = settingsData.wan ?? {};
         const initial: Record<string, string> = {};
         for (const field of WAN_FIELDS) {
           initial[field.key] = wan[field.key]?.value ?? '';
         }
         setValues(initial);
-        setSamplers(samplersData.samplers);
       } catch {
         setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
       } finally {
@@ -139,7 +151,18 @@ export default function WanSettingsTab() {
           if (field.key === 'wan.sampler') {
             return (
               <div key={field.key} className="space-y-1">
-                <Label>{field.label}</Label>
+                <div className="flex items-center gap-2">
+                  <Label>{field.label}</Label>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={fetchSamplers}
+                    disabled={samplerLoading}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
                 {samplers.length > 0 ? (
                   <Select
                     value={values[field.key] || undefined}
@@ -160,7 +183,7 @@ export default function WanSettingsTab() {
                   <Input
                     value={values[field.key] ?? ''}
                     onChange={(e) => handleChange(field.key, e.target.value)}
-                    placeholder="샘플러 이름 입력"
+                    placeholder="샘플러 이름 입력 (새로고침으로 목록 불러오기)"
                   />
                 )}
               </div>

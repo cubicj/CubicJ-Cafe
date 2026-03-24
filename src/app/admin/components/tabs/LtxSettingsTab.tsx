@@ -22,7 +22,7 @@ interface SettingsResponse {
 const LTX_FIELDS = [
   { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' },
   { key: 'ltx.cfg', label: 'CFG Scale', type: 'number', step: 0.1 },
-  { key: 'ltx.steps', label: '스텝 수', type: 'number', step: 1 },
+  { key: 'ltx.steps', label: '1패스 스텝 수', type: 'number', step: 1 },
   { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1 },
   { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number', step: 1 },
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01 },
