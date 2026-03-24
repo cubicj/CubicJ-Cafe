@@ -3,9 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Server, Clock, AlertCircle, Cpu, Cloud, CheckCircle, RefreshCw, Film } from "lucide-react";
-import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
-import type { VideoModel } from "@/lib/comfyui/workflows/types";
+import { Server, Clock, AlertCircle, Cpu, Cloud, CheckCircle, RefreshCw } from "lucide-react";
 
 interface ServerInfo {
   type: 'local' | 'runpod'
@@ -39,7 +37,6 @@ interface ServerStatusSectionProps {
   serverStatus: ComfyUIStatus | null;
   isRefreshing: boolean;
   isLoadingServerStatus: boolean;
-  activeModel: VideoModel;
   onRefreshStatus: () => Promise<void>;
 }
 
@@ -47,7 +44,6 @@ export function ServerStatusSection({
   serverStatus,
   isRefreshing,
   isLoadingServerStatus,
-  activeModel,
   onRefreshStatus,
 }: ServerStatusSectionProps) {
   const getServerStatusColor = (serverStatus: string) => {
@@ -99,10 +95,6 @@ export function ServerStatusSection({
         ) : serverStatus?.summary ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="flex items-center gap-1 bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-                <Film className="h-3 w-3" />
-                {MODEL_REGISTRY[activeModel].displayName}
-              </Badge>
               <Badge variant={serverStatus.summary?.totalActive > 0 ? 'default' : 'destructive'} className="flex items-center gap-1">
                 <Server className="h-3 w-3" />
                 {serverStatus.summary?.totalActive || 0}/{serverStatus.summary?.totalServers || 0} 활성
