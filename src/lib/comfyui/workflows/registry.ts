@@ -3,7 +3,7 @@ import type { VideoModel, ModelConfig } from './types'
 export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   wan: {
     displayName: 'WAN 2.2',
-    capabilities: { loraPresets: true, endImage: true, videoDuration: false, audio: false },
+    capabilities: { loraPresets: false, endImage: true, videoDuration: false, audio: false },
     defaultSubfolder: 'WAN',
   },
   ltx: {
