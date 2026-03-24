@@ -9,13 +9,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause } from 'lucide-react';
+import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import DatabaseTab from './tabs/DatabaseTab';
 import LoRABundleTab from './tabs/LoRABundleTab';
 import LogViewerTab from './tabs/LogViewerTab';
+import WanSettingsTab from './tabs/WanSettingsTab';
+import LtxSettingsTab from './tabs/LtxSettingsTab';
 
 const log = createLogger('admin');
 
@@ -253,10 +255,18 @@ export default function AdminDashboard() {
       </Card>
 
       <Tabs defaultValue="lora-bundles" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="lora-bundles" className="flex items-center">
             <Cog className="w-4 h-4 mr-2" />
             LoRA 번들
+          </TabsTrigger>
+          <TabsTrigger value="wan-settings" className="flex items-center">
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            WAN
+          </TabsTrigger>
+          <TabsTrigger value="ltx-settings" className="flex items-center">
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            LTX
           </TabsTrigger>
           <TabsTrigger value="database" className="flex items-center">
             <Database className="w-4 h-4 mr-2" />
@@ -270,6 +280,14 @@ export default function AdminDashboard() {
 
         <TabsContent value="lora-bundles" className="space-y-4">
           <LoRABundleTab />
+        </TabsContent>
+
+        <TabsContent value="wan-settings" className="space-y-4">
+          <WanSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="ltx-settings" className="space-y-4">
+          <LtxSettingsTab />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">

@@ -1,0 +1,202 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface SettingEntry {
+  value: string;
+  type: string;
+}
+
+interface SettingsResponse {
+  wan?: Record<string, SettingEntry>;
+}
+
+interface SamplersResponse {
+  samplers: string[];
+}
+
+const WAN_FIELDS = [
+  { key: 'wan.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' },
+  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01 },
+  { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1 },
+  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1 },
+  { key: 'wan.steps_high', label: 'HIGH 패스 스텝', type: 'number', step: 1 },
+  { key: 'wan.steps_low', label: 'LOW 패스 스텝', type: 'number', step: 1 },
+  { key: 'wan.length', label: '프레임 수', type: 'number', step: 1 },
+  { key: 'wan.sampler', label: '샘플러', type: 'string' },
+  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'string' },
+] as const;
+
+export default function WanSettingsTab() {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [samplers, setSamplers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [settingsData, samplersData] = await Promise.all([
+          apiClient.get<SettingsResponse>('/api/admin/settings'),
+          apiClient.get<SamplersResponse>('/api/admin/comfyui/samplers').catch(() => ({ samplers: [] })),
+        ]);
+
+        const wan = settingsData.wan ?? {};
+        const initial: Record<string, string> = {};
+        for (const field of WAN_FIELDS) {
+          initial[field.key] = wan[field.key]?.value ?? '';
+        }
+        setValues(initial);
+        setSamplers(samplersData.samplers);
+      } catch {
+        setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleChange = (key: string, value: string) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const settings = WAN_FIELDS.map((field) => ({
+        key: field.key,
+        value: String(values[field.key] ?? ''),
+        type: field.type,
+        category: 'wan',
+      }));
+      await apiClient.put('/api/admin/settings', { settings });
+      setMessage({ type: 'success', text: '저장되었습니다.' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch {
+      setMessage({ type: 'error', text: '저장에 실패했습니다.' });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isSaveDisabled =
+    saving ||
+    WAN_FIELDS.some(
+      (field) => field.type !== 'boolean' && (values[field.key] ?? '').trim() === ''
+    );
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">설정 불러오는 중...</p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6 space-y-4">
+      <h3 className="text-lg font-semibold">WAN 2.2 설정</h3>
+
+      {message && (
+        <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid gap-4">
+        {WAN_FIELDS.map((field) => {
+          if (field.type === 'boolean') {
+            return (
+              <div key={field.key} className="flex items-center justify-between">
+                <Label>{field.label}</Label>
+                <Switch
+                  checked={values[field.key] === 'true'}
+                  onCheckedChange={(checked) => handleChange(field.key, String(checked))}
+                />
+              </div>
+            );
+          }
+
+          if (field.key === 'wan.sampler') {
+            return (
+              <div key={field.key} className="space-y-1">
+                <Label>{field.label}</Label>
+                {samplers.length > 0 ? (
+                  <Select
+                    value={values[field.key] || undefined}
+                    onValueChange={(v) => handleChange(field.key, v)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="샘플러 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {samplers.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={values[field.key] ?? ''}
+                    onChange={(e) => handleChange(field.key, e.target.value)}
+                    placeholder="샘플러 이름 입력"
+                  />
+                )}
+              </div>
+            );
+          }
+
+          if (field.key === 'wan.negative_prompt') {
+            return (
+              <div key={field.key} className="space-y-1">
+                <Label>{field.label}</Label>
+                <Textarea
+                  value={values[field.key] ?? ''}
+                  onChange={(e) => handleChange(field.key, e.target.value)}
+                  rows={3}
+                />
+              </div>
+            );
+          }
+
+          return (
+            <div key={field.key} className="space-y-1">
+              <Label>{field.label}</Label>
+              <Input
+                type="number"
+                step={field.step}
+                value={values[field.key] ?? ''}
+                onChange={(e) => handleChange(field.key, e.target.value)}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <Button onClick={handleSave} disabled={isSaveDisabled}>
+        저장
+      </Button>
+    </Card>
+  );
+}
