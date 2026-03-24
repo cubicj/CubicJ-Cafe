@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { prisma } from '@/lib/database/prisma';
-import { initializeDefaultSettings } from '@/lib/database/system-settings';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('admin');
@@ -9,22 +8,12 @@ const log = createLogger('admin');
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async () => {
-    let settings = await prisma.systemSetting.findMany({
+    const settings = await prisma.systemSetting.findMany({
       orderBy: [
         { category: 'asc' },
         { key: 'asc' }
       ]
     });
-
-    if (settings.length === 0) {
-      await initializeDefaultSettings();
-      settings = await prisma.systemSetting.findMany({
-        orderBy: [
-          { category: 'asc' },
-          { key: 'asc' }
-        ]
-      });
-    }
 
     const settingsMap = settings.reduce((acc, setting) => {
       if (!acc[setting.category]) {
@@ -44,14 +33,13 @@ export const GET = createRouteHandler(
 export const PUT = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    let key, value, type = 'string', category = 'general';
+    let parsedBody;
     try {
       const requestText = await req.text();
       if (!requestText || requestText.trim() === '') {
         throw new Error('빈 요청 본문입니다.');
       }
-      const parsedBody = JSON.parse(requestText);
-      ({ key, value, type = 'string', category = 'general' } = parsedBody);
+      parsedBody = JSON.parse(requestText);
     } catch (parseError) {
       log.error('Request JSON parse error', { error: parseError instanceof Error ? parseError.message : String(parseError) });
       return NextResponse.json(
@@ -59,6 +47,35 @@ export const PUT = createRouteHandler(
         { status: 400 }
       );
     }
+
+    if (Array.isArray(parsedBody.settings)) {
+      const items = parsedBody.settings as { key: string; value: string; type?: string; category?: string }[];
+      for (const item of items) {
+        if (!item.key || item.value === undefined) {
+          return NextResponse.json(
+            { error: '각 설정에는 키와 값이 필요합니다.' },
+            { status: 400 }
+          );
+        }
+      }
+
+      const results = await prisma.$transaction(
+        items.map(({ key, value, type = 'string', category = 'general' }) =>
+          prisma.systemSetting.upsert({
+            where: { key },
+            update: { value, type, category },
+            create: { key, value, type, category },
+          })
+        )
+      );
+
+      return {
+        message: `${results.length}개 설정이 업데이트되었습니다.`,
+        settings: results,
+      };
+    }
+
+    const { key, value, type = 'string', category = 'general' } = parsedBody;
 
     if (!key || value === undefined) {
       return NextResponse.json(

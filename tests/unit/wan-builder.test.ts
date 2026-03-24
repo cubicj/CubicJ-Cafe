@@ -1,10 +1,6 @@
 import { vi } from 'vitest'
 
-vi.mock('@/lib/database/system-settings', () => ({
-  getNegativePrompt: vi.fn().mockResolvedValue('test negative prompt'),
-  getQualityPrompt: vi.fn().mockResolvedValue('masterpiece, best quality'),
-  getVideoResolution: vi.fn().mockResolvedValue(560),
-}))
+vi.mock('@/lib/database/system-settings', () => ({}))
 
 vi.mock('@/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
