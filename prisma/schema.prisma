@@ -42,8 +42,9 @@ model QueueRequest {
   status         QueueStatus @default(PENDING)
   prompt         String
   imageFile      String?     @map("image_file")
+  imageBlob      Bytes?      @map("image_blob")
   endImageFile   String?     @map("end_image_file")
-  endImageData   String?     @map("end_image_data")
+  endImageBlob   Bytes?      @map("end_image_blob")
   loraPresetData String?     @map("lora_preset_data")
   isNSFW         Boolean     @default(false) @map("is_nsfw")
   jobId          String?     @map("job_id")
@@ -56,7 +57,6 @@ model QueueRequest {
   failedAt       DateTime?   @map("failed_at")
   error          String?
   videoModel     String      @default("wan") @map("video_model")
-  imageData      String?     @map("image_data")
   user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
