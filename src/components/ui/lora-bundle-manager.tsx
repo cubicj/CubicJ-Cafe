@@ -11,7 +11,8 @@ import { Input } from "./input";
 import { Label } from "./label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { Plus, Edit, Trash2, RefreshCw, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "./alert";
+import { Plus, Edit, Trash2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LoRABundle {
@@ -186,47 +187,40 @@ export function LoRABundleManager() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-        <span>LoRA 번들 목록을 불러오는 중...</span>
-      </div>
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">번들 목록 불러오는 중...</p>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <div className="flex items-center p-4 text-red-800 border border-red-300 rounded-md bg-red-50">
-          <AlertCircle className="w-4 h-4 mr-2" />
-          <span>{error}</span>
-        </div>
-      )}
-
+    <Card className="p-6 space-y-4">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">LoRA 번들 관리</h2>
-          <p className="text-gray-600 mt-1">
-            High 또는 Low LoRA 파일(둘 중 하나 또는 둘 다)을 하나의 번들로 묶어서 관리합니다. 표시명 순으로 자동 정렬됩니다.
-          </p>
-        </div>
+        <h3 className="text-lg font-semibold">LoRA 번들 관리</h3>
         <div className="flex items-center space-x-2">
-          <Button 
+          <Button
             variant="outline"
-            onClick={fetchAvailableLoRAs} 
+            size="sm"
+            onClick={fetchAvailableLoRAs}
             disabled={isLoadingLoRAs}
-            className="flex items-center"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingLoRAs ? 'animate-spin' : ''}`} />
             LoRA 새로고침
           </Button>
-          <Button onClick={handleAdd} className="flex items-center">
+          <Button size="sm" onClick={handleAdd}>
             <Plus className="w-4 h-4 mr-2" />
             새 번들 추가
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid gap-2">
         {bundles.length === 0 ? (
           <Card>
             <CardContent className="flex items-center justify-center p-8 text-gray-500">
@@ -416,6 +410,6 @@ export function LoRABundleManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }
