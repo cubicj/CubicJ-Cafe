@@ -6,9 +6,7 @@ import { MODEL_REGISTRY } from './workflows/registry';
 import type { GenerationParams } from './workflows/types';
 import { jobMonitor } from './job-monitor';
 import type { LoRAPresetData } from '@/types';
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import { scheduleFileCleanup } from '@/lib/utils/file-cleanup';
+
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from './comfyui-state';
 import { getQueuePauseAfterPosition } from './queue-pause-state';
@@ -287,28 +285,19 @@ class QueueMonitor {
       let uploadedImageName = null
 
 
-      if (request.imageData && existsSync(request.imageData)) {
+      if (request.imageBlob) {
         try {
-          const imageBuffer = await readFile(request.imageData)
-          const blob = new Blob([new Uint8Array(imageBuffer)], { type: 'image/png' })
-          const comfyUIFileName = request.imageFile || `upload_${request.id}_${Date.now()}.png`
-          const file = new File([blob], comfyUIFileName, { type: 'image/png' })
-
-          uploadedImageName = await server.client.uploadImage(file)
-
-          scheduleFileCleanup(request.imageData, 10)
+          const blob = new Blob([request.imageBlob], { type: 'image/png' });
+          const comfyUIFileName = request.imageFile || `upload_${request.id}_${Date.now()}.png`;
+          const file = new File([blob], comfyUIFileName, { type: 'image/png' });
+          uploadedImageName = await server.client.uploadImage(file);
         } catch (error) {
-          log.error('Image upload failed', { error: error instanceof Error ? error.message : String(error) })
-          throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+          log.error('Image upload failed', { error: error instanceof Error ? error.message : String(error) });
+          throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
       } else {
-        log.warn('Image file not found', {
-          requestId: request.id,
-          imageFile: request.imageFile,
-          imagePath: request.imageData,
-          fileExists: request.imageData ? existsSync(request.imageData) : false
-        })
-        throw new Error('이미지 파일이 없습니다.')
+        log.warn('Image blob not found', { requestId: request.id, imageFile: request.imageFile });
+        throw new Error('이미지 데이터가 없습니다.');
       }
 
       const actualServerId = this.resolveServerId(server);
@@ -323,13 +312,10 @@ class QueueMonitor {
       }
 
       let uploadedEndImageName = null;
-      if (request.endImageFile && request.endImageData && existsSync(request.endImageData)) {
-        const endImageBuffer = await readFile(request.endImageData);
-        const endImageBlob = new Blob([new Uint8Array(endImageBuffer)], { type: 'image/png' });
-        const endImageFile = new File([endImageBlob], request.endImageFile, { type: 'image/png' });
-        uploadedEndImageName = await server.client.uploadImage(endImageFile);
-
-        scheduleFileCleanup(request.endImageData, 10);
+      if (request.endImageBlob && request.endImageFile) {
+        const endBlob = new Blob([request.endImageBlob], { type: 'image/png' });
+        const endFile = new File([endBlob], request.endImageFile, { type: 'image/png' });
+        uploadedEndImageName = await server.client.uploadImage(endFile);
       }
 
       const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
@@ -380,8 +366,8 @@ class QueueMonitor {
         serverId: actualServerId
       });
 
+      await QueueService.clearImageBlobs(requestId);
 
-      // Job Monitor로 실제 작업 완료 모니터링 시작
       const job = {
         id: requestId,
         userId: request.userId.toString(),
