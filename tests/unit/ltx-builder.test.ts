@@ -47,13 +47,13 @@ describe('buildLtxWorkflow', () => {
 
   it('sets filename prefix with LTX/ prefix', async () => {
     const workflow = await buildLtxWorkflow(baseParams)
-    expect(workflow['38']!.inputs!.filename_prefix).toBe('LTX/test-image')
+    expect(workflow['300']!.inputs!.filename_prefix).toBe('LTX/test-image')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: LtxGenerationParams = { ...baseParams, inputImage: 'photo.jpg' }
     const workflow = await buildLtxWorkflow(params)
-    expect(workflow['38']!.inputs!.filename_prefix).toBe('LTX/photo')
+    expect(workflow['300']!.inputs!.filename_prefix).toBe('LTX/photo')
   })
 
   describe('end image handling', () => {

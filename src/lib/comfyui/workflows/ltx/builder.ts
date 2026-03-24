@@ -78,9 +78,9 @@ export async function buildLtxWorkflow(
     workflow['32'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
   }
 
-  if (workflow['38'] && params.inputImage) {
+  if (workflow['300'] && params.inputImage) {
     const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
-    workflow['38'].inputs.filename_prefix = `LTX/${baseImageName}`
+    workflow['300'].inputs.filename_prefix = `LTX/${baseImageName}`
   }
 
   log.info('LTX workflow built', {
