@@ -115,7 +115,6 @@ export default function I2VPageClient() {
             serverStatus={serverStatus}
             isRefreshing={isRefreshing}
             isLoadingServerStatus={isLoadingServerStatus}
-            activeModel={activeModel}
             onRefreshStatus={handleRefreshStatus}
           />
 
