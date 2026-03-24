@@ -367,7 +367,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       "pingpong": false,
       "save_output": false,
       "images": [
-        "73",
+        "301",
         0
       ],
       "audio": [
@@ -378,6 +378,21 @@ export const LTX_WORKFLOW_TEMPLATE = {
     "class_type": "VHS_VideoCombine",
     "_meta": {
       "title": "Video Combine"
+    }
+  },
+  "301": {
+    "inputs": {
+      "resize_type": "scale by multiplier",
+      "resize_type.scale": 2,
+      "quality": "ULTRA",
+      "images": [
+        "73",
+        0
+      ]
+    },
+    "class_type": "RTXVideoSuperResolution",
+    "_meta": {
+      "title": "RTX Video Super Resolution"
     }
   },
   "47": {
