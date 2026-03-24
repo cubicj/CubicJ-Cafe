@@ -3,15 +3,54 @@ import type { ComfyUIWorkflow } from '@/types'
 import type { ComfyUIServer } from '../../server-manager'
 import { LTX_WORKFLOW_TEMPLATE } from './template'
 import { applyLtxLoraChain } from './lora-manager'
+import { createLogger } from '@/lib/logger'
+import { getLtxSettings } from '@/lib/database/system-settings'
+
+const log = createLogger('comfyui')
 
 export async function buildLtxWorkflow(
   params: LtxGenerationParams,
   server?: ComfyUIServer
 ): Promise<ComfyUIWorkflow> {
+  const settings = await getLtxSettings()
   const workflow = JSON.parse(JSON.stringify(LTX_WORKFLOW_TEMPLATE))
 
   if (workflow['5']) {
     workflow['5'].inputs.text = params.prompt
+  }
+
+  if (workflow['6']?.inputs) {
+    workflow['6'].inputs.text = settings.negativePrompt
+  }
+
+  if (workflow['18']?.inputs) {
+    workflow['18'].inputs.cfg = settings.cfg
+  }
+
+  if (workflow['22']?.inputs) {
+    workflow['22'].inputs.steps = settings.steps
+  }
+
+  if (workflow['72']?.inputs) {
+    workflow['72'].inputs.nag_scale = settings.nagScale
+  }
+
+  if (workflow['103']?.inputs) {
+    workflow['103'].inputs.value = settings.duration
+  }
+
+  if (workflow['86']?.inputs) {
+    workflow['86'].inputs.megapixels = settings.megapixels
+  }
+  if (workflow['264']?.inputs) {
+    workflow['264'].inputs.megapixels = settings.megapixels
+  }
+
+  if (workflow['266']?.inputs) {
+    workflow['266'].inputs.img_compression = settings.imgCompression
+  }
+  if (workflow['267']?.inputs) {
+    workflow['267'].inputs.img_compression = settings.imgCompression
   }
 
   if (workflow['87']) {
@@ -26,7 +65,7 @@ export async function buildLtxWorkflow(
     handleEndImageBypass(workflow)
   }
 
-  if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
+  if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     await applyLtxLoraChain(workflow, params.loraPreset, server)
   } else {
     removeLoraPlaceholder(workflow)
@@ -43,6 +82,14 @@ export async function buildLtxWorkflow(
     const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
     workflow['38'].inputs.filename_prefix = `LTX/${baseImageName}`
   }
+
+  log.info('LTX workflow built', {
+    prompt: params.prompt.substring(0, 50),
+    hasEndImage: !!params.endImage,
+    duration: settings.duration,
+    loraEnabled: settings.loraEnabled,
+    hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
+  })
 
   return workflow
 }

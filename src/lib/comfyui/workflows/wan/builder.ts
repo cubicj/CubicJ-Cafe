@@ -4,14 +4,65 @@ import type { WanGenerationParams } from '../types'
 import { applyLoraPreset } from './lora-manager'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { createLogger } from '@/lib/logger'
+import { getWanSettings } from '@/lib/database/system-settings'
 
 const log = createLogger('comfyui')
 
 export async function buildWanWorkflow(params: WanGenerationParams, server?: ComfyUIServer): Promise<ComfyUIWorkflow> {
+  const settings = await getWanSettings()
   const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
 
   if (workflow['543']?.inputs) {
     workflow['543'].inputs.text = params.prompt
+  }
+
+  if (workflow['544']?.inputs) {
+    workflow['544'].inputs.text = settings.negativePrompt
+  }
+
+  if (workflow['533']?.inputs) {
+    workflow['533'].inputs.megapixels = settings.megapixels
+  }
+  if (workflow['534']?.inputs) {
+    workflow['534'].inputs.megapixels = settings.megapixels
+  }
+
+  if (workflow['539']?.inputs) {
+    workflow['539'].inputs.shift = settings.shift
+  }
+  if (workflow['541']?.inputs) {
+    workflow['541'].inputs.shift = settings.shift
+  }
+
+  if (workflow['540']?.inputs) {
+    workflow['540'].inputs.nag_scale = settings.nagScale
+  }
+  if (workflow['542']?.inputs) {
+    workflow['542'].inputs.nag_scale = settings.nagScale
+  }
+
+  if (workflow['553']?.inputs) {
+    workflow['553'].inputs.steps = settings.stepsHigh
+  }
+  if (workflow['554']?.inputs) {
+    workflow['554'].inputs.steps = settings.stepsLow
+  }
+
+  if (workflow['527']?.inputs) {
+    workflow['527'].inputs.length = settings.length
+  }
+  if (workflow['538']?.inputs) {
+    workflow['538'].inputs.length = settings.length
+  }
+  if (workflow['565']?.inputs) {
+    workflow['565'].inputs.length = settings.length
+  }
+  if (workflow['567']?.inputs) {
+    workflow['567'].inputs.length = settings.length
+  }
+
+  if (workflow['545']?.inputs) {
+    workflow['545'].inputs.sampler_name = settings.sampler
   }
 
   if (workflow['531']?.inputs) {
@@ -35,7 +86,7 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
     workflow['562'].inputs.filename_prefix = `WAN/${baseImageName}`
   }
 
-  if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
+  if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     await applyLoraPreset(workflow, params.loraPreset, server)
   } else {
     removeLoraPlaceholder(workflow)
@@ -44,7 +95,8 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
   log.info('WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
-    videoLength: 121,
+    videoLength: settings.length,
+    loraEnabled: settings.loraEnabled,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
   })
 

@@ -1,6 +1,18 @@
 import { vi } from 'vitest'
 
-vi.mock('@/lib/database/system-settings', () => ({}))
+vi.mock('@/lib/database/system-settings', () => ({
+  getWanSettings: vi.fn().mockResolvedValue({
+    loraEnabled: false,
+    megapixels: 0.5,
+    shift: 5,
+    nagScale: 5,
+    stepsHigh: 3,
+    stepsLow: 3,
+    length: 121,
+    sampler: 'euler',
+    negativePrompt: 'test negative prompt',
+  }),
+}))
 
 vi.mock('@/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
