@@ -3,7 +3,6 @@ import type { ComfyUIServer } from '../../server-manager'
 import type { WanGenerationParams } from '../types'
 import { applyLoraPreset } from './lora-manager'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
-import { getNegativePrompt } from '@/lib/database/system-settings'
 import { createLogger } from '@/lib/logger'
 
 const log = createLogger('comfyui')
@@ -13,11 +12,6 @@ export async function buildWanWorkflow(params: WanGenerationParams, server?: Com
 
   if (workflow['543']?.inputs) {
     workflow['543'].inputs.text = params.prompt
-  }
-
-  const negativePrompt = await getNegativePrompt()
-  if (negativePrompt && workflow['544']?.inputs) {
-    workflow['544'].inputs.text = negativePrompt
   }
 
   if (workflow['531']?.inputs) {
