@@ -36,7 +36,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "6": {
     "inputs": {
-      "text": "cartoon, still image, bad quality, subtitles, text, watermark, overlay effects, test negative prompt",
+      "text": "",
       "clip": [
         "47",
         0
@@ -116,7 +116,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "16": {
     "inputs": {
-      "noise_seed": 451090353646370
+      "noise_seed": 76216652269565
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -288,7 +288,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   "32": {
     "inputs": {
-      "noise_seed": 541048984909850
+      "noise_seed": 175965402432608
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -349,50 +349,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
     "class_type": "LTXVAudioVAEDecode",
     "_meta": {
       "title": "LTXV Audio VAE Decode"
-    }
-  },
-  "300": {
-    "inputs": {
-      "frame_rate": [
-        "12",
-        0
-      ],
-      "loop_count": 0,
-      "filename_prefix": "LTX\\ComfyUI_LTX2.3",
-      "format": "video/h264-mp4",
-      "pix_fmt": "yuv420p",
-      "crf": 20,
-      "save_metadata": false,
-      "trim_to_audio": false,
-      "pingpong": false,
-      "save_output": false,
-      "images": [
-        "301",
-        0
-      ],
-      "audio": [
-        "35",
-        0
-      ]
-    },
-    "class_type": "VHS_VideoCombine",
-    "_meta": {
-      "title": "Video Combine"
-    }
-  },
-  "301": {
-    "inputs": {
-      "resize_type": "scale by multiplier",
-      "resize_type.scale": 2,
-      "quality": "ULTRA",
-      "images": [
-        "73",
-        0
-      ]
-    },
-    "class_type": "RTXVideoSuperResolution",
-    "_meta": {
-      "title": "RTX Video Super Resolution"
     }
   },
   "47": {
@@ -520,7 +476,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
     },
     "class_type": "LTXVSpatioTemporalTiledVAEDecode",
     "_meta": {
-      "title": "\uD83C\uDD5B\uD83C\uDD63\uD83C\uDD67 LTXV Spatio Temporal Tiled VAE Decode"
+      "title": "🅛🅣🅧 LTXV Spatio Temporal Tiled VAE Decode"
     }
   },
   "74": {
@@ -621,7 +577,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
     },
     "class_type": "MathExpression|pysssss",
     "_meta": {
-      "title": "Math Expression \uD83D\uDC0D"
+      "title": "Math Expression 🐍"
     }
   },
   "103": {
@@ -643,7 +599,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
     },
     "class_type": "CustomSplineSigma",
     "_meta": {
-      "title": "\uD83D\uDCC8 Custom Graph Sigma"
+      "title": "📈 Custom Graph Sigma"
     }
   },
   "258": {
@@ -656,7 +612,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
     },
     "class_type": "CustomSplineSigma",
     "_meta": {
-      "title": "\uD83D\uDCC8 Custom Graph Sigma"
+      "title": "📈 Custom Graph Sigma"
     }
   },
   "259": {
@@ -694,7 +650,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
     },
     "class_type": "MathExpression|pysssss",
     "_meta": {
-      "title": "Math Expression \uD83D\uDC0D"
+      "title": "Math Expression 🐍"
     }
   },
   "264": {
@@ -818,6 +774,65 @@ export const LTX_WORKFLOW_TEMPLATE = {
     "class_type": "LTX2MemoryEfficientSageAttentionPatch",
     "_meta": {
       "title": "LTX2 Mem Eff Sage Attention Patch"
+    }
+  },
+  "300": {
+    "inputs": {
+      "frame_rate": [
+        "12",
+        0
+      ],
+      "loop_count": 0,
+      "filename_prefix": "LTX\\ComfyUI_LTX2.3",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 20,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": [
+        "301",
+        0
+      ],
+      "audio": [
+        "35",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "301": {
+    "inputs": {
+      "resize_type": "scale by multiplier",
+      "resize_type.scale": 2,
+      "quality": "ULTRA",
+      "images": [
+        "302",
+        1
+      ]
+    },
+    "class_type": "RTXVideoSuperResolution",
+    "_meta": {
+      "title": "RTX Video Super Resolution"
+    }
+  },
+  "302": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "image_pass": [
+        "73",
+        0
+      ]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": {
+      "title": "VRAM Debug"
     }
   }
 }

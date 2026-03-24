@@ -5,7 +5,9 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",
-    "_meta": { "title": "Load Diffusion Model" }
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
   },
   "2": {
     "inputs": {
@@ -13,69 +15,102 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",
-    "_meta": { "title": "Load Diffusion Model" }
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
   },
   "3": {
     "inputs": {
       "noise_seed": 1058734286688432
     },
     "class_type": "RandomNoise",
-    "_meta": { "title": "RandomNoise" }
+    "_meta": {
+      "title": "RandomNoise"
+    }
   },
   "4": {
     "inputs": {
-      "model": ["20", 0],
-      "conditioning": ["31", 0]
+      "model": [
+        "20",
+        0
+      ],
+      "conditioning": [
+        "31",
+        0
+      ]
     },
     "class_type": "BasicGuider",
-    "_meta": { "title": "BasicGuider" }
+    "_meta": {
+      "title": "BasicGuider"
+    }
   },
   "5": {
     "inputs": {
       "image": "example.png"
     },
     "class_type": "LoadImage",
-    "_meta": { "title": "start" }
+    "_meta": {
+      "title": "start"
+    }
   },
   "6": {
     "inputs": {
       "sage_attention": "auto",
       "allow_compile": false,
-      "model": ["32", 0]
+      "model": [
+        "32",
+        0
+      ]
     },
     "class_type": "PathchSageAttentionKJ",
-    "_meta": { "title": "Patch Sage Attention KJ" }
+    "_meta": {
+      "title": "Patch Sage Attention KJ"
+    }
   },
   "9": {
     "inputs": {
       "enable_fp16_accumulation": true,
-      "model": ["12", 0]
+      "model": [
+        "12",
+        0
+      ]
     },
     "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "Model Patch Torch Settings" }
+    "_meta": {
+      "title": "Model Patch Torch Settings"
+    }
   },
   "10": {
     "inputs": {
       "text": ""
     },
     "class_type": "Text Multiline",
-    "_meta": { "title": "Positive" }
+    "_meta": {
+      "title": "Positive"
+    }
   },
   "11": {
     "inputs": {
       "image": "example.png"
     },
     "class_type": "LoadImage",
-    "_meta": { "title": "end" }
+    "_meta": {
+      "title": "end"
+    }
   },
   "12": {
     "inputs": {
       "sage_attention": "auto",
       "allow_compile": false,
-      "model": ["33", 0]
+      "model": [
+        "33",
+        0
+      ]
     },
     "class_type": "PathchSageAttentionKJ",
-    "_meta": { "title": "Patch Sage Attention KJ" }
+    "_meta": {
+      "title": "Patch Sage Attention KJ"
+    }
   },
   "13": {
     "inputs": {
@@ -84,53 +119,92 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "device": "default"
     },
     "class_type": "CLIPLoader",
-    "_meta": { "title": "Load CLIP" }
+    "_meta": {
+      "title": "Load CLIP"
+    }
   },
   "14": {
     "inputs": {
       "sampler_name": "euler"
     },
     "class_type": "KSamplerSelect",
-    "_meta": { "title": "KSamplerSelect" }
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
   },
   "15": {
     "inputs": {
       "empty_cache": true,
       "gc_collect": true,
       "unload_all_models": true,
-      "any_input": ["16", 0]
+      "any_input": [
+        "16",
+        0
+      ]
     },
     "class_type": "VRAM_Debug",
-    "_meta": { "title": "VRAM Debug" }
+    "_meta": {
+      "title": "VRAM Debug"
+    }
   },
   "16": {
     "inputs": {
-      "noise": ["3", 0],
-      "guider": ["4", 0],
-      "sampler": ["14", 0],
-      "sigmas": ["34", 1],
-      "latent_image": ["31", 2]
+      "noise": [
+        "3",
+        0
+      ],
+      "guider": [
+        "4",
+        0
+      ],
+      "sampler": [
+        "14",
+        0
+      ],
+      "sigmas": [
+        "43",
+        1
+      ],
+      "latent_image": [
+        "31",
+        2
+      ]
     },
     "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "SamplerCustomAdvanced" }
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
   },
   "17": {
     "inputs": {
-      "model": ["19", 0],
-      "conditioning": ["30", 0]
+      "model": [
+        "19",
+        0
+      ],
+      "conditioning": [
+        "30",
+        0
+      ]
     },
     "class_type": "BasicGuider",
-    "_meta": { "title": "BasicGuider" }
+    "_meta": {
+      "title": "BasicGuider"
+    }
   },
   "18": {
     "inputs": {
       "megapixels": 0.66,
       "multiple_of": 16,
       "upscale_method": "lanczos",
-      "image": ["11", 0]
+      "image": [
+        "11",
+        0
+      ]
     },
     "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "Resize Image (Megapixels + Alignment)" }
+    "_meta": {
+      "title": "Resize Image (Megapixels + Alignment)"
+    }
   },
   "19": {
     "inputs": {
@@ -138,11 +212,19 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "nag_alpha": 0.25,
       "nag_tau": 2.373,
       "input_type": "default",
-      "model": ["9", 0],
-      "conditioning": ["28", 0]
+      "model": [
+        "9",
+        0
+      ],
+      "conditioning": [
+        "28",
+        0
+      ]
     },
     "class_type": "WanVideoNAG",
-    "_meta": { "title": "WanVideoNAG" }
+    "_meta": {
+      "title": "WanVideoNAG"
+    }
   },
   "20": {
     "inputs": {
@@ -150,11 +232,19 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "nag_alpha": 0.25,
       "nag_tau": 2.373,
       "input_type": "default",
-      "model": ["22", 0],
-      "conditioning": ["24", 0]
+      "model": [
+        "22",
+        0
+      ],
+      "conditioning": [
+        "24",
+        0
+      ]
     },
     "class_type": "WanVideoNAG",
-    "_meta": { "title": "WanVideoNAG" }
+    "_meta": {
+      "title": "WanVideoNAG"
+    }
   },
   "21": {
     "inputs": {
@@ -168,129 +258,378 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "trim_to_audio": false,
       "pingpong": false,
       "save_output": false,
-      "images": ["42", 0]
+      "images": [
+        "42",
+        0
+      ]
     },
     "class_type": "VHS_VideoCombine",
-    "_meta": { "title": "Video Combine" }
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
   },
   "22": {
     "inputs": {
       "enable_fp16_accumulation": true,
-      "model": ["6", 0]
+      "model": [
+        "6",
+        0
+      ]
     },
     "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "Model Patch Torch Settings" }
+    "_meta": {
+      "title": "Model Patch Torch Settings"
+    }
   },
   "23": {
     "inputs": {
-      "text": ["10", 0],
-      "clip": ["13", 0]
+      "text": [
+        "10",
+        0
+      ],
+      "clip": [
+        "13",
+        0
+      ]
     },
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "positive high" }
+    "_meta": {
+      "title": "positive high"
+    }
   },
   "24": {
     "inputs": {
-      "text": ["41", 0],
-      "clip": ["13", 0]
+      "text": [
+        "41",
+        0
+      ],
+      "clip": [
+        "13",
+        0
+      ]
     },
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "negative high" }
+    "_meta": {
+      "title": "negative high"
+    }
   },
   "25": {
     "inputs": {
       "megapixels": 0.66,
       "multiple_of": 16,
       "upscale_method": "lanczos",
-      "image": ["5", 0]
+      "image": [
+        "5",
+        0
+      ]
     },
     "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "Resize Image (Megapixels + Alignment)" }
+    "_meta": {
+      "title": "Resize Image (Megapixels + Alignment)"
+    }
   },
   "26": {
     "inputs": {
       "vae_name": "REDACTED_MODEL.safetensors"
     },
     "class_type": "VAELoader",
-    "_meta": { "title": "Load VAE" }
+    "_meta": {
+      "title": "Load VAE"
+    }
   },
   "27": {
     "inputs": {
-      "text": ["10", 0],
-      "clip": ["13", 0]
+      "text": [
+        "10",
+        0
+      ],
+      "clip": [
+        "13",
+        0
+      ]
     },
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "positive low" }
+    "_meta": {
+      "title": "positive low"
+    }
   },
   "28": {
     "inputs": {
-      "text": ["41", 0],
-      "clip": ["13", 0]
+      "text": [
+        "41",
+        0
+      ],
+      "clip": [
+        "13",
+        0
+      ]
     },
     "class_type": "CLIPTextEncode",
-    "_meta": { "title": "negative low" }
+    "_meta": {
+      "title": "negative low"
+    }
   },
   "29": {
     "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
+      "width": [
+        "25",
+        1
+      ],
+      "height": [
+        "25",
+        2
+      ],
       "length": 121,
       "batch_size": 1,
-      "positive": ["27", 0],
-      "negative": ["28", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0]
+      "positive": [
+        "27",
+        0
+      ],
+      "negative": [
+        "28",
+        0
+      ],
+      "vae": [
+        "26",
+        0
+      ],
+      "start_image": [
+        "25",
+        0
+      ]
     },
     "class_type": "WanImageToVideo",
-    "_meta": { "title": "WanImageToVideo" }
+    "_meta": {
+      "title": "WanImageToVideo"
+    }
   },
   "30": {
     "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
+      "width": [
+        "25",
+        1
+      ],
+      "height": [
+        "25",
+        2
+      ],
       "length": 121,
       "batch_size": 1,
-      "positive": ["27", 0],
-      "negative": ["28", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0],
-      "end_image": ["18", 0]
+      "positive": [
+        "27",
+        0
+      ],
+      "negative": [
+        "28",
+        0
+      ],
+      "vae": [
+        "26",
+        0
+      ],
+      "start_image": [
+        "25",
+        0
+      ],
+      "end_image": [
+        "18",
+        0
+      ]
     },
     "class_type": "WanFirstLastFrameToVideo",
-    "_meta": { "title": "WanFirstLastFrameToVideo" }
+    "_meta": {
+      "title": "WanFirstLastFrameToVideo"
+    }
   },
   "31": {
     "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
+      "width": [
+        "25",
+        1
+      ],
+      "height": [
+        "25",
+        2
+      ],
       "length": 121,
       "batch_size": 1,
-      "positive": ["23", 0],
-      "negative": ["24", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0],
-      "end_image": ["18", 0]
+      "positive": [
+        "23",
+        0
+      ],
+      "negative": [
+        "24",
+        0
+      ],
+      "vae": [
+        "26",
+        0
+      ],
+      "start_image": [
+        "25",
+        0
+      ],
+      "end_image": [
+        "18",
+        0
+      ]
     },
     "class_type": "WanFirstLastFrameToVideo",
-    "_meta": { "title": "WanFirstLastFrameToVideo" }
+    "_meta": {
+      "title": "WanFirstLastFrameToVideo"
+    }
   },
   "32": {
     "inputs": {
       "shift": 5,
-      "model": ["1", 0]
+      "model": [
+        "1",
+        0
+      ]
     },
     "class_type": "ModelSamplingSD3",
-    "_meta": { "title": "ModelSamplingSD3" }
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
   },
   "33": {
     "inputs": {
       "shift": 5,
-      "model": ["2", 0]
+      "model": [
+        "2",
+        0
+      ]
     },
     "class_type": "ModelSamplingSD3",
-    "_meta": { "title": "ModelSamplingSD3" }
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
   },
-  "34": {
+  "36": {
+    "inputs": {
+      "noise": [
+        "40",
+        0
+      ],
+      "guider": [
+        "17",
+        0
+      ],
+      "sampler": [
+        "14",
+        0
+      ],
+      "sigmas": [
+        "44",
+        1
+      ],
+      "latent_image": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "37": {
+    "inputs": {
+      "width": [
+        "25",
+        1
+      ],
+      "height": [
+        "25",
+        2
+      ],
+      "length": 121,
+      "batch_size": 1,
+      "positive": [
+        "23",
+        0
+      ],
+      "negative": [
+        "24",
+        0
+      ],
+      "vae": [
+        "26",
+        0
+      ],
+      "start_image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "WanImageToVideo",
+    "_meta": {
+      "title": "WanImageToVideo"
+    }
+  },
+  "38": {
+    "inputs": {
+      "samples": [
+        "39",
+        0
+      ],
+      "vae": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "39": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "any_input": [
+        "36",
+        0
+      ]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": {
+      "title": "VRAM Debug"
+    }
+  },
+  "40": {
+    "inputs": {},
+    "class_type": "DisableNoise",
+    "_meta": {
+      "title": "DisableNoise"
+    }
+  },
+  "41": {
+    "inputs": {
+      "text": ""
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "Negative"
+    }
+  },
+  "42": {
+    "inputs": {
+      "resize_type": "scale by multiplier",
+      "resize_type.scale": 2,
+      "quality": "ULTRA",
+      "images": [
+        "45",
+        1
+      ]
+    },
+    "class_type": "RTXVideoSuperResolution",
+    "_meta": {
+      "title": "RTX Video Super Resolution"
+    }
+  },
+  "43": {
     "inputs": {
       "steps": 3,
       "start_y": 1,
@@ -299,9 +638,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "preset_selector": "Simple"
     },
     "class_type": "CustomSplineSigma",
-    "_meta": { "title": "Custom Graph Sigma" }
+    "_meta": {
+      "title": "📈 Custom Graph Sigma"
+    }
   },
-  "35": {
+  "44": {
     "inputs": {
       "steps": 3,
       "start_y": 0.9,
@@ -310,71 +651,23 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "preset_selector": "Simple"
     },
     "class_type": "CustomSplineSigma",
-    "_meta": { "title": "Custom Graph Sigma" }
+    "_meta": {
+      "title": "📈 Custom Graph Sigma"
+    }
   },
-  "36": {
-    "inputs": {
-      "noise": ["40", 0],
-      "guider": ["17", 0],
-      "sampler": ["14", 0],
-      "sigmas": ["35", 1],
-      "latent_image": ["15", 0]
-    },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "SamplerCustomAdvanced" }
-  },
-  "37": {
-    "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
-      "length": 121,
-      "batch_size": 1,
-      "positive": ["23", 0],
-      "negative": ["24", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0]
-    },
-    "class_type": "WanImageToVideo",
-    "_meta": { "title": "WanImageToVideo" }
-  },
-  "38": {
-    "inputs": {
-      "samples": ["39", 0],
-      "vae": ["26", 0]
-    },
-    "class_type": "VAEDecode",
-    "_meta": { "title": "VAE Decode" }
-  },
-  "39": {
+  "45": {
     "inputs": {
       "empty_cache": true,
       "gc_collect": true,
       "unload_all_models": true,
-      "any_input": ["36", 0]
+      "image_pass": [
+        "38",
+        0
+      ]
     },
     "class_type": "VRAM_Debug",
-    "_meta": { "title": "VRAM Debug" }
-  },
-  "40": {
-    "inputs": {},
-    "class_type": "DisableNoise",
-    "_meta": { "title": "DisableNoise" }
-  },
-  "41": {
-    "inputs": {
-      "text": ""
-    },
-    "class_type": "Text Multiline",
-    "_meta": { "title": "Negative" }
-  },
-  "42": {
-    "inputs": {
-      "resize_type": "scale by multiplier",
-      "resize_type.scale": 2,
-      "quality": "ULTRA",
-      "images": ["38", 0]
-    },
-    "class_type": "RTXVideoSuperResolution",
-    "_meta": { "title": "RTX Video Super Resolution" }
+    "_meta": {
+      "title": "VRAM Debug"
+    }
   }
 }

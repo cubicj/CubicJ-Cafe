@@ -40,11 +40,11 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     workflow['19'].inputs.nag_scale = settings.nagScale
   }
 
-  if (workflow['34']?.inputs) {
-    workflow['34'].inputs.steps = settings.stepsHigh
+  if (workflow['43']?.inputs) {
+    workflow['43'].inputs.steps = settings.stepsHigh
   }
-  if (workflow['35']?.inputs) {
-    workflow['35'].inputs.steps = settings.stepsLow
+  if (workflow['44']?.inputs) {
+    workflow['44'].inputs.steps = settings.stepsLow
   }
 
   if (workflow['31']?.inputs) {
