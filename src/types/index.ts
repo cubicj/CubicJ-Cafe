@@ -17,8 +17,6 @@ export interface GenerationJob {
   prompt: string;
   negativePrompt?: string;
   imageUrl?: string;
-  loraModel?: string;
-  loraStrength?: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: Date;
   updatedAt: Date;

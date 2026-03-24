@@ -32,11 +32,8 @@ export const i2vSchema = z.object({
   image: imageSchema,
   endImage: optionalImageSchema,
   model: z.enum(['wan', 'ltx']).default('wan'),
-  lora: z.string().optional(),
-  loraStrength: z.coerce.number().min(0).max(2).default(0.8),
   loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
-  duration: z.coerce.number().int().min(4).max(7).default(5),
 })
 
 export const i2vStatusQuerySchema = z.object({

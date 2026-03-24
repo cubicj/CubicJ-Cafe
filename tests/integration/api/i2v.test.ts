@@ -49,7 +49,6 @@ function buildFormData(overrides?: Record<string, string | Blob>) {
   const form = new FormData()
   form.set('prompt', 'a cat walking in the garden')
   form.set('image', new File(['fake-image-data'], 'test.png', { type: 'image/png' }))
-  form.set('duration', '5')
   form.set('isNSFW', 'false')
   if (overrides) {
     for (const [key, value] of Object.entries(overrides)) {
@@ -131,7 +130,6 @@ describe('POST /api/i2v', () => {
     const session = await createTestSession(user.id)
     const form = new FormData()
     form.set('prompt', 'test prompt')
-    form.set('duration', '5')
     form.set('isNSFW', 'false')
     const req = buildFormDataRequest('/api/i2v', session.id, form)
     const { NextRequest } = await import('next/server')
@@ -153,17 +151,6 @@ describe('POST /api/i2v', () => {
     expect(res.status).toBe(200)
     expect(body.requestId).toBeDefined()
     expect(body.message).toContain('큐')
-  })
-
-  it('returns 400 for invalid duration', async () => {
-    const user = await createUser()
-    const session = await createTestSession(user.id)
-    const form = buildFormData({ duration: '99' })
-    const req = buildFormDataRequest('/api/i2v', session.id, form)
-    const { NextRequest } = await import('next/server')
-    const nextReq = new NextRequest(req)
-    const res = await POST(nextReq)
-    expect(res.status).toBe(400)
   })
 
   it('returns 400 for oversized image', async () => {

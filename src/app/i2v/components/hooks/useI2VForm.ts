@@ -63,8 +63,6 @@ interface UseI2VFormReturn {
   setIsGenerating: (generating: boolean) => void;
   isNSFW: boolean;
   setIsNSFW: (nsfw: boolean) => void;
-  videoDuration: number;
-  setVideoDuration: (duration: number) => void;
   submitMessage: SubmitMessage | null;
   setSubmitMessage: (message: SubmitMessage | null) => void;
   serverStatus: ComfyUIStatus | null;
@@ -111,18 +109,6 @@ export function useI2VForm(): UseI2VFormReturn {
   const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const [videoDuration, setVideoDuration] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('videoDuration');
-        return saved ? parseInt(saved, 10) : 5;
-      } catch {
-        return 5;
-      }
-    }
-    return 5;
-  });
-
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
   const { isLoading: isLoadingAuth } = useSession();
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
@@ -152,12 +138,6 @@ export function useI2VForm(): UseI2VFormReturn {
       localStorage.setItem('selectedPresetIds', JSON.stringify(selectedPresetIds));
     }
   }, [selectedPresetIds]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('videoDuration', videoDuration.toString());
-    }
-  }, [videoDuration]);
 
   const fetchServerStatus = async () => {
     setIsLoadingServerStatus(true);
@@ -208,7 +188,6 @@ export function useI2VForm(): UseI2VFormReturn {
       formData.append('prompt', prompt.trim());
       formData.append('model', activeModel);
       formData.append('isNSFW', isNSFW.toString());
-      formData.append('duration', videoDuration.toString());
 
       if (currentPresets && currentPresets.length > 0) {
         const mergedLoRAMap = new Map();
@@ -346,8 +325,6 @@ export function useI2VForm(): UseI2VFormReturn {
     setIsGenerating,
     isNSFW,
     setIsNSFW,
-    videoDuration,
-    setVideoDuration,
     submitMessage,
     setSubmitMessage,
     isLoadingAuth,

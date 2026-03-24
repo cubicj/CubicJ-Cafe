@@ -52,7 +52,10 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 </div>
                 <div className="col-span-1">#{request.position}</div>
                 <div className="col-span-3 text-xs">{formatDate(request.createdAt)}</div>
-                <div className="col-span-2">
+                <div className="col-span-2 flex items-center gap-1">
+                  {request.videoModel && (
+                    <Badge variant="outline" className="text-xs">{request.videoModel === 'wan' ? 'WAN' : 'LTX'}</Badge>
+                  )}
                   {request.isNSFW && (
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
                   )}
@@ -83,6 +86,20 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <div>
                       <span className="font-medium">LoRA 프리셋:</span>
                       <LoRAPresetDisplay loraPresetData={request.loraPresetData} />
+                    </div>
+                  )}
+
+                  {request.videoModel && (
+                    <div>
+                      <span className="font-medium">모델:</span>
+                      <span className="ml-2">{request.videoModel === 'wan' ? 'WAN 2.2' : request.videoModel === 'ltx' ? 'LTX 2.3' : request.videoModel}</span>
+                    </div>
+                  )}
+
+                  {request.startedAt && request.completedAt && (
+                    <div>
+                      <span className="font-medium">처리 시간:</span>
+                      <span className="ml-2">{((new Date(request.completedAt).getTime() - new Date(request.startedAt).getTime()) / 1000).toFixed(1)}초</span>
                     </div>
                   )}
 
