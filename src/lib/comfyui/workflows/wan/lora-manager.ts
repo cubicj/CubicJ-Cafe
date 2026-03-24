@@ -29,12 +29,12 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
     'LOW'
   );
 
-  if (workflow['305'] && workflow['305'].inputs) {
-    applyLorasToNode(workflow['305'] as WorkflowNode, processedHighLoras, 'HIGH', 305, server);
+  if (workflow['525'] && workflow['525'].inputs) {
+    applyLorasToNode(workflow['525'] as WorkflowNode, processedHighLoras, 'HIGH', 525, server);
   }
 
-  if (workflow['306'] && workflow['306'].inputs) {
-    applyLorasToNode(workflow['306'] as WorkflowNode, processedLowLoras, 'LOW', 306, server);
+  if (workflow['526'] && workflow['526'].inputs) {
+    applyLorasToNode(workflow['526'] as WorkflowNode, processedLowLoras, 'LOW', 526, server);
   }
 
   log.info('LoRA preset applied', {

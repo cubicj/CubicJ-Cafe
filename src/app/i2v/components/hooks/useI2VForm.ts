@@ -6,6 +6,7 @@ import { apiClient, ApiError } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
 import { useI2VFormContext } from '@/contexts/I2VFormContext';
 import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
+import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
 
 const log = createLogger('i2v');
 
@@ -73,6 +74,7 @@ interface UseI2VFormReturn {
   isLoadingServerStatus: boolean;
   setIsLoadingServerStatus: (loading: boolean) => void;
   activeModel: VideoModel;
+  setActiveModel: (model: VideoModel) => void;
   capabilities: ModelCapabilities;
   isLoadingAuth: boolean;
   isFormValid: boolean;
@@ -126,10 +128,16 @@ export function useI2VForm(): UseI2VFormReturn {
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
-  const [activeModel, setActiveModel] = useState<VideoModel>('ltx');
-  const [capabilities, setCapabilities] = useState<ModelCapabilities>({
-    loraPresets: false, endImage: false, videoDuration: false, audio: true,
+  const [activeModel, setActiveModelState] = useState<VideoModel>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('activeModel');
+        if (saved === 'wan' || saved === 'ltx') return saved;
+      } catch { /* ignore */ }
+    }
+    return 'wan';
   });
+  const capabilities: ModelCapabilities = MODEL_REGISTRY[activeModel].capabilities;
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -198,6 +206,7 @@ export function useI2VForm(): UseI2VFormReturn {
         formData.append('endImage', endImageFile);
       }
       formData.append('prompt', prompt.trim());
+      formData.append('model', activeModel);
       formData.append('isNSFW', isNSFW.toString());
       formData.append('duration', videoDuration.toString());
 
@@ -278,29 +287,30 @@ export function useI2VForm(): UseI2VFormReturn {
     setIsRefreshing(false);
   };
 
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const [, modelData] = await Promise.all([
-        fetchServerStatus(),
-        apiClient.get<{ model: VideoModel; capabilities: ModelCapabilities }>('/api/system/active-model').catch((err: unknown) => {
-          log.error('Failed to load active model', { error: err instanceof Error ? err.message : String(err) });
-          return null;
-        }),
-      ]);
+  const setActiveModel = (model: VideoModel) => {
+    setActiveModelState(model);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('activeModel', model);
+    }
+    setSelectedPresetIds([]);
+    setCurrentPresets([]);
+  };
 
-      if (modelData) {
-        log.info('Active model loaded', { model: modelData.model, capabilities: modelData.capabilities });
-        setActiveModel(modelData.model);
-        setCapabilities(modelData.capabilities);
-        if (modelData.capabilities.loraPresets) {
-          const allPresets = await fetchPresets(modelData.model);
-          setPresets(allPresets);
-        }
+  useEffect(() => {
+    fetchServerStatus();
+  }, []);
+
+  useEffect(() => {
+    const reloadPresets = async () => {
+      if (capabilities.loraPresets) {
+        const allPresets = await fetchPresets(activeModel);
+        setPresets(allPresets);
+      } else {
+        setPresets([]);
       }
     };
-
-    loadInitialData();
-  }, []);
+    reloadPresets();
+  }, [activeModel]);
 
   useEffect(() => {
     if (presets.length > 0 && selectedPresetIds.length > 0) {
@@ -348,6 +358,7 @@ export function useI2VForm(): UseI2VFormReturn {
     isLoadingServerStatus,
     setIsLoadingServerStatus,
     activeModel,
+    setActiveModel,
     capabilities,
     isFormValid,
     handleSubmit,

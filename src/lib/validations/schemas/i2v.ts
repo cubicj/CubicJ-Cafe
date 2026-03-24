@@ -31,6 +31,7 @@ export const i2vSchema = z.object({
   prompt: z.string().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)').transform((s) => s.trim()),
   image: imageSchema,
   endImage: optionalImageSchema,
+  model: z.enum(['wan', 'ltx']).default('wan'),
   lora: z.string().optional(),
   loraStrength: z.coerce.number().min(0).max(2).default(0.8),
   loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),

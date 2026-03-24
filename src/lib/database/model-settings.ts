@@ -45,13 +45,13 @@ const DEFAULT_MODEL_SETTINGS: ModelSettings = {
   lowDiffusionModel: 'REDACTED_MODEL.safetensors',
   textEncoder: 'REDACTED_MODEL.safetensors',
   vae: 'REDACTED_MODEL.safetensors',
-  upscaleModel: 'REDACTED_MODEL.safetensors',
-  clipVision: 'REDACTED_MODEL.safetensors',
-  ksampler: 'euler_ancestral',
+  upscaleModel: '',
+  clipVision: '',
+  ksampler: 'euler',
   highCfg: 3.0,
   lowCfg: 3.0,
-  highShift: 5.0,
-  lowShift: 5.0
+  highShift: 8.0,
+  lowShift: 8.0
 }
 
 type SettingType = 'string' | 'number'

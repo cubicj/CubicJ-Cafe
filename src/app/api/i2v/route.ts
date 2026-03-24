@@ -7,8 +7,8 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { ServerType } from '@prisma/client';
-import { getActiveModel } from '@/lib/database/model-settings';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
@@ -63,9 +63,6 @@ export const POST = createRouteHandler(
       url: selectedServer.url
     });
 
-    const activeModel = await getActiveModel();
-    const capabilities = MODEL_REGISTRY[activeModel].capabilities;
-
     let formData;
     try {
       formData = await req.formData();
@@ -75,6 +72,9 @@ export const POST = createRouteHandler(
     const formResult = parseFormData(i2vSchema, formData);
     if (!formResult.success) return formResult.response;
     const validated = formResult.data;
+
+    const activeModel = validated.model as VideoModel;
+    const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
     const loraName = capabilities.loraPresets ? validated.lora : undefined;
@@ -86,6 +86,7 @@ export const POST = createRouteHandler(
     const workflowLength = 16 * validated.duration + 1;
 
     log.debug('FormData parsed', {
+      model: activeModel,
       prompt: prompt.substring(0, 50) + '...',
       imageFile: `${imageFile.name} (${imageFile.size} bytes)`,
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
