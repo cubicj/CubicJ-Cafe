@@ -188,6 +188,7 @@ export function useI2VForm(): UseI2VFormReturn {
       formData.append('prompt', prompt.trim());
       formData.append('model', activeModel);
       formData.append('isNSFW', isNSFW.toString());
+      formData.append('isLoop', isLoopEnabled.toString());
 
       if (currentPresets && currentPresets.length > 0) {
         const mergedLoRAMap = new Map();

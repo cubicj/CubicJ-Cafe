@@ -34,6 +34,7 @@ export const i2vSchema = z.object({
   model: z.enum(['wan', 'ltx']).default('wan'),
   loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  isLoop: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
 })
 
 export const i2vStatusQuerySchema = z.object({

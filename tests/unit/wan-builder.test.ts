@@ -61,8 +61,9 @@ describe('buildWanWorkflow', () => {
     expect(workflow['531']!.inputs!.image).toBe('dragon-input.png')
   })
 
-  it('uses fixed 121 frame length in WanFirstLastFrameToVideo nodes', async () => {
-    const workflow = await buildWanWorkflow(baseParams)
+  it('uses fixed 121 frame length in WanFirstLastFrameToVideo nodes when endImage provided', async () => {
+    const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
+    const workflow = await buildWanWorkflow(params)
     expect(workflow['527']!.inputs!.length).toBe(121)
     expect(workflow['538']!.inputs!.length).toBe(121)
   })

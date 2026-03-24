@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { QueueStatus, ServerType, type QueueRequest } from "@prisma/client";
+import { QueueStatus, ServerType, GenerationMode, type QueueRequest } from "@prisma/client";
 import type { LoRAPresetData } from "@/types";
 import { createLogger } from '@/lib/logger';
 import { ExpiringCache } from '@/lib/utils/expiring-cache';
@@ -34,6 +34,7 @@ export interface QueueRequestData {
   serverType?: ServerType;
   serverId?: string;
   videoModel?: string;
+  generationMode?: GenerationMode;
 }
 
 export interface QueueRequestUpdate {
@@ -67,6 +68,7 @@ const QUEUE_SELECT_BASE = {
   failedAt: true,
   error: true,
   videoModel: true,
+  generationMode: true,
 } as const;
 
 const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
@@ -106,6 +108,7 @@ export class QueueService {
       serverType: data.serverType,
       serverId: data.serverId,
       videoModel: data.videoModel || 'wan',
+      generationMode: data.generationMode || GenerationMode.START_ONLY,
       position: nextPosition,
       status: QueueStatus.PENDING
     };

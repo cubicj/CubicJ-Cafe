@@ -56,8 +56,9 @@ model QueueRequest {
   completedAt    DateTime?   @map("completed_at")
   failedAt       DateTime?   @map("failed_at")
   error          String?
-  videoModel     String      @default("wan") @map("video_model")
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoModel      String         @default("wan") @map("video_model")
+  generationMode  GenerationMode @default(START_ONLY) @map("generation_mode")
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -147,4 +148,10 @@ model LoRABundle {
 enum ServerType {
   RUNPOD
   LOCAL
+}
+
+enum GenerationMode {
+  START_ONLY
+  START_END
+  LOOP
 }
