@@ -3,9 +3,6 @@ import { createRouteHandler } from '@/lib/api/route-handler';
 import { QueueService } from '@/lib/database/queue';
 import { UserService } from '@/lib/database/users';
 import { serverManager } from '@/lib/comfyui/server-manager';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 import { ServerType } from '@prisma/client';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
@@ -93,43 +90,20 @@ export const POST = createRouteHandler(
     });
 
     try {
-      const tempDir = join(process.cwd(), 'public', 'temp')
-      if (!existsSync(tempDir)) {
-        await mkdir(tempDir, { recursive: true })
+      const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+
+      let endImageBuffer = null;
+      if (capabilities.endImage && endImageFile) {
+        endImageBuffer = Buffer.from(await endImageFile.arrayBuffer());
       }
 
-      const uuid = randomUUID()
-      const timestamp = Date.now()
-      const userId = req.user!.id
-      const fileExtension = imageFile.name.split('.').pop() || 'png'
-      const tempFileName = `${uuid}_${userId}_${timestamp}.${fileExtension}`
-      const tempFilePath = join(tempDir, tempFileName)
+      const fileExtension = imageFile.name.split('.').pop() || 'png';
+      const tempFileName = `${randomUUID()}_${req.user!.id}_${Date.now()}.${fileExtension}`;
 
-      const imageBuffer = await imageFile.arrayBuffer()
-      await writeFile(tempFilePath, Buffer.from(imageBuffer))
-
-      log.debug('Start image temp file saved', {
-        originalName: imageFile.name,
-        tempFileName,
-        size: imageFile.size
-      })
-
-      let endTempFileName = null
-      let endTempFilePath = null
-      if (capabilities.endImage && endImageFile) {
-        const endUuid = randomUUID()
-        const endFileExtension = endImageFile.name.split('.').pop() || 'png'
-        endTempFileName = `end_${endUuid}_${userId}_${timestamp}.${endFileExtension}`
-        endTempFilePath = join(tempDir, endTempFileName)
-
-        const endImageBuffer = await endImageFile.arrayBuffer()
-        await writeFile(endTempFilePath, Buffer.from(endImageBuffer))
-
-        log.debug('End image temp file saved', {
-          originalName: endImageFile.name,
-          tempFileName: endTempFileName,
-          size: endImageFile.size
-        })
+      let endTempFileName = null;
+      if (endImageBuffer && endImageFile) {
+        const endFileExtension = endImageFile.name.split('.').pop() || 'png';
+        endTempFileName = `end_${randomUUID()}_${req.user!.id}_${Date.now()}.${endFileExtension}`;
       }
 
       const requestId = await QueueService.createRequest({
@@ -137,9 +111,9 @@ export const POST = createRouteHandler(
         nickname: req.user!.nickname,
         prompt: prompt.trim(),
         imageFile: tempFileName,
-        imagePath: tempFilePath,
+        imageBlob: imageBuffer,
         endImageFile: endTempFileName || undefined,
-        endImagePath: endTempFilePath || undefined,
+        endImageBlob: endImageBuffer || undefined,
         loraPreset: loraPresetData,
         isNSFW: isNSFW,
         serverType: selectedServer.serverType,
