@@ -34,7 +34,7 @@ export class SessionManager {
       throw new Error('세션 생성에 실패했습니다');
     }
 
-    await UserService.updateLastLogin(user.discordId);
+    const updatedUser = await UserService.updateLastLogin(user.discordId);
 
     return {
       sessionId: session.id,
@@ -45,7 +45,7 @@ export class SessionManager {
         nickname: user.nickname,
         avatar: user.avatar || undefined,
         createdAt: user.createdAt,
-        lastLoginAt: new Date(),
+        lastLoginAt: updatedUser?.lastLoginAt ?? user.lastLoginAt,
       },
       expiresAt: session.expiresAt,
     };

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
+import { UserService } from '@/lib/database/users';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseBody, parseQuery } from '@/lib/validations/parse';
 import { createLoraPresetSchema, loraPresetQuerySchema } from '@/lib/validations/schemas/lora-preset';
@@ -42,6 +43,8 @@ export const POST = createRouteHandler(
         order: item.order ?? index,
       })),
     });
+
+    UserService.updateLastLogin(req.user!.discordId).catch(() => {});
 
     return { preset };
   }
