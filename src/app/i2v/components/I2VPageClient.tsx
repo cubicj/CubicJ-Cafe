@@ -4,7 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoRAPresetManager } from "@/components/ui/lora-preset-manager";
 import { QueueMonitor } from "@/components/ui/queue-monitor";
-import { Sparkles, Bot, CheckCircle, XCircle } from "lucide-react";
+import { Sparkles, Bot, CheckCircle, XCircle, Film } from "lucide-react";
+import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
+import type { VideoModel } from "@/lib/comfyui/workflows/types";
 import { ServerStatusSection } from "./sections/ServerStatusSection";
 import { ImageUploadSection } from "./sections/ImageUploadSection";
 import { ContentSettingsSection } from "./sections/ContentSettingsSection";
@@ -36,6 +38,7 @@ export default function I2VPageClient() {
     isRefreshing,
     isLoadingServerStatus,
     activeModel,
+    setActiveModel,
     capabilities,
     isFormValid,
     handleSubmit,
@@ -132,6 +135,30 @@ export default function I2VPageClient() {
             />
 
             <div className="space-y-6 w-full max-w-full overflow-hidden">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Film className="h-4 w-4" />
+                  모델 선택
+                </h2>
+                <Card className="p-4">
+                  <div className="flex gap-2">
+                    {(Object.keys(MODEL_REGISTRY) as VideoModel[]).map((model) => (
+                      <button
+                        key={model}
+                        onClick={() => setActiveModel(model)}
+                        className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                          activeModel === model
+                            ? 'bg-violet-600 text-white shadow-md'
+                            : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        {MODEL_REGISTRY[model].displayName}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
               {capabilities.loraPresets && (
                 <div className="space-y-2">
                   <h2 className="text-lg font-semibold flex items-center gap-2">

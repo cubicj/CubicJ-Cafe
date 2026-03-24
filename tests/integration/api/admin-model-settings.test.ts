@@ -32,7 +32,7 @@ describe('GET /api/admin/model-settings', () => {
 
     expect(res.status).toBe(200)
     expect(body.settings).toBeDefined()
-    expect(body.settings.ksampler).toBe('euler_ancestral')
+    expect(body.settings.ksampler).toBe('euler')
     expect(body.settings.highCfg).toBe(3.0)
   })
 })

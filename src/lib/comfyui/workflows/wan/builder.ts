@@ -3,43 +3,94 @@ import type { ComfyUIServer } from '../../server-manager'
 import type { WanGenerationParams } from '../types'
 import { applyModelSettings } from './model-manager'
 import { applyLoraPreset } from './lora-manager'
-import {
-  applyPromptSettings,
-  applyImageSettings,
-  applyGenerationSettings,
-  validateWorkflowNodes
-} from '../../workflow-node-utils'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
+import { getNegativePrompt } from '@/lib/database/system-settings'
+import { createLogger } from '@/lib/logger'
 
+const log = createLogger('comfyui')
 
 export async function buildWanWorkflow(params: WanGenerationParams, server?: ComfyUIServer): Promise<ComfyUIWorkflow> {
   const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
 
-  if (!validateWorkflowNodes(workflow)) {
-    throw new Error('워크플로우 템플릿이 유효하지 않습니다');
+  await applyModelSettings(workflow)
+
+  if (workflow['543']?.inputs) {
+    workflow['543'].inputs.text = params.prompt
   }
 
-  await applyModelSettings(workflow);
-
-  await applyPromptSettings(workflow, params);
-
-  await applyImageSettings(workflow, params);
-
-  await applyGenerationSettings(workflow, params);
-
-  if (workflow['291']) {
-    workflow['291'].inputs.seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF);
+  const negativePrompt = await getNegativePrompt()
+  if (negativePrompt && workflow['544']?.inputs) {
+    workflow['544'].inputs.text = negativePrompt
   }
 
-  if (workflow['285'] && params.inputImage) {
-    const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg)$/i, '');
-    workflow['285'].inputs.filename_prefix = `WAN/${baseImageName}`;
+  if (workflow['531']?.inputs) {
+    workflow['531'].inputs.image = params.inputImage
+  }
+
+  if (params.endImage) {
+    if (workflow['532']?.inputs) {
+      workflow['532'].inputs.image = params.endImage
+    }
+  } else {
+    handleEndImageBypass(workflow)
+  }
+
+  if (params.videoLength) {
+    const videoNodes = ['527', '538']
+    for (const nodeId of videoNodes) {
+      if (workflow[nodeId]?.inputs) {
+        workflow[nodeId].inputs.length = params.videoLength
+      }
+    }
+  }
+
+  if (workflow['549']?.inputs) {
+    workflow['549'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
+  }
+
+  if (workflow['562'] && params.inputImage) {
+    const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
+    workflow['562'].inputs.filename_prefix = `WAN/${baseImageName}`
   }
 
   if (params.loraPreset && params.loraPreset.loraItems?.length > 0) {
-    await applyLoraPreset(workflow, params.loraPreset, server);
+    await applyLoraPreset(workflow, params.loraPreset, server)
+  } else {
+    removeLoraPlaceholder(workflow)
   }
 
+  log.info('WAN workflow built', {
+    prompt: params.prompt.substring(0, 50),
+    hasEndImage: !!params.endImage,
+    videoLength: params.videoLength,
+    hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
+  })
 
   return workflow
+}
+
+function handleEndImageBypass(workflow: ComfyUIWorkflow) {
+  for (const nodeId of ['527', '538']) {
+    if (workflow[nodeId]?.inputs) {
+      delete workflow[nodeId].inputs.end_image
+    }
+  }
+
+  delete workflow['532']
+  delete workflow['534']
+
+  log.info('End image bypass applied')
+}
+
+function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
+  for (const nodeId of ['525', '526']) {
+    const inputs = workflow[nodeId]?.inputs
+    if (inputs) {
+      Object.keys(inputs).forEach(key => {
+        if (key.startsWith('lora_')) {
+          delete inputs[key]
+        }
+      })
+    }
+  }
 }
