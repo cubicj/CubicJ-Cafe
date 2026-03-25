@@ -27,6 +27,13 @@ export async function buildLtxWorkflow(
     workflow['18'].inputs.cfg = settings.cfg
   }
 
+  if (workflow['20']?.inputs) {
+    workflow['20'].inputs.sampler_name = settings.sampler1stPass
+  }
+  if (workflow['98']?.inputs) {
+    workflow['98'].inputs.sampler_name = settings.sampler2ndPass
+  }
+
   if (workflow['304']?.inputs) {
     workflow['304'].inputs.sigmas = settings.sigmas1stPass
   }
