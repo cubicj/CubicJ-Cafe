@@ -30,5 +30,25 @@ VALUES
   (lower(hex(randomblob(12))), 'wan.frame_rate', 'CONFIGURE_IN_ADMIN', 'number', 'wan', datetime('now'), datetime('now')),
   (lower(hex(randomblob(12))), 'wan.video_crf', 'CONFIGURE_IN_ADMIN', 'number', 'wan', datetime('now'), datetime('now')),
   (lower(hex(randomblob(12))), 'wan.video_format', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
-  (lower(hex(randomblob(12))), 'wan.video_pix_fmt', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now'));
-  -- LTX settings are seeded in 20260325_ltx_workflow_replacement migration
+  (lower(hex(randomblob(12))), 'wan.video_pix_fmt', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  -- LTX model files
+  (lower(hex(randomblob(12))), 'ltx.unet', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.weight_dtype', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.clip_gguf', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.clip_embeddings', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.audio_vae', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.video_vae', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.spatial_upscaler', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  -- LTX frame rate + resize
+  (lower(hex(randomblob(12))), 'ltx.frame_rate', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.resize_multiple_of', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.resize_upscale_method', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  -- LTX VAE decode
+  (lower(hex(randomblob(12))), 'ltx.vae_spatial_tiles', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.vae_spatial_overlap', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.vae_temporal_tile_length', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.vae_temporal_overlap', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  -- LTX RTX
+  (lower(hex(randomblob(12))), 'ltx.rtx_resize_type', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.rtx_scale', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.rtx_quality', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now'));
