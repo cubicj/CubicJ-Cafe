@@ -88,11 +88,10 @@ describe('buildWanWorkflow', () => {
     expect(workflow['18']).toBeUndefined()
   })
 
-  it('rewires to WanImageToVideo when no end image', async () => {
+  it('removes end_image from WanFirstLastFrameToVideo when no end image', async () => {
     const workflow = await buildWanWorkflow(baseParams)
-    expect(workflow['16']!.inputs!.latent_image).toEqual(['37', 2])
-    expect(workflow['4']!.inputs!.conditioning).toEqual(['37', 0])
-    expect(workflow['17']!.inputs!.conditioning).toEqual(['29', 0])
+    expect(workflow['30']!.inputs!.end_image).toBeUndefined()
+    expect(workflow['31']!.inputs!.end_image).toBeUndefined()
   })
 
 })
