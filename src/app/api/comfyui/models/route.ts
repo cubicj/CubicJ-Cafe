@@ -17,7 +17,12 @@ export const GET = createRouteHandler(
           textEncoders: [],
           vaes: [],
           upscaleModels: [],
-          clipVisions: []
+          clipVisions: [],
+          ggufClips: [],
+          clipEmbeddings: [],
+          kjVaes: [],
+          latentUpscalers: [],
+          vfiCheckpoints: []
         }
       };
     }
@@ -47,7 +52,12 @@ export const GET = createRouteHandler(
           textEncoders: [],
           vaes: [],
           upscaleModels: [],
-          clipVisions: []
+          clipVisions: [],
+          ggufClips: [],
+          clipEmbeddings: [],
+          kjVaes: [],
+          latentUpscalers: [],
+          vfiCheckpoints: []
         }
       }, {
         status: 503

@@ -31,49 +31,58 @@ interface SamplersResponse {
   samplers: string[];
 }
 
+interface ModelsResponse {
+  models: Record<string, string[]>;
+}
+
+type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'latentUpscalers';
+
 const SAMPLER_KEYS = ['ltx.sampler_1st_pass', 'ltx.sampler_2nd_pass'] as const;
 
 const LTX_FIELDS = [
-  { key: 'ltx.unet', label: 'UNet 모델', type: 'model', group: '모델' },
-  { key: 'ltx.weight_dtype', label: 'Weight Dtype', type: 'string', group: '모델' },
-  { key: 'ltx.clip_gguf', label: 'CLIP GGUF 모델', type: 'model', group: '모델' },
-  { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model', group: '모델' },
-  { key: 'ltx.audio_vae', label: 'Audio VAE 모델', type: 'model', group: '모델' },
-  { key: 'ltx.video_vae', label: 'Video VAE 모델', type: 'model', group: '모델' },
-  { key: 'ltx.spatial_upscaler', label: 'Spatial Upscaler 모델', type: 'model', group: '모델' },
-  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '생성' },
-  { key: 'ltx.cfg', label: 'CFG Scale', type: 'number', step: 0.1, group: '생성' },
-  { key: 'ltx.sampler_1st_pass', label: '1st Pass 샘플러', type: 'sampler', group: '생성' },
-  { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler', group: '생성' },
-  { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '생성' },
-  { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number', step: 1, group: '생성' },
-  { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: '생성' },
-  { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '생성' },
-  { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
-  { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'string', group: '생성' },
-  { key: 'ltx.img_compression', label: '이미지 압축', type: 'number', step: 1, group: '생성' },
-  { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string', group: 'Sigma' },
-  { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string', group: 'Sigma' },
-  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string', group: 'Audio' },
-  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string', group: 'Audio' },
-  { key: 'ltx.vae_spatial_tiles', label: 'VAE Spatial Tiles', type: 'number', step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_spatial_overlap', label: 'VAE Spatial Overlap', type: 'number', step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_temporal_tile_length', label: 'VAE Temporal Tile Length', type: 'number', step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_temporal_overlap', label: 'VAE Temporal Overlap', type: 'number', step: 1, group: 'VAE Decode' },
-  { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'string', group: 'RTX' },
-  { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
-  { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'string', group: 'RTX' },
-  { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
-] as const;
+  { key: 'ltx.unet', label: 'UNet 모델', type: 'model' as const, group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'ltx.weight_dtype', label: 'Weight Dtype', type: 'string' as const, group: '모델' },
+  { key: 'ltx.clip_gguf', label: 'CLIP GGUF 모델', type: 'model' as const, group: '모델', modelCategory: 'ggufClips' as ModelCategory },
+  { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model' as const, group: '모델', modelCategory: 'clipEmbeddings' as ModelCategory },
+  { key: 'ltx.audio_vae', label: 'Audio VAE 모델', type: 'model' as const, group: '모델', modelCategory: 'kjVaes' as ModelCategory },
+  { key: 'ltx.video_vae', label: 'Video VAE 모델', type: 'model' as const, group: '모델', modelCategory: 'kjVaes' as ModelCategory },
+  { key: 'ltx.spatial_upscaler', label: 'Spatial Upscaler 모델', type: 'model' as const, group: '모델', modelCategory: 'latentUpscalers' as ModelCategory },
+  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' as const, group: '생성' },
+  { key: 'ltx.cfg', label: 'CFG Scale', type: 'number' as const, step: 0.1, group: '생성' },
+  { key: 'ltx.sampler_1st_pass', label: '1st Pass 샘플러', type: 'sampler' as const, group: '생성' },
+  { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler' as const, group: '생성' },
+  { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number' as const, step: 0.1, group: '생성' },
+  { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number' as const, step: 0.01, group: '생성' },
+  { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'string' as const, group: '생성' },
+  { key: 'ltx.img_compression', label: '이미지 압축', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string' as const, group: 'Sigma' },
+  { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string' as const, group: 'Sigma' },
+  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string' as const, group: 'Audio' },
+  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string' as const, group: 'Audio' },
+  { key: 'ltx.vae_spatial_tiles', label: 'VAE Spatial Tiles', type: 'number' as const, step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_spatial_overlap', label: 'VAE Spatial Overlap', type: 'number' as const, step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_temporal_tile_length', label: 'VAE Temporal Tile Length', type: 'number' as const, step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_temporal_overlap', label: 'VAE Temporal Overlap', type: 'number' as const, step: 1, group: 'VAE Decode' },
+  { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'string' as const, group: 'RTX' },
+  { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number' as const, step: 0.1, group: 'RTX' },
+  { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'string' as const, group: 'RTX' },
+  { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea' as const, group: '프롬프트' },
+];
 
 let samplerCache: string[] | null = null;
+let modelCache: Record<string, string[]> | null = null;
 
 export default function LtxSettingsTab() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [samplers, setSamplers] = useState<string[]>(samplerCache ?? []);
+  const [models, setModels] = useState<Record<string, string[]>>(modelCache ?? {});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [samplerLoading, setSamplerLoading] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchSamplers = async () => {
@@ -86,6 +95,19 @@ export default function LtxSettingsTab() {
       setSamplers([]);
     } finally {
       setSamplerLoading(false);
+    }
+  };
+
+  const fetchModels = async () => {
+    setModelLoading(true);
+    try {
+      const data = await apiClient.get<ModelsResponse>('/api/admin/comfyui/models');
+      modelCache = data.models;
+      setModels(data.models);
+    } catch {
+      setModels({});
+    } finally {
+      setModelLoading(false);
     }
   };
 
@@ -148,6 +170,8 @@ export default function LtxSettingsTab() {
   }
 
   const groups = [...new Set(LTX_FIELDS.map((f) => f.group))];
+  const isFirstModel = (field: typeof LTX_FIELDS[number]) =>
+    field.type === 'model' && LTX_FIELDS.find((f) => f.type === 'model')?.key === field.key;
 
   return (
     <Card className="p-6 space-y-6">
@@ -177,16 +201,49 @@ export default function LtxSettingsTab() {
               }
 
               if (field.type === 'model') {
+                const category = field.modelCategory;
+                const options = models[category] ?? [];
                 return (
                   <div key={field.key} className="space-y-1">
-                    <Label>{field.label}</Label>
-                    <Input
-                      type="text"
-                      value={values[field.key] ?? ''}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder="model_filename.safetensors"
-                      className="font-mono text-xs"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Label>{field.label}</Label>
+                      {isFirstModel(field) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={fetchModels}
+                          disabled={modelLoading}
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${modelLoading ? 'animate-spin' : ''}`} />
+                        </Button>
+                      )}
+                    </div>
+                    {options.length > 0 ? (
+                      <Select
+                        value={values[field.key] || undefined}
+                        onValueChange={(v) => handleChange(field.key, v)}
+                      >
+                        <SelectTrigger className="w-full font-mono text-xs">
+                          <SelectValue placeholder="모델 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((m) => (
+                            <SelectItem key={m} value={m} className="font-mono text-xs">
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={values[field.key] ?? ''}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        placeholder="새로고침으로 목록 불러오기"
+                        className="font-mono text-xs"
+                      />
+                    )}
                   </div>
                 );
               }
@@ -229,7 +286,7 @@ export default function LtxSettingsTab() {
                         type="text"
                         value={values[field.key] ?? ''}
                         onChange={(e) => handleChange(field.key, e.target.value)}
-                        placeholder="새로고침 버튼을 눌러 목록을 불러오세요"
+                        placeholder="새로고침으로 목록 불러오기"
                       />
                     )}
                   </div>
@@ -267,7 +324,7 @@ export default function LtxSettingsTab() {
                   <Label>{field.label}</Label>
                   <Input
                     type="number"
-                    step={'step' in field ? field.step : undefined}
+                    step={field.step}
                     value={values[field.key] ?? ''}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                   />
