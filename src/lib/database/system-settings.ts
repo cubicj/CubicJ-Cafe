@@ -75,6 +75,8 @@ export interface WanSettings {
 export interface LtxSettings {
   loraEnabled: boolean;
   cfg: number;
+  sampler1stPass: string;
+  sampler2ndPass: string;
   sigmas1stPass: string;
   sigmas2ndPass: string;
   nagScale: number;
@@ -99,6 +101,8 @@ const WAN_KEYS = {
 const LTX_KEYS = {
   loraEnabled: 'ltx.lora_enabled',
   cfg: 'ltx.cfg',
+  sampler1stPass: 'ltx.sampler_1st_pass',
+  sampler2ndPass: 'ltx.sampler_2nd_pass',
   sigmas1stPass: 'ltx.sigmas_1st_pass',
   sigmas2ndPass: 'ltx.sigmas_2nd_pass',
   nagScale: 'ltx.nag_scale',
@@ -154,6 +158,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
   return {
     loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
     cfg: parseFloat(map.get(LTX_KEYS.cfg)!),
+    sampler1stPass: map.get(LTX_KEYS.sampler1stPass)!,
+    sampler2ndPass: map.get(LTX_KEYS.sampler2ndPass)!,
     sigmas1stPass: map.get(LTX_KEYS.sigmas1stPass)!,
     sigmas2ndPass: map.get(LTX_KEYS.sigmas2ndPass)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
