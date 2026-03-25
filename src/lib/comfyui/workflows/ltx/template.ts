@@ -402,7 +402,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   "67": {
     "inputs": {
       "model": [
-        "72",
+        "307",
         0
       ],
       "conditioning": [
@@ -792,6 +792,43 @@ export const LTX_WORKFLOW_TEMPLATE = {
     "class_type": "ManualSigmas",
     "_meta": {
       "title": "ManualSigmas"
+    }
+  },
+  "306": {
+    "inputs": {
+      "audio_normalization_factors": "1,1,1",
+      "model": [
+        "296",
+        0
+      ]
+    },
+    "class_type": "LTX2AudioLatentNormalizingSampling",
+    "_meta": {
+      "title": "LTX2 Audio Latent Normalizing Sampling"
+    }
+  },
+  "307": {
+    "inputs": {
+      "nag_scale": 9,
+      "nag_alpha": 0.25,
+      "nag_tau": 2.5,
+      "inplace": true,
+      "model": [
+        "306",
+        0
+      ],
+      "nag_cond_video": [
+        "23",
+        1
+      ],
+      "nag_cond_audio": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "LTX2_NAG",
+    "_meta": {
+      "title": "LTX2 NAG"
     }
   }
 }

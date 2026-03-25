@@ -44,6 +44,9 @@ export async function buildLtxWorkflow(
   if (workflow['72']?.inputs) {
     workflow['72'].inputs.nag_scale = settings.nagScale
   }
+  if (workflow['307']?.inputs) {
+    workflow['307'].inputs.nag_scale = settings.nagScale
+  }
 
   if (workflow['103']?.inputs) {
     workflow['103'].inputs.value = settings.duration
@@ -107,6 +110,9 @@ export async function buildLtxWorkflow(
 function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
   if (workflow['268']?.inputs) {
     workflow['268'].inputs.model = ['298', 0]
+  }
+  if (workflow['306']?.inputs) {
+    workflow['306'].inputs.model = ['298', 0]
   }
   delete workflow['296']
 }
