@@ -4,7 +4,8 @@ vi.mock('@/lib/database/system-settings', () => ({
   getLtxSettings: vi.fn().mockResolvedValue({
     loraEnabled: true,
     cfg: 1,
-    steps: 30,
+    sigmas1stPass: '1.0, 0.9, 0.8, 0.7, 0.975, 0.6, 0.725, 0.3, 0.0',
+    sigmas2ndPass: '0.85, 0.725, 0.4219, 0.0',
     nagScale: 5,
     duration: 97,
     megapixels: 0.5,

@@ -75,7 +75,8 @@ export interface WanSettings {
 export interface LtxSettings {
   loraEnabled: boolean;
   cfg: number;
-  steps: number;
+  sigmas1stPass: string;
+  sigmas2ndPass: string;
   nagScale: number;
   duration: number;
   megapixels: number;
@@ -98,7 +99,8 @@ const WAN_KEYS = {
 const LTX_KEYS = {
   loraEnabled: 'ltx.lora_enabled',
   cfg: 'ltx.cfg',
-  steps: 'ltx.steps',
+  sigmas1stPass: 'ltx.sigmas_1st_pass',
+  sigmas2ndPass: 'ltx.sigmas_2nd_pass',
   nagScale: 'ltx.nag_scale',
   duration: 'ltx.duration',
   megapixels: 'ltx.megapixels',
@@ -152,7 +154,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
   return {
     loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
     cfg: parseFloat(map.get(LTX_KEYS.cfg)!),
-    steps: parseInt(map.get(LTX_KEYS.steps)!, 10),
+    sigmas1stPass: map.get(LTX_KEYS.sigmas1stPass)!,
+    sigmas2ndPass: map.get(LTX_KEYS.sigmas2ndPass)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
     duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
     megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
