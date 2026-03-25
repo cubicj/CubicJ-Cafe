@@ -10,6 +10,7 @@ const LTX_DYNAMIC_NODE_START = 400
 const SAGE_ATTENTION_NODE = '298'
 const LORA_PLACEHOLDER_NODE = '296'
 const AUDIO_NORM_NODE = '268'
+const AUDIO_NORM_2ND_PASS_NODE = '306'
 
 export async function applyLtxLoraChain(
   workflow: ComfyUIWorkflow,
@@ -46,6 +47,10 @@ export async function applyLtxLoraChain(
   const audioNormNode = workflow[AUDIO_NORM_NODE]
   if (audioNormNode?.inputs) {
     audioNormNode.inputs.model = [previousNodeId, 0]
+  }
+  const audioNorm2ndNode = workflow[AUDIO_NORM_2ND_PASS_NODE]
+  if (audioNorm2ndNode?.inputs) {
+    audioNorm2ndNode.inputs.model = [previousNodeId, 0]
   }
 
   log.info('LTX LoRA chain applied', {
