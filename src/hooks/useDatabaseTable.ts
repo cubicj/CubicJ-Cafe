@@ -50,7 +50,7 @@ export function useDatabaseTable({ pageSize = 25 }: UseDatabaseTableOptions = {}
   const fetchTableData = useCallback(async (
     tableName: string,
     page: number = 1,
-    sortBy?: string,
+    sortBy?: string | null,
     sortDirection?: 'asc' | 'desc'
   ) => {
     setLoading(true);
@@ -61,7 +61,7 @@ export function useDatabaseTable({ pageSize = 25 }: UseDatabaseTableOptions = {}
         limit: pageSize.toString()
       });
 
-      const effectiveOrderBy = sortBy ?? sort.orderBy;
+      const effectiveOrderBy = sortBy !== undefined ? sortBy : sort.orderBy;
       const effectiveDirection = sortDirection ?? sort.orderDirection;
 
       if (effectiveOrderBy) {
@@ -84,7 +84,7 @@ export function useDatabaseTable({ pageSize = 25 }: UseDatabaseTableOptions = {}
     setSelectedTable(tableName);
     setCurrentPage(1);
     setSort({ orderBy: null, orderDirection: 'desc' });
-    fetchTableData(tableName, 1);
+    fetchTableData(tableName, 1, null);
   }, [fetchTableData]);
 
   const goToPage = useCallback((page: number) => {
