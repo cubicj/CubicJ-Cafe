@@ -79,6 +79,8 @@ export interface LtxSettings {
   sampler2ndPass: string;
   sigmas1stPass: string;
   sigmas2ndPass: string;
+  audioNorm1stPass: string;
+  audioNorm2ndPass: string;
   nagScale: number;
   duration: number;
   megapixels: number;
@@ -105,6 +107,8 @@ const LTX_KEYS = {
   sampler2ndPass: 'ltx.sampler_2nd_pass',
   sigmas1stPass: 'ltx.sigmas_1st_pass',
   sigmas2ndPass: 'ltx.sigmas_2nd_pass',
+  audioNorm1stPass: 'ltx.audio_norm_1st_pass',
+  audioNorm2ndPass: 'ltx.audio_norm_2nd_pass',
   nagScale: 'ltx.nag_scale',
   duration: 'ltx.duration',
   megapixels: 'ltx.megapixels',
@@ -162,6 +166,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     sampler2ndPass: map.get(LTX_KEYS.sampler2ndPass)!,
     sigmas1stPass: map.get(LTX_KEYS.sigmas1stPass)!,
     sigmas2ndPass: map.get(LTX_KEYS.sigmas2ndPass)!,
+    audioNorm1stPass: map.get(LTX_KEYS.audioNorm1stPass)!,
+    audioNorm2ndPass: map.get(LTX_KEYS.audioNorm2ndPass)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
     duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
     megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
