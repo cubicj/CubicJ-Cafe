@@ -281,7 +281,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "filename_prefix": "PLACEHOLDER",
       "format": "video/h264-mp4",
       "pix_fmt": "yuv420p",
-      "crf": 0,
+      "crf": 20,
       "save_metadata": false,
       "trim_to_audio": false,
       "pingpong": false,
