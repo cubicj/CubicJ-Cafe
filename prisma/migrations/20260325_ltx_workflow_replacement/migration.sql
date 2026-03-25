@@ -1,0 +1,25 @@
+DELETE FROM system_settings WHERE key LIKE 'ltx.%';
+
+INSERT INTO system_settings (id, key, value, type, category, created_at, updated_at) VALUES
+  (lower(hex(randomblob(12))), 'ltx.unet', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.weight_dtype', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.clip_gguf', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.clip_embeddings', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.audio_vae', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.video_vae', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.lora_enabled', 'false', 'boolean', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.sampler', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.sigmas', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.audio_norm', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.nag_scale', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.nag_alpha', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.nag_tau', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.duration', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.frame_rate', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.megapixels', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.resize_multiple_of', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.resize_upscale_method', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.rtx_resize_type', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.rtx_scale', 'CONFIGURE_IN_ADMIN', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.rtx_quality', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.negative_prompt', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now'));
