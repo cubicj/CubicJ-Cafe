@@ -2,18 +2,27 @@ import { vi } from 'vitest'
 
 vi.mock('@/lib/database/system-settings', () => ({
   getLtxSettings: vi.fn().mockResolvedValue({
+    unet: 'test-unet.safetensors',
+    weightDtype: 'default',
+    clipGguf: 'test-clip.gguf',
+    clipEmbeddings: 'test-embeddings.safetensors',
+    audioVae: 'test-audio-vae.safetensors',
+    videoVae: 'test-video-vae.safetensors',
     loraEnabled: true,
-    cfg: 1,
-    sampler1stPass: 'test_sampler',
-    sampler2ndPass: 'test_sampler',
-    sigmas1stPass: '1.0, 0.9, 0.8, 0.7, 0.975, 0.6, 0.725, 0.3, 0.0',
-    sigmas2ndPass: '0.85, 0.725, 0.4219, 0.0',
-    audioNorm1stPass: '1,1,1',
-    audioNorm2ndPass: '1,1,1',
+    sampler: 'test_sampler',
+    sigmas: '1.0, 0.9, 0.8, 0.7, 0.975, 0.6, 0.725, 0.3, 0.0',
+    audioNorm: '1,1,1',
     nagScale: 5,
-    duration: 97,
+    nagAlpha: 0.3,
+    nagTau: 1.5,
+    duration: 5,
+    frameRate: 16,
     megapixels: 0.5,
-    imgCompression: 35,
+    resizeMultipleOf: 32,
+    resizeUpscaleMethod: 'lanczos',
+    rtxResizeType: 'scale by multiplier',
+    rtxScale: 2,
+    rtxQuality: 'ULTRA',
     negativePrompt: 'test negative prompt',
   }),
 }))
@@ -43,22 +52,18 @@ describe('buildLtxWorkflow', () => {
     const w1 = await buildLtxWorkflow(baseParams)
     const w2 = await buildLtxWorkflow(baseParams)
 
-    const seeds1 = [w1['16']!.inputs!.noise_seed, w1['32']!.inputs!.noise_seed]
-    const seeds2 = [w2['16']!.inputs!.noise_seed, w2['32']!.inputs!.noise_seed]
-
-    expect(seeds1[0]).not.toBe(seeds2[0])
-    expect(seeds1[1]).not.toBe(seeds2[1])
+    expect(w1['16']!.inputs!.noise_seed).not.toBe(w2['16']!.inputs!.noise_seed)
   })
 
   it('sets filename prefix with LTX/ prefix', async () => {
     const workflow = await buildLtxWorkflow(baseParams)
-    expect(workflow['300']!.inputs!.filename_prefix).toBe('LTX/test-image')
+    expect(workflow['319']!.inputs!.filename_prefix).toBe('LTX/test-image')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: LtxGenerationParams = { ...baseParams, inputImage: 'photo.jpg' }
     const workflow = await buildLtxWorkflow(params)
-    expect(workflow['300']!.inputs!.filename_prefix).toBe('LTX/photo')
+    expect(workflow['319']!.inputs!.filename_prefix).toBe('LTX/photo')
   })
 
   describe('end image handling', () => {
@@ -88,13 +93,6 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['260']).toBeUndefined()
       expect(workflow['261']).toBeUndefined()
       expect(workflow['264']).toBeUndefined()
-      expect(workflow['267']).toBeUndefined()
-    })
-
-    it('preserves start image preprocess node 266 when no endImage', async () => {
-      const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['266']).toBeDefined()
-      expect(workflow['266']!.class_type).toBe('LTXVPreprocess')
     })
   })
 
@@ -118,14 +116,14 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['400']).toBeDefined()
       expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
       expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
-      expect(workflow['268']!.inputs!.model).toEqual(['400', 0])
+      expect(workflow['317']!.inputs!.model).toEqual(['400', 0])
     })
 
-    it('removes placeholder and connects 268 directly to 298 when no preset', async () => {
+    it('removes placeholder and connects 317 directly to 298 when no preset', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['400']).toBeUndefined()
       expect(workflow['296']).toBeUndefined()
-      expect(workflow['268']!.inputs!.model).toEqual(['298', 0])
+      expect(workflow['317']!.inputs!.model).toEqual(['298', 0])
     })
   })
 })

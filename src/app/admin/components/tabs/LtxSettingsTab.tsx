@@ -35,9 +35,9 @@ interface ModelsResponse {
   models: Record<string, string[]>;
 }
 
-type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'latentUpscalers';
+type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes';
 
-const SAMPLER_KEYS = ['ltx.sampler_1st_pass', 'ltx.sampler_2nd_pass'] as const;
+const SAMPLER_KEYS = ['ltx.sampler'] as const;
 
 const LTX_FIELDS = [
   { key: 'ltx.unet', label: 'UNet 모델', type: 'model' as const, group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
@@ -46,26 +46,18 @@ const LTX_FIELDS = [
   { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model' as const, group: '모델', modelCategory: 'clipEmbeddings' as ModelCategory },
   { key: 'ltx.audio_vae', label: 'Audio VAE 모델', type: 'model' as const, group: '모델', modelCategory: 'kjVaes' as ModelCategory },
   { key: 'ltx.video_vae', label: 'Video VAE 모델', type: 'model' as const, group: '모델', modelCategory: 'kjVaes' as ModelCategory },
-  { key: 'ltx.spatial_upscaler', label: 'Spatial Upscaler 모델', type: 'model' as const, group: '모델', modelCategory: 'latentUpscalers' as ModelCategory },
   { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' as const, group: '생성' },
-  { key: 'ltx.cfg', label: 'CFG Scale', type: 'number' as const, step: 0.1, group: '생성' },
-  { key: 'ltx.sampler_1st_pass', label: '1st Pass 샘플러', type: 'sampler' as const, group: '생성' },
-  { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler' as const, group: '생성' },
+  { key: 'ltx.sampler', label: '샘플러', type: 'sampler' as const, group: '생성' },
   { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number' as const, step: 0.1, group: '생성' },
+  { key: 'ltx.nag_alpha', label: 'NAG Alpha', type: 'number' as const, step: 0.01, group: '생성' },
+  { key: 'ltx.nag_tau', label: 'NAG Tau', type: 'number' as const, step: 0.1, group: '생성' },
   { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number' as const, step: 1, group: '생성' },
   { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number' as const, step: 1, group: '생성' },
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number' as const, step: 0.01, group: '생성' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number' as const, step: 1, group: '생성' },
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'string' as const, group: '생성' },
-  { key: 'ltx.img_compression', label: '이미지 압축', type: 'number' as const, step: 1, group: '생성' },
-  { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string' as const, group: 'Sigma' },
-  { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string' as const, group: 'Sigma' },
-  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string' as const, group: 'Audio' },
-  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string' as const, group: 'Audio' },
-  { key: 'ltx.vae_spatial_tiles', label: 'VAE Spatial Tiles', type: 'number' as const, step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_spatial_overlap', label: 'VAE Spatial Overlap', type: 'number' as const, step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_temporal_tile_length', label: 'VAE Temporal Tile Length', type: 'number' as const, step: 1, group: 'VAE Decode' },
-  { key: 'ltx.vae_temporal_overlap', label: 'VAE Temporal Overlap', type: 'number' as const, step: 1, group: 'VAE Decode' },
+  { key: 'ltx.sigmas', label: 'Sigmas', type: 'string' as const, group: 'Sigma' },
+  { key: 'ltx.audio_norm', label: 'Audio Normalization', type: 'string' as const, group: 'Audio' },
   { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'string' as const, group: 'RTX' },
   { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number' as const, step: 0.1, group: 'RTX' },
   { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'string' as const, group: 'RTX' },

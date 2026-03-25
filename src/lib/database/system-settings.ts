@@ -103,30 +103,22 @@ export interface LtxSettings {
   clipEmbeddings: string;
   audioVae: string;
   videoVae: string;
-  spatialUpscaler: string;
   loraEnabled: boolean;
-  cfg: number;
-  sampler1stPass: string;
-  sampler2ndPass: string;
-  sigmas1stPass: string;
-  sigmas2ndPass: string;
-  audioNorm1stPass: string;
-  audioNorm2ndPass: string;
+  sampler: string;
+  sigmas: string;
+  audioNorm: string;
   nagScale: number;
+  nagAlpha: number;
+  nagTau: number;
   duration: number;
   frameRate: number;
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
-  imgCompression: number;
-  negativePrompt: string;
-  vaeSpatialTiles: number;
-  vaeSpatialOverlap: number;
-  vaeTemporalTileLength: number;
-  vaeTemporalOverlap: number;
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
+  negativePrompt: string;
 }
 
 const WAN_KEYS = {
@@ -172,30 +164,22 @@ const LTX_KEYS = {
   clipEmbeddings: 'ltx.clip_embeddings',
   audioVae: 'ltx.audio_vae',
   videoVae: 'ltx.video_vae',
-  spatialUpscaler: 'ltx.spatial_upscaler',
   loraEnabled: 'ltx.lora_enabled',
-  cfg: 'ltx.cfg',
-  sampler1stPass: 'ltx.sampler_1st_pass',
-  sampler2ndPass: 'ltx.sampler_2nd_pass',
-  sigmas1stPass: 'ltx.sigmas_1st_pass',
-  sigmas2ndPass: 'ltx.sigmas_2nd_pass',
-  audioNorm1stPass: 'ltx.audio_norm_1st_pass',
-  audioNorm2ndPass: 'ltx.audio_norm_2nd_pass',
+  sampler: 'ltx.sampler',
+  sigmas: 'ltx.sigmas',
+  audioNorm: 'ltx.audio_norm',
   nagScale: 'ltx.nag_scale',
+  nagAlpha: 'ltx.nag_alpha',
+  nagTau: 'ltx.nag_tau',
   duration: 'ltx.duration',
   frameRate: 'ltx.frame_rate',
   megapixels: 'ltx.megapixels',
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
-  imgCompression: 'ltx.img_compression',
-  negativePrompt: 'ltx.negative_prompt',
-  vaeSpatialTiles: 'ltx.vae_spatial_tiles',
-  vaeSpatialOverlap: 'ltx.vae_spatial_overlap',
-  vaeTemporalTileLength: 'ltx.vae_temporal_tile_length',
-  vaeTemporalOverlap: 'ltx.vae_temporal_overlap',
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
+  negativePrompt: 'ltx.negative_prompt',
 } as const;
 
 function buildSettingsMap(
@@ -272,29 +256,21 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     clipEmbeddings: map.get(LTX_KEYS.clipEmbeddings)!,
     audioVae: map.get(LTX_KEYS.audioVae)!,
     videoVae: map.get(LTX_KEYS.videoVae)!,
-    spatialUpscaler: map.get(LTX_KEYS.spatialUpscaler)!,
     loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
-    cfg: parseFloat(map.get(LTX_KEYS.cfg)!),
-    sampler1stPass: map.get(LTX_KEYS.sampler1stPass)!,
-    sampler2ndPass: map.get(LTX_KEYS.sampler2ndPass)!,
-    sigmas1stPass: map.get(LTX_KEYS.sigmas1stPass)!,
-    sigmas2ndPass: map.get(LTX_KEYS.sigmas2ndPass)!,
-    audioNorm1stPass: map.get(LTX_KEYS.audioNorm1stPass)!,
-    audioNorm2ndPass: map.get(LTX_KEYS.audioNorm2ndPass)!,
+    sampler: map.get(LTX_KEYS.sampler)!,
+    sigmas: map.get(LTX_KEYS.sigmas)!,
+    audioNorm: map.get(LTX_KEYS.audioNorm)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
+    nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
+    nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
     duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
     frameRate: parseInt(map.get(LTX_KEYS.frameRate)!, 10),
     megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
     resizeMultipleOf: parseInt(map.get(LTX_KEYS.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(LTX_KEYS.resizeUpscaleMethod)!,
-    imgCompression: parseInt(map.get(LTX_KEYS.imgCompression)!, 10),
-    negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
-    vaeSpatialTiles: parseInt(map.get(LTX_KEYS.vaeSpatialTiles)!, 10),
-    vaeSpatialOverlap: parseInt(map.get(LTX_KEYS.vaeSpatialOverlap)!, 10),
-    vaeTemporalTileLength: parseInt(map.get(LTX_KEYS.vaeTemporalTileLength)!, 10),
-    vaeTemporalOverlap: parseInt(map.get(LTX_KEYS.vaeTemporalOverlap)!, 10),
     rtxResizeType: map.get(LTX_KEYS.rtxResizeType)!,
     rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
     rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
+    negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
   };
 }

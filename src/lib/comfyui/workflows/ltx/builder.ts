@@ -13,9 +13,8 @@ export async function buildLtxWorkflow(
   server?: ComfyUIServer
 ): Promise<ComfyUIWorkflow> {
   const settings = await getLtxSettings()
-  const workflow = JSON.parse(JSON.stringify(LTX_WORKFLOW_TEMPLATE))
+  const workflow: ComfyUIWorkflow = JSON.parse(JSON.stringify(LTX_WORKFLOW_TEMPLATE))
 
-  // Models
   if (workflow['1']?.inputs) {
     workflow['1'].inputs.vae_name = settings.audioVae
   }
@@ -26,60 +25,34 @@ export async function buildLtxWorkflow(
     workflow['47'].inputs.clip_name1 = settings.clipGguf
     workflow['47'].inputs.clip_name2 = settings.clipEmbeddings
   }
-  if (workflow['63']?.inputs) {
-    workflow['63'].inputs.model_name = settings.spatialUpscaler
-  }
   if (workflow['297']?.inputs) {
     workflow['297'].inputs.unet_name = settings.unet
     workflow['297'].inputs.weight_dtype = settings.weightDtype
   }
 
-  // Prompts
-  if (workflow['5']) {
+  if (workflow['5']?.inputs) {
     workflow['5'].inputs.text = params.prompt
   }
   if (workflow['6']?.inputs) {
     workflow['6'].inputs.text = settings.negativePrompt
   }
 
-  // CFG
-  if (workflow['18']?.inputs) {
-    workflow['18'].inputs.cfg = settings.cfg
-  }
-
-  // Samplers
   if (workflow['20']?.inputs) {
-    workflow['20'].inputs.sampler_name = settings.sampler1stPass
+    workflow['20'].inputs.sampler_name = settings.sampler
   }
-  if (workflow['98']?.inputs) {
-    workflow['98'].inputs.sampler_name = settings.sampler2ndPass
+  if (workflow['335']?.inputs) {
+    workflow['335'].inputs.sigmas = settings.sigmas
   }
-
-  // Sigmas
-  if (workflow['304']?.inputs) {
-    workflow['304'].inputs.sigmas = settings.sigmas1stPass
-  }
-  if (workflow['303']?.inputs) {
-    workflow['303'].inputs.sigmas = settings.sigmas2ndPass
+  if (workflow['317']?.inputs) {
+    workflow['317'].inputs.audio_normalization_factors = settings.audioNorm
   }
 
-  // Audio normalization
-  if (workflow['268']?.inputs) {
-    workflow['268'].inputs.audio_normalization_factors = settings.audioNorm1stPass
-  }
-  if (workflow['306']?.inputs) {
-    workflow['306'].inputs.audio_normalization_factors = settings.audioNorm2ndPass
-  }
-
-  // NAG
   if (workflow['72']?.inputs) {
     workflow['72'].inputs.nag_scale = settings.nagScale
-  }
-  if (workflow['307']?.inputs) {
-    workflow['307'].inputs.nag_scale = settings.nagScale
+    workflow['72'].inputs.nag_alpha = settings.nagAlpha
+    workflow['72'].inputs.nag_tau = settings.nagTau
   }
 
-  // Duration + Frame Rate
   if (workflow['103']?.inputs) {
     workflow['103'].inputs.value = settings.duration
   }
@@ -90,73 +63,41 @@ export async function buildLtxWorkflow(
     workflow['12'].inputs.value = settings.frameRate
   }
 
-  // Resize
   if (workflow['86']?.inputs) {
     workflow['86'].inputs.megapixels = settings.megapixels
     workflow['86'].inputs.multiple_of = settings.resizeMultipleOf
     workflow['86'].inputs.upscale_method = settings.resizeUpscaleMethod
   }
-  if (workflow['264']?.inputs) {
-    workflow['264'].inputs.megapixels = settings.megapixels
-    workflow['264'].inputs.multiple_of = settings.resizeMultipleOf
-    workflow['264'].inputs.upscale_method = settings.resizeUpscaleMethod
+
+  if (workflow['322']?.inputs) {
+    workflow['322'].inputs.resize_type = settings.rtxResizeType
+    workflow['322'].inputs['resize_type.scale'] = settings.rtxScale
+    workflow['322'].inputs.quality = settings.rtxQuality
   }
 
-  // Image compression
-  if (workflow['266']?.inputs) {
-    workflow['266'].inputs.img_compression = settings.imgCompression
-  }
-  if (workflow['267']?.inputs) {
-    workflow['267'].inputs.img_compression = settings.imgCompression
-  }
-
-  // VAE Decode
-  if (workflow['73']?.inputs) {
-    workflow['73'].inputs.spatial_tiles = settings.vaeSpatialTiles
-    workflow['73'].inputs.spatial_overlap = settings.vaeSpatialOverlap
-    workflow['73'].inputs.temporal_tile_length = settings.vaeTemporalTileLength
-    workflow['73'].inputs.temporal_overlap = settings.vaeTemporalOverlap
-  }
-
-  // RTX Video Super Resolution
-  if (workflow['301']?.inputs) {
-    workflow['301'].inputs.resize_type = settings.rtxResizeType
-    workflow['301'].inputs['resize_type.scale'] = settings.rtxScale
-    workflow['301'].inputs.quality = settings.rtxQuality
-  }
-
-  // Input images
-  if (workflow['87']) {
+  if (workflow['87']?.inputs) {
     workflow['87'].inputs.image = params.inputImage
   }
 
   if (params.endImage) {
-    if (workflow['260']) {
-      workflow['260'].inputs.image = params.endImage
-    }
+    handleEndImage(workflow, params.endImage, settings)
   } else {
     handleEndImageBypass(workflow)
   }
 
-  // LoRA
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     await applyLtxLoraChain(workflow, params.loraPreset, server)
   } else {
     removeLoraPlaceholder(workflow)
   }
 
-  // Seeds
-  if (workflow['16']) {
+  if (workflow['16']?.inputs) {
     workflow['16'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
   }
-  if (workflow['32']) {
-    workflow['32'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
-  }
 
-  // Filename
-  if (workflow['300'] && params.inputImage) {
+  if (workflow['319']?.inputs && params.inputImage) {
     const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
-    workflow['300'].inputs.filename_prefix = `LTX/${baseImageName}`
+    workflow['319'].inputs.filename_prefix = `LTX/${baseImageName}`
   }
 
   log.info('LTX workflow built', {
@@ -170,14 +111,22 @@ export async function buildLtxWorkflow(
   return workflow
 }
 
-function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
-  if (workflow['268']?.inputs) {
-    workflow['268'].inputs.model = ['298', 0]
+function handleEndImage(
+  workflow: ComfyUIWorkflow,
+  endImage: string,
+  settings: { megapixels: number; resizeMultipleOf: number; resizeUpscaleMethod: string }
+) {
+  workflow['260'] = {
+    inputs: { image: endImage },
+    class_type: 'LoadImage',
+    _meta: { title: 'LTX_EndImage' },
   }
-  if (workflow['306']?.inputs) {
-    workflow['306'].inputs.model = ['298', 0]
+  if (workflow['264']?.inputs) {
+    workflow['264'].inputs.image = ['260', 0]
+    workflow['264'].inputs.megapixels = settings.megapixels
+    workflow['264'].inputs.multiple_of = settings.resizeMultipleOf
+    workflow['264'].inputs.upscale_method = settings.resizeUpscaleMethod
   }
-  delete workflow['296']
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
@@ -187,9 +136,13 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
     delete workflow['265'].inputs['num_images.index_2']
     delete workflow['265'].inputs['num_images.strength_2']
   }
-
-  delete workflow['260']
   delete workflow['261']
   delete workflow['264']
-  delete workflow['267']
+}
+
+function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
+  if (workflow['317']?.inputs) {
+    workflow['317'].inputs.model = ['298', 0]
+  }
+  delete workflow['296']
 }

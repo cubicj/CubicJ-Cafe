@@ -17,7 +17,7 @@ function createBaseWorkflow(): ComfyUIWorkflow {
       },
       class_type: 'LoraLoaderModelOnly',
     },
-    '268': {
+    '317': {
       inputs: {
         audio_normalization_factors: '1,1,1',
         model: ['296', 0],
@@ -35,7 +35,7 @@ describe('applyLtxLoraChain', () => {
     await applyLtxLoraChain(workflow, preset)
 
     expect(workflow['296']).toBeDefined()
-    expect(workflow['268']!.inputs!.model).toEqual(['296', 0])
+    expect(workflow['317']!.inputs!.model).toEqual(['296', 0])
     expect(workflow['400']).toBeUndefined()
   })
 
@@ -61,7 +61,7 @@ describe('applyLtxLoraChain', () => {
     expect(workflow['400']!.inputs!.lora_name).toBe('LTX\\Custom\\style-lora.safetensors')
     expect(workflow['400']!.inputs!.strength_model).toBe(0.7)
     expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
-    expect(workflow['268']!.inputs!.model).toEqual(['400', 0])
+    expect(workflow['317']!.inputs!.model).toEqual(['400', 0])
   })
 
   it('chains multiple LoRAs in order', async () => {
@@ -82,7 +82,7 @@ describe('applyLtxLoraChain', () => {
     expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
     expect(workflow['401']!.inputs!.model).toEqual(['400', 0])
     expect(workflow['402']!.inputs!.model).toEqual(['401', 0])
-    expect(workflow['268']!.inputs!.model).toEqual(['402', 0])
+    expect(workflow['317']!.inputs!.model).toEqual(['402', 0])
   })
 
   it('deduplicates by loraFilename', async () => {
@@ -102,7 +102,7 @@ describe('applyLtxLoraChain', () => {
     expect(workflow['400']).toBeDefined()
     expect(workflow['401']).toBeDefined()
     expect(workflow['402']).toBeUndefined()
-    expect(workflow['268']!.inputs!.model).toEqual(['401', 0])
+    expect(workflow['317']!.inputs!.model).toEqual(['401', 0])
   })
 
   it('converts backslashes for RUNPOD server', async () => {
@@ -123,30 +123,5 @@ describe('applyLtxLoraChain', () => {
     await applyLtxLoraChain(workflow, preset, server)
 
     expect(workflow['400']!.inputs!.lora_name).toBe('LTX/Custom/style.safetensors')
-  })
-
-  it('does not touch 2nd pass chain (node 298 → 67)', async () => {
-    const workflow = createBaseWorkflow()
-    workflow['67'] = {
-      inputs: { model: ['298', 0], conditioning: ['21', 0] },
-      class_type: 'BasicGuider',
-    }
-
-    const preset: LoRAPresetData = {
-      presetId: '1',
-      presetName: 'test',
-      loraItems: [{
-        loraFilename: 'style.safetensors',
-        loraName: 'Style',
-        strength: 0.7,
-        group: 'HIGH',
-        order: 0,
-      }],
-    }
-
-    await applyLtxLoraChain(workflow, preset)
-
-    expect(workflow['298']!.inputs!.model).toEqual(['297', 0])
-    expect(workflow['67']!.inputs!.model).toEqual(['298', 0])
   })
 })
