@@ -21,7 +21,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "3": {
     "inputs": {
-      "noise_seed": 1058734286688432
+      "noise_seed": 1097080222019081
     },
     "class_type": "RandomNoise",
     "_meta": {
@@ -162,7 +162,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         0
       ],
       "sigmas": [
-        "43",
+        "52",
         1
       ],
       "latent_image": [
@@ -193,7 +193,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "18": {
     "inputs": {
-      "megapixels": 0.66,
+      "megapixels": 0.9,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": [
@@ -208,7 +208,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "19": {
     "inputs": {
-      "nag_scale": 7,
+      "nag_scale": 9,
       "nag_alpha": 0.25,
       "nag_tau": 2.373,
       "input_type": "default",
@@ -228,7 +228,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "20": {
     "inputs": {
-      "nag_scale": 7,
+      "nag_scale": 9,
       "nag_alpha": 0.25,
       "nag_tau": 2.373,
       "input_type": "default",
@@ -248,7 +248,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "21": {
     "inputs": {
-      "frame_rate": 24,
+      "frame_rate": 32,
       "loop_count": 0,
       "filename_prefix": "WAN\\ComfyUI_WAN",
       "format": "video/h264-mp4",
@@ -315,7 +315,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "25": {
     "inputs": {
-      "megapixels": 0.66,
+      "megapixels": 0.9,
       "multiple_of": 16,
       "upscale_method": "lanczos",
       "image": [
@@ -369,40 +369,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "title": "negative low"
     }
   },
-  "29": {
-    "inputs": {
-      "width": [
-        "25",
-        1
-      ],
-      "height": [
-        "25",
-        2
-      ],
-      "length": 121,
-      "batch_size": 1,
-      "positive": [
-        "27",
-        0
-      ],
-      "negative": [
-        "28",
-        0
-      ],
-      "vae": [
-        "26",
-        0
-      ],
-      "start_image": [
-        "25",
-        0
-      ]
-    },
-    "class_type": "WanImageToVideo",
-    "_meta": {
-      "title": "WanImageToVideo"
-    }
-  },
   "30": {
     "inputs": {
       "width": [
@@ -413,7 +379,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         "25",
         2
       ],
-      "length": 121,
+      "length": 81,
       "batch_size": 1,
       "positive": [
         "27",
@@ -451,7 +417,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         "25",
         2
       ],
-      "length": 121,
+      "length": 81,
       "batch_size": 1,
       "positive": [
         "23",
@@ -520,7 +486,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         0
       ],
       "sigmas": [
-        "44",
+        "53",
         1
       ],
       "latent_image": [
@@ -531,40 +497,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "class_type": "SamplerCustomAdvanced",
     "_meta": {
       "title": "SamplerCustomAdvanced"
-    }
-  },
-  "37": {
-    "inputs": {
-      "width": [
-        "25",
-        1
-      ],
-      "height": [
-        "25",
-        2
-      ],
-      "length": 121,
-      "batch_size": 1,
-      "positive": [
-        "23",
-        0
-      ],
-      "negative": [
-        "24",
-        0
-      ],
-      "vae": [
-        "26",
-        0
-      ],
-      "start_image": [
-        "25",
-        0
-      ]
-    },
-    "class_type": "WanImageToVideo",
-    "_meta": {
-      "title": "WanImageToVideo"
     }
   },
   "38": {
@@ -617,7 +549,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   "42": {
     "inputs": {
       "resize_type": "scale by multiplier",
-      "resize_type.scale": 2,
+      "resize_type.scale": 1.5,
       "quality": "ULTRA",
       "images": [
         "45",
@@ -629,7 +561,22 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "title": "RTX Video Super Resolution"
     }
   },
-  "43": {
+  "45": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "image_pass": [
+        "62",
+        0
+      ]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": {
+      "title": "VRAM Debug"
+    }
+  },
+  "52": {
     "inputs": {
       "steps": 3,
       "start_y": 1,
@@ -642,7 +589,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "title": "📈 Custom Graph Sigma"
     }
   },
-  "44": {
+  "53": {
     "inputs": {
       "steps": 3,
       "start_y": 0.9,
@@ -655,13 +602,28 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "title": "📈 Custom Graph Sigma"
     }
   },
-  "45": {
+  "62": {
+    "inputs": {
+      "ckpt_name": "GMFSS_fortuna_union",
+      "clear_cache_after_n_frames": 100,
+      "multiplier": 2,
+      "frames": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "GMFSS Fortuna VFI",
+    "_meta": {
+      "title": "GMFSS Fortuna VFI"
+    }
+  },
+  "63": {
     "inputs": {
       "empty_cache": true,
       "gc_collect": true,
       "unload_all_models": true,
-      "image_pass": [
-        "38",
+      "any_input": [
+        "21",
         0
       ]
     },

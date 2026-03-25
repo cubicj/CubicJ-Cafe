@@ -40,11 +40,11 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     workflow['19'].inputs.nag_scale = settings.nagScale
   }
 
-  if (workflow['43']?.inputs) {
-    workflow['43'].inputs.steps = settings.stepsHigh
+  if (workflow['52']?.inputs) {
+    workflow['52'].inputs.steps = settings.stepsHigh
   }
-  if (workflow['44']?.inputs) {
-    workflow['44'].inputs.steps = settings.stepsLow
+  if (workflow['53']?.inputs) {
+    workflow['53'].inputs.steps = settings.stepsLow
   }
 
   if (workflow['31']?.inputs) {
@@ -52,12 +52,6 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   }
   if (workflow['30']?.inputs) {
     workflow['30'].inputs.length = settings.length
-  }
-  if (workflow['37']?.inputs) {
-    workflow['37'].inputs.length = settings.length
-  }
-  if (workflow['29']?.inputs) {
-    workflow['29'].inputs.length = settings.length
   }
 
   if (workflow['14']?.inputs) {
@@ -104,14 +98,15 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
-  delete workflow['30']
-  delete workflow['31']
   delete workflow['11']
   delete workflow['18']
 
-  if (workflow['16']?.inputs) workflow['16'].inputs.latent_image = ['37', 2]
-  if (workflow['4']?.inputs) workflow['4'].inputs.conditioning = ['37', 0]
-  if (workflow['17']?.inputs) workflow['17'].inputs.conditioning = ['29', 0]
+  if (workflow['30']?.inputs) {
+    delete workflow['30'].inputs.end_image
+  }
+  if (workflow['31']?.inputs) {
+    delete workflow['31'].inputs.end_image
+  }
 
-  log.info('End image bypass applied — switched to WanImageToVideo')
+  log.info('End image bypass applied — removed end_image from WanFirstLastFrameToVideo')
 }
