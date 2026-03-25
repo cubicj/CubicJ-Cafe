@@ -57,7 +57,7 @@ export async function buildLtxWorkflow(
     workflow['103'].inputs.value = settings.duration
   }
   if (workflow['11']?.inputs) {
-    workflow['11'].inputs.value = settings.frameRate
+    workflow['11'].inputs.value = Math.round(settings.frameRate)
   }
   if (workflow['12']?.inputs) {
     workflow['12'].inputs.value = settings.frameRate
