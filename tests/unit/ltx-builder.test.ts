@@ -8,6 +8,8 @@ vi.mock('@/lib/database/system-settings', () => ({
     sampler2ndPass: 'test_sampler',
     sigmas1stPass: '1.0, 0.9, 0.8, 0.7, 0.975, 0.6, 0.725, 0.3, 0.0',
     sigmas2ndPass: '0.85, 0.725, 0.4219, 0.0',
+    audioNorm1stPass: '1,1,1',
+    audioNorm2ndPass: '1,1,1',
     nagScale: 5,
     duration: 97,
     megapixels: 0.5,

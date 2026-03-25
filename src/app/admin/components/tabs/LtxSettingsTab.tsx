@@ -40,6 +40,8 @@ const LTX_FIELDS = [
   { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler' },
   { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string' },
   { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string' },
+  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string' },
+  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string' },
   { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1 },
   { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number', step: 1 },
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01 },

@@ -41,6 +41,13 @@ export async function buildLtxWorkflow(
     workflow['303'].inputs.sigmas = settings.sigmas2ndPass
   }
 
+  if (workflow['268']?.inputs) {
+    workflow['268'].inputs.audio_normalization_factors = settings.audioNorm1stPass
+  }
+  if (workflow['306']?.inputs) {
+    workflow['306'].inputs.audio_normalization_factors = settings.audioNorm2ndPass
+  }
+
   if (workflow['72']?.inputs) {
     workflow['72'].inputs.nag_scale = settings.nagScale
   }
