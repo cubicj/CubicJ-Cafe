@@ -264,7 +264,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
     nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
     duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
-    frameRate: parseInt(map.get(LTX_KEYS.frameRate)!, 10),
+    frameRate: parseFloat(map.get(LTX_KEYS.frameRate)!),
     megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
     resizeMultipleOf: parseInt(map.get(LTX_KEYS.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(LTX_KEYS.resizeUpscaleMethod)!,
