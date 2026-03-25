@@ -11,21 +11,34 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   const settings = await getWanSettings()
   const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
 
+  // Models
+  if (workflow['1']?.inputs) {
+    workflow['1'].inputs.unet_name = settings.unetHigh
+  }
+  if (workflow['2']?.inputs) {
+    workflow['2'].inputs.unet_name = settings.unetLow
+  }
+  if (workflow['13']?.inputs) {
+    workflow['13'].inputs.clip_name = settings.clip
+  }
+  if (workflow['26']?.inputs) {
+    workflow['26'].inputs.vae_name = settings.vae
+  }
+  if (workflow['62']?.inputs) {
+    workflow['62'].inputs.ckpt_name = settings.vfiCheckpoint
+    workflow['62'].inputs.clear_cache_after_n_frames = settings.vfiClearCache
+    workflow['62'].inputs.multiplier = settings.vfiMultiplier
+  }
+
+  // Prompts
   if (workflow['10']?.inputs) {
     workflow['10'].inputs.text = params.prompt
   }
-
   if (workflow['41']?.inputs) {
     workflow['41'].inputs.text = settings.negativePrompt
   }
 
-  if (workflow['25']?.inputs) {
-    workflow['25'].inputs.megapixels = settings.megapixels
-  }
-  if (workflow['18']?.inputs) {
-    workflow['18'].inputs.megapixels = settings.megapixels
-  }
-
+  // ModelSamplingSD3 — shift
   if (workflow['32']?.inputs) {
     workflow['32'].inputs.shift = settings.shift
   }
@@ -33,20 +46,47 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     workflow['33'].inputs.shift = settings.shift
   }
 
+  // Resize
+  if (workflow['25']?.inputs) {
+    workflow['25'].inputs.megapixels = settings.megapixels
+    workflow['25'].inputs.multiple_of = settings.resizeMultipleOf
+    workflow['25'].inputs.upscale_method = settings.resizeUpscaleMethod
+  }
+  if (workflow['18']?.inputs) {
+    workflow['18'].inputs.megapixels = settings.megapixels
+    workflow['18'].inputs.multiple_of = settings.resizeMultipleOf
+    workflow['18'].inputs.upscale_method = settings.resizeUpscaleMethod
+  }
+
+  // WanVideoNAG
   if (workflow['20']?.inputs) {
     workflow['20'].inputs.nag_scale = settings.nagScale
+    workflow['20'].inputs.nag_alpha = settings.nagAlpha
+    workflow['20'].inputs.nag_tau = settings.nagTau
   }
   if (workflow['19']?.inputs) {
     workflow['19'].inputs.nag_scale = settings.nagScale
+    workflow['19'].inputs.nag_alpha = settings.nagAlpha
+    workflow['19'].inputs.nag_tau = settings.nagTau
   }
 
+  // CustomSplineSigma
   if (workflow['52']?.inputs) {
     workflow['52'].inputs.steps = settings.stepsHigh
+    workflow['52'].inputs.start_y = settings.sigmaStartYHigh
+    workflow['52'].inputs.end_y = settings.sigmaEndYHigh
+    workflow['52'].inputs.curve_data = settings.sigmaCurveData
+    workflow['52'].inputs.preset_selector = settings.sigmaPreset
   }
   if (workflow['53']?.inputs) {
     workflow['53'].inputs.steps = settings.stepsLow
+    workflow['53'].inputs.start_y = settings.sigmaStartYLow
+    workflow['53'].inputs.end_y = settings.sigmaEndYLow
+    workflow['53'].inputs.curve_data = settings.sigmaCurveData
+    workflow['53'].inputs.preset_selector = settings.sigmaPreset
   }
 
+  // WanFirstLastFrameToVideo — length
   if (workflow['31']?.inputs) {
     workflow['31'].inputs.length = settings.length
   }
@@ -54,10 +94,27 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     workflow['30'].inputs.length = settings.length
   }
 
+  // Sampler
   if (workflow['14']?.inputs) {
     workflow['14'].inputs.sampler_name = settings.sampler
   }
 
+  // RTX Video Super Resolution
+  if (workflow['42']?.inputs) {
+    workflow['42'].inputs.resize_type = settings.rtxResizeType
+    workflow['42'].inputs['resize_type.scale'] = settings.rtxScale
+    workflow['42'].inputs.quality = settings.rtxQuality
+  }
+
+  // Video Combine
+  if (workflow['21']?.inputs) {
+    workflow['21'].inputs.frame_rate = settings.frameRate
+    workflow['21'].inputs.crf = settings.videoCrf
+    workflow['21'].inputs.format = settings.videoFormat
+    workflow['21'].inputs.pix_fmt = settings.videoPixFmt
+  }
+
+  // Input images
   if (workflow['5']?.inputs) {
     workflow['5'].inputs.image = params.inputImage
   }
@@ -70,10 +127,12 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     handleEndImageBypass(workflow)
   }
 
+  // Seed
   if (workflow['3']?.inputs) {
     workflow['3'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
   }
 
+  // Filename
   if (workflow['21'] && params.inputImage) {
     const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
     workflow['21'].inputs.filename_prefix = `WAN/${baseImageName}`

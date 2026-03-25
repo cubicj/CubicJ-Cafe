@@ -32,15 +32,39 @@ interface SamplersResponse {
 }
 
 const WAN_FIELDS = [
-  { key: 'wan.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' },
-  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01 },
-  { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1 },
-  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1 },
-  { key: 'wan.steps_high', label: 'HIGH 패스 스텝', type: 'number', step: 1 },
-  { key: 'wan.steps_low', label: 'LOW 패스 스텝', type: 'number', step: 1 },
-  { key: 'wan.length', label: '프레임 수', type: 'number', step: 1 },
-  { key: 'wan.sampler', label: '샘플러', type: 'string' },
-  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'string' },
+  { key: 'wan.unet_high', label: 'UNet HIGH 모델', type: 'model', group: '모델' },
+  { key: 'wan.unet_low', label: 'UNet LOW 모델', type: 'model', group: '모델' },
+  { key: 'wan.clip', label: 'CLIP 모델', type: 'model', group: '모델' },
+  { key: 'wan.vae', label: 'VAE 모델', type: 'model', group: '모델' },
+  { key: 'wan.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: '모델' },
+  { key: 'wan.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '생성' },
+  { key: 'wan.sampler', label: '샘플러', type: 'sampler', group: '생성' },
+  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '생성' },
+  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
+  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'string', group: '생성' },
+  { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: '생성' },
+  { key: 'wan.length', label: '프레임 수', type: 'number', step: 1, group: '생성' },
+  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'NAG' },
+  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'NAG' },
+  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'NAG' },
+  { key: 'wan.steps_high', label: 'HIGH 패스 스텝', type: 'number', step: 1, group: 'Sigma' },
+  { key: 'wan.steps_low', label: 'LOW 패스 스텝', type: 'number', step: 1, group: 'Sigma' },
+  { key: 'wan.sigma_start_y_high', label: 'HIGH Start Y', type: 'number', step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_end_y_high', label: 'HIGH End Y', type: 'number', step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_start_y_low', label: 'LOW Start Y', type: 'number', step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_end_y_low', label: 'LOW End Y', type: 'number', step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_preset', label: 'Sigma Preset', type: 'string', group: 'Sigma' },
+  { key: 'wan.sigma_curve_data', label: 'Sigma Curve Data', type: 'textarea', group: 'Sigma' },
+  { key: 'wan.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
+  { key: 'wan.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
+  { key: 'wan.rtx_resize_type', label: 'RTX Resize Type', type: 'string', group: 'RTX' },
+  { key: 'wan.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
+  { key: 'wan.rtx_quality', label: 'RTX Quality', type: 'string', group: 'RTX' },
+  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: '비디오' },
+  { key: 'wan.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
+  { key: 'wan.video_format', label: 'Format', type: 'string', group: '비디오' },
+  { key: 'wan.video_pix_fmt', label: 'Pixel Format', type: 'string', group: '비디오' },
+  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
 ] as const;
 
 let samplerCache: string[] | null = null;
@@ -96,7 +120,7 @@ export default function WanSettingsTab() {
       const settings = WAN_FIELDS.map((field) => ({
         key: field.key,
         value: String(values[field.key] ?? ''),
-        type: field.type,
+        type: field.type === 'model' || field.type === 'sampler' || field.type === 'textarea' ? 'string' : field.type,
         category: 'wan',
       }));
       await apiClient.put('/api/admin/settings', { settings });
@@ -124,8 +148,10 @@ export default function WanSettingsTab() {
     );
   }
 
+  const groups = [...new Set(WAN_FIELDS.map((f) => f.group))];
+
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-6 space-y-6">
       <h3 className="text-lg font-semibold">WAN 2.2 설정</h3>
 
       {message && (
@@ -134,88 +160,122 @@ export default function WanSettingsTab() {
         </Alert>
       )}
 
-      <div className="grid gap-4">
-        {WAN_FIELDS.map((field) => {
-          if (field.type === 'boolean') {
-            return (
-              <div key={field.key} className="flex items-center justify-between">
-                <Label>{field.label}</Label>
-                <Switch
-                  checked={values[field.key] === 'true'}
-                  onCheckedChange={(checked) => handleChange(field.key, String(checked))}
-                />
-              </div>
-            );
-          }
+      {groups.map((group) => (
+        <div key={group} className="space-y-3">
+          <h4 className="text-sm font-medium text-muted-foreground border-b pb-1">{group}</h4>
+          <div className="grid gap-3">
+            {WAN_FIELDS.filter((f) => f.group === group).map((field) => {
+              if (field.type === 'boolean') {
+                return (
+                  <div key={field.key} className="flex items-center justify-between">
+                    <Label>{field.label}</Label>
+                    <Switch
+                      checked={values[field.key] === 'true'}
+                      onCheckedChange={(checked) => handleChange(field.key, String(checked))}
+                    />
+                  </div>
+                );
+              }
 
-          if (field.key === 'wan.sampler') {
-            return (
-              <div key={field.key} className="space-y-1">
-                <div className="flex items-center gap-2">
+              if (field.type === 'model') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Input
+                      type="text"
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      placeholder="model_filename.safetensors"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                );
+              }
+
+              if (field.type === 'sampler') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label>{field.label}</Label>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={fetchSamplers}
+                        disabled={samplerLoading}
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
+                    {samplers.length > 0 ? (
+                      <Select
+                        value={values[field.key] || undefined}
+                        onValueChange={(v) => handleChange(field.key, v)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="샘플러 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {samplers.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={values[field.key] ?? ''}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        placeholder="샘플러 이름 입력 (새로고침으로 목록 불러오기)"
+                      />
+                    )}
+                  </div>
+                );
+              }
+
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Textarea
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      rows={field.key.includes('curve_data') ? 5 : 3}
+                      className={field.key.includes('curve_data') ? 'font-mono text-xs' : ''}
+                    />
+                  </div>
+                );
+              }
+
+              if (field.type === 'string') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Input
+                      type="text"
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                    />
+                  </div>
+                );
+              }
+
+              return (
+                <div key={field.key} className="space-y-1">
                   <Label>{field.label}</Label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={fetchSamplers}
-                    disabled={samplerLoading}
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
-                {samplers.length > 0 ? (
-                  <Select
-                    value={values[field.key] || undefined}
-                    onValueChange={(v) => handleChange(field.key, v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="샘플러 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {samplers.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
                   <Input
+                    type="number"
+                    step={'step' in field ? field.step : undefined}
                     value={values[field.key] ?? ''}
                     onChange={(e) => handleChange(field.key, e.target.value)}
-                    placeholder="샘플러 이름 입력 (새로고침으로 목록 불러오기)"
                   />
-                )}
-              </div>
-            );
-          }
-
-          if (field.key === 'wan.negative_prompt') {
-            return (
-              <div key={field.key} className="space-y-1">
-                <Label>{field.label}</Label>
-                <Textarea
-                  value={values[field.key] ?? ''}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  rows={3}
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div key={field.key} className="space-y-1">
-              <Label>{field.label}</Label>
-              <Input
-                type="number"
-                step={field.step}
-                value={values[field.key] ?? ''}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-              />
-            </div>
-          );
-        })}
-      </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       <Button onClick={handleSave} disabled={isSaveDisabled}>
         저장

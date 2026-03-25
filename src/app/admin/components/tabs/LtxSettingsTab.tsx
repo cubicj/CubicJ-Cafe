@@ -34,19 +34,36 @@ interface SamplersResponse {
 const SAMPLER_KEYS = ['ltx.sampler_1st_pass', 'ltx.sampler_2nd_pass'] as const;
 
 const LTX_FIELDS = [
-  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' },
-  { key: 'ltx.cfg', label: 'CFG Scale', type: 'number', step: 0.1 },
-  { key: 'ltx.sampler_1st_pass', label: '1st Pass 샘플러', type: 'sampler' },
-  { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler' },
-  { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string' },
-  { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string' },
-  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string' },
-  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string' },
-  { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1 },
-  { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number', step: 1 },
-  { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01 },
-  { key: 'ltx.img_compression', label: '이미지 압축', type: 'number', step: 1 },
-  { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'string' },
+  { key: 'ltx.unet', label: 'UNet 모델', type: 'model', group: '모델' },
+  { key: 'ltx.weight_dtype', label: 'Weight Dtype', type: 'string', group: '모델' },
+  { key: 'ltx.clip_gguf', label: 'CLIP GGUF 모델', type: 'model', group: '모델' },
+  { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model', group: '모델' },
+  { key: 'ltx.audio_vae', label: 'Audio VAE 모델', type: 'model', group: '모델' },
+  { key: 'ltx.video_vae', label: 'Video VAE 모델', type: 'model', group: '모델' },
+  { key: 'ltx.spatial_upscaler', label: 'Spatial Upscaler 모델', type: 'model', group: '모델' },
+  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '생성' },
+  { key: 'ltx.cfg', label: 'CFG Scale', type: 'number', step: 0.1, group: '생성' },
+  { key: 'ltx.sampler_1st_pass', label: '1st Pass 샘플러', type: 'sampler', group: '생성' },
+  { key: 'ltx.sampler_2nd_pass', label: '2nd Pass 샘플러', type: 'sampler', group: '생성' },
+  { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '생성' },
+  { key: 'ltx.duration', label: '비디오 길이 (초)', type: 'number', step: 1, group: '생성' },
+  { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: '생성' },
+  { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '생성' },
+  { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
+  { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'string', group: '생성' },
+  { key: 'ltx.img_compression', label: '이미지 압축', type: 'number', step: 1, group: '생성' },
+  { key: 'ltx.sigmas_1st_pass', label: '1st Pass Sigmas', type: 'string', group: 'Sigma' },
+  { key: 'ltx.sigmas_2nd_pass', label: '2nd Pass Sigmas', type: 'string', group: 'Sigma' },
+  { key: 'ltx.audio_norm_1st_pass', label: '1st Pass Audio Norm', type: 'string', group: 'Audio' },
+  { key: 'ltx.audio_norm_2nd_pass', label: '2nd Pass Audio Norm', type: 'string', group: 'Audio' },
+  { key: 'ltx.vae_spatial_tiles', label: 'VAE Spatial Tiles', type: 'number', step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_spatial_overlap', label: 'VAE Spatial Overlap', type: 'number', step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_temporal_tile_length', label: 'VAE Temporal Tile Length', type: 'number', step: 1, group: 'VAE Decode' },
+  { key: 'ltx.vae_temporal_overlap', label: 'VAE Temporal Overlap', type: 'number', step: 1, group: 'VAE Decode' },
+  { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'string', group: 'RTX' },
+  { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
+  { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'string', group: 'RTX' },
+  { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
 ] as const;
 
 let samplerCache: string[] | null = null;
@@ -102,7 +119,7 @@ export default function LtxSettingsTab() {
       const settings = LTX_FIELDS.map((field) => ({
         key: field.key,
         value: String(values[field.key] ?? ''),
-        type: field.type === 'sampler' ? 'string' : field.type,
+        type: field.type === 'sampler' || field.type === 'model' || field.type === 'textarea' ? 'string' : field.type,
         category: 'ltx',
       }));
       await apiClient.put('/api/admin/settings', { settings });
@@ -130,8 +147,10 @@ export default function LtxSettingsTab() {
     );
   }
 
+  const groups = [...new Set(LTX_FIELDS.map((f) => f.group))];
+
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-6 space-y-6">
       <h3 className="text-lg font-semibold">LTX 2.3 설정</h3>
 
       {message && (
@@ -140,105 +159,124 @@ export default function LtxSettingsTab() {
         </Alert>
       )}
 
-      <div className="grid gap-4">
-        {LTX_FIELDS.map((field) => {
-          if (field.type === 'boolean') {
-            return (
-              <div key={field.key} className="flex items-center justify-between">
-                <Label>{field.label}</Label>
-                <Switch
-                  checked={values[field.key] === 'true'}
-                  onCheckedChange={(checked) => handleChange(field.key, String(checked))}
-                />
-              </div>
-            );
-          }
+      {groups.map((group) => (
+        <div key={group} className="space-y-3">
+          <h4 className="text-sm font-medium text-muted-foreground border-b pb-1">{group}</h4>
+          <div className="grid gap-3">
+            {LTX_FIELDS.filter((f) => f.group === group).map((field) => {
+              if (field.type === 'boolean') {
+                return (
+                  <div key={field.key} className="flex items-center justify-between">
+                    <Label>{field.label}</Label>
+                    <Switch
+                      checked={values[field.key] === 'true'}
+                      onCheckedChange={(checked) => handleChange(field.key, String(checked))}
+                    />
+                  </div>
+                );
+              }
 
-          if (field.key === 'ltx.negative_prompt') {
-            return (
-              <div key={field.key} className="space-y-1">
-                <Label>{field.label}</Label>
-                <Textarea
-                  value={values[field.key] ?? ''}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  rows={3}
-                />
-              </div>
-            );
-          }
+              if (field.type === 'model') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Input
+                      type="text"
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      placeholder="model_filename.safetensors"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                );
+              }
 
-          if (field.type === 'sampler') {
-            return (
-              <div key={field.key} className="space-y-1">
-                <div className="flex items-center gap-2">
+              if (field.type === 'sampler') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label>{field.label}</Label>
+                      {field.key === SAMPLER_KEYS[0] && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={fetchSamplers}
+                          disabled={samplerLoading}
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
+                        </Button>
+                      )}
+                    </div>
+                    {samplers.length > 0 ? (
+                      <Select
+                        value={values[field.key] || undefined}
+                        onValueChange={(v) => handleChange(field.key, v)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="샘플러 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {samplers.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={values[field.key] ?? ''}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        placeholder="새로고침 버튼을 눌러 목록을 불러오세요"
+                      />
+                    )}
+                  </div>
+                );
+              }
+
+              if (field.type === 'textarea') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Textarea
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                );
+              }
+
+              if (field.type === 'string') {
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    <Input
+                      type="text"
+                      value={values[field.key] ?? ''}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                    />
+                  </div>
+                );
+              }
+
+              return (
+                <div key={field.key} className="space-y-1">
                   <Label>{field.label}</Label>
-                  {field.key === SAMPLER_KEYS[0] && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={fetchSamplers}
-                      disabled={samplerLoading}
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                  )}
-                </div>
-                {samplers.length > 0 ? (
-                  <Select
-                    value={values[field.key] || undefined}
-                    onValueChange={(v) => handleChange(field.key, v)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="샘플러 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {samplers.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
                   <Input
-                    type="text"
+                    type="number"
+                    step={'step' in field ? field.step : undefined}
                     value={values[field.key] ?? ''}
                     onChange={(e) => handleChange(field.key, e.target.value)}
-                    placeholder="새로고침 버튼을 눌러 목록을 불러오세요"
                   />
-                )}
-              </div>
-            );
-          }
-
-          if (field.type === 'string') {
-            return (
-              <div key={field.key} className="space-y-1">
-                <Label>{field.label}</Label>
-                <Input
-                  type="text"
-                  value={values[field.key] ?? ''}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  placeholder="0.85, 0.725, 0.4219, 0.0"
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div key={field.key} className="space-y-1">
-              <Label>{field.label}</Label>
-              <Input
-                type="number"
-                step={'step' in field ? field.step : undefined}
-                value={values[field.key] ?? ''}
-                onChange={(e) => handleChange(field.key, e.target.value)}
-              />
-            </div>
-          );
-        })}
-      </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       <Button onClick={handleSave} disabled={isSaveDisabled}>
         저장
