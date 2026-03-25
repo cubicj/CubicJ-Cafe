@@ -82,7 +82,22 @@ export const GET = createRouteHandler(
           skip: offset,
           take: limit,
           orderBy: getOrderBy(table, orderBy, orderDirection),
-          include: {
+          select: {
+            id: true,
+            nickname: true,
+            status: true,
+            position: true,
+            prompt: true,
+            imageFile: true,
+            loraPresetData: true,
+            isNSFW: true,
+            jobId: true,
+            videoModel: true,
+            generationMode: true,
+            createdAt: true,
+            startedAt: true,
+            completedAt: true,
+            error: true,
             user: {
               select: {
                 nickname: true,
