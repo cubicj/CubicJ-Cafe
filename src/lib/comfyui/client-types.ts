@@ -49,4 +49,9 @@ export interface ModelListResponse {
   vaes: string[]
   upscaleModels: string[]
   clipVisions: string[]
+  ggufClips: string[]
+  clipEmbeddings: string[]
+  kjVaes: string[]
+  latentUpscalers: string[]
+  vfiCheckpoints: string[]
 }

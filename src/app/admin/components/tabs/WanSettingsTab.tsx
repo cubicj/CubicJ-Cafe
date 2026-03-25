@@ -31,50 +31,59 @@ interface SamplersResponse {
   samplers: string[];
 }
 
+interface ModelsResponse {
+  models: Record<string, string[]>;
+}
+
+type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'vfiCheckpoints';
+
 const WAN_FIELDS = [
-  { key: 'wan.unet_high', label: 'UNet HIGH 모델', type: 'model', group: '모델' },
-  { key: 'wan.unet_low', label: 'UNet LOW 모델', type: 'model', group: '모델' },
-  { key: 'wan.clip', label: 'CLIP 모델', type: 'model', group: '모델' },
-  { key: 'wan.vae', label: 'VAE 모델', type: 'model', group: '모델' },
-  { key: 'wan.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: '모델' },
-  { key: 'wan.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '생성' },
-  { key: 'wan.sampler', label: '샘플러', type: 'sampler', group: '생성' },
-  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '생성' },
-  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
-  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'string', group: '생성' },
-  { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: '생성' },
-  { key: 'wan.length', label: '프레임 수', type: 'number', step: 1, group: '생성' },
-  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'NAG' },
-  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'NAG' },
-  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'NAG' },
-  { key: 'wan.steps_high', label: 'HIGH 패스 스텝', type: 'number', step: 1, group: 'Sigma' },
-  { key: 'wan.steps_low', label: 'LOW 패스 스텝', type: 'number', step: 1, group: 'Sigma' },
-  { key: 'wan.sigma_start_y_high', label: 'HIGH Start Y', type: 'number', step: 0.01, group: 'Sigma' },
-  { key: 'wan.sigma_end_y_high', label: 'HIGH End Y', type: 'number', step: 0.01, group: 'Sigma' },
-  { key: 'wan.sigma_start_y_low', label: 'LOW Start Y', type: 'number', step: 0.01, group: 'Sigma' },
-  { key: 'wan.sigma_end_y_low', label: 'LOW End Y', type: 'number', step: 0.01, group: 'Sigma' },
-  { key: 'wan.sigma_preset', label: 'Sigma Preset', type: 'string', group: 'Sigma' },
-  { key: 'wan.sigma_curve_data', label: 'Sigma Curve Data', type: 'textarea', group: 'Sigma' },
-  { key: 'wan.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
-  { key: 'wan.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
-  { key: 'wan.rtx_resize_type', label: 'RTX Resize Type', type: 'string', group: 'RTX' },
-  { key: 'wan.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
-  { key: 'wan.rtx_quality', label: 'RTX Quality', type: 'string', group: 'RTX' },
-  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: '비디오' },
-  { key: 'wan.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
-  { key: 'wan.video_format', label: 'Format', type: 'string', group: '비디오' },
-  { key: 'wan.video_pix_fmt', label: 'Pixel Format', type: 'string', group: '비디오' },
-  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
-] as const;
+  { key: 'wan.unet_high', label: 'UNet HIGH 모델', type: 'model' as const, group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'wan.unet_low', label: 'UNet LOW 모델', type: 'model' as const, group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'wan.clip', label: 'CLIP 모델', type: 'model' as const, group: '모델', modelCategory: 'textEncoders' as ModelCategory },
+  { key: 'wan.vae', label: 'VAE 모델', type: 'model' as const, group: '모델', modelCategory: 'vaes' as ModelCategory },
+  { key: 'wan.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model' as const, group: '모델', modelCategory: 'vfiCheckpoints' as ModelCategory },
+  { key: 'wan.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean' as const, group: '생성' },
+  { key: 'wan.sampler', label: '샘플러', type: 'sampler' as const, group: '생성' },
+  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number' as const, step: 0.01, group: '생성' },
+  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'string' as const, group: '생성' },
+  { key: 'wan.shift', label: 'Sampling Shift', type: 'number' as const, step: 0.1, group: '생성' },
+  { key: 'wan.length', label: '프레임 수', type: 'number' as const, step: 1, group: '생성' },
+  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number' as const, step: 0.1, group: 'NAG' },
+  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number' as const, step: 0.01, group: 'NAG' },
+  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number' as const, step: 0.001, group: 'NAG' },
+  { key: 'wan.steps_high', label: 'HIGH 패스 스텝', type: 'number' as const, step: 1, group: 'Sigma' },
+  { key: 'wan.steps_low', label: 'LOW 패스 스텝', type: 'number' as const, step: 1, group: 'Sigma' },
+  { key: 'wan.sigma_start_y_high', label: 'HIGH Start Y', type: 'number' as const, step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_end_y_high', label: 'HIGH End Y', type: 'number' as const, step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_start_y_low', label: 'LOW Start Y', type: 'number' as const, step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_end_y_low', label: 'LOW End Y', type: 'number' as const, step: 0.01, group: 'Sigma' },
+  { key: 'wan.sigma_preset', label: 'Sigma Preset', type: 'string' as const, group: 'Sigma' },
+  { key: 'wan.sigma_curve_data', label: 'Sigma Curve Data', type: 'textarea' as const, group: 'Sigma' },
+  { key: 'wan.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number' as const, step: 1, group: 'VFI' },
+  { key: 'wan.vfi_multiplier', label: 'VFI Multiplier', type: 'number' as const, step: 1, group: 'VFI' },
+  { key: 'wan.rtx_resize_type', label: 'RTX Resize Type', type: 'string' as const, group: 'RTX' },
+  { key: 'wan.rtx_scale', label: 'RTX Scale', type: 'number' as const, step: 0.1, group: 'RTX' },
+  { key: 'wan.rtx_quality', label: 'RTX Quality', type: 'string' as const, group: 'RTX' },
+  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number' as const, step: 1, group: '비디오' },
+  { key: 'wan.video_crf', label: 'CRF', type: 'number' as const, step: 1, group: '비디오' },
+  { key: 'wan.video_format', label: 'Format', type: 'string' as const, group: '비디오' },
+  { key: 'wan.video_pix_fmt', label: 'Pixel Format', type: 'string' as const, group: '비디오' },
+  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea' as const, group: '프롬프트' },
+];
 
 let samplerCache: string[] | null = null;
+let modelCache: Record<string, string[]> | null = null;
 
 export default function WanSettingsTab() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [samplers, setSamplers] = useState<string[]>(samplerCache ?? []);
+  const [models, setModels] = useState<Record<string, string[]>>(modelCache ?? {});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [samplerLoading, setSamplerLoading] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchSamplers = async () => {
@@ -87,6 +96,19 @@ export default function WanSettingsTab() {
       setSamplers([]);
     } finally {
       setSamplerLoading(false);
+    }
+  };
+
+  const fetchModels = async () => {
+    setModelLoading(true);
+    try {
+      const data = await apiClient.get<ModelsResponse>('/api/admin/comfyui/models');
+      modelCache = data.models;
+      setModels(data.models);
+    } catch {
+      setModels({});
+    } finally {
+      setModelLoading(false);
     }
   };
 
@@ -149,6 +171,8 @@ export default function WanSettingsTab() {
   }
 
   const groups = [...new Set(WAN_FIELDS.map((f) => f.group))];
+  const isFirstModel = (field: typeof WAN_FIELDS[number]) =>
+    field.type === 'model' && WAN_FIELDS.find((f) => f.type === 'model')?.key === field.key;
 
   return (
     <Card className="p-6 space-y-6">
@@ -178,16 +202,49 @@ export default function WanSettingsTab() {
               }
 
               if (field.type === 'model') {
+                const category = field.modelCategory;
+                const options = models[category] ?? [];
                 return (
                   <div key={field.key} className="space-y-1">
-                    <Label>{field.label}</Label>
-                    <Input
-                      type="text"
-                      value={values[field.key] ?? ''}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder="model_filename.safetensors"
-                      className="font-mono text-xs"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Label>{field.label}</Label>
+                      {isFirstModel(field) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={fetchModels}
+                          disabled={modelLoading}
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${modelLoading ? 'animate-spin' : ''}`} />
+                        </Button>
+                      )}
+                    </div>
+                    {options.length > 0 ? (
+                      <Select
+                        value={values[field.key] || undefined}
+                        onValueChange={(v) => handleChange(field.key, v)}
+                      >
+                        <SelectTrigger className="w-full font-mono text-xs">
+                          <SelectValue placeholder="모델 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((m) => (
+                            <SelectItem key={m} value={m} className="font-mono text-xs">
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={values[field.key] ?? ''}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        placeholder="새로고침으로 목록 불러오기"
+                        className="font-mono text-xs"
+                      />
+                    )}
                   </div>
                 );
               }
@@ -227,7 +284,7 @@ export default function WanSettingsTab() {
                       <Input
                         value={values[field.key] ?? ''}
                         onChange={(e) => handleChange(field.key, e.target.value)}
-                        placeholder="샘플러 이름 입력 (새로고침으로 목록 불러오기)"
+                        placeholder="새로고침으로 목록 불러오기"
                       />
                     )}
                   </div>
@@ -266,7 +323,7 @@ export default function WanSettingsTab() {
                   <Label>{field.label}</Label>
                   <Input
                     type="number"
-                    step={'step' in field ? field.step : undefined}
+                    step={field.step}
                     value={values[field.key] ?? ''}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                   />
