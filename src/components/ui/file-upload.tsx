@@ -16,15 +16,20 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, className, maxSize = 10 * 1024 * 1024 }: FileUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(externalSelectedFile ?? null);
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (externalSelectedFile === null) {
       setSelectedFile(null);
       setPreview(null);
+    } else if (externalSelectedFile && externalSelectedFile !== selectedFile) {
+      setSelectedFile(externalSelectedFile);
+      const reader = new FileReader();
+      reader.onload = () => setPreview(reader.result as string);
+      reader.readAsDataURL(externalSelectedFile);
     }
-  }, [externalSelectedFile]);
+  }, [externalSelectedFile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
