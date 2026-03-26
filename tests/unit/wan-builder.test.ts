@@ -50,13 +50,13 @@ describe('buildWanWorkflow', () => {
 
   it('sets filename prefix with WAN/ prefix based on inputImage', async () => {
     const workflow = await buildWanWorkflow(baseParams)
-    expect(workflow['21']!.inputs!.filename_prefix).toBe('WAN/dragon-input')
+    expect(workflow['64']!.inputs!.filename_prefix).toBe('WAN/dragon-input')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: WanGenerationParams = { ...baseParams, inputImage: 'photo.jpeg' }
     const workflow = await buildWanWorkflow(params)
-    expect(workflow['21']!.inputs!.filename_prefix).toBe('WAN/photo')
+    expect(workflow['64']!.inputs!.filename_prefix).toBe('WAN/photo')
   })
 
   it('sets prompt in node 10', async () => {
@@ -139,7 +139,7 @@ describe('buildWanWorkflow', () => {
   describe('structural integrity', () => {
     it('preserves all critical nodes in start-only mode', async () => {
       const workflow = await buildWanWorkflow(baseParams)
-      const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '21', '25', '26', '30', '31', '32', '33', '41', '42', '52', '53']
+      const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '25', '26', '30', '31', '32', '33', '41', '42', '52', '53', '64']
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
       }

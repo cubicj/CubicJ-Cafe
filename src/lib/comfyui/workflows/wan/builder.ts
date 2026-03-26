@@ -5,6 +5,7 @@ import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName } from '../shared'
+import { applyLoraPreset, removeLoraPlaceholder } from './lora-manager'
 
 const log = createLogger('comfyui')
 
@@ -108,11 +109,11 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   }
 
   // Video Combine
-  if (workflow['21']?.inputs) {
-    workflow['21'].inputs.frame_rate = settings.frameRate
-    workflow['21'].inputs.crf = settings.videoCrf
-    workflow['21'].inputs.format = settings.videoFormat
-    workflow['21'].inputs.pix_fmt = settings.videoPixFmt
+  if (workflow['64']?.inputs) {
+    workflow['64'].inputs.frame_rate = settings.frameRate
+    workflow['64'].inputs.crf = settings.videoCrf
+    workflow['64'].inputs.format = settings.videoFormat
+    workflow['64'].inputs.pix_fmt = settings.videoPixFmt
   }
 
   // Input images
@@ -134,15 +135,14 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   }
 
   // Filename
-  if (workflow['21'] && params.inputImage) {
-    workflow['21'].inputs.filename_prefix = `WAN/${extractBaseImageName(params.inputImage)}`
+  if (workflow['64'] && params.inputImage) {
+    workflow['64'].inputs.filename_prefix = `WAN/${extractBaseImageName(params.inputImage)}`
   }
 
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
-    log.warn('LoRA is not supported in the new WAN workflow — no LoRA loader nodes exist', {
-      presetName: params.loraPreset.presetName,
-      itemCount: params.loraPreset.loraItems.length,
-    })
+    await applyLoraPreset(workflow, params.loraPreset, _server)
+  } else {
+    removeLoraPlaceholder(workflow)
   }
 
   log.info('WAN workflow built', {
