@@ -126,4 +126,78 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['317']!.inputs!.model).toEqual(['298', 0])
     })
   })
+
+  describe('settings injection', () => {
+    it('injects model names into correct nodes', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['297']!.inputs!.unet_name).toBe('test-unet.safetensors')
+      expect(workflow['297']!.inputs!.weight_dtype).toBe('default')
+      expect(workflow['47']!.inputs!.clip_name1).toBe('test-clip.gguf')
+      expect(workflow['47']!.inputs!.clip_name2).toBe('test-embeddings.safetensors')
+      expect(workflow['1']!.inputs!.vae_name).toBe('test-audio-vae.safetensors')
+      expect(workflow['2']!.inputs!.vae_name).toBe('test-video-vae.safetensors')
+    })
+
+    it('injects negative prompt into node 6', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['6']!.inputs!.text).toBe('test negative prompt')
+    })
+
+    it('injects NAG settings into node 72', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['72']!.inputs!.nag_scale).toBe(9)
+      expect(workflow['72']!.inputs!.nag_alpha).toBe(0.25)
+      expect(workflow['72']!.inputs!.nag_tau).toBe(2.5)
+    })
+
+    it('injects sampler into node 20', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['20']!.inputs!.sampler_name).toBe('test_sampler')
+    })
+
+    it('injects sigmas into node 335', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['335']!.inputs!.sigmas).toContain('1.0')
+    })
+
+    it('injects audio normalization into node 317', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['317']!.inputs!.audio_normalization_factors).toBe('1,1,1')
+    })
+
+    it('injects duration into node 103', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['103']!.inputs!.value).toBe(5)
+    })
+
+    it('injects frame rate with INT and FLOAT variants', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['11']!.inputs!.value).toBe(24)
+      expect(workflow['12']!.inputs!.value).toBe(24)
+    })
+
+    it('injects resize settings into node 86', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['86']!.inputs!.megapixels).toBe(0.66)
+      expect(workflow['86']!.inputs!.multiple_of).toBe(32)
+      expect(workflow['86']!.inputs!.upscale_method).toBe('lanczos')
+    })
+
+    it('injects RTX settings into node 322', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['322']!.inputs!.resize_type).toBe('scale by multiplier')
+      expect(workflow['322']!.inputs!['resize_type.scale']).toBe(2)
+      expect(workflow['322']!.inputs!.quality).toBe('ULTRA')
+    })
+  })
+
+  describe('structural integrity', () => {
+    it('preserves all critical nodes', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      const criticalNodes = ['1', '2', '5', '6', '11', '12', '16', '20', '47', '72', '86', '87', '103', '265', '297', '317', '319', '322', '335']
+      for (const nodeId of criticalNodes) {
+        expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
+      }
+    })
+  })
 })

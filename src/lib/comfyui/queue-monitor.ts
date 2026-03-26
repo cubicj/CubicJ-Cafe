@@ -60,8 +60,8 @@ class QueueMonitor {
           currentJobId: existingServer?.currentJobId
         });
       }
-    } catch {
-      // 로그 빈도 줄임
+    } catch (error) {
+      log.debug('Local server health check failed', { error: error instanceof Error ? error.message : String(error) });
     }
 
     const runpodUrls = (process.env.COMFYUI_RUNPOD_URLS || '').split(',').filter(url => url.trim());
@@ -86,7 +86,8 @@ class QueueMonitor {
               currentJobId: existingServer?.currentJobId
             };
           }
-        } catch {
+        } catch (error) {
+          log.debug('Runpod server health check failed', { url, error: error instanceof Error ? error.message : String(error) });
         }
         return null;
       })

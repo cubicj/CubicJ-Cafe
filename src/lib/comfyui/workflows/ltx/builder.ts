@@ -5,6 +5,7 @@ import { LTX_WORKFLOW_TEMPLATE } from './template'
 import { applyLtxLoraChain } from './lora-manager'
 import { createLogger } from '@/lib/logger'
 import { getLtxSettings } from '@/lib/database/system-settings'
+import { generateSeed, extractBaseImageName } from '../shared'
 
 const log = createLogger('comfyui')
 
@@ -92,12 +93,11 @@ export async function buildLtxWorkflow(
   }
 
   if (workflow['16']?.inputs) {
-    workflow['16'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
+    workflow['16'].inputs.noise_seed = generateSeed()
   }
 
   if (workflow['319']?.inputs && params.inputImage) {
-    const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
-    workflow['319'].inputs.filename_prefix = `LTX/${baseImageName}`
+    workflow['319'].inputs.filename_prefix = `LTX/${extractBaseImageName(params.inputImage)}`
   }
 
   log.info('LTX workflow built', {

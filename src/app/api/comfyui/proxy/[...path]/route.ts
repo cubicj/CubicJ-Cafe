@@ -20,7 +20,9 @@ const ALLOWED_PATH_PREFIXES = [
 
 function isPathAllowed(pathSegments: string[]): boolean {
   const path = pathSegments.join('/')
-  return ALLOWED_PATH_PREFIXES.some(prefix => path.startsWith(prefix))
+  return ALLOWED_PATH_PREFIXES.some(prefix =>
+    path === prefix || path.startsWith(prefix + '/')
+  )
 }
 
 export const GET = createRouteHandler<{ path: string[] }>(
@@ -80,9 +82,6 @@ async function handleProxy(
     const contentType = request.headers.get('content-type')
     if (contentType && !contentType.includes('multipart/form-data')) {
       proxyHeaders.set('content-type', contentType)
-    }
-    if (request.headers.get('authorization')) {
-      proxyHeaders.set('authorization', request.headers.get('authorization')!)
     }
 
     let body: string | FormData | undefined
