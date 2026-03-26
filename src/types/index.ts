@@ -67,17 +67,6 @@ export interface ComfyUINodeError {
   traceback?: string[];
 }
 
-export interface ComfyUIWebSocketStatus {
-  status: 'idle' | 'executing' | 'completed' | 'error';
-  progress?: {
-    value: number;
-    max: number;
-    percentage: number;
-  };
-  queueRemaining: number;
-  error?: string;
-}
-
 export type {
   VideoModel,
   ModelCapabilities,
