@@ -38,6 +38,20 @@ interface ComfyUIStatus {
   timestamp: string
 }
 
+interface LoRAItemData {
+  loraFilename: string;
+  loraName: string;
+  strength: number;
+  group: string;
+  order: number;
+}
+
+interface PresetData {
+  id: string;
+  name: string;
+  loraItems: LoRAItemData[];
+}
+
 interface SubmitMessage {
   type: 'success' | 'error';
   message: string;
@@ -55,10 +69,10 @@ interface UseI2VFormReturn {
   setPrompt: (prompt: string) => void;
   selectedPresetIds: string[];
   setSelectedPresetIds: (ids: string[]) => void;
-  currentPresets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>;
-  setCurrentPresets: (presets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>) => void;
-  presets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>;
-  setPresets: (presets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>) => void;
+  currentPresets: PresetData[];
+  setCurrentPresets: (presets: PresetData[]) => void;
+  presets: PresetData[];
+  setPresets: (presets: PresetData[]) => void;
   isGenerating: boolean;
   setIsGenerating: (generating: boolean) => void;
   isNSFW: boolean;
@@ -80,7 +94,7 @@ interface UseI2VFormReturn {
   handleReset: () => void;
   handleRefreshStatus: () => Promise<void>;
   fetchServerStatus: () => Promise<void>;
-  fetchPresets: () => Promise<any[]>;
+  fetchPresets: () => Promise<PresetData[]>;
 }
 
 export function useI2VForm(): UseI2VFormReturn {
@@ -105,8 +119,8 @@ export function useI2VForm(): UseI2VFormReturn {
     return [];
   });
 
-  const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
-  const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }>>([]);
+  const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
+  const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
@@ -157,7 +171,7 @@ export function useI2VForm(): UseI2VFormReturn {
   const fetchPresets = async (model?: string) => {
     try {
       const m = model || activeModel;
-      const data = await apiClient.get<{ presets: Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; strength: number; group: string }> }> }>(`/api/lora-presets?model=${m}`);
+      const data = await apiClient.get<{ presets: PresetData[] }>(`/api/lora-presets?model=${m}`);
       return data.presets || [];
     } catch (err) {
       log.error('Failed to fetch LoRA preset list', { error: err instanceof Error ? err.message : String(err) });
@@ -194,11 +208,13 @@ export function useI2VForm(): UseI2VFormReturn {
         const mergedLoRAMap = new Map();
 
         currentPresets.forEach(preset => {
-          preset.loraItems.forEach(item => {
+          preset.loraItems.forEach((item, index) => {
             mergedLoRAMap.set(item.loraFilename, {
               loraFilename: item.loraFilename,
+              loraName: item.loraName,
               strength: item.strength,
-              group: item.group
+              group: item.group,
+              order: item.order ?? index,
             });
           });
         });

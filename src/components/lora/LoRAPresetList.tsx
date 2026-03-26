@@ -83,7 +83,7 @@ export function LoRAPresetList({
             "h-9 px-3 transition-colors",
             copySuccess && "border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-400 dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-900"
           )}
-          title={copySuccess ? "복사 완료!" : "모든 번들명 복사"}
+          title={copySuccess ? "복사 완료!" : activeModel === 'ltx' ? "LoRA 파일명 복사" : "번들명 복사"}
         >
           {copySuccess ? (
             <Check className="h-4 w-4" />

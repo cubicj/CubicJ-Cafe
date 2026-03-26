@@ -142,23 +142,31 @@ export function LoRAPresetManager({
     await hookDeletePreset(preset);
   };
 
-  const copyBundleNames = async () => {
+  const copyLoRANames = async () => {
     try {
-      const bundleNames = availableBundles
-        .map(bundle => bundle.displayName)
-        .sort()
-        .join(', ');
+      let text: string;
 
-      await navigator.clipboard.writeText(bundleNames);
+      if (activeModel === 'ltx') {
+        text = availableLoRAs
+          .map(path => path.split(/[/\\]/).pop()?.replace(/\.\w+$/, '') || path)
+          .sort()
+          .join(', ');
+      } else {
+        text = availableBundles
+          .map(bundle => bundle.displayName)
+          .sort()
+          .join(', ');
+      }
+
+      await navigator.clipboard.writeText(text);
       setCopySuccess(true);
-      log.info('Bundle names copied to clipboard', { bundleNames });
 
       setTimeout(() => {
         setCopySuccess(false);
       }, 2000);
     } catch (error) {
-      log.error('Failed to copy bundle names', { error: error instanceof Error ? error.message : String(error) });
-      alert('번들명 복사에 실패했습니다.');
+      log.error('Failed to copy LoRA names', { error: error instanceof Error ? error.message : String(error) });
+      alert('복사에 실패했습니다.');
     }
   };
 
@@ -252,7 +260,7 @@ export function LoRAPresetManager({
           onPresetDelete={deletePreset}
           onNewPreset={startNewPreset}
           onRefresh={() => fetchAvailableLoRAs(true)}
-          onCopyBundleNames={copyBundleNames}
+          onCopyBundleNames={copyLoRANames}
           copySuccess={copySuccess}
           onDragEnd={handleDragEnd}
           isLoRAAvailable={isLoRAAvailable}

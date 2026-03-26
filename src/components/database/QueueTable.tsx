@@ -89,7 +89,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   {request.loraPresetData && (
                     <div>
                       <span className="font-medium">LoRA 프리셋:</span>
-                      <LoRAPresetDisplay loraPresetData={request.loraPresetData} />
+                      <LoRAPresetDisplay loraPresetData={request.loraPresetData} videoModel={request.videoModel as string} />
                     </div>
                   )}
 
