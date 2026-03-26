@@ -142,7 +142,7 @@ async function checkNginxStatus(): Promise<ServiceStatus> {
 
 async function checkDatabaseStatus(): Promise<ServiceStatus> {
   try {
-    const dbPath = process.env.DATABASE_URL || ''.replace('file:', '');
+    const dbPath = (process.env.DATABASE_URL || '').replace('file:', '');
     const stats = await fs.stat(dbPath);
 
     return {
