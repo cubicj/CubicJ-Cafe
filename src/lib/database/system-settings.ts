@@ -118,6 +118,10 @@ export interface LtxSettings {
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
+  vfiCheckpoint: string;
+  vfiClearCache: number;
+  vfiMultiplier: number;
+  videoCrf: number;
   negativePrompt: string;
 }
 
@@ -179,6 +183,10 @@ const LTX_KEYS = {
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
+  vfiCheckpoint: 'ltx.vfi_checkpoint',
+  vfiClearCache: 'ltx.vfi_clear_cache',
+  vfiMultiplier: 'ltx.vfi_multiplier',
+  videoCrf: 'ltx.video_crf',
   negativePrompt: 'ltx.negative_prompt',
 } as const;
 
@@ -271,6 +279,10 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     rtxResizeType: map.get(LTX_KEYS.rtxResizeType)!,
     rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
     rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
+    vfiCheckpoint: map.get(LTX_KEYS.vfiCheckpoint)!,
+    vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
+    vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
+    videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),
     negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
   };
 }

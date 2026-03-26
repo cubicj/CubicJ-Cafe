@@ -2,7 +2,7 @@
 
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
-type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes';
+type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'vfiCheckpoints';
 
 const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.unet', label: 'UNet 모델', type: 'model', group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
@@ -23,9 +23,13 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'ltx.sigmas', label: 'Sigmas', type: 'string', group: 'Sigma' },
   { key: 'ltx.audio_norm', label: 'Audio Normalization', type: 'string', group: 'Audio' },
+  { key: 'ltx.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: 'VFI', modelCategory: 'vfiCheckpoints' as ModelCategory },
+  { key: 'ltx.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
+  { key: 'ltx.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
   { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
   { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
+  { key: 'ltx.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
 ];
 

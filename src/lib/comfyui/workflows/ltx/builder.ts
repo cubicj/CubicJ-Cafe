@@ -76,6 +76,18 @@ export async function buildLtxWorkflow(
     workflow['322'].inputs.quality = settings.rtxQuality
   }
 
+  if (workflow['337']?.inputs) {
+    workflow['337'].inputs.ckpt_name = settings.vfiCheckpoint
+    workflow['337'].inputs.clear_cache_after_n_frames = settings.vfiClearCache
+  }
+  if (workflow['339']?.inputs) {
+    workflow['339'].inputs.value = settings.vfiMultiplier
+  }
+
+  if (workflow['319']?.inputs) {
+    workflow['319'].inputs.crf = settings.videoCrf
+  }
+
   if (workflow['87']?.inputs) {
     workflow['87'].inputs.image = params.inputImage
   }

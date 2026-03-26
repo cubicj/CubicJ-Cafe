@@ -35,13 +35,6 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "LTX_06" }
   },
-  "10": {
-    "inputs": {
-      "value": ["101", 0]
-    },
-    "class_type": "PrimitiveInt",
-    "_meta": { "title": "LTX_10" }
-  },
   "11": {
     "inputs": {
       "value": 0
@@ -58,7 +51,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "13": {
     "inputs": {
-      "frames_number": ["10", 0],
+      "frames_number": ["101", 0],
       "frame_rate": ["11", 0],
       "batch_size": 1,
       "audio_vae": ["1", 0]
@@ -187,7 +180,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "width": ["86", 1],
       "height": ["86", 2],
-      "length": ["10", 0],
+      "length": ["101", 0],
       "batch_size": 1
     },
     "class_type": "EmptyLTXVLatentVideo",
@@ -276,12 +269,12 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "319": {
     "inputs": {
-      "frame_rate": ["12", 0],
+      "frame_rate": ["340", 1],
       "loop_count": 0,
       "filename_prefix": "PLACEHOLDER",
       "format": "video/h264-mp4",
       "pix_fmt": "yuv420p",
-      "crf": 20,
+      "crf": 0,
       "save_metadata": false,
       "trim_to_audio": false,
       "pingpong": false,
@@ -305,7 +298,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "resize_type": "PLACEHOLDER",
       "resize_type.scale": 0,
       "quality": "PLACEHOLDER",
-      "images": ["333", 0]
+      "images": ["337", 0]
     },
     "class_type": "RTXVideoSuperResolution",
     "_meta": { "title": "LTX_322" }
@@ -342,5 +335,41 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     "class_type": "ManualSigmas",
     "_meta": { "title": "LTX_335" }
+  },
+  "336": {
+    "inputs": {
+      "empty_cache": true,
+      "gc_collect": true,
+      "unload_all_models": true,
+      "image_pass": ["333", 0]
+    },
+    "class_type": "VRAM_Debug",
+    "_meta": { "title": "LTX_336" }
+  },
+  "337": {
+    "inputs": {
+      "ckpt_name": "PLACEHOLDER",
+      "clear_cache_after_n_frames": 0,
+      "multiplier": ["339", 0],
+      "frames": ["336", 1]
+    },
+    "class_type": "GMFSS Fortuna VFI",
+    "_meta": { "title": "LTX_337" }
+  },
+  "339": {
+    "inputs": {
+      "value": 0
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": { "title": "LTX_339" }
+  },
+  "340": {
+    "inputs": {
+      "expression": "a * b",
+      "a": ["11", 0],
+      "b": ["339", 0]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": { "title": "LTX_340" }
   }
 }

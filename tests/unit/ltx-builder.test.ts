@@ -3,26 +3,30 @@ import { vi } from 'vitest'
 vi.mock('@/lib/database/system-settings', () => ({
   getLtxSettings: vi.fn().mockResolvedValue({
     unet: 'test-unet.safetensors',
-    weightDtype: 'default',
+    weightDtype: 'fp8',
     clipGguf: 'test-clip.gguf',
     clipEmbeddings: 'test-embeddings.safetensors',
     audioVae: 'test-audio-vae.safetensors',
     videoVae: 'test-video-vae.safetensors',
     loraEnabled: true,
     sampler: 'test_sampler',
-    sigmas: '1.0, 0.9, 0.8, 0.7, 0.975, 0.6, 0.725, 0.3, 0.0',
+    sigmas: '1.0, 0.5, 0.0',
     audioNorm: '1,1,1',
     nagScale: 5,
     nagAlpha: 0.3,
     nagTau: 1.5,
-    duration: 5,
+    duration: 4,
     frameRate: 16,
     megapixels: 0.5,
-    resizeMultipleOf: 32,
-    resizeUpscaleMethod: 'lanczos',
-    rtxResizeType: 'scale by multiplier',
-    rtxScale: 2,
-    rtxQuality: 'ULTRA',
+    resizeMultipleOf: 64,
+    resizeUpscaleMethod: 'bilinear',
+    rtxResizeType: 'fixed resolution',
+    rtxScale: 1.5,
+    rtxQuality: 'HIGH',
+    vfiCheckpoint: 'test-vfi-checkpoint',
+    vfiClearCache: 100,
+    vfiMultiplier: 2,
+    videoCrf: 20,
     negativePrompt: 'test negative prompt',
   }),
 }))
@@ -131,7 +135,7 @@ describe('buildLtxWorkflow', () => {
     it('injects model names into correct nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['297']!.inputs!.unet_name).toBe('test-unet.safetensors')
-      expect(workflow['297']!.inputs!.weight_dtype).toBe('default')
+      expect(workflow['297']!.inputs!.weight_dtype).toBe('fp8')
       expect(workflow['47']!.inputs!.clip_name1).toBe('test-clip.gguf')
       expect(workflow['47']!.inputs!.clip_name2).toBe('test-embeddings.safetensors')
       expect(workflow['1']!.inputs!.vae_name).toBe('test-audio-vae.safetensors')
@@ -145,9 +149,9 @@ describe('buildLtxWorkflow', () => {
 
     it('injects NAG settings into node 72', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['72']!.inputs!.nag_scale).toBe(9)
-      expect(workflow['72']!.inputs!.nag_alpha).toBe(0.25)
-      expect(workflow['72']!.inputs!.nag_tau).toBe(2.5)
+      expect(workflow['72']!.inputs!.nag_scale).toBe(5)
+      expect(workflow['72']!.inputs!.nag_alpha).toBe(0.3)
+      expect(workflow['72']!.inputs!.nag_tau).toBe(1.5)
     })
 
     it('injects sampler into node 20', async () => {
@@ -157,7 +161,7 @@ describe('buildLtxWorkflow', () => {
 
     it('injects sigmas into node 335', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['335']!.inputs!.sigmas).toContain('1.0')
+      expect(workflow['335']!.inputs!.sigmas).toBe('1.0, 0.5, 0.0')
     })
 
     it('injects audio normalization into node 317', async () => {
@@ -167,37 +171,61 @@ describe('buildLtxWorkflow', () => {
 
     it('injects duration into node 103', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['103']!.inputs!.value).toBe(5)
+      expect(workflow['103']!.inputs!.value).toBe(4)
     })
 
     it('injects frame rate with INT and FLOAT variants', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['11']!.inputs!.value).toBe(24)
-      expect(workflow['12']!.inputs!.value).toBe(24)
+      expect(workflow['11']!.inputs!.value).toBe(16)
+      expect(workflow['12']!.inputs!.value).toBe(16)
     })
 
     it('injects resize settings into node 86', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['86']!.inputs!.megapixels).toBe(0.66)
-      expect(workflow['86']!.inputs!.multiple_of).toBe(32)
-      expect(workflow['86']!.inputs!.upscale_method).toBe('lanczos')
+      expect(workflow['86']!.inputs!.megapixels).toBe(0.5)
+      expect(workflow['86']!.inputs!.multiple_of).toBe(64)
+      expect(workflow['86']!.inputs!.upscale_method).toBe('bilinear')
     })
 
     it('injects RTX settings into node 322', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['322']!.inputs!.resize_type).toBe('scale by multiplier')
-      expect(workflow['322']!.inputs!['resize_type.scale']).toBe(2)
-      expect(workflow['322']!.inputs!.quality).toBe('ULTRA')
+      expect(workflow['322']!.inputs!.resize_type).toBe('fixed resolution')
+      expect(workflow['322']!.inputs!['resize_type.scale']).toBe(1.5)
+      expect(workflow['322']!.inputs!.quality).toBe('HIGH')
+    })
+
+    it('injects VFI settings into nodes 337/339', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['337']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
+      expect(workflow['337']!.inputs!.clear_cache_after_n_frames).toBe(100)
+      expect(workflow['339']!.inputs!.value).toBe(2)
+    })
+
+    it('injects CRF into node 319', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['319']!.inputs!.crf).toBe(20)
     })
   })
 
   describe('structural integrity', () => {
-    it('preserves all critical nodes', async () => {
+    it('preserves all critical nodes including VFI pipeline', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      const criticalNodes = ['1', '2', '5', '6', '11', '12', '16', '20', '47', '72', '86', '87', '103', '265', '297', '317', '319', '322', '335']
+      const criticalNodes = ['1', '2', '5', '6', '11', '12', '16', '20', '47', '72', '86', '87', '103', '265', '297', '317', '319', '322', '335', '336', '337', '339', '340']
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
       }
+    })
+
+    it('connects VFI pipeline correctly: VAEDecode → VRAM → VFI → RTX', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['336']!.inputs!.image_pass).toEqual(['333', 0])
+      expect(workflow['337']!.inputs!.frames).toEqual(['336', 1])
+      expect(workflow['322']!.inputs!.images).toEqual(['337', 0])
+    })
+
+    it('connects VideoCombine frame_rate to VFI math expression', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['319']!.inputs!.frame_rate).toEqual(['340', 1])
     })
   })
 })
