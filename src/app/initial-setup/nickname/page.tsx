@@ -108,7 +108,7 @@ export default function NicknameSetupPage() {
 
     try {
       await apiClient.post('/api/setup/nickname', { nickname: nickname.trim() });
-      router.push('/');
+      window.location.href = '/';
     } catch (error) {
       if (error instanceof ApiError) {
         setError(error.errorMessage || '닉네임 설정에 실패했습니다.');
