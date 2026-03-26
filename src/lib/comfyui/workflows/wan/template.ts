@@ -138,7 +138,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "nag_alpha": 0,
       "nag_tau": 0,
       "input_type": "default",
-      "model": ["9", 0],
+      "model": ["66", 0],
       "conditioning": ["28", 0]
     },
     "class_type": "WanVideoNAG",
@@ -150,28 +150,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "nag_alpha": 0,
       "nag_tau": 0,
       "input_type": "default",
-      "model": ["22", 0],
+      "model": ["65", 0],
       "conditioning": ["24", 0]
     },
     "class_type": "WanVideoNAG",
     "_meta": { "title": "WAN_20" }
-  },
-  "21": {
-    "inputs": {
-      "frame_rate": 0,
-      "loop_count": 0,
-      "filename_prefix": "PLACEHOLDER",
-      "format": "PLACEHOLDER",
-      "pix_fmt": "PLACEHOLDER",
-      "crf": 0,
-      "save_metadata": false,
-      "trim_to_audio": false,
-      "pingpong": false,
-      "save_output": false,
-      "images": ["42", 0]
-    },
-    "class_type": "VHS_VideoCombine",
-    "_meta": { "title": "WAN_21" }
   },
   "22": {
     "inputs": {
@@ -184,7 +167,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   "23": {
     "inputs": {
       "text": ["10", 0],
-      "clip": ["13", 0]
+      "clip": ["65", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "WAN_23" }
@@ -192,7 +175,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   "24": {
     "inputs": {
       "text": ["41", 0],
-      "clip": ["13", 0]
+      "clip": ["65", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "WAN_24" }
@@ -217,7 +200,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   "27": {
     "inputs": {
       "text": ["10", 0],
-      "clip": ["13", 0]
+      "clip": ["66", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "WAN_27" }
@@ -225,7 +208,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   "28": {
     "inputs": {
       "text": ["41", 0],
-      "clip": ["13", 0]
+      "clip": ["66", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "WAN_28" }
@@ -374,9 +357,60 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "empty_cache": true,
       "gc_collect": true,
       "unload_all_models": true,
-      "any_input": ["21", 0]
+      "any_input": ["64", 0]
     },
     "class_type": "VRAM_Debug",
     "_meta": { "title": "WAN_63" }
+  },
+  "64": {
+    "inputs": {
+      "frame_rate": 0,
+      "loop_count": 0,
+      "filename_prefix": "PLACEHOLDER",
+      "format": "PLACEHOLDER",
+      "pix_fmt": "PLACEHOLDER",
+      "crf": 0,
+      "save_metadata": false,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": false,
+      "images": ["42", 0]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": { "title": "WAN_64" }
+  },
+  "65": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "lora_1": {
+        "on": true,
+        "lora": "PLACEHOLDER",
+        "strength": 1
+      },
+      "➕ Add Lora": "",
+      "model": ["22", 0],
+      "clip": ["13", 0]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": { "title": "WAN_65" }
+  },
+  "66": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "lora_1": {
+        "on": true,
+        "lora": "PLACEHOLDER",
+        "strength": 1
+      },
+      "➕ Add Lora": "",
+      "model": ["9", 0],
+      "clip": ["13", 0]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": { "title": "WAN_66" }
   }
 }
