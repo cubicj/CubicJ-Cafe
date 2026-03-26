@@ -64,9 +64,10 @@ export function SortableHeader({ field, sort, onSort, children, className = "" }
   );
 }
 
-export function LoRAPresetDisplay({ loraPresetData }: { loraPresetData: string }) {
+export function LoRAPresetDisplay({ loraPresetData, videoModel }: { loraPresetData: string; videoModel?: string }) {
   try {
     const presetData = JSON.parse(loraPresetData);
+    const showGroup = videoModel !== 'ltx';
     return (
       <div className="mt-1 p-2 bg-background rounded">
         {presetData.presetName && (
@@ -80,7 +81,7 @@ export function LoRAPresetDisplay({ loraPresetData }: { loraPresetData: string }
                 <div key={index} className="text-xs p-1 bg-muted rounded border">
                   <div className="font-medium">{displayName}</div>
                   <div className="text-muted-foreground">
-                    강도: {item.strength} | 그룹: <span className={item.group === 'HIGH' ? 'text-blue-600' : 'text-green-600'}>{item.group}</span>
+                    강도: {item.strength}{showGroup && (<> | 그룹: <span className={item.group === 'HIGH' ? 'text-blue-600' : 'text-green-600'}>{item.group}</span></>)}
                   </div>
                 </div>
               );
