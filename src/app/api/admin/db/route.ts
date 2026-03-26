@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database/prisma';
 import { createRouteHandler } from '@/lib/api/route-handler';
-
-const prisma = new PrismaClient();
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
