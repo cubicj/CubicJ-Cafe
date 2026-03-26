@@ -4,11 +4,15 @@ import type { ModelListResponse } from './client-types'
 const log = createLogger('comfyui')
 
 function extractOptions(data: unknown[]): string[] {
-  if (Array.isArray(data[0])) return data[0]
-  if (typeof data[0] === 'string' && data[1] && typeof data[1] === 'object' && 'options' in data[1]) {
-    return (data[1] as { options: string[] }).options
+  let raw: unknown[]
+  if (Array.isArray(data[0])) {
+    raw = data[0]
+  } else if (typeof data[0] === 'string' && data[1] && typeof data[1] === 'object' && 'options' in data[1]) {
+    raw = (data[1] as { options: unknown[] }).options
+  } else {
+    raw = data
   }
-  return data.filter((item): item is string => typeof item === 'string')
+  return raw.filter((item): item is string => typeof item === 'string')
 }
 
 const LORA_NODE_NAMES = [
@@ -36,8 +40,8 @@ function findNodeOptions(
   fieldName: string
 ): string[] | null {
   for (const nodeName of nodeNames) {
-    const node = objectInfo?.[nodeName] as { input?: { required?: Record<string, unknown[]> } }
-    const fieldData = node?.input?.required?.[fieldName]
+    const node = objectInfo?.[nodeName] as { input?: { required?: Record<string, unknown[]>; optional?: Record<string, unknown[]> } }
+    const fieldData = node?.input?.required?.[fieldName] ?? node?.input?.optional?.[fieldName]
     if (fieldData) {
       return extractOptions(fieldData)
     }
@@ -119,6 +123,22 @@ function extractModels(objectInfo: Record<string, unknown>): ModelListResponse {
     if (options) result[key] = options
   }
 
+  return result
+}
+
+export type NodeOptionsRequest = Array<{ id: string; nodeName: string; fieldName: string }>
+
+export type NodeOptionsResponse = Record<string, string[]>
+
+function extractNodeOptions(
+  objectInfo: Record<string, unknown>,
+  requests: NodeOptionsRequest
+): NodeOptionsResponse {
+  const result: NodeOptionsResponse = {}
+  for (const { id, nodeName, fieldName } of requests) {
+    const options = findNodeOptions(objectInfo, [nodeName], fieldName)
+    result[id] = options?.sort() ?? []
+  }
   return result
 }
 
@@ -252,6 +272,18 @@ export class ComfyUIModelManager {
     } catch (error) {
       log.error('Failed to fetch model list', { error: error instanceof Error ? error.message : String(error) })
       return { diffusionModels: [], textEncoders: [], vaes: [], upscaleModels: [], clipVisions: [], ggufClips: [], clipEmbeddings: [], kjVaes: [], latentUpscalers: [], vfiCheckpoints: [] }
+    }
+  }
+
+  async getNodeOptions(requests: NodeOptionsRequest): Promise<NodeOptionsResponse> {
+    try {
+      const objectInfo = await this.getObjectInfoWithRunpodFallback()
+      return extractNodeOptions(objectInfo.data, requests)
+    } catch (error) {
+      log.error('Failed to fetch node options', { error: error instanceof Error ? error.message : String(error) })
+      const result: NodeOptionsResponse = {}
+      for (const { id } of requests) result[id] = []
+      return result
     }
   }
 

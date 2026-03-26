@@ -35,9 +35,11 @@ interface ModelsResponse {
   models: Record<string, string[]>;
 }
 
-type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes';
+interface NodeOptionsResponse {
+  options: Record<string, string[]>;
+}
 
-const SAMPLER_KEYS = ['ltx.sampler'] as const;
+type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes';
 
 const LTX_FIELDS = [
   { key: 'ltx.unet', label: 'UNet 모델', type: 'model' as const, group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
@@ -55,51 +57,52 @@ const LTX_FIELDS = [
   { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number' as const, step: 1, group: '생성' },
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number' as const, step: 0.01, group: '생성' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number' as const, step: 1, group: '생성' },
-  { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'string' as const, group: '생성' },
+  { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption' as const, group: '생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'ltx.sigmas', label: 'Sigmas', type: 'string' as const, group: 'Sigma' },
   { key: 'ltx.audio_norm', label: 'Audio Normalization', type: 'string' as const, group: 'Audio' },
-  { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'string' as const, group: 'RTX' },
+  { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'nodeOption' as const, group: 'RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number' as const, step: 0.1, group: 'RTX' },
-  { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'string' as const, group: 'RTX' },
+  { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'nodeOption' as const, group: 'RTX', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea' as const, group: '프롬프트' },
 ];
 
-let samplerCache: string[] | null = null;
-let modelCache: Record<string, string[]> | null = null;
+let dropdownCache: { samplers: string[]; models: Record<string, string[]>; nodeOptions: Record<string, string[]> } | null = null;
 
 export default function LtxSettingsTab() {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [samplers, setSamplers] = useState<string[]>(samplerCache ?? []);
-  const [models, setModels] = useState<Record<string, string[]>>(modelCache ?? {});
+  const [samplers, setSamplers] = useState<string[]>(dropdownCache?.samplers ?? []);
+  const [models, setModels] = useState<Record<string, string[]>>(dropdownCache?.models ?? {});
+  const [nodeOptions, setNodeOptions] = useState<Record<string, string[]>>(dropdownCache?.nodeOptions ?? {});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [samplerLoading, setSamplerLoading] = useState(false);
-  const [modelLoading, setModelLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchSamplers = async () => {
-    setSamplerLoading(true);
+  const fetchAllDropdowns = async () => {
+    setRefreshing(true);
     try {
-      const data = await apiClient.get<SamplersResponse>('/api/admin/comfyui/samplers');
-      samplerCache = data.samplers;
-      setSamplers(data.samplers);
+      const nodeQueries = LTX_FIELDS
+        .filter((f): f is typeof f & { nodeQuery: string } => f.type === 'nodeOption' && 'nodeQuery' in f)
+        .map((f) => f.nodeQuery);
+
+      const [samplerData, modelData, nodeData] = await Promise.all([
+        apiClient.get<SamplersResponse>('/api/admin/comfyui/samplers'),
+        apiClient.get<ModelsResponse>('/api/admin/comfyui/models'),
+        apiClient.get<NodeOptionsResponse>(
+          `/api/admin/comfyui/node-options?q=${encodeURIComponent(nodeQueries.join(','))}`
+        ),
+      ]);
+
+      dropdownCache = { samplers: samplerData.samplers, models: modelData.models, nodeOptions: nodeData.options };
+      setSamplers(samplerData.samplers);
+      setModels(modelData.models);
+      setNodeOptions(nodeData.options);
     } catch {
       setSamplers([]);
-    } finally {
-      setSamplerLoading(false);
-    }
-  };
-
-  const fetchModels = async () => {
-    setModelLoading(true);
-    try {
-      const data = await apiClient.get<ModelsResponse>('/api/admin/comfyui/models');
-      modelCache = data.models;
-      setModels(data.models);
-    } catch {
       setModels({});
+      setNodeOptions({});
     } finally {
-      setModelLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -133,7 +136,7 @@ export default function LtxSettingsTab() {
       const settings = LTX_FIELDS.map((field) => ({
         key: field.key,
         value: String(values[field.key] ?? ''),
-        type: field.type === 'sampler' || field.type === 'model' || field.type === 'textarea' ? 'string' : field.type,
+        type: field.type === 'sampler' || field.type === 'model' || field.type === 'textarea' || field.type === 'nodeOption' ? 'string' : field.type,
         category: 'ltx',
       }));
       await apiClient.put('/api/admin/settings', { settings });
@@ -162,12 +165,22 @@ export default function LtxSettingsTab() {
   }
 
   const groups = [...new Set(LTX_FIELDS.map((f) => f.group))];
-  const isFirstModel = (field: typeof LTX_FIELDS[number]) =>
-    field.type === 'model' && LTX_FIELDS.find((f) => f.type === 'model')?.key === field.key;
 
   return (
     <Card className="p-6 space-y-6">
-      <h3 className="text-lg font-semibold">LTX 2.3 설정</h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">LTX 2.3 설정</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={fetchAllDropdowns}
+          disabled={refreshing}
+          title="ComfyUI에서 드롭다운 옵션 불러오기"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
 
       {message && (
         <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
@@ -193,24 +206,10 @@ export default function LtxSettingsTab() {
               }
 
               if (field.type === 'model') {
-                const category = field.modelCategory;
-                const options = models[category] ?? [];
+                const options = models[field.modelCategory] ?? [];
                 return (
                   <div key={field.key} className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Label>{field.label}</Label>
-                      {isFirstModel(field) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={fetchModels}
-                          disabled={modelLoading}
-                        >
-                          <RefreshCw className={`h-3.5 w-3.5 ${modelLoading ? 'animate-spin' : ''}`} />
-                        </Button>
-                      )}
-                    </div>
+                    <Label>{field.label}</Label>
                     {options.length > 0 ? (
                       <Select
                         value={values[field.key] || undefined}
@@ -243,20 +242,7 @@ export default function LtxSettingsTab() {
               if (field.type === 'sampler') {
                 return (
                   <div key={field.key} className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Label>{field.label}</Label>
-                      {field.key === SAMPLER_KEYS[0] && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={fetchSamplers}
-                          disabled={samplerLoading}
-                        >
-                          <RefreshCw className={`h-3.5 w-3.5 ${samplerLoading ? 'animate-spin' : ''}`} />
-                        </Button>
-                      )}
-                    </div>
+                    <Label>{field.label}</Label>
                     {samplers.length > 0 ? (
                       <Select
                         value={values[field.key] || undefined}
@@ -275,7 +261,6 @@ export default function LtxSettingsTab() {
                       </Select>
                     ) : (
                       <Input
-                        type="text"
                         value={values[field.key] ?? ''}
                         onChange={(e) => handleChange(field.key, e.target.value)}
                         placeholder="새로고침으로 목록 불러오기"
@@ -294,6 +279,38 @@ export default function LtxSettingsTab() {
                       onChange={(e) => handleChange(field.key, e.target.value)}
                       rows={3}
                     />
+                  </div>
+                );
+              }
+
+              if (field.type === 'nodeOption') {
+                const optionId = field.nodeQuery.split(':')[0];
+                const options = nodeOptions[optionId] ?? [];
+                return (
+                  <div key={field.key} className="space-y-1">
+                    <Label>{field.label}</Label>
+                    {options.length > 0 ? (
+                      <Select
+                        value={values[field.key] || undefined}
+                        onValueChange={(v) => handleChange(field.key, v)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((o) => (
+                            <SelectItem key={o} value={o}>{o}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={values[field.key] ?? ''}
+                        onChange={(e) => handleChange(field.key, e.target.value)}
+                        placeholder="새로고침으로 목록 불러오기"
+                      />
+                    )}
                   </div>
                 );
               }
