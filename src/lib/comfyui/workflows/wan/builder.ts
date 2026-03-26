@@ -4,6 +4,7 @@ import type { WanGenerationParams } from '../types'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
+import { generateSeed, extractBaseImageName } from '../shared'
 
 const log = createLogger('comfyui')
 
@@ -129,13 +130,12 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
 
   // Seed
   if (workflow['3']?.inputs) {
-    workflow['3'].inputs.noise_seed = Math.floor(Math.random() * 0xFFFFFFFFFFFF)
+    workflow['3'].inputs.noise_seed = generateSeed()
   }
 
   // Filename
   if (workflow['21'] && params.inputImage) {
-    const baseImageName = params.inputImage.replace(/\.(png|jpg|jpeg|webp)$/i, '')
-    workflow['21'].inputs.filename_prefix = `WAN/${baseImageName}`
+    workflow['21'].inputs.filename_prefix = `WAN/${extractBaseImageName(params.inputImage)}`
   }
 
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {

@@ -213,7 +213,8 @@ export class QueueService {
         },
         data: updates
       });
-    } catch {
+    } catch (error) {
+      log.debug('updateRequestIfPending: request not in PENDING state or not found', { requestId, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

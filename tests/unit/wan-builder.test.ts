@@ -94,4 +94,62 @@ describe('buildWanWorkflow', () => {
     expect(workflow['31']!.inputs!.end_image).toBeUndefined()
   })
 
+  describe('settings injection', () => {
+    it('injects negative prompt into node 41', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['41']!.inputs!.text).toBe('test negative prompt')
+    })
+
+    it('injects NAG settings into both pass nodes', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['20']!.inputs!.nag_scale).toBe(7)
+      expect(workflow['19']!.inputs!.nag_scale).toBe(7)
+    })
+
+    it('injects megapixels into resize node', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['25']!.inputs!.megapixels).toBe(0.66)
+    })
+
+    it('injects shift into both ModelSamplingSD3 nodes', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['32']!.inputs!.shift).toBe(5)
+      expect(workflow['33']!.inputs!.shift).toBe(5)
+    })
+
+    it('injects steps into CustomSplineSigma nodes', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['52']!.inputs!.steps).toBe(3)
+      expect(workflow['53']!.inputs!.steps).toBe(3)
+    })
+
+    it('injects sampler into node 14', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      expect(workflow['14']!.inputs!.sampler_name).toBe('euler')
+    })
+
+    it('injects frame length into WanFirstLastFrameToVideo nodes', async () => {
+      const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
+      const workflow = await buildWanWorkflow(params)
+      expect(workflow['31']!.inputs!.length).toBe(121)
+      expect(workflow['30']!.inputs!.length).toBe(121)
+    })
+  })
+
+  describe('structural integrity', () => {
+    it('preserves all critical nodes in start-only mode', async () => {
+      const workflow = await buildWanWorkflow(baseParams)
+      const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '21', '25', '26', '30', '31', '32', '33', '41', '42', '52', '53']
+      for (const nodeId of criticalNodes) {
+        expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
+      }
+    })
+
+    it('preserves end image nodes in start+end mode', async () => {
+      const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
+      const workflow = await buildWanWorkflow(params)
+      expect(workflow['11']).toBeDefined()
+      expect(workflow['18']).toBeDefined()
+    })
+  })
 })
