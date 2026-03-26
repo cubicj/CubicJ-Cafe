@@ -72,7 +72,7 @@ const nextConfig: NextConfig = {
   },
 
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['log', 'warn', 'error', 'debug'] } : false,
   },
 
   poweredByHeader: false,
