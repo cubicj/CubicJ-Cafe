@@ -187,16 +187,15 @@ export function LoRABundleManager() {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <div className="p-6">
         <p className="text-sm text-muted-foreground">번들 목록 불러오는 중...</p>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">LoRA 번들 관리</h3>
+    <div className="space-y-4">
+      <div className="flex justify-end items-center">
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -410,6 +409,6 @@ export function LoRABundleManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

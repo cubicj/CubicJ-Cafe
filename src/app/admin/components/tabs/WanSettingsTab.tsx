@@ -58,7 +58,7 @@ const loraBundleButton = (
         LoRA 번들
       </Button>
     </DialogTrigger>
-    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    <DialogContent className="w-[80vw] h-[90vh] max-w-[80vw] sm:max-w-[80vw] overflow-y-auto flex flex-col items-stretch justify-start">
       <DialogHeader>
         <DialogTitle>LoRA 번들 관리</DialogTitle>
       </DialogHeader>
