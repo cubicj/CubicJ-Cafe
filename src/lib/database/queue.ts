@@ -26,9 +26,9 @@ export interface QueueRequestData {
   nickname: string;
   prompt: string;
   imageFile?: string;
-  imageBlob?: Buffer;
+  imageBlob?: Uint8Array;
   endImageFile?: string;
-  endImageBlob?: Buffer;
+  endImageBlob?: Uint8Array;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
   serverType?: ServerType;
@@ -95,14 +95,14 @@ export class QueueService {
 
     const nextPosition = await QueueService.getNextPosition();
 
-    const requestData = {
+    const requestData: Parameters<typeof prisma.queueRequest.create>[0]['data'] = {
       userId: data.userId,
       nickname: data.nickname,
       prompt: data.prompt,
       imageFile: data.imageFile,
-      imageBlob: data.imageBlob,
+      imageBlob: data.imageBlob as Uint8Array<ArrayBuffer> | undefined,
       endImageFile: data.endImageFile,
-      endImageBlob: data.endImageBlob,
+      endImageBlob: data.endImageBlob as Uint8Array<ArrayBuffer> | undefined,
       loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
       isNSFW: data.isNSFW || false,
       serverType: data.serverType,

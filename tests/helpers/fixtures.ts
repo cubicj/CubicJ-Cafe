@@ -38,8 +38,8 @@ export async function createQueueRequest(userId: number, overrides?: {
   position?: number
   videoModel?: string
   nickname?: string
-  imageBlob?: Buffer
-  endImageBlob?: Buffer
+  imageBlob?: Uint8Array
+  endImageBlob?: Uint8Array
 }) {
   const request = await prisma.queueRequest.create({
     data: {
@@ -49,8 +49,8 @@ export async function createQueueRequest(userId: number, overrides?: {
       status: overrides?.status || QueueStatus.PENDING,
       position: overrides?.position || 1,
       videoModel: overrides?.videoModel || 'wan',
-      imageBlob: overrides?.imageBlob,
-      endImageBlob: overrides?.endImageBlob,
+      ...(overrides?.imageBlob && { imageBlob: new Uint8Array(overrides.imageBlob) }),
+      ...(overrides?.endImageBlob && { endImageBlob: new Uint8Array(overrides.endImageBlob) }),
     },
   })
   QueueService.invalidateCache()
