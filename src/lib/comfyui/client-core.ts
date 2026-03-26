@@ -197,6 +197,10 @@ export class ComfyUIClient {
     return this.modelManager.getModelList()
   }
 
+  async getNodeOptions(requests: import('./client-model-manager').NodeOptionsRequest): Promise<import('./client-model-manager').NodeOptionsResponse> {
+    return this.modelManager.getNodeOptions(requests)
+  }
+
   async uploadImage(file: File): Promise<string> {
     return this.mediaManager.uploadImage(file)
   }
