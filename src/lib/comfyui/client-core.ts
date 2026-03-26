@@ -1,5 +1,6 @@
 import type { ComfyUIWorkflow, ComfyUIResponse } from '@/types'
 import { createLogger } from '@/lib/logger'
+import { comfyuiFetch } from './client-http'
 
 const log = createLogger('comfyui')
 import type { ComfyUIPromptRequest, ComfyUIQueueResponse, ComfyUIQueueStatus, ComfyUIHistoryResponse, DownloadedMedia, ModelListResponse } from './client-types'
@@ -52,55 +53,14 @@ export class ComfyUIClient {
     retries = 0
   ): Promise<T> {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-
-      const headers: Record<string, string> = { ...options.headers as Record<string, string> }
-      if (!(options.body instanceof FormData)) {
-        headers['Content-Type'] = 'application/json'
-      }
-
-      const fullUrl = `${this.baseURL}${endpoint}`
-      
-      const response = await fetch(fullUrl, {
-        ...options,
-        signal: controller.signal,
-        headers,
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(
-          `ComfyUI API 오류: ${response.status} ${response.statusText}`
-        )
-      }
-
-      const responseText = await response.text()
-      if (!responseText || responseText.trim() === '') {
-        throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
-      }
-
-      try {
-        return JSON.parse(responseText)
-      } catch (parseError) {
-        log.error('ComfyUI JSON parse error', {
-          responseText: responseText.substring(0, 200),
-          error: parseError instanceof Error ? parseError.message : String(parseError)
-        })
-        throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
-      }
+      return await comfyuiFetch<T>(this.baseURL, endpoint, options, this.timeout)
     } catch (error) {
       if (retries < this.maxRetries) {
-        await this.delay(1000 * (retries + 1))
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)))
         return this.makeRequest<T>(endpoint, options, retries + 1)
       }
       throw error
     }
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   async submitPrompt(workflow: ComfyUIWorkflow): Promise<ComfyUIResponse> {

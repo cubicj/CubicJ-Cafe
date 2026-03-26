@@ -2,9 +2,10 @@ import type { ComfyUIWorkflow } from '@/types'
 import type { ComfyUIServer } from '../../server-manager'
 import type { WanGenerationParams } from '../types'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
+import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
-import { generateSeed, extractBaseImageName } from '../shared'
+import { generateSeed, extractBaseImageName, setNode } from '../shared'
 import { applyLoraPreset, removeLoraPlaceholder } from './lora-manager'
 
 const log = createLogger('comfyui')
@@ -13,130 +14,85 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   const settings = await getWanSettings()
   const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
 
-  // Models
-  if (workflow['1']?.inputs) {
-    workflow['1'].inputs.unet_name = settings.unetHigh
-  }
-  if (workflow['2']?.inputs) {
-    workflow['2'].inputs.unet_name = settings.unetLow
-  }
-  if (workflow['13']?.inputs) {
-    workflow['13'].inputs.clip_name = settings.clip
-  }
-  if (workflow['26']?.inputs) {
-    workflow['26'].inputs.vae_name = settings.vae
-  }
-  if (workflow['62']?.inputs) {
-    workflow['62'].inputs.ckpt_name = settings.vfiCheckpoint
-    workflow['62'].inputs.clear_cache_after_n_frames = settings.vfiClearCache
-    workflow['62'].inputs.multiplier = settings.vfiMultiplier
-  }
+  setNode(workflow, WAN.UNET_HIGH, { unet_name: settings.unetHigh })
+  setNode(workflow, WAN.UNET_LOW, { unet_name: settings.unetLow })
+  setNode(workflow, WAN.CLIP, { clip_name: settings.clip })
+  setNode(workflow, WAN.VAE, { vae_name: settings.vae })
+  setNode(workflow, WAN.VFI, {
+    ckpt_name: settings.vfiCheckpoint,
+    clear_cache_after_n_frames: settings.vfiClearCache,
+    multiplier: settings.vfiMultiplier,
+  })
 
-  // Prompts
-  if (workflow['10']?.inputs) {
-    workflow['10'].inputs.text = params.prompt
-  }
-  if (workflow['41']?.inputs) {
-    workflow['41'].inputs.text = settings.negativePrompt
-  }
+  setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
+  setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
 
-  // ModelSamplingSD3 — shift
-  if (workflow['32']?.inputs) {
-    workflow['32'].inputs.shift = settings.shift
-  }
-  if (workflow['33']?.inputs) {
-    workflow['33'].inputs.shift = settings.shift
-  }
+  setNode(workflow, WAN.MODEL_SAMPLING_HIGH, { shift: settings.shift })
+  setNode(workflow, WAN.MODEL_SAMPLING_LOW_SHIFT, { shift: settings.shift })
 
-  // Resize
-  if (workflow['25']?.inputs) {
-    workflow['25'].inputs.megapixels = settings.megapixels
-    workflow['25'].inputs.multiple_of = settings.resizeMultipleOf
-    workflow['25'].inputs.upscale_method = settings.resizeUpscaleMethod
+  const resizeParams = {
+    megapixels: settings.megapixels,
+    multiple_of: settings.resizeMultipleOf,
+    upscale_method: settings.resizeUpscaleMethod,
   }
-  if (workflow['18']?.inputs) {
-    workflow['18'].inputs.megapixels = settings.megapixels
-    workflow['18'].inputs.multiple_of = settings.resizeMultipleOf
-    workflow['18'].inputs.upscale_method = settings.resizeUpscaleMethod
-  }
+  setNode(workflow, WAN.RESIZE_START_IMAGE, resizeParams)
+  setNode(workflow, WAN.RESIZE_END_IMAGE, resizeParams)
 
-  // WanVideoNAG
-  if (workflow['20']?.inputs) {
-    workflow['20'].inputs.nag_scale = settings.nagScale
-    workflow['20'].inputs.nag_alpha = settings.nagAlpha
-    workflow['20'].inputs.nag_tau = settings.nagTau
+  const nagParams = {
+    nag_scale: settings.nagScale,
+    nag_alpha: settings.nagAlpha,
+    nag_tau: settings.nagTau,
   }
-  if (workflow['19']?.inputs) {
-    workflow['19'].inputs.nag_scale = settings.nagScale
-    workflow['19'].inputs.nag_alpha = settings.nagAlpha
-    workflow['19'].inputs.nag_tau = settings.nagTau
-  }
+  setNode(workflow, WAN.NAG_HIGH, nagParams)
+  setNode(workflow, WAN.NAG_LOW, nagParams)
 
-  // CustomSplineSigma
-  if (workflow['52']?.inputs) {
-    workflow['52'].inputs.steps = settings.stepsHigh
-    workflow['52'].inputs.start_y = settings.sigmaStartYHigh
-    workflow['52'].inputs.end_y = settings.sigmaEndYHigh
-    workflow['52'].inputs.curve_data = settings.sigmaCurveData
-    workflow['52'].inputs.preset_selector = settings.sigmaPreset
-  }
-  if (workflow['53']?.inputs) {
-    workflow['53'].inputs.steps = settings.stepsLow
-    workflow['53'].inputs.start_y = settings.sigmaStartYLow
-    workflow['53'].inputs.end_y = settings.sigmaEndYLow
-    workflow['53'].inputs.curve_data = settings.sigmaCurveData
-    workflow['53'].inputs.preset_selector = settings.sigmaPreset
-  }
+  setNode(workflow, WAN.SIGMA_HIGH, {
+    steps: settings.stepsHigh,
+    start_y: settings.sigmaStartYHigh,
+    end_y: settings.sigmaEndYHigh,
+    curve_data: settings.sigmaCurveData,
+    preset_selector: settings.sigmaPreset,
+  })
+  setNode(workflow, WAN.SIGMA_LOW, {
+    steps: settings.stepsLow,
+    start_y: settings.sigmaStartYLow,
+    end_y: settings.sigmaEndYLow,
+    curve_data: settings.sigmaCurveData,
+    preset_selector: settings.sigmaPreset,
+  })
 
-  // WanFirstLastFrameToVideo — length
-  if (workflow['31']?.inputs) {
-    workflow['31'].inputs.length = settings.length
-  }
-  if (workflow['30']?.inputs) {
-    workflow['30'].inputs.length = settings.length
-  }
+  setNode(workflow, WAN.FIRST_LAST_FRAME_HIGH, { length: settings.length })
+  setNode(workflow, WAN.FIRST_LAST_FRAME_LOW, { length: settings.length })
 
-  // Sampler
-  if (workflow['14']?.inputs) {
-    workflow['14'].inputs.sampler_name = settings.sampler
-  }
+  setNode(workflow, WAN.SAMPLER, { sampler_name: settings.sampler })
 
-  // RTX Video Super Resolution
-  if (workflow['42']?.inputs) {
-    workflow['42'].inputs.resize_type = settings.rtxResizeType
-    workflow['42'].inputs['resize_type.scale'] = settings.rtxScale
-    workflow['42'].inputs.quality = settings.rtxQuality
-  }
+  setNode(workflow, WAN.RTX_SUPER_RES, {
+    resize_type: settings.rtxResizeType,
+    'resize_type.scale': settings.rtxScale,
+    quality: settings.rtxQuality,
+  })
 
-  // Video Combine
-  if (workflow['64']?.inputs) {
-    workflow['64'].inputs.frame_rate = settings.frameRate
-    workflow['64'].inputs.crf = settings.videoCrf
-    workflow['64'].inputs.format = settings.videoFormat
-    workflow['64'].inputs.pix_fmt = settings.videoPixFmt
-  }
+  setNode(workflow, WAN.VIDEO_COMBINE, {
+    frame_rate: settings.frameRate,
+    crf: settings.videoCrf,
+    format: settings.videoFormat,
+    pix_fmt: settings.videoPixFmt,
+  })
 
-  // Input images
-  if (workflow['5']?.inputs) {
-    workflow['5'].inputs.image = params.inputImage
-  }
+  setNode(workflow, WAN.LOAD_IMAGE_START, { image: params.inputImage })
 
   if (params.endImage) {
-    if (workflow['11']?.inputs) {
-      workflow['11'].inputs.image = params.endImage
-    }
+    setNode(workflow, WAN.LOAD_IMAGE_END, { image: params.endImage })
   } else {
     handleEndImageBypass(workflow)
   }
 
-  // Seed
-  if (workflow['3']?.inputs) {
-    workflow['3'].inputs.noise_seed = generateSeed()
-  }
+  setNode(workflow, WAN.NOISE_SEED, { noise_seed: generateSeed() })
 
-  // Filename
-  if (workflow['64'] && params.inputImage) {
-    workflow['64'].inputs.filename_prefix = `WAN/${extractBaseImageName(params.inputImage)}`
+  if (workflow[WAN.VIDEO_COMBINE] && params.inputImage) {
+    setNode(workflow, WAN.VIDEO_COMBINE, {
+      filename_prefix: `WAN/${extractBaseImageName(params.inputImage)}`,
+    })
   }
 
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
@@ -157,14 +113,16 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
-  delete workflow['11']
-  delete workflow['18']
+  delete workflow[WAN.LOAD_IMAGE_END]
+  delete workflow[WAN.RESIZE_END_IMAGE]
 
-  if (workflow['30']?.inputs) {
-    delete workflow['30'].inputs.end_image
+  const frameLow = workflow[WAN.FIRST_LAST_FRAME_LOW]
+  if (frameLow?.inputs) {
+    delete frameLow.inputs.end_image
   }
-  if (workflow['31']?.inputs) {
-    delete workflow['31'].inputs.end_image
+  const frameHigh = workflow[WAN.FIRST_LAST_FRAME_HIGH]
+  if (frameHigh?.inputs) {
+    delete frameHigh.inputs.end_image
   }
 
   log.info('End image bypass applied — removed end_image from WanFirstLastFrameToVideo')

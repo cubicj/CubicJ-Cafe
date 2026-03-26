@@ -2,6 +2,7 @@ import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { createLogger } from '@/lib/logger'
+import { comfyuiFetch } from './client-http'
 import type { ComfyUIHistoryResponse, DownloadedMedia } from './client-types'
 
 const log = createLogger('comfyui')
@@ -120,43 +121,6 @@ export class ComfyUIMediaManager {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-
-    const headers: Record<string, string> = { ...options.headers as Record<string, string> }
-    if (!(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json'
-    }
-
-    const fullUrl = `${this.baseURL}${endpoint}`
-
-    const response = await fetch(fullUrl, {
-      ...options,
-      signal: controller.signal,
-      headers,
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      throw new Error(
-        `ComfyUI API 오류: ${response.status} ${response.statusText}`
-      )
-    }
-
-    const responseText = await response.text()
-    if (!responseText || responseText.trim() === '') {
-      throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
-    }
-
-    try {
-      return JSON.parse(responseText)
-    } catch (parseError) {
-      log.error('ComfyUI JSON parse error', {
-        responseText: responseText.substring(0, 200),
-        error: parseError instanceof Error ? parseError.message : String(parseError)
-      })
-      throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
-    }
+    return comfyuiFetch<T>(this.baseURL, endpoint, options, this.timeout)
   }
 }
