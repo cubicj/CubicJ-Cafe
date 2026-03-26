@@ -281,7 +281,7 @@ class DiscordBot {
         title: `CubicJ Cafe I2V - ${modelDisplayName} ${params.isNSFW ? '🔞' : ''}`,
         description: `\`\`\`${params.prompt}\`\`\``,
         color: params.isNSFW ? 0xff6b6b : 0x10b981,
-        url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
+        url: process.env.APP_URL || 'https://localhost:3000'
       };
 
       const mentionText = params.discordId ? `<@${params.discordId}>` : '';
@@ -347,7 +347,7 @@ class DiscordBot {
         footer: {
           text: 'CubicJ Cafe'
         },
-        url: process.env.NEXTAUTH_URL || 'https://localhost:3000'
+        url: process.env.APP_URL || 'https://localhost:3000'
       };
 
       await channel.send({

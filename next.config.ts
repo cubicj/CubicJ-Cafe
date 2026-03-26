@@ -59,9 +59,9 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
       },
       // 동적으로 BASE URL에서 hostname 추출
-      ...(process.env.NEXTAUTH_URL ? [{
-        protocol: process.env.NEXTAUTH_URL.startsWith('https') ? 'https' as const : 'http' as const,
-        hostname: new URL(process.env.NEXTAUTH_URL).hostname,
+      ...(process.env.APP_URL ? [{
+        protocol: process.env.APP_URL.startsWith('https') ? 'https' as const : 'http' as const,
+        hostname: new URL(process.env.APP_URL).hostname,
       }] : []),
       // ComfyUI API URL에서 동적으로 hostname 추출
       ...(process.env.COMFYUI_API_URL ? [{

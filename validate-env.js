@@ -149,7 +149,7 @@ function validateEnvironment() {
   };
 
   console.log('🔐 보안 관련 환경변수:');
-  checkRequired('NEXTAUTH_URL', validators.url);
+  checkRequired('APP_URL', validators.url);
   checkRequired('NEXTAUTH_SECRET', validators.nextauthSecret);
   
   console.log('\n🎮 Discord OAuth2 설정:');

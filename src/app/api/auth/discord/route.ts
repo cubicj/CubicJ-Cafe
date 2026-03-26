@@ -8,7 +8,7 @@ export async function POST(_request: NextRequest) {
   const state = randomUUID()
 
   const clientId = process.env.DISCORD_CLIENT_ID
-  const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/callback/discord`
+  const redirectUri = `${process.env.APP_URL}/api/auth/callback/discord`
 
   const url = new URL('https://discord.com/api/oauth2/authorize')
   url.searchParams.set('client_id', clientId!)
