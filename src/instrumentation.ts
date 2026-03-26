@@ -3,8 +3,65 @@ import { createLogger } from './lib/logger';
 
 const log = createLogger('system');
 
+function validateEnv() {
+  const errors: string[] = [];
+
+  const critical = [
+    'DISCORD_CLIENT_ID',
+    'DISCORD_CLIENT_SECRET',
+    'DATABASE_URL',
+    'COMFYUI_API_URL',
+  ] as const;
+
+  for (const name of critical) {
+    if (!process.env[name]) {
+      errors.push(name);
+    }
+  }
+
+  if (!process.env.APP_URL) {
+    errors.push('APP_URL');
+  } else {
+    try {
+      new URL(process.env.APP_URL);
+    } catch {
+      errors.push('APP_URL (invalid URL format)');
+    }
+  }
+
+  if (!process.env.NEXTAUTH_SECRET) {
+    errors.push('NEXTAUTH_SECRET');
+  } else if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXTAUTH_SECRET.length < 32
+  ) {
+    errors.push('NEXTAUTH_SECRET (must be >= 32 characters in production)');
+  }
+
+  if (errors.length > 0) {
+    for (const err of errors) {
+      log.error(`Missing or invalid required env var: ${err}`);
+    }
+    throw new Error(`Missing required env vars: ${errors.join(', ')}`);
+  }
+
+  const optional = [
+    'DISCORD_BOT_TOKEN',
+    'DISCORD_GUILD_ID',
+    'DISCORD_CHANNEL_ID',
+  ] as const;
+
+  for (const name of optional) {
+    if (!process.env[name]) {
+      log.warn(`Optional env var missing: ${name}`);
+    }
+  }
+}
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    validateEnv();
+
     const { initFileLogging } = await import('./lib/logger-file');
     initFileLogging();
 
@@ -20,7 +77,7 @@ export async function register() {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000);
-        await fetch(`${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/interrupt`, {
+        await fetch(`${process.env.COMFYUI_API_URL}/interrupt`, {
           method: 'POST',
           body: '{}',
           signal: controller.signal,
