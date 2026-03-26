@@ -102,13 +102,13 @@ describe('buildWanWorkflow', () => {
 
     it('injects NAG settings into both pass nodes', async () => {
       const workflow = await buildWanWorkflow(baseParams)
-      expect(workflow['20']!.inputs!.nag_scale).toBe(7)
-      expect(workflow['19']!.inputs!.nag_scale).toBe(7)
+      expect(workflow['20']!.inputs!.nag_scale).toBe(5)
+      expect(workflow['19']!.inputs!.nag_scale).toBe(5)
     })
 
     it('injects megapixels into resize node', async () => {
       const workflow = await buildWanWorkflow(baseParams)
-      expect(workflow['25']!.inputs!.megapixels).toBe(0.66)
+      expect(workflow['25']!.inputs!.megapixels).toBe(0.5)
     })
 
     it('injects shift into both ModelSamplingSD3 nodes', async () => {
