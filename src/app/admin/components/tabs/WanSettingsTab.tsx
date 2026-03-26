@@ -15,8 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Layers } from 'lucide-react';
+import { LoRABundleManager } from '@/components/ui/lora-bundle-manager';
 
 interface SettingEntry {
   value: string;
@@ -191,6 +199,20 @@ export default function WanSettingsTab() {
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
         </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="ml-auto">
+              <Layers className="h-4 w-4 mr-1" />
+              LoRA 번들
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>LoRA 번들 관리</DialogTitle>
+            </DialogHeader>
+            <LoRABundleManager />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {message && (

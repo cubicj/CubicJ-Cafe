@@ -10,12 +10,11 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database, Cog, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal } from 'lucide-react';
+import { Database, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import DatabaseTab from './tabs/DatabaseTab';
-import LoRABundleTab from './tabs/LoRABundleTab';
 import LogViewerTab from './tabs/LogViewerTab';
 import WanSettingsTab from './tabs/WanSettingsTab';
 import LtxSettingsTab from './tabs/LtxSettingsTab';
@@ -23,10 +22,9 @@ import LtxSettingsTab from './tabs/LtxSettingsTab';
 const log = createLogger('admin');
 
 const ADMIN_TABS = [
-  { value: 'lora-bundles', label: 'LoRA 번들', icon: Cog },
+  { value: 'database', label: '데이터베이스', icon: Database },
   { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
   { value: 'ltx-settings', label: 'LTX', icon: SlidersHorizontal },
-  { value: 'database', label: '데이터베이스', icon: Database },
   { value: 'logs', label: 'Logs', icon: ScrollText },
 ] as const;
 
@@ -45,7 +43,7 @@ export default function AdminDashboard() {
   const [currentPause, setCurrentPause] = useState<number | null>(null);
   const [pauseLoading, setPauseLoading] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('lora-bundles');
+  const [activeTab, setActiveTab] = useState('database');
 
   const fetchComfyUIState = async (): Promise<boolean> => {
     try {
@@ -283,7 +281,7 @@ export default function AdminDashboard() {
           </Select>
         </div>
 
-        <TabsList className="hidden md:grid w-full grid-cols-5">
+        <TabsList className="hidden md:grid w-full grid-cols-4">
           {ADMIN_TABS.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center">
               <tab.icon className="w-4 h-4 mr-2" />
@@ -291,10 +289,6 @@ export default function AdminDashboard() {
             </TabsTrigger>
           ))}
         </TabsList>
-
-        <TabsContent value="lora-bundles" className="space-y-4">
-          <LoRABundleTab />
-        </TabsContent>
 
         <TabsContent value="wan-settings" className="space-y-4">
           <WanSettingsTab />
