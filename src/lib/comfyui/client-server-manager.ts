@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/logger'
+import { comfyuiFetch } from './client-http'
 
 const log = createLogger('comfyui')
 
@@ -100,30 +101,6 @@ export class ComfyUIServerManager {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-
-    const headers: Record<string, string> = { ...options.headers as Record<string, string> }
-    if (!(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json'
-    }
-
-    const fullUrl = `${this.baseURL}${endpoint}`
-
-    const response = await fetch(fullUrl, {
-      ...options,
-      signal: controller.signal,
-      headers,
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      throw new Error(
-        `ComfyUI API 오류: ${response.status} ${response.statusText}`
-      )
-    }
-
-    return await response.json()
+    return comfyuiFetch<T>(this.baseURL, endpoint, options, this.timeout)
   }
 }

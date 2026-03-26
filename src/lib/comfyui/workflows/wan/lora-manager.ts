@@ -3,6 +3,7 @@ import type { ComfyUIServer } from '../../server-manager';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { createLogger } from '@/lib/logger';
 import { deduplicateByFilename } from '../lora-utils';
+import { WAN } from './nodes';
 
 const log = createLogger('comfyui');
 
@@ -17,9 +18,6 @@ interface WorkflowNode {
   _meta?: { title: string };
 }
 
-const HIGH_NODE_ID = '65';
-const LOW_NODE_ID = '66';
-
 export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoRAPreset, server?: ComfyUIServer) {
   const resolvedLoraItems = await resolveLoRAItems(loraPreset.loraItems);
 
@@ -32,12 +30,12 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
     'LOW'
   );
 
-  if (workflow[HIGH_NODE_ID] && workflow[HIGH_NODE_ID].inputs) {
-    applyLorasToNode(workflow[HIGH_NODE_ID] as WorkflowNode, processedHighLoras, 'HIGH', HIGH_NODE_ID, server);
+  if (workflow[WAN.LORA_HIGH] && workflow[WAN.LORA_HIGH].inputs) {
+    applyLorasToNode(workflow[WAN.LORA_HIGH] as WorkflowNode, processedHighLoras, 'HIGH', WAN.LORA_HIGH, server);
   }
 
-  if (workflow[LOW_NODE_ID] && workflow[LOW_NODE_ID].inputs) {
-    applyLorasToNode(workflow[LOW_NODE_ID] as WorkflowNode, processedLowLoras, 'LOW', LOW_NODE_ID, server);
+  if (workflow[WAN.LORA_LOW] && workflow[WAN.LORA_LOW].inputs) {
+    applyLorasToNode(workflow[WAN.LORA_LOW] as WorkflowNode, processedLowLoras, 'LOW', WAN.LORA_LOW, server);
   }
 
   log.info('LoRA preset applied', {
@@ -51,26 +49,32 @@ export async function applyLoraPreset(workflow: ComfyUIWorkflow, loraPreset: LoR
 }
 
 export function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
-  delete workflow[HIGH_NODE_ID];
-  delete workflow[LOW_NODE_ID];
+  delete workflow[WAN.LORA_HIGH];
+  delete workflow[WAN.LORA_LOW];
 
-  if (workflow['20']?.inputs) {
-    workflow['20'].inputs.model = ['22', 0];
+  const nagHigh = workflow[WAN.NAG_HIGH];
+  if (nagHigh?.inputs) {
+    nagHigh.inputs.model = [WAN.MODEL_HIGH_CHAIN, 0];
   }
-  if (workflow['19']?.inputs) {
-    workflow['19'].inputs.model = ['9', 0];
+  const nagLow = workflow[WAN.NAG_LOW];
+  if (nagLow?.inputs) {
+    nagLow.inputs.model = [WAN.MODEL_SAMPLING_LOW, 0];
   }
-  if (workflow['23']?.inputs) {
-    workflow['23'].inputs.clip = ['13', 0];
+  const clipPoH = workflow[WAN.CLIP_ENCODE_POS_HIGH];
+  if (clipPoH?.inputs) {
+    clipPoH.inputs.clip = [WAN.CLIP, 0];
   }
-  if (workflow['24']?.inputs) {
-    workflow['24'].inputs.clip = ['13', 0];
+  const clipNeH = workflow[WAN.CLIP_ENCODE_NEG_HIGH];
+  if (clipNeH?.inputs) {
+    clipNeH.inputs.clip = [WAN.CLIP, 0];
   }
-  if (workflow['27']?.inputs) {
-    workflow['27'].inputs.clip = ['13', 0];
+  const clipPoL = workflow[WAN.CLIP_ENCODE_POS_LOW];
+  if (clipPoL?.inputs) {
+    clipPoL.inputs.clip = [WAN.CLIP, 0];
   }
-  if (workflow['28']?.inputs) {
-    workflow['28'].inputs.clip = ['13', 0];
+  const clipNeL = workflow[WAN.CLIP_ENCODE_NEG_LOW];
+  if (clipNeL?.inputs) {
+    clipNeL.inputs.clip = [WAN.CLIP, 0];
   }
 
   log.info('LoRA placeholder removed — wiring restored to direct model/clip chain');

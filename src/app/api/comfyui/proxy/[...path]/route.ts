@@ -19,6 +19,9 @@ const ALLOWED_PATH_PREFIXES = [
 ]
 
 function isPathAllowed(pathSegments: string[]): boolean {
+  if (pathSegments.some(seg => seg === '..' || seg === '.' || seg === '')) {
+    return false
+  }
   const path = pathSegments.join('/')
   return ALLOWED_PATH_PREFIXES.some(prefix =>
     path === prefix || path.startsWith(prefix + '/')

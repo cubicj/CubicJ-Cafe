@@ -23,7 +23,12 @@ export const GET = createRouteHandler(
   async (req) => {
     const { searchParams } = req.nextUrl;
     const today = new Date().toISOString().split('T')[0];
-    const date = searchParams.get('date') || today;
+    const dateParam = searchParams.get('date') || today;
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      return NextResponse.json({ error: '잘못된 날짜 형식입니다' }, { status: 400 });
+    }
+    const date = dateParam;
     const level = searchParams.get('level')?.toLowerCase() || null;
     const category = searchParams.get('category')?.toLowerCase() || null;
     const search = searchParams.get('search')?.toLowerCase() || null;

@@ -12,6 +12,7 @@ out/
 # environment
 .env
 .env.*
+!.env.example
 ecosystem.config.js
 
 # database
