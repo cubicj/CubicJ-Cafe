@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   if (error === 'access_denied' || error) {
     log.info('Discord OAuth cancelled or error', { error });
-    const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+    const baseUrl = process.env.APP_URL || request.nextUrl.origin;
     return NextResponse.redirect(new URL('/', baseUrl));
   }
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       hasCookie: !!cookieState,
       match: state === cookieState,
     });
-    const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+    const baseUrl = process.env.APP_URL || request.nextUrl.origin;
     const response = NextResponse.redirect(new URL('/', baseUrl));
     response.cookies.delete('oauth_state');
     return response;
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
             client_secret: process.env.DISCORD_CLIENT_SECRET!,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/discord`,
+            redirect_uri: `${process.env.APP_URL}/api/auth/callback/discord`,
           }),
         });
       } catch (fetchError) {
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
         log.info('New user registration required', { username: discordUser.username });
       }
 
-      const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+      const baseUrl = process.env.APP_URL || request.nextUrl.origin;
       const response = NextResponse.redirect(new URL(redirectUrl, baseUrl));
 
       log.info('Setting session cookie', {
@@ -141,18 +141,18 @@ export async function GET(request: NextRequest) {
       return result;
     } catch (error) {
       log.error('Discord OAuth error', { error: error instanceof Error ? error.message : String(error) });
-      const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+      const baseUrl = process.env.APP_URL || request.nextUrl.origin;
       return NextResponse.redirect(new URL('/', baseUrl));
     }
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const baseUrl = process.env.APP_URL || request.nextUrl.origin;
   return NextResponse.redirect(new URL('/', baseUrl));
 
   } catch (globalError) {
     log.error('Critical error in Discord callback', { error: globalError instanceof Error ? globalError.message : String(globalError) });
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = process.env.APP_URL || 'http://localhost:3000';
     return NextResponse.redirect(new URL('/', baseUrl));
   }
 }
