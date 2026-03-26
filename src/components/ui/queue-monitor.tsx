@@ -7,7 +7,6 @@ import { useSession } from '@/contexts/SessionContext';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, List, RefreshCw } from "lucide-react";
-import { isAdmin } from "@/lib/auth/admin";
 import { QueueStats } from "@/components/queue/QueueStats";
 import { QueueItem } from "@/components/queue/QueueItem";
 import { PauseBanner } from "@/components/queue/PauseBanner";
@@ -39,7 +38,7 @@ interface QueueStatsData {
 }
 
 export function QueueMonitor() {
-  const { user: currentUser } = useSession();
+  const { user: currentUser, isAdmin: isCurrentUserAdmin } = useSession();
   const [queueList, setQueueList] = useState<QueueRequest[]>([]);
   const [stats, setStats] = useState<QueueStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +51,6 @@ export function QueueMonitor() {
   });
   const [removingPause, setRemovingPause] = useState(false);
 
-  const isCurrentUserAdmin = currentUser ? isAdmin(currentUser.discordId) : false;
 
   const fetchQueueData = useCallback(async () => {
     try {
