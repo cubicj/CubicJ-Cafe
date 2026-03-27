@@ -1,9 +1,7 @@
-import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { prisma } from '@/lib/database/prisma';
-import { createLogger } from '@/lib/logger';
-
-const log = createLogger('admin');
+import { parseBody } from '@/lib/validations/parse';
+import { settingsPutSchema } from '@/lib/validations/schemas/admin';
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
@@ -33,34 +31,14 @@ export const GET = createRouteHandler(
 export const PUT = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    let parsedBody;
-    try {
-      const requestText = await req.text();
-      if (!requestText || requestText.trim() === '') {
-        throw new Error('빈 요청 본문입니다.');
-      }
-      parsedBody = JSON.parse(requestText);
-    } catch (parseError) {
-      log.error('Request JSON parse error', { error: parseError instanceof Error ? parseError.message : String(parseError) });
-      return NextResponse.json(
-        { error: '잘못된 JSON 형식입니다.' },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    const parsed = parseBody(settingsPutSchema, body);
+    if (!parsed.success) return parsed.response;
 
-    if (Array.isArray(parsedBody.settings)) {
-      const items = parsedBody.settings as { key: string; value: string; type?: string; category?: string }[];
-      for (const item of items) {
-        if (!item.key || item.value === undefined) {
-          return NextResponse.json(
-            { error: '각 설정에는 키와 값이 필요합니다.' },
-            { status: 400 }
-          );
-        }
-      }
-
+    if ('settings' in parsed.data) {
+      const items = parsed.data.settings;
       const results = await prisma.$transaction(
-        items.map(({ key, value, type = 'string', category = 'general' }) =>
+        items.map(({ key, value, type, category }) =>
           prisma.systemSetting.upsert({
             where: { key },
             update: { value, type, category },
@@ -75,15 +53,7 @@ export const PUT = createRouteHandler(
       };
     }
 
-    const { key, value, type = 'string', category = 'general' } = parsedBody;
-
-    if (!key || value === undefined) {
-      return NextResponse.json(
-        { error: '키와 값이 필요합니다.' },
-        { status: 400 }
-      );
-    }
-
+    const { key, value, type, category } = parsed.data;
     const setting = await prisma.systemSetting.upsert({
       where: { key },
       update: { value, type, category },
@@ -94,26 +64,5 @@ export const PUT = createRouteHandler(
       message: '설정이 업데이트되었습니다.',
       setting
     };
-  }
-);
-
-export const DELETE = createRouteHandler(
-  { auth: 'admin', category: 'admin' },
-  async (req) => {
-    const { searchParams } = new URL(req.url);
-    const key = searchParams.get('key');
-
-    if (!key) {
-      return NextResponse.json(
-        { error: '삭제할 설정 키가 필요합니다.' },
-        { status: 400 }
-      );
-    }
-
-    await prisma.systemSetting.delete({
-      where: { key }
-    });
-
-    return { message: '설정이 삭제되었습니다.' };
   }
 );
