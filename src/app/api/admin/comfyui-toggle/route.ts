@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { isComfyUIEnabled, setComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { queueMonitor } from '@/lib/comfyui/queue-monitor';
 import { createLogger } from '@/lib/logger';
+import { parseBody } from '@/lib/validations/parse';
+import { comfyuiToggleSchema } from '@/lib/validations/schemas/admin';
 
 const log = createLogger('admin');
 
@@ -19,10 +20,11 @@ export const GET = createRouteHandler(
 export const POST = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    const { enabled } = await req.json();
-    if (typeof enabled !== 'boolean') {
-      return NextResponse.json({ error: 'enabled 값은 boolean이어야 합니다.' }, { status: 400 });
-    }
+    const body = await req.json();
+    const parsed = parseBody(comfyuiToggleSchema, body);
+    if (!parsed.success) return parsed.response;
+
+    const { enabled } = parsed.data;
 
     if (enabled) {
       await setComfyUIEnabled(true);
