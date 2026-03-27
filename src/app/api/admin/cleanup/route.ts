@@ -1,6 +1,8 @@
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { cleanupTempFiles } from '@/lib/utils/file-cleanup';
 import { createLogger } from '@/lib/logger';
+import { parseBody } from '@/lib/validations/parse';
+import { cleanupSchema } from '@/lib/validations/schemas/admin';
 
 const log = createLogger('admin');
 
@@ -8,8 +10,10 @@ export const POST = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
     const body = await req.json();
-    const { maxAgeHours = 24 } = body;
+    const parsed = parseBody(cleanupSchema, body);
+    if (!parsed.success) return parsed.response;
 
+    const { maxAgeHours } = parsed.data;
     log.info('Manual temp file cleanup request', { maxAgeHours });
 
     const result = await cleanupTempFiles(maxAgeHours);
