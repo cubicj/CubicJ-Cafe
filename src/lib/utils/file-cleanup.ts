@@ -28,7 +28,7 @@ async function getActiveQueueFileNames(): Promise<Set<string>> {
 
 export async function cleanupTempFiles(
   maxAgeHours: number = 24,
-  tempDir: string = 'public/temp'
+  tempDir: string = process.env.UPLOAD_TEMP_DIR || './public/temp'
 ): Promise<CleanupResult> {
   const result: CleanupResult = {
     deletedFiles: 0,
