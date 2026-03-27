@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientIcon } from '@/components/ui/client-icon';
 import { Video, Image } from 'lucide-react';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import { Github } from 'lucide-react';
 
 export default function Home() {

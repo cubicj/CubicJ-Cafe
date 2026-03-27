@@ -75,6 +75,7 @@ export function LoRAPresetDisplay({ loraPresetData, videoModel }: { loraPresetDa
         )}
         {presetData.loraItems && presetData.loraItems.length > 0 && (
           <div className="space-y-1">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {presetData.loraItems.map((item: any, index: number) => {
               const displayName = item.loraName || item.loraFilename || '알 수 없는 LoRA';
               return (

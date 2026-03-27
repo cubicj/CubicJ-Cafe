@@ -86,6 +86,7 @@ export function useLoRAPresets(model: string = 'wan') {
 
   useEffect(() => {
     fetchPresets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model]);
 
   return {

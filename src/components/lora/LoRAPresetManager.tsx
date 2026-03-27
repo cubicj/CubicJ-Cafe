@@ -153,6 +153,7 @@ export function LoRAPresetManager({
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newItems: any[] = [];
     const selectedBundle = availableBundles.find(bundle => bundle.id === newLoRAForm.selectedBundleId);
     

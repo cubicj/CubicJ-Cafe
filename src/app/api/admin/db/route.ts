@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseQuery } from '@/lib/validations/parse';

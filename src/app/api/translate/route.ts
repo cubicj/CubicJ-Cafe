@@ -51,7 +51,7 @@ async function translateWithGoogle(text: string, sourceLang: string, targetLang:
   const data = await response.json();
 
   if (data && data[0] && Array.isArray(data[0])) {
-    return data[0].map((item: any[]) => item[0]).join('');
+    return data[0].map((item: [string, ...unknown[]]) => item[0]).join('');
   }
 
   throw new Error('Google 번역 응답 파싱 실패');

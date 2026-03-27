@@ -43,9 +43,9 @@ export function useAvailableLoRAs(model: string = 'wan') {
     );
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchAvailableLoRAs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model]);
 
   return {

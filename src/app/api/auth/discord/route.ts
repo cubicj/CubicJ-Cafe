@@ -4,6 +4,7 @@ import { createLogger } from '@/lib/logger'
 
 const log = createLogger('auth')
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(_request: NextRequest) {
   const state = randomUUID()
 
