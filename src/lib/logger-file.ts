@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { logBuffer } from './log-buffer';
 
-const LOG_DIR = './logs';
+const LOG_DIR = process.env.LOG_DIR || './logs';
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const MAX_FILES_DAYS = 14;
 
