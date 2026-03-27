@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Plus, Edit, Trash2, AlertCircle, ChevronDown, ChevronRight, GripVertical, Copy, Check } from "lucide-react";
+import { RefreshCw, Plus, Edit, Trash2, AlertCircle, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { LoRAPresetListProps } from "@/types/lora";
@@ -20,8 +20,6 @@ export function LoRAPresetList({
   onPresetDelete,
   onNewPreset,
   onRefresh,
-  onCopyBundleNames,
-  copySuccess,
   onDragEnd,
   isLoRAAvailable,
   activeModel,
@@ -75,22 +73,6 @@ export function LoRAPresetList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCopyBundleNames}
-          className={cn(
-            "h-9 px-3 transition-colors",
-            copySuccess && "border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-400 dark:bg-green-950 dark:text-green-300 dark:hover:bg-green-900"
-          )}
-          title={copySuccess ? "복사 완료!" : activeModel === 'ltx' ? "LoRA 파일명 복사" : "번들명 복사"}
-        >
-          {copySuccess ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-        </Button>
         <Button
           variant="outline"
           size="sm"
