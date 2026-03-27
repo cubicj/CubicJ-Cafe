@@ -125,7 +125,7 @@ export interface LtxSettings {
   negativePrompt: string;
 }
 
-const WAN_KEYS = {
+export const WAN_KEYS = {
   unetHigh: 'wan.unet_high',
   unetLow: 'wan.unet_low',
   clip: 'wan.clip',
@@ -161,7 +161,7 @@ const WAN_KEYS = {
   videoPixFmt: 'wan.video_pix_fmt',
 } as const;
 
-const LTX_KEYS = {
+export const LTX_KEYS = {
   unet: 'ltx.unet',
   weightDtype: 'ltx.weight_dtype',
   clipGguf: 'ltx.clip_gguf',
