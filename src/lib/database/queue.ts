@@ -156,6 +156,7 @@ export class QueueService {
       }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queueListCache.set(queueList as any);
     return queueList;
   }
@@ -443,6 +444,7 @@ export class QueueService {
           }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return updatedRequest as any;
       }, {
         isolationLevel: 'Serializable'
