@@ -24,7 +24,7 @@ export class ComfyUIServerManager {
   private initializeServers() {
     this.servers = []
     
-    const localUrl = process.env.COMFYUI_API_URL || 'http://localhost:8188'
+    const localUrl = process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188'
     this.servers.push({
       id: 'local',
       type: 'LOCAL',

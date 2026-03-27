@@ -78,7 +78,7 @@ async function handleProxy(
     }
 
     const path = pathSegments.join('/')
-    const comfyUrl = `${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/${path}`
+    const comfyUrl = `${process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188'}/${path}`
 
     const proxyHeaders = new Headers()
 

@@ -237,7 +237,7 @@ class DiscordBot {
         attachment = new AttachmentBuilder(params.videoPath);
       } else if (params.filename) {
         const subfolder = params.subfolder || '';
-        const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://localhost:8188';
+        const serverUrl = params.comfyUIServerUrl || process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188';
         const fileType = params.fileType || 'output';
         const videoUrl = `${serverUrl}/view?filename=${encodeURIComponent(params.filename)}&subfolder=${encodeURIComponent(subfolder)}&type=${fileType}`;
 
