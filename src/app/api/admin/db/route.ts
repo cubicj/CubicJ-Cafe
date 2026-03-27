@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { createRouteHandler } from '@/lib/api/route-handler';
+import { parseQuery } from '@/lib/validations/parse';
+import { dbQuerySchema } from '@/lib/validations/schemas/admin';
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    const { searchParams } = new URL(req.url);
-    const table = searchParams.get('table');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '25');
-    const orderBy = searchParams.get('orderBy');
-    const orderDirection = searchParams.get('orderDirection') || 'desc';
+    const parsed = parseQuery(dbQuerySchema, req.nextUrl.searchParams);
+    if (!parsed.success) return parsed.response;
+
+    const { table, page, limit, orderBy, orderDirection } = parsed.data;
     const offset = (page - 1) * limit;
 
     if (!table) {
@@ -25,31 +25,31 @@ export const GET = createRouteHandler(
     let data: unknown[] = [];
     let totalCount = 0;
 
-    const getOrderBy = (table: string, orderBy: string | null, orderDirection: string) => {
+    const getOrderBy = (table: string, orderBy: string | undefined, orderDirection: string) => {
       const direction = orderDirection === 'asc' ? 'asc' as const : 'desc' as const;
 
       switch (table) {
-        case 'users':
+        case 'users': {
           const userFields = ['nickname', 'discordUsername', 'createdAt', 'lastLoginAt'];
           if (orderBy && userFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
           return { createdAt: 'desc' as const };
-
-        case 'queue_requests':
+        }
+        case 'queue_requests': {
           const queueFields = ['nickname', 'status', 'position', 'createdAt', 'startedAt', 'completedAt'];
           if (orderBy && queueFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
           return { createdAt: 'desc' as const };
-
-        case 'lora_presets':
+        }
+        case 'lora_presets': {
           const presetFields = ['name', 'createdAt', 'isDefault', 'isPublic'];
           if (orderBy && presetFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }
           return { createdAt: 'desc' as const };
-
+        }
         default:
           return { createdAt: 'desc' as const };
       }
@@ -73,7 +73,6 @@ export const GET = createRouteHandler(
         });
         totalCount = await prisma.user.count();
         break;
-
 
       case 'queue_requests':
         data = await prisma.queueRequest.findMany({
@@ -131,10 +130,6 @@ export const GET = createRouteHandler(
         });
         totalCount = await prisma.loRAPreset.count();
         break;
-
-
-      default:
-        return NextResponse.json({ error: '지원하지 않는 테이블입니다.' }, { status: 400 });
     }
 
     return {
