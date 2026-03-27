@@ -22,8 +22,6 @@ export interface LoRAPresetListProps {
   onPresetDelete: (preset: LoRAPreset) => void;
   onNewPreset: () => void;
   onRefresh: () => void;
-  onCopyBundleNames: () => void;
-  copySuccess: boolean;
   onDragEnd: (result: DropResult) => void;
   activeModel: string;
   isLoRAAvailable: (filename: string) => boolean;

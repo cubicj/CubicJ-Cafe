@@ -12,7 +12,7 @@ import { Label } from "./label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { Alert, AlertDescription } from "./alert";
-import { Plus, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, RefreshCw, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LoRABundle {
@@ -36,6 +36,7 @@ export function LoRABundleManager() {
   }>({ high: [], low: [] });
   const [isLoadingLoRAs, setIsLoadingLoRAs] = useState(false);
   
+  const [copySuccess, setCopySuccess] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBundle, setEditingBundle] = useState<LoRABundle | null>(null);
   const [formData, setFormData] = useState({
@@ -197,6 +198,20 @@ export function LoRABundleManager() {
     <div className="space-y-4">
       <div className="flex justify-end items-center">
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const text = bundles.map(b => b.displayName).sort().join(', ');
+              await navigator.clipboard.writeText(text);
+              setCopySuccess(true);
+              setTimeout(() => setCopySuccess(false), 2000);
+            }}
+            title={copySuccess ? "복사 완료!" : "번들명 전체 복사"}
+          >
+            {copySuccess ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+            {copySuccess ? '복사 완료' : '번들명 복사'}
+          </Button>
           <Button
             variant="outline"
             size="sm"

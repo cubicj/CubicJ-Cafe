@@ -65,7 +65,7 @@ export function LoRAPresetManager({
     useBundle: true,
     selectedBundleId: '',
   });
-  const [copySuccess, setCopySuccess] = useState(false);
+
 
   const togglePresetSelection = (presetId: string) => {
     const newSelectedIds = selectedPresetIds.includes(presetId)
@@ -140,34 +140,6 @@ export function LoRAPresetManager({
 
   const deletePreset = async (preset: LoRAPreset) => {
     await hookDeletePreset(preset);
-  };
-
-  const copyLoRANames = async () => {
-    try {
-      let text: string;
-
-      if (activeModel === 'ltx') {
-        text = availableLoRAs
-          .map(path => path.split(/[/\\]/).pop()?.replace(/\.\w+$/, '') || path)
-          .sort()
-          .join(', ');
-      } else {
-        text = availableBundles
-          .map(bundle => bundle.displayName)
-          .sort()
-          .join(', ');
-      }
-
-      await navigator.clipboard.writeText(text);
-      setCopySuccess(true);
-
-      setTimeout(() => {
-        setCopySuccess(false);
-      }, 2000);
-    } catch (error) {
-      log.error('Failed to copy LoRA names', { error: error instanceof Error ? error.message : String(error) });
-      alert('복사에 실패했습니다.');
-    }
   };
 
   const addLoRAItem = (e?: React.MouseEvent) => {
@@ -260,8 +232,6 @@ export function LoRAPresetManager({
           onPresetDelete={deletePreset}
           onNewPreset={startNewPreset}
           onRefresh={() => fetchAvailableLoRAs(true)}
-          onCopyBundleNames={copyLoRANames}
-          copySuccess={copySuccess}
           onDragEnd={handleDragEnd}
           isLoRAAvailable={isLoRAAvailable}
           activeModel={activeModel}

@@ -1,5 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Copy, Check } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
 type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'vfiCheckpoints';
@@ -33,12 +37,41 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
 ];
 
+function LtxLoRACopyButton() {
+  const [loras, setLoras] = useState<string[]>([]);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  useEffect(() => {
+    apiClient.get<{ loras: string[] }>('/api/comfyui/loras?model=ltx')
+      .then(data => setLoras(data.loras || []))
+      .catch(() => {});
+  }, []);
+
+  const handleCopy = async () => {
+    const text = loras
+      .map(path => path.split(/[/\\]/).pop()?.replace(/\.\w+$/, '') || path)
+      .sort()
+      .join(', ');
+    await navigator.clipboard.writeText(text);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleCopy} disabled={loras.length === 0}>
+      {copySuccess ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
+      {copySuccess ? '복사 완료' : `LoRA 이름 복사 (${loras.length})`}
+    </Button>
+  );
+}
+
 export default function LtxSettingsTab() {
   return (
     <ModelSettingsTab
       title="LTX 2.3 설정"
       category="ltx"
       fields={LTX_FIELDS}
+      headerExtra={<LtxLoRACopyButton />}
     />
   );
 }
