@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { createRouteHandler } from '@/lib/api/route-handler';
+import { parseBody } from '@/lib/validations/parse';
+import { loraBundleCreateSchema } from '@/lib/validations/schemas/admin';
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
@@ -18,30 +19,16 @@ export const POST = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
     const body = await req.json();
-    const { displayName, highLoRAFilename, lowLoRAFilename, order } = body;
+    const parsed = parseBody(loraBundleCreateSchema, body);
+    if (!parsed.success) return parsed.response;
 
-    if (!displayName || !displayName.trim()) {
-      return NextResponse.json(
-        { error: '표시명은 필수입니다.' },
-        { status: 400 }
-      );
-    }
-
-    const hasHighLoRA = highLoRAFilename && highLoRAFilename.trim();
-    const hasLowLoRA = lowLoRAFilename && lowLoRAFilename.trim();
-
-    if (!hasHighLoRA && !hasLowLoRA) {
-      return NextResponse.json(
-        { error: 'High LoRA 또는 Low LoRA 중 적어도 하나는 필요합니다.' },
-        { status: 400 }
-      );
-    }
+    const { displayName, highLoRAFilename, lowLoRAFilename, order } = parsed.data;
 
     const bundle = await LoRABundleService.createBundle({
-      displayName: displayName.trim(),
-      highLoRAFilename: hasHighLoRA ? highLoRAFilename.trim() : undefined,
-      lowLoRAFilename: hasLowLoRA ? lowLoRAFilename.trim() : undefined,
-      order: order !== undefined ? Number(order) : undefined,
+      displayName,
+      highLoRAFilename: highLoRAFilename?.trim() || undefined,
+      lowLoRAFilename: lowLoRAFilename?.trim() || undefined,
+      order,
     });
 
     return { bundle };

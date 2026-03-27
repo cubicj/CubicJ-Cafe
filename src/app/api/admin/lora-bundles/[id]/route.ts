@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { LoRABundleService } from '@/lib/database/lora-bundles';
 import { createRouteHandler } from '@/lib/api/route-handler';
+import { parseBody } from '@/lib/validations/parse';
+import { loraBundleUpdateSchema } from '@/lib/validations/schemas/admin';
 
 export const GET = createRouteHandler<{ id: string }>(
   { auth: 'admin', category: 'admin' },
@@ -24,14 +26,10 @@ export const PUT = createRouteHandler<{ id: string }>(
   async (req, { params }) => {
     const { id: bundleId } = params;
     const body = await req.json();
-    const { displayName, highLoRAFilename, lowLoRAFilename, order } = body;
+    const parsed = parseBody(loraBundleUpdateSchema, body);
+    if (!parsed.success) return parsed.response;
 
-    if (displayName !== undefined && (!displayName || !displayName.trim())) {
-      return NextResponse.json(
-        { error: '표시명은 비워둘 수 없습니다.' },
-        { status: 400 }
-      );
-    }
+    const { displayName, highLoRAFilename, lowLoRAFilename, order } = parsed.data;
 
     const updateData: {
       displayName?: string;
@@ -40,14 +38,14 @@ export const PUT = createRouteHandler<{ id: string }>(
       order?: number;
     } = {};
 
-    if (displayName !== undefined) updateData.displayName = displayName.trim();
+    if (displayName !== undefined) updateData.displayName = displayName;
     if (highLoRAFilename !== undefined) {
-      updateData.highLoRAFilename = highLoRAFilename && highLoRAFilename.trim() ? highLoRAFilename.trim() : undefined;
+      updateData.highLoRAFilename = highLoRAFilename.trim() || undefined;
     }
     if (lowLoRAFilename !== undefined) {
-      updateData.lowLoRAFilename = lowLoRAFilename && lowLoRAFilename.trim() ? lowLoRAFilename.trim() : undefined;
+      updateData.lowLoRAFilename = lowLoRAFilename.trim() || undefined;
     }
-    if (order !== undefined) updateData.order = Number(order);
+    if (order !== undefined) updateData.order = order;
 
     const bundle = await LoRABundleService.updateBundle(bundleId, updateData);
 
