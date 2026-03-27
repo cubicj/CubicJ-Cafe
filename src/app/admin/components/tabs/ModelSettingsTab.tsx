@@ -170,7 +170,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra 
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
         </Button>
-        {headerExtra}
+        <div className="ml-auto">{headerExtra}</div>
       </div>
 
       {message && (
