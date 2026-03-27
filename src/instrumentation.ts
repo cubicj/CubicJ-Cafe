@@ -29,15 +29,6 @@ function validateEnv() {
     }
   }
 
-  if (!process.env.NEXTAUTH_SECRET) {
-    errors.push('NEXTAUTH_SECRET');
-  } else if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.NEXTAUTH_SECRET.length < 32
-  ) {
-    errors.push('NEXTAUTH_SECRET (must be >= 32 characters in production)');
-  }
-
   if (errors.length > 0) {
     for (const err of errors) {
       log.error(`Missing or invalid required env var: ${err}`);
