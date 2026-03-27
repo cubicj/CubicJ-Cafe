@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
+import { parseQuery } from '@/lib/validations/parse';
+import { logsQuerySchema } from '@/lib/validations/schemas/admin';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -21,19 +23,12 @@ interface LogsResponse {
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    const { searchParams } = req.nextUrl;
-    const today = new Date().toISOString().split('T')[0];
-    const dateParam = searchParams.get('date') || today;
+    const parsed = parseQuery(logsQuerySchema, req.nextUrl.searchParams);
+    if (!parsed.success) return parsed.response;
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-      return NextResponse.json({ error: '잘못된 날짜 형식입니다' }, { status: 400 });
-    }
-    const date = dateParam;
-    const level = searchParams.get('level')?.toLowerCase() || null;
-    const category = searchParams.get('category')?.toLowerCase() || null;
-    const search = searchParams.get('search')?.toLowerCase() || null;
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.max(1, Math.min(1000, parseInt(searchParams.get('limit') || '100', 10)));
+    const { page, limit, level, category, search } = parsed.data;
+    const today = new Date().toISOString().split('T')[0];
+    const date = parsed.data.date || today;
 
     const logDir = process.env.LOG_DIR || './logs';
     const logPath = path.join(logDir, `application-${date}.log`);
@@ -58,7 +53,7 @@ export const GET = createRouteHandler(
 
       if (level && entry.level?.toLowerCase() !== level) continue;
       if (category && entry.category?.toLowerCase() !== category) continue;
-      if (search && !entry.message?.toLowerCase().includes(search)) continue;
+      if (search && !entry.message?.toLowerCase().includes(search.toLowerCase())) continue;
 
       entries.push(entry);
     }
