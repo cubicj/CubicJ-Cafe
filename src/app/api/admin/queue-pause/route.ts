@@ -3,16 +3,19 @@ import { createRouteHandler } from '@/lib/api/route-handler';
 import { setQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
 import { QueueService } from '@/lib/database/queue';
 import { createLogger } from '@/lib/logger';
+import { parseBody } from '@/lib/validations/parse';
+import { queuePauseSchema } from '@/lib/validations/schemas/admin';
 
 const log = createLogger('admin');
 
 export const POST = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (req) => {
-    const { position } = await req.json();
-    if (typeof position !== 'number' || !Number.isInteger(position) || position < 1) {
-      return NextResponse.json({ error: '유효한 큐 번호를 입력해주세요.' }, { status: 400 });
-    }
+    const body = await req.json();
+    const parsed = parseBody(queuePauseSchema, body);
+    if (!parsed.success) return parsed.response;
+
+    const { position } = parsed.data;
 
     const existingRequest = await QueueService.getRequestByPosition(position);
     if (!existingRequest) {
