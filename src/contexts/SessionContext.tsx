@@ -30,16 +30,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const fetchSession = useCallback(async () => {
     try {
-      const data = await apiClient.get<{ user: User | null }>('/api/auth/session');
+      const data = await apiClient.get<{ user: User | null; isAdmin: boolean }>('/api/auth/session');
       const sessionUser = data.user || null;
       setUser(sessionUser);
-
-      if (sessionUser?.discordId) {
-        const adminIds = process.env.NEXT_PUBLIC_ADMIN_DISCORD_IDS?.split(',').map(id => id.trim()) || [];
-        setIsAdmin(adminIds.includes(sessionUser.discordId));
-      } else {
-        setIsAdmin(false);
-      }
+      setIsAdmin(data.isAdmin ?? false);
     } catch {
       setUser(null);
       setIsAdmin(false);

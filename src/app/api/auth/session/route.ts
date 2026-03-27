@@ -1,4 +1,5 @@
 import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
+import { isAdmin } from '@/lib/auth/admin';
 
 export const GET = createRouteHandler(
   { auth: 'optional' },
@@ -13,10 +14,11 @@ export const GET = createRouteHandler(
           avatar: req.user.avatar,
           name: req.user.discordUsername,
           image: req.user.avatar ? `https://cdn.discordapp.com/avatars/${req.user.discordId}/${req.user.avatar}.png` : null,
-        }
+        },
+        isAdmin: isAdmin(req.user.discordId),
       };
     }
 
-    return { user: null };
+    return { user: null, isAdmin: false };
   }
 );
