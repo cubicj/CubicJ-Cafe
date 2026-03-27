@@ -46,7 +46,7 @@ class QueueMonitor {
     const newActiveServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
 
     // 로컬 서버 확인
-    const localUrl = process.env.COMFYUI_API_URL || 'http://localhost:8188';
+    const localUrl = process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188';
     try {
       const isHealthy = await this.comfyUIClient.checkServerHealth();
       if (isHealthy) {

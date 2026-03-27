@@ -27,7 +27,7 @@ export class ComfyUIClient {
     if (options.useProxy !== false && typeof window !== 'undefined') {
       this.baseURL = '/api/comfyui/proxy'
     } else {
-      const rawURL = options.baseURL || process.env.COMFYUI_API_URL || 'http://localhost:8188'
+      const rawURL = options.baseURL || process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188'
       this.baseURL = rawURL.replace(/\/$/, '')
     }
     

@@ -24,7 +24,7 @@ async function checkComfyUIService(): Promise<ServiceStatus> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    const response = await fetch(`${process.env.COMFYUI_API_URL || 'http://localhost:8188'}/system_stats`, {
+    const response = await fetch(`${process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188'}/system_stats`, {
       method: 'GET',
       signal: controller.signal,
     });
