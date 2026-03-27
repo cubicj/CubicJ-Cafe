@@ -18,7 +18,6 @@ interface QueueRequest {
 interface QueueItemProps {
   request: QueueRequest;
   isCurrentUser: boolean;
-  isAdminUser: boolean;
   canDelete: boolean;
   isDeleting: boolean;
   onDelete: (requestId: string, nickname: string) => void;
@@ -84,7 +83,7 @@ function getStatusBadgeColor(status: string) {
   }
 }
 
-export function QueueItem({ request, isCurrentUser, isAdminUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
+export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
   return (
     <>
       <div className="hidden md:flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
@@ -107,11 +106,6 @@ export function QueueItem({ request, isCurrentUser, isAdminUser, canDelete, isDe
           {isCurrentUser && (
             <Badge variant="secondary" className="text-xs">
               내 요청
-            </Badge>
-          )}
-          {isAdminUser && !isCurrentUser && (
-            <Badge variant="outline" className="text-xs text-red-600 border-red-200">
-              관리자 권한
             </Badge>
           )}
         </div>
@@ -186,9 +180,6 @@ export function QueueItem({ request, isCurrentUser, isAdminUser, canDelete, isDe
             <div className="space-y-3 text-sm">
               {isCurrentUser && (
                 <Badge variant="secondary" className="text-xs">내 요청</Badge>
-              )}
-              {isAdminUser && !isCurrentUser && (
-                <Badge variant="outline" className="text-xs text-red-600 border-red-200">관리자 권한</Badge>
               )}
 
               <div>
