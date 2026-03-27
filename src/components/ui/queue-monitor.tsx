@@ -187,7 +187,6 @@ export function QueueMonitor() {
                   <QueueItem
                     request={request}
                     isCurrentUser={currentUser?.nickname === request.nickname}
-                    isAdminUser={isCurrentUserAdmin}
                     canDelete={canDeleteRequest(request)}
                     isDeleting={deletingIds.has(request.id)}
                     onDelete={handleDeleteQueue}
