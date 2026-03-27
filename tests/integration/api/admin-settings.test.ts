@@ -37,7 +37,7 @@ describe('PUT /api/admin/settings', () => {
   it('returns 401 when not authenticated', async () => {
     const req = buildRequest('/api/admin/settings', {
       method: 'PUT',
-      body: JSON.stringify({ key: 'test', value: 'val' }),
+      body: JSON.stringify({ key: 'wan.shift', value: '5' }),
     })
     const res = await PUT(req)
     expect(res.status).toBe(401)
@@ -48,7 +48,7 @@ describe('PUT /api/admin/settings', () => {
     const session = await createTestSession(user.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
-      body: JSON.stringify({ key: 'test', value: 'val' }),
+      body: JSON.stringify({ key: 'wan.shift', value: '5' }),
     })
     const res = await PUT(req)
     expect(res.status).toBe(403)
@@ -59,15 +59,26 @@ describe('PUT /api/admin/settings', () => {
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
-      body: JSON.stringify({ key: 'test_key', value: 'test_value', category: 'general' }),
+      body: JSON.stringify({ key: 'wan.shift', value: '5', category: 'wan' }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
     expect(body.message).toBeDefined()
-    expect(body.setting.key).toBe('test_key')
-    expect(body.setting.value).toBe('test_value')
+    expect(body.setting.key).toBe('wan.shift')
+    expect(body.setting.value).toBe('5')
+  })
+
+  it('rejects unknown setting key', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'arbitrary_key', value: 'bad' }),
+    })
+    const res = await PUT(req)
+    expect(res.status).toBe(400)
   })
 
   it('returns 400 with missing key or value', async () => {
@@ -83,9 +94,28 @@ describe('PUT /api/admin/settings', () => {
 
     const req2 = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
-      body: JSON.stringify({ key: 'test' }),
+      body: JSON.stringify({ key: 'wan.shift' }),
     })
     const res2 = await PUT(req2)
     expect(res2.status).toBe(400)
+  })
+
+  it('batch updates multiple settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        settings: [
+          { key: 'wan.shift', value: '5' },
+          { key: 'wan.sampler', value: 'euler' },
+        ],
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.settings).toHaveLength(2)
   })
 })
