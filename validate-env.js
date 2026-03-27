@@ -66,13 +66,6 @@ function validateEnvironment() {
 
   // 검증 함수들
   const validators = {
-    nextauthSecret: (value) => {
-      if (isProduction && value.length < 32) {
-        return '프로덕션에서는 32자 이상이어야 합니다';
-      }
-      return true;
-    },
-    
     discordClientId: (value) => {
       if (isProduction && value.length < 10) {
         return '올바른 Discord Client ID 형식이 아닙니다';
@@ -150,8 +143,7 @@ function validateEnvironment() {
 
   console.log('🔐 보안 관련 환경변수:');
   checkRequired('APP_URL', validators.url);
-  checkRequired('NEXTAUTH_SECRET', validators.nextauthSecret);
-  
+
   console.log('\n🎮 Discord OAuth2 설정:');
   checkRequired('DISCORD_CLIENT_ID', validators.discordClientId);
   checkRequired('DISCORD_CLIENT_SECRET', validators.discordClientSecret);
