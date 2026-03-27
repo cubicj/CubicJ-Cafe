@@ -115,18 +115,6 @@ function validateEnvironment() {
       return true;
     },
     
-    mimeTypes: (value) => {
-      const types = value.split(',').map(t => t.trim());
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      
-      for (const type of types) {
-        if (!validTypes.includes(type)) {
-          return `올바르지 않은 MIME 타입: ${type}`;
-        }
-      }
-      return true;
-    },
-    
     origins: (value) => {
       const origins = value.split(',').map(o => o.trim());
       
@@ -161,7 +149,6 @@ function validateEnvironment() {
   
   console.log('\n📁 파일 업로드 설정:');
   checkOptional('UPLOAD_MAX_SIZE', validators.uploadSize);
-  checkOptional('UPLOAD_ALLOWED_TYPES', validators.mimeTypes);
   checkOptional('UPLOAD_TEMP_DIR');
   
   console.log('\n🔧 추가 설정:');
