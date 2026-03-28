@@ -45,7 +45,7 @@ export function useAvailableLoRAs(model: string = 'wan') {
 
   useEffect(() => {
     fetchAvailableLoRAs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAvailableLoRAs is stable, only re-fetch on model change
   }, [model]);
 
   return {

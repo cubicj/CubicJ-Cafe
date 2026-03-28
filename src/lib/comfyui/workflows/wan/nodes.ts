@@ -1,3 +1,4 @@
+// Node ID ↔ class type details: Docs/workflow-node-map.md
 export const WAN = {
   UNET_HIGH: '1',
   UNET_LOW: '2',

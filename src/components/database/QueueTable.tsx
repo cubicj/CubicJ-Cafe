@@ -36,7 +36,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
       </div>
 
       <div className="divide-y">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic DB viewer renders arbitrary Prisma rows */}
         {data.map((request: any, index: number) => {
           const itemId = `queue-${index}`;
           const isExpanded = expandedItems.has(itemId);

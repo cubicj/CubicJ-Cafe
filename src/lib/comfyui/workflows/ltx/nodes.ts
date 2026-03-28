@@ -1,3 +1,4 @@
+// Node ID ↔ class type details: Docs/workflow-node-map.md
 export const LTX = {
   AUDIO_VAE: '1',
   VIDEO_VAE: '2',

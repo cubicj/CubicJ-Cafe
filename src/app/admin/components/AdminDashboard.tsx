@@ -131,7 +131,7 @@ export default function AdminDashboard() {
     };
 
     checkAdminPermission();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount check only
   }, []);
 
   if (!isAuthorized && authError) {
