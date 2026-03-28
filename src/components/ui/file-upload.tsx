@@ -29,7 +29,7 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
       reader.onload = () => setPreview(reader.result as string);
       reader.readAsDataURL(externalSelectedFile);
     }
-  }, [externalSelectedFile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [externalSelectedFile]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when external prop changes, internal setters are stable
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {

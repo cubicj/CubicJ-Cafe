@@ -156,7 +156,7 @@ export class QueueService {
       }
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma select return type doesn't match cache generic
     queueListCache.set(queueList as any);
     return queueList;
   }
@@ -444,7 +444,7 @@ export class QueueService {
           }
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma transaction return type doesn't match include shape
         return updatedRequest as any;
       }, {
         isolationLevel: 'Serializable'

@@ -145,7 +145,7 @@ export function useI2VForm(): UseI2VFormReturn {
     } else if (!isLoopEnabled) {
       setEndImageFile(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setEndImageFile is a React setState, always stable
   }, [isLoopEnabled, selectedFile]);
 
   useEffect(() => {
@@ -307,7 +307,7 @@ export function useI2VForm(): UseI2VFormReturn {
       }
     };
     reloadPresets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- capabilities and fetchPresets derived from activeModel
   }, [activeModel]);
 
   useEffect(() => {

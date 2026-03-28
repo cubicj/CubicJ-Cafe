@@ -4,7 +4,7 @@ import { createLogger } from '@/lib/logger'
 
 const log = createLogger('auth')
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Next.js route handler signature requires request param
 export async function POST(_request: NextRequest) {
   const state = randomUUID()
 

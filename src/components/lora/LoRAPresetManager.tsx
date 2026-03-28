@@ -153,7 +153,7 @@ export function LoRAPresetManager({
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bundle items built dynamically with mixed optional fields
     const newItems: any[] = [];
     const selectedBundle = availableBundles.find(bundle => bundle.id === newLoRAForm.selectedBundleId);
     
