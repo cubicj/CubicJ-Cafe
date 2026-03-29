@@ -28,6 +28,8 @@ vi.mock('@/lib/database/system-settings', () => ({
     vfiClearCache: 100,
     vfiMultiplier: 2,
     videoCrf: 20,
+    videoFormat: 'video/h264-mp4',
+    videoPixFmt: 'yuv420p',
     negativePrompt: 'test negative prompt',
     idLoraName: 'test-id-lora.safetensors',
     idLoraStrength: 0.8,

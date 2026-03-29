@@ -67,7 +67,11 @@ export async function buildLtxWorkflow(
     bypassVfi(workflow)
   }
 
-  setNode(workflow, LTX.VIDEO_OUTPUT, { crf: settings.videoCrf })
+  setNode(workflow, LTX.VIDEO_OUTPUT, {
+    crf: settings.videoCrf,
+    format: settings.videoFormat,
+    pix_fmt: settings.videoPixFmt,
+  })
 
   setNode(workflow, LTX.LOAD_IMAGE, { image: params.inputImage })
 

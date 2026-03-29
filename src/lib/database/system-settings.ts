@@ -124,6 +124,8 @@ export interface LtxSettings {
   vfiClearCache: number;
   vfiMultiplier: number;
   videoCrf: number;
+  videoFormat: string;
+  videoPixFmt: string;
   negativePrompt: string;
   idLoraName: string;
   idLoraStrength: number;
@@ -196,6 +198,8 @@ export const LTX_KEYS = {
   vfiClearCache: 'ltx.vfi_clear_cache',
   vfiMultiplier: 'ltx.vfi_multiplier',
   videoCrf: 'ltx.video_crf',
+  videoFormat: 'ltx.video_format',
+  videoPixFmt: 'ltx.video_pix_fmt',
   negativePrompt: 'ltx.negative_prompt',
   idLoraName: 'ltx.id_lora_name',
   idLoraStrength: 'ltx.id_lora_strength',
@@ -299,6 +303,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
     vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
     videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),
+    videoFormat: map.get(LTX_KEYS.videoFormat)!,
+    videoPixFmt: map.get(LTX_KEYS.videoPixFmt)!,
     negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
     idLoraName: map.get(LTX_KEYS.idLoraName)!,
     idLoraStrength: parseFloat(map.get(LTX_KEYS.idLoraStrength)!),
