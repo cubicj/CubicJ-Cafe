@@ -96,7 +96,18 @@ class QueueMonitor {
 
     this.activeServers = newActiveServers;
     this.lastServerUpdateTime = now;
-    
+
+    if (this.isRunning) {
+      for (const server of this.activeServers) {
+        if (!server.client.isWebSocketConnected()) {
+          try {
+            server.client.connectWebSocket();
+          } catch (error) {
+            log.error('WebSocket connect failed for new server', { server: server.name, error: error instanceof Error ? error.message : String(error) });
+          }
+        }
+      }
+    }
   }
 
   // 최대 동시 처리 개수 계산 (각 서버는 1개씩만 처리 가능)
@@ -145,6 +156,8 @@ class QueueMonitor {
     this.isRunning = true;
     log.info('Queue Monitor started');
 
+    this.connectActiveWebSockets();
+
     this.processQueue().catch(error => {
       log.error('Initial queue processing error', { error: error instanceof Error ? error.message : String(error) });
     });
@@ -163,6 +176,7 @@ class QueueMonitor {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
+    this.disconnectAllWebSockets();
     this.isRunning = false;
     log.info('Queue Monitor stopped');
   }
@@ -406,6 +420,27 @@ class QueueMonitor {
         failedAt: new Date(),
         error: error instanceof Error ? error.message : '알 수 없는 오류'
       });
+    }
+  }
+
+  private async connectActiveWebSockets(): Promise<void> {
+    await this.updateActiveServers();
+    for (const server of this.activeServers) {
+      try {
+        server.client.connectWebSocket();
+      } catch (error) {
+        log.error('WebSocket connect failed', { server: server.name, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+  }
+
+  private disconnectAllWebSockets(): void {
+    for (const server of this.activeServers) {
+      try {
+        server.client.disconnectWebSocket();
+      } catch (error) {
+        log.error('WebSocket disconnect failed', { server: server.name, error: error instanceof Error ? error.message : String(error) });
+      }
     }
   }
 
