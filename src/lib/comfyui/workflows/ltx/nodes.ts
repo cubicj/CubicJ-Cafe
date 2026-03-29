@@ -25,4 +25,7 @@ export const LTX = {
   SIGMAS: '335',
   VFI: '337',
   VFI_MULTIPLIER: '339',
+  REFERENCE_AUDIO: '348',
+  ID_LORA: '349',
+  LOAD_AUDIO: '350',
 } as const
