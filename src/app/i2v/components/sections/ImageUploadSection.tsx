@@ -75,11 +75,11 @@ export function ImageUploadSection({
           <button
             type="button"
             onClick={() => setEndImageOpen(!endImageOpen)}
-            className="flex items-center gap-2 text-lg font-semibold w-full text-left"
+            className="flex items-center gap-2 text-lg font-semibold w-full text-left py-2 -my-1"
           >
-            <Bot className="h-4 w-4" />
-            끝 이미지 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
-            <ChevronDown className={cn("h-4 w-4 ml-auto transition-transform", endImageOpen && "rotate-180")} />
+            <Bot className="h-4 w-4 shrink-0" />
+            <span className="truncate">끝 이미지 <span className="text-sm text-gray-500 font-normal">(선택사항)</span></span>
+            <ChevronDown className={cn("h-4 w-4 ml-auto shrink-0 transition-transform", endImageOpen && "rotate-180")} />
           </button>
           {endImageOpen && (
             <FileUpload
@@ -96,11 +96,11 @@ export function ImageUploadSection({
           <button
             type="button"
             onClick={() => setAudioOpen(!audioOpen)}
-            className="flex items-center gap-2 text-lg font-semibold w-full text-left"
+            className="flex items-center gap-2 text-lg font-semibold w-full text-left py-2 -my-1"
           >
-            <Music className="h-4 w-4" />
-            레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
-            <ChevronDown className={cn("h-4 w-4 ml-auto transition-transform", audioOpen && "rotate-180")} />
+            <Music className="h-4 w-4 shrink-0" />
+            <span className="truncate">레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span></span>
+            <ChevronDown className={cn("h-4 w-4 ml-auto shrink-0 transition-transform", audioOpen && "rotate-180")} />
           </button>
           {audioOpen && (
             <AudioUpload
