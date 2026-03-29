@@ -4,22 +4,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// ecosystem.config.js에서 환경변수 로드
-try {
-  const ecosystemConfig = require('./ecosystem.config.js');
-  const envConfig = process.env.NODE_ENV === 'production' 
-    ? ecosystemConfig.apps[0].env_production 
-    : ecosystemConfig.apps[0].env;
-  
-  Object.keys(envConfig).forEach(key => {
-    if (!process.env[key]) {
-      process.env[key] = envConfig[key];
-    }
-  });
-} catch (error) {
-  console.warn('⚠️ ecosystem.config.js 로드 실패:', error);
-}
-
 const nextConfig: NextConfig = {
   serverExternalPackages: [],
   experimental: {
