@@ -138,7 +138,7 @@ export class QueueService {
     const queueList = await prisma.queueRequest.findMany({
       where: {
         status: {
-          in: [QueueStatus.PENDING, QueueStatus.PROCESSING]
+          in: [QueueStatus.PENDING, QueueStatus.PROCESSING, QueueStatus.COMPLETED_WITH_ERROR]
         }
       },
       orderBy: [
@@ -265,7 +265,7 @@ export class QueueService {
       }),
       prisma.queueRequest.count({
         where: {
-          status: QueueStatus.COMPLETED,
+          status: { in: [QueueStatus.COMPLETED, QueueStatus.COMPLETED_WITH_ERROR] },
           completedAt: {
             gte: new Date(new Date().setHours(0, 0, 0, 0))
           }
@@ -373,17 +373,26 @@ export class QueueService {
     });
   }
 
-  static async resetProcessingToPending() {
-    return await prisma.queueRequest.updateMany({
+  static async resetStaleProcessingRequests() {
+    const result = await prisma.queueRequest.updateMany({
       where: {
         status: QueueStatus.PROCESSING
       },
       data: {
         status: QueueStatus.PENDING,
         startedAt: null,
-        jobId: null
+        jobId: null,
+        serverId: null,
+        serverType: null,
       }
     });
+
+    if (result.count > 0) {
+      QueueService.invalidateCache();
+      log.warn('Reset stale PROCESSING requests to PENDING on startup', { count: result.count });
+    }
+
+    return result;
   }
 
   static async getProcessingCount(): Promise<number> {

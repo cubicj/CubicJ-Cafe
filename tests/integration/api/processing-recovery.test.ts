@@ -13,7 +13,7 @@ describe('PROCESSING job recovery', () => {
     await createQueueRequest(user.id, { status: 'PROCESSING' })
     await createQueueRequest(user.id, { status: 'PENDING' })
 
-    const result = await QueueService.resetProcessingToPending()
+    const result = await QueueService.resetStaleProcessingRequests()
 
     expect(result.count).toBe(2)
 
@@ -26,7 +26,7 @@ describe('PROCESSING job recovery', () => {
     const user = await createUser()
     await createQueueRequest(user.id, { status: 'PENDING' })
 
-    const result = await QueueService.resetProcessingToPending()
+    const result = await QueueService.resetStaleProcessingRequests()
 
     expect(result.count).toBe(0)
   })
