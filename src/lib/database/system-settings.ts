@@ -123,6 +123,11 @@ export interface LtxSettings {
   vfiMultiplier: number;
   videoCrf: number;
   negativePrompt: string;
+  idLoraName: string;
+  idLoraStrength: number;
+  identityGuidanceScale: number;
+  identityStartPercent: number;
+  identityEndPercent: number;
 }
 
 export const WAN_KEYS = {
@@ -188,6 +193,11 @@ export const LTX_KEYS = {
   vfiMultiplier: 'ltx.vfi_multiplier',
   videoCrf: 'ltx.video_crf',
   negativePrompt: 'ltx.negative_prompt',
+  idLoraName: 'ltx.id_lora_name',
+  idLoraStrength: 'ltx.id_lora_strength',
+  identityGuidanceScale: 'ltx.identity_guidance_scale',
+  identityStartPercent: 'ltx.identity_start_percent',
+  identityEndPercent: 'ltx.identity_end_percent',
 } as const;
 
 function buildSettingsMap(
@@ -284,5 +294,10 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
     videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),
     negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
+    idLoraName: map.get(LTX_KEYS.idLoraName)!,
+    idLoraStrength: parseFloat(map.get(LTX_KEYS.idLoraStrength)!),
+    identityGuidanceScale: parseFloat(map.get(LTX_KEYS.identityGuidanceScale)!),
+    identityStartPercent: parseFloat(map.get(LTX_KEYS.identityStartPercent)!),
+    identityEndPercent: parseFloat(map.get(LTX_KEYS.identityEndPercent)!),
   };
 }
