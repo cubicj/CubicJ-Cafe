@@ -27,8 +27,9 @@ export const GET = createRouteHandler(
     }
 
     const filename = `workflow_${request.videoModel}_${request.id}.json`;
+    const pretty = JSON.stringify(JSON.parse(request.workflowJson), null, 2);
 
-    return new NextResponse(request.workflowJson, {
+    return new NextResponse(pretty, {
       headers: {
         'Content-Type': 'application/json',
         'Content-Disposition': `attachment; filename="${filename}"`,

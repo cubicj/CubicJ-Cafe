@@ -38,7 +38,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.video_format', label: 'Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_format:VHS_VideoCombine:format' },
   { key: 'ltx.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
-  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'ID LoRA', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name' },
+  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'ID LoRA', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
   { key: 'ltx.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: 'ID LoRA' },
   { key: 'ltx.identity_guidance_scale', label: 'Identity Guidance Scale', type: 'number', step: 0.1, group: 'ID LoRA' },
   { key: 'ltx.identity_start_percent', label: 'Identity Start %', type: 'number', step: 0.01, group: 'ID LoRA' },

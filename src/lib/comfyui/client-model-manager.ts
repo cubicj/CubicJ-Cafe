@@ -127,7 +127,7 @@ function extractModels(objectInfo: Record<string, unknown>): ModelListResponse {
   return result
 }
 
-export type NodeOptionsRequest = Array<{ id: string; nodeName: string; fieldName: string }>
+export type NodeOptionsRequest = Array<{ id: string; nodeName: string; fieldName: string; prefix?: string; excludeSubdirs?: boolean }>
 
 export type NodeOptionsResponse = Record<string, string[]>
 
@@ -136,9 +136,21 @@ function extractNodeOptions(
   requests: NodeOptionsRequest
 ): NodeOptionsResponse {
   const result: NodeOptionsResponse = {}
-  for (const { id, nodeName, fieldName } of requests) {
-    const options = findNodeOptions(objectInfo, [nodeName], fieldName)
-    result[id] = options?.sort() ?? []
+  for (const { id, nodeName, fieldName, prefix, excludeSubdirs } of requests) {
+    let options = findNodeOptions(objectInfo, [nodeName], fieldName) ?? []
+    if (prefix) {
+      const normalizedPrefix = prefix.replace(/\\/g, '/')
+      options = options.filter(opt => {
+        const normalized = opt.replace(/\\/g, '/')
+        if (!normalized.startsWith(normalizedPrefix)) return false
+        if (excludeSubdirs) {
+          const remainder = normalized.slice(normalizedPrefix.length)
+          if (remainder.includes('/')) return false
+        }
+        return true
+      })
+    }
+    result[id] = options.sort()
   }
   return result
 }
