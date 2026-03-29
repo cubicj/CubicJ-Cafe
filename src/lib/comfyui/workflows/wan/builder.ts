@@ -5,7 +5,7 @@ import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
-import { generateSeed, extractBaseImageName, setNode } from '../shared'
+import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
 import { applyLoraPreset, removeLoraPlaceholder } from './lora-manager'
 
 const log = createLogger('comfyui')
@@ -112,6 +112,8 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     loraEnabled: settings.loraEnabled,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
   })
+
+  dumpWorkflow('wan', workflow)
 
   return workflow
 }

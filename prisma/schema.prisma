@@ -60,6 +60,7 @@ model QueueRequest {
   error          String?
   videoModel      String         @default("wan") @map("video_model")
   generationMode  GenerationMode @default(START_ONLY) @map("generation_mode")
+  workflowJson    String?        @map("workflow_json")
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])

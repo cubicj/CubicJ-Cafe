@@ -6,7 +6,7 @@ import { LTX } from './nodes'
 import { applyLtxLoraChain } from './lora-manager'
 import { createLogger } from '@/lib/logger'
 import { getLtxSettings } from '@/lib/database/system-settings'
-import { generateSeed, extractBaseImageName, setNode } from '../shared'
+import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
 
 const log = createLogger('comfyui')
 
@@ -109,6 +109,8 @@ export async function buildLtxWorkflow(
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
     hasReferenceAudio: !!params.referenceAudio,
   })
+
+  dumpWorkflow('ltx', workflow)
 
   return workflow
 }
