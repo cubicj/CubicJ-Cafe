@@ -34,6 +34,24 @@ export class ComfyUIMediaManager {
     }
   }
 
+  async uploadAudio(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    try {
+      const response = await this.makeRequest<{ name: string }>('/upload/image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      log.info('Audio uploaded successfully', { filename: response.name, size: file.size })
+      return response.name
+    } catch (error) {
+      log.error('ComfyUI audio upload failed', { error: error instanceof Error ? error.message : String(error) })
+      throw new Error(`Audio upload failed: ${error instanceof Error ? error.message : 'unknown error'}`)
+    }
+  }
+
   async getHistory(promptId?: string): Promise<ComfyUIHistoryResponse> {
     try {
       const endpoint = promptId ? `/history/${promptId}` : '/history'
