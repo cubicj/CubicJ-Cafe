@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { LoRAPresetManager } from "@/components/ui/lora-preset-manager";
-import { QueueMonitor } from "@/components/ui/queue-monitor";
-import { Sparkles, Bot, CheckCircle, XCircle, Film } from "lucide-react";
-import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
-import type { VideoModel } from "@/lib/comfyui/workflows/types";
-import { ServerStatusSection } from "./sections/ServerStatusSection";
-import { ImageUploadSection } from "./sections/ImageUploadSection";
-import { ContentSettingsSection } from "./sections/ContentSettingsSection";
-import { I2VControlsSection } from "./sections/I2VControlsSection";
-import { useI2VForm } from "./hooks/useI2VForm";
-import { useSession } from "@/contexts/SessionContext";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LoRAPresetManager } from '@/components/ui/lora-preset-manager';
+import { QueueMonitor } from '@/components/ui/queue-monitor';
+import { Sparkles, Bot, CheckCircle, XCircle, Film } from 'lucide-react';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
+import { ServerStatusSection } from './sections/ServerStatusSection';
+import { ImageUploadSection } from './sections/ImageUploadSection';
+import { ContentSettingsSection } from './sections/ContentSettingsSection';
+import { I2VControlsSection } from './sections/I2VControlsSection';
+import { useI2VForm } from './hooks/useI2VForm';
+import { useSession } from '@/contexts/SessionContext';
 
 export default function I2VPageClient() {
   const { user, isLoading: isLoadingAuth } = useSession();
@@ -53,7 +53,7 @@ export default function I2VPageClient() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-center py-32">
@@ -70,7 +70,7 @@ export default function I2VPageClient() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-32">
@@ -81,14 +81,11 @@ export default function I2VPageClient() {
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">로그인이 필요합니다</h3>
                   <p className="text-sm text-muted-foreground">
-                    AI 비디오 생성 기능을 사용하려면 Discord 계정으로 로그인해주세요.
+                    AI 비디오 생성 기능을 사용하려면 Discord 계정으로
+                    로그인해주세요.
                   </p>
                 </div>
-                <Button
-                  onClick={handleSignIn}
-                  size="lg"
-                  className="mt-4"
-                >
+                <Button onClick={handleSignIn} size="lg" className="mt-4">
                   Discord로 로그인
                 </Button>
               </div>
@@ -100,7 +97,7 @@ export default function I2VPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-x-hidden">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 pt-8 pb-32">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           <div className="text-center space-y-4 py-4">
@@ -139,19 +136,21 @@ export default function I2VPageClient() {
                 </h2>
                 <Card className="p-4">
                   <div className="flex gap-2">
-                    {(Object.keys(MODEL_REGISTRY) as VideoModel[]).map((model) => (
-                      <button
-                        key={model}
-                        onClick={() => setActiveModel(model)}
-                        className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          activeModel === model
-                            ? 'bg-violet-600 text-white shadow-md'
-                            : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
-                        }`}
-                      >
-                        {MODEL_REGISTRY[model].displayName}
-                      </button>
-                    ))}
+                    {(Object.keys(MODEL_REGISTRY) as VideoModel[]).map(
+                      model => (
+                        <button
+                          key={model}
+                          onClick={() => setActiveModel(model)}
+                          className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            activeModel === model
+                              ? 'bg-violet-600 text-white shadow-md'
+                              : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          {MODEL_REGISTRY[model].displayName}
+                        </button>
+                      )
+                    )}
                   </div>
                 </Card>
               </div>
@@ -194,7 +193,9 @@ export default function I2VPageClient() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">큐에 요청을 추가하고 있습니다</h3>
+                  <h3 className="text-lg font-semibold">
+                    큐에 요청을 추가하고 있습니다
+                  </h3>
                   <p className="text-muted-foreground">
                     잠시만 기다려주세요. 요청을 처리 중입니다...
                   </p>
@@ -204,19 +205,26 @@ export default function I2VPageClient() {
           )}
 
           {submitMessage && !isGenerating && (
-            <Card className={`p-6 text-center ${submitMessage.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}>
+            <Card
+              className={`p-6 text-center ${submitMessage.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}
+            >
               <div className="space-y-4">
-                <div className={`flex items-center justify-center gap-2 ${submitMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-                  {submitMessage.type === 'error' ?
-                    <XCircle className="h-6 w-6" /> :
+                <div
+                  className={`flex items-center justify-center gap-2 ${submitMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}
+                >
+                  {submitMessage.type === 'error' ? (
+                    <XCircle className="h-6 w-6" />
+                  ) : (
                     <CheckCircle className="h-6 w-6" />
-                  }
+                  )}
                   <h3 className="text-lg font-semibold">
                     {submitMessage.type === 'error' ? '요청 실패' : '요청 성공'}
                   </h3>
                 </div>
 
-                <p className={`${submitMessage.type === 'error' ? 'text-red-700' : 'text-green-700'}`}>
+                <p
+                  className={`${submitMessage.type === 'error' ? 'text-red-700' : 'text-green-700'}`}
+                >
                   {submitMessage.message}
                 </p>
 
