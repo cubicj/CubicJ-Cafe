@@ -1,9 +1,10 @@
 import type { ComfyUIWorkflow, ComfyUIResponse } from '@/types'
 import { createLogger } from '@/lib/logger'
 import { comfyuiFetch } from './client-http'
+import WebSocket from 'ws'
 
 const log = createLogger('comfyui')
-import type { ComfyUIPromptRequest, ComfyUIQueueResponse, ComfyUIQueueStatus, ComfyUIHistoryResponse, DownloadedMedia, ModelListResponse } from './client-types'
+import type { ComfyUIPromptRequest, ComfyUIQueueResponse, ComfyUIQueueStatus, ComfyUIHistoryResponse, DownloadedMedia, ModelListResponse, WsExecutedData, WsExecutionErrorData, WsMessage } from './client-types'
 import { ComfyUIServerManager } from './client-server-manager'
 import { ComfyUIModelManager } from './client-model-manager'
 import { ComfyUIMediaManager } from './client-media-manager'
@@ -17,6 +18,13 @@ export class ComfyUIClient {
   private serverManager: ComfyUIServerManager
   private modelManager: ComfyUIModelManager
   private mediaManager: ComfyUIMediaManager
+  private ws: WebSocket | null = null
+  private wsConnected = false
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 5
+  private reconnectTimer: NodeJS.Timeout | null = null
+  private executedCallbacks = new Map<string, (data: WsExecutedData) => void>()
+  private errorCallbacks = new Map<string, (data: WsExecutionErrorData) => void>()
 
   constructor(options: {
     baseURL?: string
@@ -119,6 +127,113 @@ export class ComfyUIClient {
 
   getBaseURL(): string {
     return this.baseURL
+  }
+
+  connectWebSocket(): void {
+    if (this.ws) {
+      return
+    }
+
+    const url = this.getWebSocketURL()
+    log.info('WebSocket connecting', { url })
+
+    this.ws = new WebSocket(url)
+
+    this.ws.on('open', () => {
+      this.wsConnected = true
+      this.reconnectAttempts = 0
+      log.info('WebSocket connected', { url })
+    })
+
+    this.ws.on('message', (data: WebSocket.Data) => {
+      if (typeof data !== 'string') return
+      this.handleWsMessage(data)
+    })
+
+    this.ws.on('close', () => {
+      this.wsConnected = false
+      log.warn('WebSocket disconnected')
+      this.attemptReconnect()
+    })
+
+    this.ws.on('error', (error: Error) => {
+      log.error('WebSocket error', { error: error.message })
+    })
+  }
+
+  disconnectWebSocket(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
+    }
+    this.reconnectAttempts = this.maxReconnectAttempts
+
+    if (this.ws) {
+      this.ws.removeAllListeners()
+      this.ws.close()
+      this.ws = null
+    }
+
+    this.wsConnected = false
+    this.executedCallbacks.clear()
+    this.errorCallbacks.clear()
+  }
+
+  isWebSocketConnected(): boolean {
+    return this.wsConnected
+  }
+
+  onExecuted(promptId: string, callback: (data: WsExecutedData) => void): void {
+    this.executedCallbacks.set(promptId, callback)
+  }
+
+  onExecutionError(promptId: string, callback: (data: WsExecutionErrorData) => void): void {
+    this.errorCallbacks.set(promptId, callback)
+  }
+
+  removeCallbacks(promptId: string): void {
+    this.executedCallbacks.delete(promptId)
+    this.errorCallbacks.delete(promptId)
+  }
+
+  private handleWsMessage(raw: string): void {
+    let parsed: WsMessage
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      log.warn('WebSocket malformed message ignored')
+      return
+    }
+
+    if (parsed.type === 'executed') {
+      const data = parsed.data as unknown as WsExecutedData
+      const callback = this.executedCallbacks.get(data.prompt_id)
+      if (callback) {
+        callback(data)
+      }
+    } else if (parsed.type === 'execution_error') {
+      const data = parsed.data as unknown as WsExecutionErrorData
+      const callback = this.errorCallbacks.get(data.prompt_id)
+      if (callback) {
+        callback(data)
+      }
+    }
+  }
+
+  private attemptReconnect(): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      log.error('WebSocket reconnect exhausted', { attempts: this.reconnectAttempts })
+      return
+    }
+
+    const delay = Math.pow(2, this.reconnectAttempts) * 1000
+    this.reconnectAttempts++
+    log.info('WebSocket reconnecting', { attempt: this.reconnectAttempts, delayMs: delay })
+
+    this.reconnectTimer = setTimeout(() => {
+      this.ws = null
+      this.connectWebSocket()
+    }, delay)
   }
 
   async checkServerHealth(): Promise<boolean> {
