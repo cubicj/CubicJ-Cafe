@@ -98,7 +98,7 @@ class ComfyUIJobMonitor {
 
         if (hasOutputs) {
           log.info('ComfyUI job completed', { promptId: job.promptId });
-          await this.handleCompletion(job, promptData.outputs!);
+          await this.handleCompletion(job);
           return;
         }
 
@@ -143,7 +143,7 @@ class ComfyUIJobMonitor {
     return this.monitoringJobs.size;
   }
 
-  private async handleCompletion(job: GenerationJob, outputs: Record<string, ComfyUINodeOutput>): Promise<void> {
+  private async handleCompletion(job: GenerationJob): Promise<void> {
     try {
       await QueueService.updateRequest(job.id, {
         status: QueueStatus.COMPLETED,
@@ -156,7 +156,7 @@ class ComfyUIJobMonitor {
       });
 
       queueMonitor.releaseServerJob(job.id);
-      await sendVideoToDiscord(job, outputs);
+      await sendVideoToDiscord(job);
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
