@@ -40,19 +40,6 @@ export async function sendVideoToDiscord(
     const outputConfig = VIDEO_OUTPUT_TYPES[videoModel];
     const modelConfig = MODEL_REGISTRY[videoModel];
 
-    log.debug('Discord send outputs structure', {
-      jobId: job.id,
-      videoModel,
-      outputField: outputConfig.outputField,
-      nodeIds: Object.keys(outputs),
-      outputStructure: Object.fromEntries(
-        Object.entries(outputs).map(([nodeId, nodeOutput]) => [
-          nodeId,
-          Object.keys(nodeOutput as Record<string, unknown>)
-        ])
-      )
-    });
-
     let videoFound = false;
     for (const [, nodeOutput] of Object.entries(outputs)) {
       const outputFiles = (nodeOutput as Record<string, unknown>)[outputConfig.outputField] as Array<{ filename: string; subfolder?: string; type?: string }> | undefined;
