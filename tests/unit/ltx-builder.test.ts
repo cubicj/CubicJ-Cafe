@@ -23,6 +23,7 @@ vi.mock('@/lib/database/system-settings', () => ({
     rtxResizeType: 'fixed resolution',
     rtxScale: 1.5,
     rtxQuality: 'HIGH',
+    vfiEnabled: true,
     vfiCheckpoint: 'test-vfi-checkpoint',
     vfiClearCache: 100,
     vfiMultiplier: 2,

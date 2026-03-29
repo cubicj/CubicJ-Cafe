@@ -18,11 +18,15 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   setNode(workflow, WAN.UNET_LOW, { unet_name: settings.unetLow })
   setNode(workflow, WAN.CLIP, { clip_name: settings.clip })
   setNode(workflow, WAN.VAE, { vae_name: settings.vae })
-  setNode(workflow, WAN.VFI, {
-    ckpt_name: settings.vfiCheckpoint,
-    clear_cache_after_n_frames: settings.vfiClearCache,
-    multiplier: settings.vfiMultiplier,
-  })
+  if (settings.vfiEnabled) {
+    setNode(workflow, WAN.VFI, {
+      ckpt_name: settings.vfiCheckpoint,
+      clear_cache_after_n_frames: settings.vfiClearCache,
+      multiplier: settings.vfiMultiplier,
+    })
+  } else {
+    bypassVfi(workflow)
+  }
 
   setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
@@ -110,6 +114,15 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   })
 
   return workflow
+}
+
+function bypassVfi(workflow: ComfyUIWorkflow) {
+  const vfiNode = workflow[WAN.VFI]
+  const vfiInput = vfiNode?.inputs?.frames as [string, number] | undefined
+  if (vfiInput) {
+    setNode(workflow, '45', { image_pass: vfiInput })
+  }
+  delete workflow[WAN.VFI]
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {

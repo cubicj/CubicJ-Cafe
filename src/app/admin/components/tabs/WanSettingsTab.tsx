@@ -38,6 +38,7 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.sigma_end_y_low', label: 'LOW End Y', type: 'number', step: 0.01, group: 'Sigma' },
   { key: 'wan.sigma_preset', label: 'Sigma Preset', type: 'nodeOption', group: 'Sigma', nodeQuery: 'sigma_preset:CustomSplineSigma:preset' },
   { key: 'wan.sigma_curve_data', label: 'Sigma Curve Data', type: 'textarea', group: 'Sigma', textareaRows: 5, monoFont: true },
+  { key: 'wan.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: 'VFI' },
   { key: 'wan.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
   { key: 'wan.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
   { key: 'wan.rtx_resize_type', label: 'RTX Resize Type', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },

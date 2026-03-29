@@ -57,11 +57,15 @@ export async function buildLtxWorkflow(
     quality: settings.rtxQuality,
   })
 
-  setNode(workflow, LTX.VFI, {
-    ckpt_name: settings.vfiCheckpoint,
-    clear_cache_after_n_frames: settings.vfiClearCache,
-  })
-  setNode(workflow, LTX.VFI_MULTIPLIER, { value: settings.vfiMultiplier })
+  if (settings.vfiEnabled) {
+    setNode(workflow, LTX.VFI, {
+      ckpt_name: settings.vfiCheckpoint,
+      clear_cache_after_n_frames: settings.vfiClearCache,
+    })
+    setNode(workflow, LTX.VFI_MULTIPLIER, { value: settings.vfiMultiplier })
+  } else {
+    bypassVfi(workflow)
+  }
 
   setNode(workflow, LTX.VIDEO_OUTPUT, { crf: settings.videoCrf })
 
@@ -175,6 +179,16 @@ function handleReferenceAudio(
     conditioningNode.inputs.positive = [LTX.REFERENCE_AUDIO, 1]
     conditioningNode.inputs.negative = [LTX.REFERENCE_AUDIO, 2]
   }
+}
+
+function bypassVfi(workflow: ComfyUIWorkflow) {
+  const vfiNode = workflow[LTX.VFI]
+  const vfiInput = vfiNode?.inputs?.frames as [string, number] | undefined
+  if (vfiInput) {
+    setNode(workflow, LTX.RTX_SUPER_RES, { images: vfiInput })
+  }
+  delete workflow[LTX.VFI]
+  delete workflow[LTX.VFI_MULTIPLIER]
 }
 
 function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {

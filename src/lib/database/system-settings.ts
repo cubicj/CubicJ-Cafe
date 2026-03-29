@@ -65,6 +65,7 @@ export interface WanSettings {
   unetLow: string;
   clip: string;
   vae: string;
+  vfiEnabled: boolean;
   vfiCheckpoint: string;
   loraEnabled: boolean;
   megapixels: number;
@@ -118,6 +119,7 @@ export interface LtxSettings {
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
+  vfiEnabled: boolean;
   vfiCheckpoint: string;
   vfiClearCache: number;
   vfiMultiplier: number;
@@ -135,6 +137,7 @@ export const WAN_KEYS = {
   unetLow: 'wan.unet_low',
   clip: 'wan.clip',
   vae: 'wan.vae',
+  vfiEnabled: 'wan.vfi_enabled',
   vfiCheckpoint: 'wan.vfi_checkpoint',
   loraEnabled: 'wan.lora_enabled',
   megapixels: 'wan.megapixels',
@@ -188,6 +191,7 @@ export const LTX_KEYS = {
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
+  vfiEnabled: 'ltx.vfi_enabled',
   vfiCheckpoint: 'ltx.vfi_checkpoint',
   vfiClearCache: 'ltx.vfi_clear_cache',
   vfiMultiplier: 'ltx.vfi_multiplier',
@@ -228,6 +232,7 @@ export async function getWanSettings(): Promise<WanSettings> {
     unetLow: map.get(WAN_KEYS.unetLow)!,
     clip: map.get(WAN_KEYS.clip)!,
     vae: map.get(WAN_KEYS.vae)!,
+    vfiEnabled: map.get(WAN_KEYS.vfiEnabled)! === 'true',
     vfiCheckpoint: map.get(WAN_KEYS.vfiCheckpoint)!,
     loraEnabled: map.get(WAN_KEYS.loraEnabled)! === 'true',
     megapixels: parseFloat(map.get(WAN_KEYS.megapixels)!),
@@ -289,6 +294,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     rtxResizeType: map.get(LTX_KEYS.rtxResizeType)!,
     rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
     rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
+    vfiEnabled: map.get(LTX_KEYS.vfiEnabled)! === 'true',
     vfiCheckpoint: map.get(LTX_KEYS.vfiCheckpoint)!,
     vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
     vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
