@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { FileUpload } from "@/components/ui/file-upload";
 import { AudioUpload } from "@/components/ui/audio-upload";
 import { PromptInput } from "@/components/ui/prompt-input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bot, MessageSquare, Music } from "lucide-react";
+import { Bot, MessageSquare, Music, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ImageUploadSectionProps {
   selectedFile: File | null;
@@ -36,6 +38,9 @@ export function ImageUploadSection({
   onAudioSelect,
   showAudio = false,
 }: ImageUploadSectionProps) {
+  const [endImageOpen, setEndImageOpen] = useState(!!endImageFile);
+  const [audioOpen, setAudioOpen] = useState(!!audioFile);
+
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       <div className="space-y-2">
@@ -67,29 +72,43 @@ export function ImageUploadSection({
 
       {showEndImage && !isLoopEnabled && (
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEndImageOpen(!endImageOpen)}
+            className="flex items-center gap-2 text-lg font-semibold w-full text-left"
+          >
             <Bot className="h-4 w-4" />
             끝 이미지 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
-          </h2>
-          <FileUpload
-            onFileSelect={onEndImageSelect}
-            selectedFile={endImageFile}
-            maxSize={10 * 1024 * 1024}
-          />
+            <ChevronDown className={cn("h-4 w-4 ml-auto transition-transform", endImageOpen && "rotate-180")} />
+          </button>
+          {endImageOpen && (
+            <FileUpload
+              onFileSelect={onEndImageSelect}
+              selectedFile={endImageFile}
+              maxSize={10 * 1024 * 1024}
+            />
+          )}
         </div>
       )}
 
       {showAudio && (
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setAudioOpen(!audioOpen)}
+            className="flex items-center gap-2 text-lg font-semibold w-full text-left"
+          >
             <Music className="h-4 w-4" />
             레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
-          </h2>
-          <AudioUpload
-            onFileSelect={onAudioSelect}
-            selectedFile={audioFile}
-            maxSize={20 * 1024 * 1024}
-          />
+            <ChevronDown className={cn("h-4 w-4 ml-auto transition-transform", audioOpen && "rotate-180")} />
+          </button>
+          {audioOpen && (
+            <AudioUpload
+              onFileSelect={onAudioSelect}
+              selectedFile={audioFile}
+              maxSize={20 * 1024 * 1024}
+            />
+          )}
         </div>
       )}
 
