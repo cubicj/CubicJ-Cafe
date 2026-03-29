@@ -10,26 +10,19 @@ import type { LoRAPresetData } from '@/types';
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from './comfyui-state';
 import { getQueuePauseAfterPosition } from './queue-pause-state';
+import { serverManager } from './server-manager';
 
 const log = createLogger('queue');
 
 class QueueMonitor {
   private isRunning = false;
   private intervalId: NodeJS.Timeout | null = null;
-  private checkInterval = 5000; // 5초마다 확인
-  private comfyUIClient: ComfyUIClient;
+  private checkInterval = 5000;
   private currentlyProcessing = new Set<string>();
   private pauseLoggedOnce = false;
   private activeServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
 
-  constructor() {
-    // 서버용 ComfyUI 클라이언트 (프록시 사용 안함, 더 긴 타임아웃)
-    this.comfyUIClient = new ComfyUIClient({ 
-      useProxy: false,
-      timeout: 15000,
-      maxRetries: 2
-    });
-  }
+  constructor() {}
 
   // 활성 서버 목록 업데이트 (캐시 추가)
   private lastServerUpdateTime = 0;
@@ -46,48 +39,46 @@ class QueueMonitor {
     const newActiveServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
 
     // 로컬 서버 확인
-    const localUrl = process.env.COMFYUI_API_URL || 'http://127.0.0.1:8188';
-    try {
-      const isHealthy = await this.comfyUIClient.checkServerHealth();
-      if (isHealthy) {
-        // 기존 서버에서 현재 작업 ID 보존
-        const existingServer = this.activeServers.find(s => s.type === 'local');
-        newActiveServers.push({
-          client: this.comfyUIClient,
-          name: '로컬 서버',
-          type: 'local',
-          url: localUrl,
-          currentJobId: existingServer?.currentJobId
-        });
+    const localServer = serverManager.getServerById('local');
+    if (localServer) {
+      try {
+        const localClient = serverManager.getClient(localServer);
+        const isHealthy = await localClient.checkServerHealth();
+        if (isHealthy) {
+          const existingServer = this.activeServers.find(s => s.type === 'local');
+          newActiveServers.push({
+            client: localClient,
+            name: '로컬 서버',
+            type: 'local',
+            url: localServer.url,
+            currentJobId: existingServer?.currentJobId
+          });
+        }
+      } catch (error) {
+        log.debug('Local server health check failed', { error: error instanceof Error ? error.message : String(error) });
       }
-    } catch (error) {
-      log.debug('Local server health check failed', { error: error instanceof Error ? error.message : String(error) });
     }
 
-    const runpodUrls = (process.env.COMFYUI_RUNPOD_URLS || '').split(',').filter(url => url.trim());
+    const runpodServers = serverManager.getServerStats().servers.filter(s => s.type === 'RUNPOD');
     const runpodResults = await Promise.all(
-      runpodUrls.map(async (url, i) => {
-        const runpodClient = new ComfyUIClient({
-          baseURL: url,
-          timeout: 10000,
-          maxRetries: 1,
-          useProxy: false
-        });
-
+      runpodServers.map(async (server) => {
+        const runpodServer = serverManager.getServerById(server.id);
+        if (!runpodServer) return null;
+        const runpodClient = serverManager.getClient(runpodServer);
         try {
           const isHealthy = await runpodClient.checkServerHealth();
           if (isHealthy) {
-            const existingServer = this.activeServers.find(s => s.url === url);
+            const existingServer = this.activeServers.find(s => s.url === server.url);
             return {
               client: runpodClient,
-              name: `Runpod ${i + 1}`,
+              name: `Runpod ${server.id}`,
               type: 'runpod' as const,
-              url: url,
+              url: server.url,
               currentJobId: existingServer?.currentJobId
             };
           }
         } catch (error) {
-          log.debug('Runpod server health check failed', { url, error: error instanceof Error ? error.message : String(error) });
+          log.debug('Runpod server health check failed', { url: server.url, error: error instanceof Error ? error.message : String(error) });
         }
         return null;
       })
