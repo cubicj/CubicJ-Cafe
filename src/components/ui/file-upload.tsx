@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useCallback, useState, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
-import { Card } from "./card";
-import { Button } from "./button";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { useCallback, useState, useEffect } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Card } from './card';
+import { Button } from './button';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
@@ -15,8 +15,15 @@ interface FileUploadProps {
   maxSize?: number;
 }
 
-export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, className, maxSize = 10 * 1024 * 1024 }: FileUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(externalSelectedFile ?? null);
+export function FileUpload({
+  onFileSelect,
+  selectedFile: externalSelectedFile,
+  className,
+  maxSize = 10 * 1024 * 1024,
+}: FileUploadProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(
+    externalSelectedFile ?? null
+  );
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,7 +44,7 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
       if (file) {
         setSelectedFile(file);
         onFileSelect(file);
-        
+
         const reader = new FileReader();
         reader.onload = () => {
           setPreview(reader.result as string);
@@ -54,31 +61,34 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
     onFileSelect(null);
   };
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
-    },
-    maxSize,
-    multiple: false,
-  });
+  const { getRootProps, getInputProps, isDragActive, fileRejections } =
+    useDropzone({
+      onDrop,
+      accept: {
+        'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      },
+      maxSize,
+      multiple: false,
+    });
 
   const hasError = fileRejections.length > 0;
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn('w-full', className)}>
       <Card className="p-3 sm:p-6">
         <div
           {...getRootProps()}
           className={cn(
-            "border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer transition-colors",
-            isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-            hasError ? "border-destructive bg-destructive/5" : "",
-            selectedFile ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
+            'border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer transition-colors',
+            isDragActive
+              ? 'border-primary bg-primary/5'
+              : 'border-muted-foreground/25',
+            hasError ? 'border-destructive bg-destructive/5' : '',
+            selectedFile ? 'border-green-500 bg-green-50 dark:bg-green-950' : ''
           )}
         >
           <input {...getInputProps()} />
-          
+
           {selectedFile ? (
             <div className="space-y-3 sm:space-y-4">
               {preview && (
@@ -104,11 +114,11 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     removeFile();
                   }}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -125,7 +135,7 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
               </div>
               <div>
                 <p className="text-base sm:text-lg font-medium">
-                  {isDragActive ? "파일을 놓아주세요" : "이미지를 업로드하세요"}
+                  {isDragActive ? '파일을 놓아주세요' : '이미지를 업로드하세요'}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4">
                   이곳에 이미지 파일을 드래그 앤 드롭하세요
@@ -137,7 +147,7 @@ export function FileUpload({ onFileSelect, selectedFile: externalSelectedFile, c
             </div>
           )}
         </div>
-        
+
         {hasError && (
           <div className="mt-2 text-sm text-destructive">
             {fileRejections[0]?.errors[0]?.message}
