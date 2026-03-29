@@ -1,76 +1,47 @@
-import { QueueService } from '@/lib/database/queue';
-import { GenerationJob } from '@/types';
-import { discordBot } from '../discord-bot';
-import { serverManager } from './server-manager';
-import { VIDEO_OUTPUT_TYPES, MODEL_REGISTRY } from './workflows/registry';
-import type { VideoModel } from './workflows/types';
-import { createLogger } from '@/lib/logger';
+import { QueueService } from '@/lib/database/queue'
+import { GenerationJob } from '@/types'
+import { discordBot } from '../discord-bot'
+import { serverManager } from './server-manager'
+import type { VideoModel } from './workflows/types'
+import type { VideoFileInfo } from './client-types'
+import { createLogger } from '@/lib/logger'
 
-const log = createLogger('comfyui');
-
-interface ComfyUIPromptItem {
-  error?: string;
-  [nodeId: string]: unknown;
-}
-
-interface ComfyUIWorkflowNode {
-  class_type?: string;
-  inputs?: Record<string, unknown> & {
-    filename_prefix?: string;
-  };
-}
-
-interface ExtractedVideoInfo {
-  filename: string;
-  fileType: 'output' | 'temp';
-}
+const log = createLogger('comfyui')
 
 export async function sendVideoToDiscord(
-  job: GenerationJob
+  job: GenerationJob,
+  videoInfo: VideoFileInfo
 ): Promise<void> {
   try {
     if (!job.userInfo) {
-      log.warn('No user info, skipping Discord send', { jobId: job.id });
-      return;
+      log.warn('No user info, skipping Discord send', { jobId: job.id })
+      return
     }
 
-    const videoModel = (job.videoModel as VideoModel) || 'wan';
-    const outputConfig = VIDEO_OUTPUT_TYPES[videoModel];
-    const modelConfig = MODEL_REGISTRY[videoModel];
+    const videoModel = (job.videoModel as VideoModel) || 'wan'
 
-    const { server } = await resolveServer(job.id);
-    const comfyUIClient = serverManager.getClient(server);
+    const { server } = await resolveServer(job.id)
 
-    const history = await comfyUIClient.getHistory(job.promptId!);
-    const promptData = history[job.promptId!];
-
-    if (!promptData) {
-      log.warn('No prompt data found in history', { jobId: job.id });
-      return;
-    }
-
-    const videoInfo = extractVideoInfo(promptData, outputConfig.classTypes, modelConfig.defaultSubfolder);
-    if (!videoInfo) {
-      log.warn('No video output node found in history', { jobId: job.id });
-      return;
-    }
-
-    const processingTime = job.updatedAt && job.createdAt
-      ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
-      : undefined;
+    const processingTime =
+      job.updatedAt && job.createdAt
+        ? Math.round(
+            (job.updatedAt.getTime() - job.createdAt.getTime()) / 1000
+          )
+        : undefined
 
     log.info('Discord video send attempt', {
       jobId: job.id,
-      ...videoInfo,
-      subfolder: modelConfig.defaultSubfolder,
+      filename: videoInfo.filename,
+      subfolder: videoInfo.subfolder,
+      fileType: videoInfo.type,
       videoModel,
-      serverUrl: server.url
-    });
+      serverUrl: server.url,
+    })
 
     await discordBot.sendVideoToDiscord({
       filename: videoInfo.filename,
-      subfolder: modelConfig.defaultSubfolder,
-      fileType: videoInfo.fileType,
+      subfolder: videoInfo.subfolder,
+      fileType: videoInfo.type,
       prompt: job.prompt,
       username: job.userInfo.name,
       userAvatar: job.userInfo.image,
@@ -78,63 +49,28 @@ export async function sendVideoToDiscord(
       isNSFW: job.isNSFW,
       discordId: job.userInfo.discordId,
       comfyUIServerUrl: server.url,
-      videoModel
-    });
+      videoModel,
+    })
 
-    log.debug('Discord video send complete', { jobId: job.id });
+    log.debug('Discord video send complete', { jobId: job.id })
   } catch (error) {
-    log.error('Discord video send failed', { jobId: job.id, error: error instanceof Error ? error.message : String(error) });
+    log.error('Discord video send failed', {
+      jobId: job.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 }
 
 async function resolveServer(jobId: string) {
-  const queueRequest = await QueueService.getRequestById(jobId);
+  const queueRequest = await QueueService.getRequestById(jobId)
   if (!queueRequest?.serverId) {
-    throw new Error('서버 정보를 찾을 수 없습니다');
+    throw new Error('서버 정보를 찾을 수 없습니다')
   }
 
-  const server = serverManager.getServerById(queueRequest.serverId);
+  const server = serverManager.getServerById(queueRequest.serverId)
   if (!server) {
-    throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`);
+    throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`)
   }
 
-  return { queueRequest, server };
-}
-
-function extractVideoInfo(
-  promptData: { prompt?: ComfyUIPromptItem[] },
-  classTypes: string[],
-  defaultSubfolder: string
-): ExtractedVideoInfo | null {
-  if (!promptData.prompt || !Array.isArray(promptData.prompt)) return null;
-
-  for (const promptItem of promptData.prompt) {
-    if (!promptItem || typeof promptItem !== 'object') continue;
-    for (const [nodeId, nodeData] of Object.entries(promptItem)) {
-      if (!nodeData || typeof nodeData !== 'object') continue;
-      const node = nodeData as ComfyUIWorkflowNode;
-      if (!node.class_type || !classTypes.includes(node.class_type)) continue;
-      const filenamePrefix = node.inputs?.filename_prefix;
-      if (!filenamePrefix || typeof filenamePrefix !== 'string') continue;
-      const subfolderPattern = new RegExp('^' + defaultSubfolder + '/');
-      const baseFilename = filenamePrefix.replace(subfolderPattern, '');
-      const saveOutput = node.inputs?.save_output;
-      const fileType = saveOutput === false ? 'temp' : 'output';
-      const hasAudio = node.inputs?.audio != null;
-      const filename = hasAudio
-        ? `${baseFilename}_00001-audio.mp4`
-        : `${baseFilename}_00001_.mp4`;
-      log.debug('Video info extracted from node', {
-        nodeId,
-        filenamePrefix,
-        saveOutput,
-        fileType,
-        hasAudio,
-        filename,
-      });
-      return { filename, fileType };
-    }
-  }
-
-  return null;
+  return { queueRequest, server }
 }
