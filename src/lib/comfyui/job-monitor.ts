@@ -169,9 +169,9 @@ class ComfyUIJobMonitor {
 
       log.warn('Job completed but Discord send failed', { jobId: job.id });
       await QueueService.updateRequest(job.id, {
-        status: QueueStatus.COMPLETED,
+        status: QueueStatus.COMPLETED_WITH_ERROR,
         completedAt: new Date(),
-        error: `작업 완료, Discord 전송 실패: ${errorMessage}`
+        error: `Discord 전송 실패: ${errorMessage}`
       });
 
       generationStore.updateJob(job.promptId!, {

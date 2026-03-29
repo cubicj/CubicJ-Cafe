@@ -16,7 +16,7 @@ const log = createLogger('ui');
 interface QueueRequest {
   id: string;
   nickname: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'COMPLETED_WITH_ERROR' | 'FAILED' | 'CANCELLED';
   prompt: string;
   position: number;
   createdAt: string;
@@ -115,7 +115,7 @@ export function QueueMonitor() {
 
   const canDeleteRequest = (request: QueueRequest): boolean => {
     if (!currentUser) return false;
-    if (request.status === 'COMPLETED' || request.status === 'FAILED' || request.status === 'CANCELLED') return false;
+    if (['COMPLETED', 'COMPLETED_WITH_ERROR', 'FAILED', 'CANCELLED'].includes(request.status)) return false;
     if (isCurrentUserAdmin) return true;
     return request.nickname === currentUser.nickname;
   };
