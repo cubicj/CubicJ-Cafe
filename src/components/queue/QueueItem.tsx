@@ -91,7 +91,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
   return (
     <>
       <div className="hidden md:flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Badge variant="outline" className="text-xs">
             #{request.position}
           </Badge>
@@ -104,7 +104,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           </Badge>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <User className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium">{request.nickname}</span>
           {isCurrentUser && (
@@ -120,7 +120,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="text-xs text-muted-foreground min-w-16">
             {formatRelativeTime(request.createdAt)}
           </div>
@@ -138,7 +138,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
                 size="sm"
                 onClick={() => onDelete(request.id, request.nickname)}
                 disabled={isDeleting}
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
               >
                 {isDeleting ? (
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
@@ -162,7 +162,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0 shrink-0">
               <Eye className="h-3.5 w-3.5" />
             </Button>
           </DialogTrigger>
@@ -225,7 +225,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
             size="sm"
             onClick={() => onDelete(request.id, request.nickname)}
             disabled={isDeleting}
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
           >
             {isDeleting ? (
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
