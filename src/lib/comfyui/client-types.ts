@@ -55,3 +55,31 @@ export interface ModelListResponse {
   latentUpscalers: string[]
   vfiCheckpoints: string[]
 }
+
+export interface VideoFileInfo {
+  filename: string
+  subfolder: string
+  type: string
+}
+
+export interface WsExecutedData {
+  node: string
+  output: {
+    gifs?: Array<{ filename: string; subfolder: string; type: string }>
+    images?: Array<{ filename: string; subfolder: string; type: string }>
+  }
+  prompt_id: string
+}
+
+export interface WsExecutionErrorData {
+  prompt_id: string
+  node_id: string
+  node_type: string
+  exception_message: string
+  exception_type: string
+}
+
+export interface WsMessage {
+  type: 'executed' | 'executing' | 'execution_error' | 'progress' | 'status' | 'execution_start' | 'execution_cached'
+  data: Record<string, unknown>
+}
