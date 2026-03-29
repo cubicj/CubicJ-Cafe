@@ -79,6 +79,12 @@ export async function buildLtxWorkflow(
     removeLoraPlaceholder(workflow)
   }
 
+  if (params.referenceAudio) {
+    handleReferenceAudio(workflow, params.referenceAudio, settings)
+  } else {
+    handleReferenceAudioBypass(workflow)
+  }
+
   setNode(workflow, LTX.NOISE_SEED, { noise_seed: generateSeed() })
 
   if (workflow[LTX.VIDEO_OUTPUT] && params.inputImage) {
@@ -93,6 +99,7 @@ export async function buildLtxWorkflow(
     duration: settings.duration,
     loraEnabled: settings.loraEnabled,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
+    hasReferenceAudio: !!params.referenceAudio,
   })
 
   return workflow
@@ -131,4 +138,47 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
 function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
   setNode(workflow, LTX.AUDIO_NORM, { model: [LTX.SAGE_ATTENTION, 0] })
   delete workflow[LTX.LORA_PLACEHOLDER]
+}
+
+function handleReferenceAudio(
+  workflow: ComfyUIWorkflow,
+  audioFile: string,
+  settings: {
+    idLoraName: string
+    idLoraStrength: number
+    identityGuidanceScale: number
+    identityStartPercent: number
+    identityEndPercent: number
+  }
+) {
+  setNode(workflow, LTX.LOAD_AUDIO, { audio: audioFile })
+
+  const currentModelSource = workflow[LTX.AUDIO_NORM]?.inputs?.model as [string, number]
+
+  setNode(workflow, LTX.ID_LORA, {
+    lora_name: settings.idLoraName,
+    strength_model: settings.idLoraStrength,
+    model: currentModelSource,
+  })
+
+  setNode(workflow, LTX.REFERENCE_AUDIO, {
+    identity_guidance_scale: settings.identityGuidanceScale,
+    start_percent: settings.identityStartPercent,
+    end_percent: settings.identityEndPercent,
+    model: [LTX.ID_LORA, 0],
+  })
+
+  setNode(workflow, LTX.AUDIO_NORM, { model: [LTX.REFERENCE_AUDIO, 0] })
+
+  const conditioningNode = workflow['23']
+  if (conditioningNode?.inputs) {
+    conditioningNode.inputs.positive = [LTX.REFERENCE_AUDIO, 1]
+    conditioningNode.inputs.negative = [LTX.REFERENCE_AUDIO, 2]
+  }
+}
+
+function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
+  delete workflow[LTX.REFERENCE_AUDIO]
+  delete workflow[LTX.ID_LORA]
+  delete workflow[LTX.LOAD_AUDIO]
 }
