@@ -24,7 +24,7 @@ AI Image-to-Video generation web frontend powered by ComfyUI.
 | Bot | Discord.js (in-process) |
 | Testing | Vitest, SQLite test DB, route handler direct invocation |
 | Logging | Custom unified logger (server + client → files + SSE) |
-| Deployment | PM2 standalone + Nginx + SSL |
+| Deployment | systemd + Nginx + SSL (Next.js standalone) |
 
 ## Project Structure
 
@@ -59,18 +59,22 @@ tests/
 npm install
 npm run prisma:migrate    # Set up database
 npm run dev               # Dev server
-npm test                  # 169 tests
+npm test                  # 324 tests
 npm run type-check        # tsc --noEmit
 npm run lint              # ESLint
 ```
 
 ## Deployment
 
-Runs on PM2 with Next.js standalone output. Environment variables are managed through `ecosystem.config.js` (not checked into version control for production secrets).
+Runs as a systemd service with Next.js standalone output. Environment variables live in `.env` (not version controlled — see `.env.example` for the template).
+
+Production uses `.env.production` loaded via systemd `EnvironmentFile`.
 
 ```bash
 npm run build
-npm run pm2:start
+# Deploy .next/standalone + .next/static + public to target
+# systemd EnvironmentFile loads .env.production
+# ExecStart: node .next/standalone/server.js
 ```
 
 ## Architecture Notes
