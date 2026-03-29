@@ -79,8 +79,8 @@ export async function register() {
         log.warn('ComfyUI interrupt failed (server may be offline), proceeding with reset');
       }
 
-      const result = await QueueService.resetProcessingToPending();
-      log.info(`Recovered ${result.count} orphaned PROCESSING jobs to PENDING`);
+      const result = await QueueService.resetStaleProcessingRequests();
+      log.info(`Recovered ${result.count} orphaned PROCESSING requests to PENDING`);
     }
 
     log.info('Server starting: setting up global error handlers');
