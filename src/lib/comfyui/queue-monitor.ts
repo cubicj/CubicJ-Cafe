@@ -319,6 +319,13 @@ class QueueMonitor {
         uploadedEndImageName = await server.client.uploadImage(endFile);
       }
 
+      let uploadedAudioName = null;
+      if (request.audioBlob && request.audioFile) {
+        const audioBlob = new Blob([request.audioBlob], { type: 'audio/wav' });
+        const audioFile = new File([audioBlob], request.audioFile, { type: 'audio/wav' });
+        uploadedAudioName = await server.client.uploadAudio(audioFile);
+      }
+
       const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
 
       let params: GenerationParams;
@@ -337,6 +344,7 @@ class QueueMonitor {
           inputImage,
           endImage: uploadedEndImageName || undefined,
           loraPreset: loraPreset || undefined,
+          referenceAudio: uploadedAudioName || undefined,
         };
       }
 
