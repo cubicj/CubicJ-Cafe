@@ -21,6 +21,8 @@ export default function I2VPageClient() {
     setSelectedFile,
     endImageFile,
     setEndImageFile,
+    audioFile,
+    setAudioFile,
     isLoopEnabled,
     setIsLoopEnabled,
     prompt,
@@ -126,6 +128,9 @@ export default function I2VPageClient() {
               prompt={prompt}
               onPromptChange={setPrompt}
               showEndImage={capabilities.endImage}
+              audioFile={audioFile}
+              onAudioSelect={setAudioFile}
+              showAudio={capabilities.audio}
             />
 
             <div className="space-y-6 w-full max-w-full overflow-hidden">
