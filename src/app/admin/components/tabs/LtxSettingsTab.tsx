@@ -27,6 +27,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'ltx.sigmas', label: 'Sigmas', type: 'string', group: 'Sigma' },
   { key: 'ltx.audio_norm', label: 'Audio Normalization', type: 'string', group: 'Audio' },
+  { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: 'VFI' },
   { key: 'ltx.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: 'VFI', modelCategory: 'vfiCheckpoints' as ModelCategory },
   { key: 'ltx.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
   { key: 'ltx.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
