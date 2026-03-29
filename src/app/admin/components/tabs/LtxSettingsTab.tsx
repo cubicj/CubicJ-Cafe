@@ -35,6 +35,8 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.rtx_scale', label: 'RTX Scale', type: 'number', step: 0.1, group: 'RTX' },
   { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
   { key: 'ltx.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
+  { key: 'ltx.video_format', label: 'Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_format:VHS_VideoCombine:format' },
+  { key: 'ltx.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
   { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'ID LoRA', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name' },
   { key: 'ltx.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: 'ID LoRA' },
