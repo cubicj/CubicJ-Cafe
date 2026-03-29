@@ -92,6 +92,7 @@ export const GET = createRouteHandler(
             jobId: true,
             videoModel: true,
             generationMode: true,
+            workflowJson: true,
             createdAt: true,
             startedAt: true,
             completedAt: true,
@@ -104,6 +105,10 @@ export const GET = createRouteHandler(
             },
           },
         });
+        data = (data as Record<string, unknown>[]).map(({ workflowJson, ...rest }) => ({
+          ...rest,
+          hasWorkflow: !!workflowJson,
+        }));
         totalCount = await prisma.queueRequest.count();
         break;
 

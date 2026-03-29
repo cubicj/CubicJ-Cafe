@@ -1,7 +1,8 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { SortableHeader, formatDate, LoRAPresetDisplay } from './db-utils';
 import { getStatusBgColor } from '@/lib/queue-status';
 import type { SortState } from '@/hooks/useDatabaseTable';
@@ -127,6 +128,23 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <div>
                       <span className="font-medium">오류:</span>
                       <p className="mt-1 p-2 bg-red-50 rounded text-xs text-red-700">{request.error}</p>
+                    </div>
+                  )}
+
+                  {request.hasWorkflow && (
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`/api/admin/queue/${request.id}/workflow`, '_blank');
+                        }}
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        워크플로우 JSON
+                      </Button>
                     </div>
                   )}
                 </div>

@@ -48,6 +48,7 @@ export interface QueueRequestUpdate {
   completedAt?: Date;
   failedAt?: Date;
   error?: string;
+  workflowJson?: string;
 }
 
 const QUEUE_SELECT_BASE = {

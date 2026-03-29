@@ -385,10 +385,10 @@ class QueueMonitor {
         promptId: response.prompt_id
       });
 
-      // 요청 상태 업데이트 (prompt_id 저장)
       await QueueService.updateRequest(requestId, {
         jobId: response.prompt_id,
-        serverId: actualServerId
+        serverId: actualServerId,
+        workflowJson: JSON.stringify(workflow),
       });
 
       await QueueService.clearImageBlobs(requestId);
