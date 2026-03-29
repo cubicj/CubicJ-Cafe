@@ -1,4 +1,4 @@
-import type { WsExecutedData, WsExecutionErrorData, WsMessage, VideoFileInfo } from '@/lib/comfyui/client-types'
+import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from '@/lib/comfyui/client-types'
 import { ComfyUIClient } from '@/lib/comfyui/client-core'
 
 vi.mock('@/lib/logger', () => ({
