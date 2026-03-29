@@ -75,6 +75,7 @@ export const POST = createRouteHandler(
     const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
+    const audioFile = capabilities.audio ? validated.audio : undefined;
     const loraPresetData = capabilities.loraPresets ? validated.loraPreset : undefined;
 
     const { prompt, isNSFW, isLoop } = validated;
@@ -91,6 +92,7 @@ export const POST = createRouteHandler(
       prompt: prompt.substring(0, 50) + '...',
       imageFile: `${imageFile.name} (${imageFile.size} bytes)`,
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
+      audioFile: audioFile ? `${audioFile.name} (${audioFile.size} bytes)` : 'null',
       hasLoraPreset: !!loraPresetData,
       isNSFW,
     });
@@ -103,6 +105,11 @@ export const POST = createRouteHandler(
         endImageBuffer = Buffer.from(await endImageFile.arrayBuffer());
       }
 
+      let audioBuffer = null;
+      if (capabilities.audio && audioFile) {
+        audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+      }
+
       const fileExtension = imageFile.name.split('.').pop() || 'png';
       const tempFileName = `${randomUUID()}_${req.user!.id}_${Date.now()}.${fileExtension}`;
 
@@ -110,6 +117,12 @@ export const POST = createRouteHandler(
       if (endImageBuffer && endImageFile) {
         const endFileExtension = endImageFile.name.split('.').pop() || 'png';
         endTempFileName = `end_${randomUUID()}_${req.user!.id}_${Date.now()}.${endFileExtension}`;
+      }
+
+      let audioTempFileName = null;
+      if (audioBuffer && audioFile) {
+        const audioExtension = audioFile.name.split('.').pop() || 'wav';
+        audioTempFileName = `audio_${randomUUID()}_${req.user!.id}_${Date.now()}.${audioExtension}`;
       }
 
       const requestId = await QueueService.createRequest({
@@ -120,6 +133,8 @@ export const POST = createRouteHandler(
         imageBlob: imageBuffer,
         endImageFile: endTempFileName || undefined,
         endImageBlob: endImageBuffer || undefined,
+        audioFile: audioTempFileName || undefined,
+        audioBlob: audioBuffer || undefined,
         loraPreset: loraPresetData,
         isNSFW: isNSFW,
         serverType: selectedServer.serverType,
