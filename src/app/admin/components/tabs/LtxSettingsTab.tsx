@@ -35,6 +35,11 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.rtx_quality', label: 'RTX Quality', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
   { key: 'ltx.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
+  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'ID LoRA', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name' },
+  { key: 'ltx.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: 'ID LoRA' },
+  { key: 'ltx.identity_guidance_scale', label: 'Identity Guidance Scale', type: 'number', step: 0.1, group: 'ID LoRA' },
+  { key: 'ltx.identity_start_percent', label: 'Identity Start %', type: 'number', step: 0.01, group: 'ID LoRA' },
+  { key: 'ltx.identity_end_percent', label: 'Identity End %', type: 'number', step: 0.01, group: 'ID LoRA' },
 ];
 
 function LtxLoRACopyButton() {
