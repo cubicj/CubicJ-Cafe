@@ -371,5 +371,35 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     "class_type": "MathExpression|pysssss",
     "_meta": { "title": "LTX_340" }
+  },
+  "348": {
+    "inputs": {
+      "identity_guidance_scale": 0,
+      "start_percent": 0,
+      "end_percent": 0,
+      "model": ["296", 0],
+      "positive": ["59", 0],
+      "negative": ["61", 0],
+      "reference_audio": ["350", 0],
+      "audio_vae": ["1", 0]
+    },
+    "class_type": "LTXVReferenceAudio",
+    "_meta": { "title": "LTX_348" }
+  },
+  "349": {
+    "inputs": {
+      "lora_name": "PLACEHOLDER",
+      "strength_model": 0,
+      "model": ["298", 0]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": { "title": "LTX_349" }
+  },
+  "350": {
+    "inputs": {
+      "audio": "PLACEHOLDER"
+    },
+    "class_type": "LoadAudio",
+    "_meta": { "title": "LTX_350" }
   }
 }
