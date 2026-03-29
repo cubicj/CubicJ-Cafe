@@ -59,9 +59,10 @@ export async function sendVideoToDiscord(
       ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
       : undefined;
 
-    log.debug('Discord video send started', {
+    log.info('Discord video send attempt', {
       jobId: job.id,
       ...videoInfo,
+      subfolder: modelConfig.defaultSubfolder,
       videoModel,
       serverUrl: server.url
     });
@@ -119,12 +120,16 @@ function extractVideoInfo(
       const baseFilename = filenamePrefix.replace(subfolderPattern, '');
       const saveOutput = node.inputs?.save_output;
       const fileType = saveOutput === false ? 'temp' : 'output';
-      const filename = `${baseFilename}_00001_.mp4`;
+      const hasAudio = node.inputs?.audio != null;
+      const filename = hasAudio
+        ? `${baseFilename}_00001-audio.mp4`
+        : `${baseFilename}_00001_.mp4`;
       log.debug('Video info extracted from node', {
         nodeId,
         filenamePrefix,
         saveOutput,
         fileType,
+        hasAudio,
         filename,
       });
       return { filename, fileType };
