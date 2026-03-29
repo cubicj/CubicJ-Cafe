@@ -38,7 +38,6 @@ interface MonitoringData {
     memory: NodeJS.MemoryUsage;
   };
   services: {
-    pm2: PM2Status[];
     nginx: ServiceStatus;
     database: ServiceStatus;
   };
@@ -58,16 +57,6 @@ interface MonitoringData {
   };
 }
 
-interface PM2Status {
-  name: string;
-  pid: number;
-  status: string;
-  memory: number;
-  cpu: number;
-  uptime: number;
-  restarts: number;
-}
-
 interface ServiceStatus {
   status: 'running' | 'stopped' | 'error' | 'unknown';
   pid?: number;
@@ -81,36 +70,6 @@ interface LogEntry {
   level: string;
   message: string;
   meta?: object;
-}
-
-async function checkPM2Status(): Promise<PM2Status[]> {
-  try {
-    const { stdout } = await execAsync('pm2 jlist');
-    const processes = JSON.parse(stdout) as Array<{
-      name: string;
-      pid: number;
-      memory: number;
-      cpu: number;
-      pm2_env?: {
-        status: string;
-        pm_uptime: number;
-        restart_time: number;
-      };
-    }>;
-
-    return processes.map(proc => ({
-      name: proc.name,
-      pid: proc.pid,
-      status: proc.pm2_env?.status || 'unknown',
-      memory: Math.round(proc.memory / 1024 / 1024),
-      cpu: proc.cpu || 0,
-      uptime: proc.pm2_env?.pm_uptime ? Date.now() - proc.pm2_env.pm_uptime : 0,
-      restarts: proc.pm2_env?.restart_time || 0,
-    }));
-  } catch (error) {
-    log.warn('Failed to get PM2 status', { error: error instanceof Error ? error.message : error });
-    return [];
-  }
 }
 
 async function checkNginxStatus(): Promise<ServiceStatus> {
@@ -324,9 +283,8 @@ export const GET = createRouteHandler(
       ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
     });
 
-    const [systemMetrics, pm2Status, nginxStatus, databaseStatus, logs] = await Promise.all([
+    const [systemMetrics, nginxStatus, databaseStatus, logs] = await Promise.all([
       getSystemMetrics(),
-      checkPM2Status(),
       checkNginxStatus(),
       checkDatabaseStatus(),
       getRecentLogs(),
@@ -345,7 +303,6 @@ export const GET = createRouteHandler(
         memory: process.memoryUsage(),
       },
       services: {
-        pm2: pm2Status,
         nginx: nginxStatus,
         database: databaseStatus,
       },
