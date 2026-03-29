@@ -11,9 +11,10 @@ out/
 
 # environment
 .env
-.env.*
+.env.local
+.env.production
+.env*.local
 !.env.example
-ecosystem.config.js
 
 # database
 prisma/dev.db*
