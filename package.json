@@ -15,7 +15,7 @@
     "analyze:server": "cross-env BUNDLE_ANALYZE=server npm run build",
     "analyze:browser": "cross-env BUNDLE_ANALYZE=browser npm run build",
     "build:production": "cross-env NODE_ENV=production npm run build",
-    "build:standalone": "npm run build && npm run export",
+    "build:standalone": "npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "size-check": "npx size-limit",
     "perf-check": "npm run build && npm run start &amp; sleep 5 && npx lighthouse http://localhost:3000 --only-categories=performance --chrome-flags=\"--headless\" --output=html --output-path=./lighthouse-report.html && pkill -f 'npm run start'",
     "prisma:generate": "prisma generate",

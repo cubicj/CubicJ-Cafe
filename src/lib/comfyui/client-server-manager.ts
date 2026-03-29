@@ -60,7 +60,7 @@ export class ComfyUIServerManager {
     return runpodUrlsEnv
       .split(',')
       .map(url => url.trim())
-      .filter(url => url !== '' && url !== 'https://dummy-runpod-server.test')
+      .filter(url => url !== '')
   }
 
   async checkActiveRunpodServers(): Promise<string[]> {

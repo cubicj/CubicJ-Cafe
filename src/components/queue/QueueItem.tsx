@@ -2,8 +2,9 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, User, Play, CheckCircle, XCircle, AlertCircle, AlertTriangle, Trash2, Eye } from 'lucide-react';
+import { User, Trash2, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 
 interface QueueRequest {
   id: string;
@@ -23,42 +24,6 @@ interface QueueItemProps {
   onDelete: (requestId: string, nickname: string) => void;
 }
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case 'PENDING': return <Clock className="h-4 w-4" />;
-    case 'PROCESSING': return <Play className="h-4 w-4" />;
-    case 'COMPLETED': return <CheckCircle className="h-4 w-4" />;
-    case 'COMPLETED_WITH_ERROR': return <AlertTriangle className="h-4 w-4" />;
-    case 'FAILED': return <XCircle className="h-4 w-4" />;
-    case 'CANCELLED': return <AlertCircle className="h-4 w-4" />;
-    default: return <Clock className="h-4 w-4" />;
-  }
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'PENDING': return 'secondary';
-    case 'PROCESSING': return 'default';
-    case 'COMPLETED': return 'outline';
-    case 'COMPLETED_WITH_ERROR': return 'destructive';
-    case 'FAILED': return 'destructive';
-    case 'CANCELLED': return 'outline';
-    default: return 'secondary';
-  }
-}
-
-function getStatusText(status: string) {
-  switch (status) {
-    case 'PENDING': return '대기중';
-    case 'PROCESSING': return '처리중';
-    case 'COMPLETED': return '완료';
-    case 'COMPLETED_WITH_ERROR': return '전송 실패';
-    case 'FAILED': return '실패';
-    case 'CANCELLED': return '취소됨';
-    default: return status;
-  }
-}
-
 function formatRelativeTime(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -75,17 +40,6 @@ function formatRelativeTime(dateString: string) {
   return `${diffDays}일 전`;
 }
 
-function getStatusBadgeColor(status: string) {
-  switch (status) {
-    case 'PENDING': return 'bg-gray-100 text-gray-700 border-gray-300';
-    case 'PROCESSING': return 'bg-blue-100 text-blue-700 border-blue-300';
-    case 'COMPLETED': return 'bg-green-100 text-green-700 border-green-300';
-    case 'COMPLETED_WITH_ERROR': return 'bg-orange-100 text-orange-700 border-orange-300';
-    case 'FAILED': return 'bg-red-100 text-red-700 border-red-300';
-    case 'CANCELLED': return 'bg-amber-100 text-amber-700 border-amber-300';
-    default: return 'bg-gray-100 text-gray-700 border-gray-300';
-  }
-}
 
 export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
   return (
@@ -96,7 +50,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
             #{request.position}
           </Badge>
           <Badge
-            variant={getStatusColor(request.status) as "default" | "secondary" | "destructive" | "outline"}
+            variant={getStatusBadgeVariant(request.status)}
             className="flex items-center gap-1"
           >
             {getStatusIcon(request.status)}
@@ -171,7 +125,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
               <DialogTitle className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">#{request.position}</Badge>
                 <Badge
-                  variant={getStatusColor(request.status) as "default" | "secondary" | "destructive" | "outline"}
+                  variant={getStatusBadgeVariant(request.status)}
                   className="flex items-center gap-1"
                 >
                   {getStatusIcon(request.status)}

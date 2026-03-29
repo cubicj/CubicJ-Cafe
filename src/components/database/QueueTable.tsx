@@ -2,7 +2,8 @@
 
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { SortableHeader, formatDate, getStatusColor, LoRAPresetDisplay } from './db-utils';
+import { SortableHeader, formatDate, LoRAPresetDisplay } from './db-utils';
+import { getStatusBgColor } from '@/lib/queue-status';
 import type { SortState } from '@/hooks/useDatabaseTable';
 
 interface QueueTableProps {
@@ -49,7 +50,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
               >
                 <div className="col-span-2 font-medium">{request.nickname}</div>
                 <div className="col-span-2">
-                  <Badge className={`text-xs ${getStatusColor(request.status)}`}>
+                  <Badge className={`text-xs ${getStatusBgColor(request.status)}`}>
                     {request.status}
                   </Badge>
                 </div>
