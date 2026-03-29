@@ -94,6 +94,17 @@ class QueueMonitor {
     );
     newActiveServers.push(...runpodResults.filter((r): r is NonNullable<typeof r> => r !== null));
 
+    const removedServers = this.activeServers.filter(
+      old => !newActiveServers.some(s => s.url === old.url)
+    );
+    for (const server of removedServers) {
+      try {
+        server.client.disconnectWebSocket();
+      } catch (error) {
+        log.error('WebSocket disconnect failed for removed server', { server: server.name, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+
     this.activeServers = newActiveServers;
     this.lastServerUpdateTime = now;
 

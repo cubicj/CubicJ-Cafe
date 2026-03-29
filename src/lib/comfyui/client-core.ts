@@ -52,7 +52,7 @@ export class ComfyUIClient {
   }
 
   private generateClientId(): string {
-    return `cubicj-cafe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    return `cubicj-cafe-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
   }
 
   private async makeRequest<T>(
@@ -231,6 +231,7 @@ export class ComfyUIClient {
     log.info('WebSocket reconnecting', { attempt: this.reconnectAttempts, delayMs: delay })
 
     this.reconnectTimer = setTimeout(() => {
+      this.ws?.removeAllListeners()
       this.ws = null
       this.connectWebSocket()
     }, delay)
