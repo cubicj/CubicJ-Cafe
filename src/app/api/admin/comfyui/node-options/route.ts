@@ -22,8 +22,14 @@ export const GET = createRouteHandler(
     }
 
     const requests = parsed.data.q.split(',').map((entry: string) => {
-      const [id, nodeName, fieldName] = entry.split(':');
-      return { id, nodeName, fieldName };
+      const [id, nodeName, fieldName, prefix, excludeFlag] = entry.split(':');
+      return {
+        id,
+        nodeName,
+        fieldName,
+        prefix: prefix || undefined,
+        excludeSubdirs: excludeFlag === 'excludeSubdirs',
+      };
     });
 
     try {
