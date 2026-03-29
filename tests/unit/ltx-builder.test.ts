@@ -28,6 +28,11 @@ vi.mock('@/lib/database/system-settings', () => ({
     vfiMultiplier: 2,
     videoCrf: 20,
     negativePrompt: 'test negative prompt',
+    idLoraName: 'test-id-lora.safetensors',
+    idLoraStrength: 0.8,
+    identityGuidanceScale: 3.0,
+    identityStartPercent: 0.0,
+    identityEndPercent: 1.0,
   }),
 }))
 
