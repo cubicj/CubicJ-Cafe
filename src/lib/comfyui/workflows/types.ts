@@ -31,6 +31,7 @@ export interface LtxGenerationParams extends BaseGenerationParams {
   model: 'ltx'
   endImage?: string
   loraPreset?: LoRAPresetData
+  referenceAudio?: string
 }
 
 export type GenerationParams = WanGenerationParams | LtxGenerationParams
