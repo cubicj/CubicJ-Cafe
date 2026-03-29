@@ -40,7 +40,7 @@ export async function sendVideoToDiscord(
     const outputConfig = VIDEO_OUTPUT_TYPES[videoModel];
     const modelConfig = MODEL_REGISTRY[videoModel];
 
-    log.info('Discord send outputs debug', {
+    log.debug('Discord send outputs structure', {
       jobId: job.id,
       videoModel,
       outputField: outputConfig.outputField,
@@ -190,18 +190,16 @@ function extractVideoInfo(
       const baseFilename = filenamePrefix.replace(subfolderPattern, '');
       const saveOutput = node.inputs?.save_output;
       const fileType = saveOutput === false ? 'temp' : 'output';
+      const filename = `${baseFilename}_00001_.mp4`;
       log.debug('Video info extracted from node', {
         nodeId,
         classType: node.class_type,
         filenamePrefix,
         saveOutput,
         fileType,
-        videoFilename: `${baseFilename}_00001.mp4`
+        filename,
       });
-      return {
-        filename: `${baseFilename}_00001.mp4`,
-        fileType,
-      };
+      return { filename, fileType };
     }
   }
 
