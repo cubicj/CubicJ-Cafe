@@ -88,6 +88,13 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     </div>
                   )}
 
+                  {request.audioFile && (
+                    <div>
+                      <span className="font-medium">오디오 파일:</span>
+                      <span className="ml-2">{request.audioFile}</span>
+                    </div>
+                  )}
+
                   {request.loraPresetData && (
                     <div>
                       <span className="font-medium">LoRA 프리셋:</span>
