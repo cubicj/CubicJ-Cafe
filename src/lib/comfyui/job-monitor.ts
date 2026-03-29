@@ -1,236 +1,171 @@
-import { generationStore } from '../generation-store';
-import { QueueService } from '@/lib/database/queue';
-import { QueueStatus } from '@prisma/client';
-import { GenerationJob } from '@/types';
-import { serverManager } from './server-manager';
-import { queueMonitor } from './queue-monitor';
-import { sendVideoToDiscord } from './video-result-sender';
-import { createLogger } from '@/lib/logger';
+import { generationStore } from '../generation-store'
+import { QueueService } from '@/lib/database/queue'
+import { QueueStatus } from '@prisma/client'
+import { GenerationJob } from '@/types'
+import { serverManager } from './server-manager'
+import { queueMonitor } from './queue-monitor'
+import { sendVideoToDiscord } from './video-result-sender'
+import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from './client-types'
+import { createLogger } from '@/lib/logger'
 
-const log = createLogger('comfyui');
-
-interface ComfyUIHistoryStatus {
-  status_str?: string;
-  completed?: boolean;
-}
-
-interface ComfyUINodeOutput {
-  error?: string;
-  exception?: string;
-  gifs?: Array<{ filename: string; subfolder?: string }>;
-}
-
-interface ComfyUIPromptItem {
-  error?: string;
-  [nodeId: string]: unknown;
-}
-
-interface ComfyUIHistoryData {
-  status?: ComfyUIHistoryStatus;
-  outputs?: Record<string, ComfyUINodeOutput>;
-  prompt?: ComfyUIPromptItem[];
-}
+const log = createLogger('comfyui')
 
 class ComfyUIJobMonitor {
-  private monitoringJobs = new Set<string>();
-  private monitoringInterval = 5000;
+  private monitoringJobs = new Set<string>()
+  private timeoutTimers = new Map<string, NodeJS.Timeout>()
+  private maxMonitoringTime = 30 * 60 * 1000
 
   async startMonitoring(job: GenerationJob): Promise<void> {
     if (!job.promptId) {
-      log.warn('Cannot monitor job without promptId', { jobId: job.id });
-      return;
+      log.warn('Cannot monitor job without promptId', { jobId: job.id })
+      return
     }
 
     if (this.monitoringJobs.has(job.promptId)) {
-      log.debug('Already monitoring job', { promptId: job.promptId });
-      return;
+      log.debug('Already monitoring job', { promptId: job.promptId })
+      return
     }
 
-    log.info('ComfyUI job monitoring started', { promptId: job.promptId });
-    this.monitoringJobs.add(job.promptId);
+    const queueRequest = await QueueService.getRequestById(job.id)
+    if (!queueRequest?.serverId) {
+      log.error('Cannot monitor job without server', { jobId: job.id })
+      return
+    }
 
-    let retryCount = 0;
-    const maxRetries = 10;
-    const maxMonitoringTime = 30 * 60 * 1000;
-    const startTime = Date.now();
+    const server = serverManager.getServerById(queueRequest.serverId)
+    if (!server) {
+      log.error('Server not found for monitoring', { serverId: queueRequest.serverId })
+      return
+    }
 
-    const monitor = async () => {
-      try {
-        const elapsedTime = Date.now() - startTime;
-        if (elapsedTime > maxMonitoringTime) {
-          log.warn('Monitoring timeout', { minutes: Math.round(elapsedTime / 1000 / 60), promptId: job.promptId });
+    const client = serverManager.getClient(server)
 
-          await this.failJob(job, '모니터링 시간 초과 (30분)');
-          return;
-        }
+    log.info('ComfyUI job monitoring started', { promptId: job.promptId })
+    this.monitoringJobs.add(job.promptId)
 
-        const queueRequest = await QueueService.getRequestById(job.id);
-        if (!queueRequest?.serverId) {
-          throw new Error('서버 정보를 찾을 수 없습니다');
-        }
+    client.onExecuted(job.promptId, async (data: WsExecutedData) => {
+      if (!data.output.gifs || data.output.gifs.length === 0) return
 
-        if (queueRequest.status === 'CANCELLED') {
-          log.info('Cancelled job monitoring stopped', { jobId: job.id });
-          queueMonitor.releaseServerJob(job.id);
-          this.monitoringJobs.delete(job.promptId!);
-          return;
-        }
-
-        const server = serverManager.getServerById(queueRequest.serverId);
-        if (!server) {
-          throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`);
-        }
-
-        const comfyUIClient = serverManager.getClient(server);
-        const isHealthy = await comfyUIClient.checkServerHealth();
-        if (!isHealthy) {
-          throw new Error('ComfyUI 서버 연결 실패');
-        }
-
-        const queueStatus = await comfyUIClient.getQueue();
-        const isInRunning = queueStatus?.queue_running.some(item => item[1] === job.promptId) || false;
-        const isInPending = queueStatus?.queue_pending.some(item => item[1] === job.promptId) || false;
-        const isInQueue = isInRunning || isInPending;
-
-        const history = await comfyUIClient.getHistory(job.promptId!);
-        const promptData = history[job.promptId!];
-        const hasOutputs = promptData && promptData.outputs;
-
-        if (hasOutputs) {
-          log.info('ComfyUI job completed', { promptId: job.promptId });
-          await this.handleCompletion(job);
-          return;
-        }
-
-        if (!isInQueue && !hasOutputs && promptData) {
-          log.error('ComfyUI job failed (removed from queue but no outputs)', { promptId: job.promptId });
-          const errorInfo = this.extractErrorFromHistory(promptData);
-          await this.failJob(job, errorInfo || 'ComfyUI에서 작업이 실패했습니다 (outputs 없음)');
-          return;
-        }
-
-        retryCount = 0;
-        setTimeout(monitor, this.monitoringInterval);
-
-      } catch (error) {
-        retryCount++;
-        log.error('Job monitoring error', { retryCount, maxRetries, error: error instanceof Error ? error.message : String(error) });
-
-        if (retryCount >= maxRetries) {
-          log.error('Max retries exceeded, monitoring stopped', { promptId: job.promptId });
-          await this.failJob(job, error instanceof Error ? error.message : '모니터링 실패');
-        } else {
-          const retryDelay = Math.min(this.monitoringInterval * retryCount, 30000);
-          log.debug('Retrying monitoring', { retryDelay, retryCount, maxRetries });
-          setTimeout(monitor, retryDelay);
-        }
+      const videoFile = data.output.gifs[0]
+      const videoInfo: VideoFileInfo = {
+        filename: videoFile.filename,
+        subfolder: videoFile.subfolder,
+        type: videoFile.type,
       }
-    };
 
-    setTimeout(monitor, this.monitoringInterval);
+      await this.handleCompletion(job, videoInfo, client)
+    })
+
+    client.onExecutionError(job.promptId, async (data: WsExecutionErrorData) => {
+      const errorMessage = `Node ${data.node_id} (${data.node_type}): ${data.exception_message}`
+      await this.failJob(job, errorMessage, client)
+    })
+
+    const timer = setTimeout(async () => {
+      log.warn('Monitoring timeout', { minutes: 30, promptId: job.promptId })
+      await this.failJob(job, '모니터링 시간 초과 (30분)', client)
+    }, this.maxMonitoringTime)
+
+    this.timeoutTimers.set(job.promptId, timer)
   }
 
   stopMonitoring(promptId: string): void {
-    this.monitoringJobs.delete(promptId);
-    log.debug('Job monitoring stopped', { promptId });
+    this.cleanup(promptId)
+    log.debug('Job monitoring stopped', { promptId })
   }
 
   isMonitoring(promptId: string): boolean {
-    return this.monitoringJobs.has(promptId);
+    return this.monitoringJobs.has(promptId)
   }
 
   getActiveMonitoringCount(): number {
-    return this.monitoringJobs.size;
+    return this.monitoringJobs.size
   }
 
-  private async handleCompletion(job: GenerationJob): Promise<void> {
+  private async handleCompletion(
+    job: GenerationJob,
+    videoInfo: VideoFileInfo,
+    client: { removeCallbacks: (promptId: string) => void }
+  ): Promise<void> {
+    const queueRequest = await QueueService.getRequestById(job.id)
+    if (queueRequest?.status === 'CANCELLED') {
+      log.info('Cancelled job monitoring stopped', { jobId: job.id })
+      queueMonitor.releaseServerJob(job.id)
+      this.cleanup(job.promptId!, client)
+      return
+    }
+
     try {
       await QueueService.updateRequest(job.id, {
         status: QueueStatus.COMPLETED,
-        completedAt: new Date()
-      });
+        completedAt: new Date(),
+      })
 
       generationStore.updateJob(job.promptId!, {
         status: 'completed',
-        updatedAt: new Date()
-      });
+        updatedAt: new Date(),
+      })
 
-      queueMonitor.releaseServerJob(job.id);
-      await sendVideoToDiscord(job);
-
+      queueMonitor.releaseServerJob(job.id)
+      await sendVideoToDiscord(job, videoInfo)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error)
       log.error('Discord send failed', {
         error: errorMessage,
         jobId: job.id,
         promptId: job.promptId,
-        username: job.userInfo?.name
-      });
+        username: job.userInfo?.name,
+      })
 
-      log.warn('Job completed but Discord send failed', { jobId: job.id });
+      log.warn('Job completed but Discord send failed', { jobId: job.id })
       await QueueService.updateRequest(job.id, {
         status: QueueStatus.COMPLETED_WITH_ERROR,
         completedAt: new Date(),
-        error: `Discord 전송 실패: ${errorMessage}`
-      });
+        error: `Discord 전송 실패: ${errorMessage}`,
+      })
 
       generationStore.updateJob(job.promptId!, {
         status: 'completed',
         error: `Discord 전송 실패: ${errorMessage}`,
-        updatedAt: new Date()
-      });
+        updatedAt: new Date(),
+      })
 
-      queueMonitor.releaseServerJob(job.id);
+      queueMonitor.releaseServerJob(job.id)
     }
 
-    this.monitoringJobs.delete(job.promptId!);
+    this.cleanup(job.promptId!, client)
   }
 
-  private async failJob(job: GenerationJob, errorMessage: string): Promise<void> {
+  private async failJob(
+    job: GenerationJob,
+    errorMessage: string,
+    client: { removeCallbacks: (promptId: string) => void }
+  ): Promise<void> {
     await QueueService.updateRequest(job.id, {
       status: QueueStatus.FAILED,
       failedAt: new Date(),
-      error: errorMessage
-    });
+      error: errorMessage,
+    })
 
     generationStore.updateJob(job.promptId!, {
       status: 'failed',
       error: errorMessage,
-      updatedAt: new Date()
-    });
+      updatedAt: new Date(),
+    })
 
-    queueMonitor.releaseServerJob(job.id);
-    this.monitoringJobs.delete(job.promptId!);
+    queueMonitor.releaseServerJob(job.id)
+    this.cleanup(job.promptId!, client)
   }
 
-  private extractErrorFromHistory(promptData: ComfyUIHistoryData): string | null {
-    try {
-      if (promptData.status && promptData.status.status_str === 'error') {
-        return `ComfyUI 실행 오류: ${promptData.status.completed ? 'completed with error' : 'execution failed'}`;
-      }
-
-      if (promptData.outputs) {
-        for (const [nodeId, nodeOutput] of Object.entries(promptData.outputs)) {
-          if (nodeOutput.error || nodeOutput.exception) {
-            return `노드 ${nodeId} 오류: ${nodeOutput.error || nodeOutput.exception}`;
-          }
-        }
-      }
-
-      if (promptData.prompt && Array.isArray(promptData.prompt)) {
-        for (const promptItem of promptData.prompt) {
-          if (promptItem.error) {
-            return `프롬프트 오류: ${promptItem.error}`;
-          }
-        }
-      }
-
-      return null;
-    } catch (error) {
-      log.warn('Failed to extract error info from history', { error: error instanceof Error ? error.message : String(error) });
-      return null;
+  private cleanup(promptId: string, client?: { removeCallbacks: (promptId: string) => void }): void {
+    this.monitoringJobs.delete(promptId)
+    const timer = this.timeoutTimers.get(promptId)
+    if (timer) {
+      clearTimeout(timer)
+      this.timeoutTimers.delete(promptId)
     }
+    client?.removeCallbacks(promptId)
   }
 }
 
-export const jobMonitor = new ComfyUIJobMonitor();
+export const jobMonitor = new ComfyUIJobMonitor()
