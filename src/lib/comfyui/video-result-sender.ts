@@ -40,6 +40,19 @@ export async function sendVideoToDiscord(
     const outputConfig = VIDEO_OUTPUT_TYPES[videoModel];
     const modelConfig = MODEL_REGISTRY[videoModel];
 
+    log.info('Discord send outputs debug', {
+      jobId: job.id,
+      videoModel,
+      outputField: outputConfig.outputField,
+      nodeIds: Object.keys(outputs),
+      outputStructure: Object.fromEntries(
+        Object.entries(outputs).map(([nodeId, nodeOutput]) => [
+          nodeId,
+          Object.keys(nodeOutput as Record<string, unknown>)
+        ])
+      )
+    });
+
     let videoFound = false;
     for (const [, nodeOutput] of Object.entries(outputs)) {
       const outputFiles = (nodeOutput as Record<string, unknown>)[outputConfig.outputField] as Array<{ filename: string; subfolder?: string; type?: string }> | undefined;
@@ -121,22 +134,22 @@ async function sendVideoByFilenameExtraction(
       return;
     }
 
-    const videoFilename = extractVideoFilename(promptData, outputConfig.classTypes, modelConfig.defaultSubfolder);
-    if (!videoFilename) {
+    const videoInfo = extractVideoInfo(promptData, outputConfig.classTypes, modelConfig.defaultSubfolder);
+    if (!videoInfo) {
       log.warn('No video output node found in history');
       return;
     }
 
-    log.debug('Discord send with extracted filename', { jobId: job.id, videoFilename, serverUrl: server.url });
+    log.debug('Discord send with extracted filename', { jobId: job.id, ...videoInfo, serverUrl: server.url });
 
     const processingTime = job.updatedAt && job.createdAt
       ? Math.round((job.updatedAt.getTime() - job.createdAt.getTime()) / 1000)
       : undefined;
 
     await discordBot.sendVideoToDiscord({
-      filename: videoFilename,
+      filename: videoInfo.filename,
       subfolder: modelConfig.defaultSubfolder,
-      fileType: 'output',
+      fileType: videoInfo.fileType,
       prompt: job.prompt,
       username: job.userInfo!.name,
       userAvatar: job.userInfo!.image,
@@ -153,11 +166,16 @@ async function sendVideoByFilenameExtraction(
   }
 }
 
-function extractVideoFilename(
+interface ExtractedVideoInfo {
+  filename: string;
+  fileType: 'output' | 'temp';
+}
+
+function extractVideoInfo(
   promptData: { prompt?: ComfyUIPromptItem[] },
   classTypes: string[],
   defaultSubfolder: string
-): string | null {
+): ExtractedVideoInfo | null {
   if (!promptData.prompt || !Array.isArray(promptData.prompt)) return null;
 
   for (const promptItem of promptData.prompt) {
@@ -170,13 +188,20 @@ function extractVideoFilename(
       if (!filenamePrefix || typeof filenamePrefix !== 'string') continue;
       const subfolderPattern = new RegExp('^' + defaultSubfolder + '/');
       const baseFilename = filenamePrefix.replace(subfolderPattern, '');
-      log.debug('Filename extracted from video node', {
+      const saveOutput = node.inputs?.save_output;
+      const fileType = saveOutput === false ? 'temp' : 'output';
+      log.debug('Video info extracted from node', {
         nodeId,
         classType: node.class_type,
         filenamePrefix,
+        saveOutput,
+        fileType,
         videoFilename: `${baseFilename}_00001.mp4`
       });
-      return `${baseFilename}_00001.mp4`;
+      return {
+        filename: `${baseFilename}_00001.mp4`,
+        fileType,
+      };
     }
   }
 
