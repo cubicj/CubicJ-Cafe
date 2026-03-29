@@ -29,6 +29,8 @@ export interface QueueRequestData {
   imageBlob?: Uint8Array;
   endImageFile?: string;
   endImageBlob?: Uint8Array;
+  audioFile?: string;
+  audioBlob?: Uint8Array;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
   serverType?: ServerType;
@@ -56,6 +58,7 @@ const QUEUE_SELECT_BASE = {
   prompt: true,
   imageFile: true,
   endImageFile: true,
+  audioFile: true,
   loraPresetData: true,
   isNSFW: true,
   jobId: true,
@@ -103,6 +106,8 @@ export class QueueService {
       imageBlob: data.imageBlob as Uint8Array<ArrayBuffer> | undefined,
       endImageFile: data.endImageFile,
       endImageBlob: data.endImageBlob as Uint8Array<ArrayBuffer> | undefined,
+      audioFile: data.audioFile,
+      audioBlob: data.audioBlob as Uint8Array<ArrayBuffer> | undefined,
       loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
       isNSFW: data.isNSFW || false,
       serverType: data.serverType,
@@ -196,6 +201,7 @@ export class QueueService {
       data: {
         imageBlob: null,
         endImageBlob: null,
+        audioBlob: null,
       }
     });
   }
@@ -318,6 +324,7 @@ export class QueueService {
         error: isAdmin ? '관리자가 취소함' : '사용자가 취소함',
         imageBlob: null,
         endImageBlob: null,
+        audioBlob: null,
       }
     });
   }
@@ -348,6 +355,7 @@ export class QueueService {
         error: 'ComfyUI 비활성화로 자동 취소됨',
         imageBlob: null,
         endImageBlob: null,
+        audioBlob: null,
       }
     });
 
