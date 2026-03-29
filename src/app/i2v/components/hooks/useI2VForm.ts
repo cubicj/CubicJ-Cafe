@@ -63,6 +63,8 @@ interface UseI2VFormReturn {
   setSelectedFile: (file: File | null) => void;
   endImageFile: File | null;
   setEndImageFile: (file: File | null) => void;
+  audioFile: File | null;
+  setAudioFile: (file: File | null) => void;
   isLoopEnabled: boolean;
   setIsLoopEnabled: (enabled: boolean) => void;
   prompt: string;
@@ -101,6 +103,7 @@ export function useI2VForm(): UseI2VFormReturn {
   const {
     selectedFile, setSelectedFile,
     endImageFile, setEndImageFile,
+    audioFile, setAudioFile,
     isLoopEnabled, setIsLoopEnabled,
     prompt, setPrompt,
     isNSFW, setIsNSFW,
@@ -204,6 +207,10 @@ export function useI2VForm(): UseI2VFormReturn {
       formData.append('model', activeModel);
       formData.append('isNSFW', isNSFW.toString());
       formData.append('isLoop', isLoopEnabled.toString());
+
+      if (audioFile) {
+        formData.append('audio', audioFile);
+      }
 
       if (currentPresets && currentPresets.length > 0) {
         const mergedLoRAMap = new Map();
@@ -330,6 +337,8 @@ export function useI2VForm(): UseI2VFormReturn {
     setSelectedFile,
     endImageFile,
     setEndImageFile,
+    audioFile,
+    setAudioFile,
     isLoopEnabled,
     setIsLoopEnabled,
     prompt,
