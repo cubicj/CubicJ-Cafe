@@ -145,9 +145,9 @@ export class ComfyUIClient {
       log.info('WebSocket connected', { url })
     })
 
-    this.ws.on('message', (data: WebSocket.Data) => {
-      if (typeof data !== 'string') return
-      this.handleWsMessage(data)
+    this.ws.on('message', (data: WebSocket.Data, isBinary: boolean) => {
+      if (isBinary) return
+      this.handleWsMessage(data.toString())
     })
 
     this.ws.on('close', () => {
