@@ -347,8 +347,8 @@ function SettingsFieldRenderer({
     <div className="space-y-1">
       <Label>{field.label}</Label>
       <Input
-        type="number"
-        step={field.step}
+        type="text"
+        inputMode="decimal"
         value={value}
         onChange={(e) => onChange(field.key, e.target.value)}
       />
