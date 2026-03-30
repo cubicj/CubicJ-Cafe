@@ -9,20 +9,21 @@ function createBaseWorkflow(): ComfyUIWorkflow {
       inputs: { triton_kernels: true, model: ['297', 0] },
       class_type: 'LTX2MemoryEfficientSageAttentionPatch',
     },
-    '296': {
-      inputs: {
-        lora_name: 'LTX\\Custom\\REDACTED_MODEL.safetensors',
-        strength_model: 0,
-        model: ['298', 0],
-      },
-      class_type: 'LoraLoaderModelOnly',
+    '354': {
+      inputs: { enable_fp16_accumulation: true, model: ['298', 0] },
+      class_type: 'ModelPatchTorchSettings',
     },
-    '317': {
+    '72': {
       inputs: {
-        audio_normalization_factors: '1,1,1',
-        model: ['296', 0],
+        nag_scale: 5,
+        nag_alpha: 0.3,
+        nag_tau: 1.5,
+        inplace: true,
+        model: ['354', 0],
+        nag_cond_video: ['23', 1],
+        nag_cond_audio: ['23', 1],
       },
-      class_type: 'LTX2AudioLatentNormalizingSampling',
+      class_type: 'LTX2_NAG',
     },
   }
 }
@@ -34,12 +35,11 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['296']).toBeDefined()
-    expect(workflow['317']!.inputs!.model).toEqual(['296', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
     expect(workflow['400']).toBeUndefined()
   })
 
-  it('removes placeholder(296) and chains LoRA from SageAttention(298)', async () => {
+  it('chains LoRA from TorchSettings(354) and rewires NAG(72)', async () => {
     const workflow = createBaseWorkflow()
     const preset: LoRAPresetData = {
       presetId: '1',
@@ -55,13 +55,12 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['296']).toBeUndefined()
     expect(workflow['400']).toBeDefined()
     expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
     expect(workflow['400']!.inputs!.lora_name).toBe('LTX\\Custom\\style-lora.safetensors')
     expect(workflow['400']!.inputs!.strength_model).toBe(0.7)
-    expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
-    expect(workflow['317']!.inputs!.model).toEqual(['400', 0])
+    expect(workflow['400']!.inputs!.model).toEqual(['354', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['400', 0])
   })
 
   it('chains multiple LoRAs in order', async () => {
@@ -78,11 +77,10 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['296']).toBeUndefined()
-    expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
+    expect(workflow['400']!.inputs!.model).toEqual(['354', 0])
     expect(workflow['401']!.inputs!.model).toEqual(['400', 0])
     expect(workflow['402']!.inputs!.model).toEqual(['401', 0])
-    expect(workflow['317']!.inputs!.model).toEqual(['402', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['402', 0])
   })
 
   it('deduplicates by loraFilename', async () => {
@@ -102,7 +100,7 @@ describe('applyLtxLoraChain', () => {
     expect(workflow['400']).toBeDefined()
     expect(workflow['401']).toBeDefined()
     expect(workflow['402']).toBeUndefined()
-    expect(workflow['317']!.inputs!.model).toEqual(['401', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['401', 0])
   })
 
   it('converts backslashes for RUNPOD server', async () => {
