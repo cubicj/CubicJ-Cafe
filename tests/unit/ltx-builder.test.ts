@@ -140,8 +140,8 @@ describe('buildLtxWorkflow', () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['297']!.inputs!.unet_name).toBe('test-unet.safetensors')
       expect(workflow['297']!.inputs!.weight_dtype).toBe('fp8')
-      expect(workflow['47']!.inputs!.clip_name1).toBe('test-clip.gguf')
-      expect(workflow['47']!.inputs!.clip_name2).toBe('test-embeddings.safetensors')
+      expect(workflow['390']!.inputs!.clip_name1).toBe('test-clip.gguf')
+      expect(workflow['390']!.inputs!.clip_name2).toBe('test-embeddings.safetensors')
       expect(workflow['1']!.inputs!.vae_name).toBe('test-audio-vae.safetensors')
       expect(workflow['2']!.inputs!.vae_name).toBe('test-video-vae.safetensors')
     })
@@ -193,10 +193,10 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['322']!.inputs!.quality).toBe('HIGH')
     })
 
-    it('injects VFI settings into nodes 378/339', async () => {
+    it('injects VFI settings into nodes 395/339', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['378']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
-      expect(workflow['378']!.inputs!.clear_cache_after_n_frames).toBe(100)
+      expect(workflow['395']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
+      expect(workflow['395']!.inputs!.clear_cache_after_n_frames).toBe(100)
       expect(workflow['339']!.inputs!.value).toBe(2)
     })
 
@@ -210,9 +210,9 @@ describe('buildLtxWorkflow', () => {
     it('preserves all critical nodes including new pipeline nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       const criticalNodes = [
-        '1', '2', '5', '6', '11', '12', '16', '20', '47', '72',
+        '1', '2', '5', '6', '11', '12', '16', '20', '72',
         '86', '87', '103', '265', '297', '298', '322', '335',
-        '339', '340', '345', '354', '355', '362', '373', '378',
+        '339', '340', '345', '354', '355', '373', '384', '390', '395',
       ]
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
@@ -221,7 +221,7 @@ describe('buildLtxWorkflow', () => {
 
     it('does not contain removed nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      const removedNodes = ['19', '82', '317', '319', '334', '336', '337']
+      const removedNodes = ['19', '47', '59', '61', '82', '317', '319', '334', '336', '337', '362', '378']
       for (const nodeId of removedNodes) {
         expect(workflow[nodeId], `node ${nodeId} should not exist`).toBeUndefined()
       }
@@ -229,8 +229,8 @@ describe('buildLtxWorkflow', () => {
 
     it('connects VFI pipeline correctly: VAEDecode → VFI → RTX', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['378']!.inputs!.frames).toEqual(['333', 0])
-      expect(workflow['322']!.inputs!.images).toEqual(['378', 0])
+      expect(workflow['395']!.inputs!.frames).toEqual(['333', 0])
+      expect(workflow['322']!.inputs!.images).toEqual(['395', 0])
     })
 
     it('connects TorchSettings into model chain', async () => {
@@ -260,9 +260,9 @@ describe('buildLtxWorkflow', () => {
     it('connects post-sampling pipeline: Sampler → VRAM → SeparateAV', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['373']!.inputs!.any_input).toEqual(['17', 0])
-      expect(workflow['362']!.inputs!.av_latent).toEqual(['373', 0])
-      expect(workflow['333']!.inputs!.samples).toEqual(['362', 0])
-      expect(workflow['321']!.inputs!.samples).toEqual(['362', 1])
+      expect(workflow['384']!.inputs!.av_latent).toEqual(['373', 0])
+      expect(workflow['333']!.inputs!.samples).toEqual(['384', 0])
+      expect(workflow['321']!.inputs!.samples).toEqual(['384', 1])
     })
 
     it('connects VideoCombine frame_rate to VFI math expression', async () => {
