@@ -45,7 +45,7 @@ export class AudioPresetService {
       data: {
         userId,
         name: data.name,
-        audioBlob: data.audioBlob,
+        audioBlob: data.audioBlob as Uint8Array<ArrayBuffer>,
         audioFilename: data.audioFilename,
         audioMimeType: data.audioMimeType,
         audioSize: data.audioSize,
