@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Music, Plus, Trash2, Check } from 'lucide-react'
+import { Music, Plus, Trash2, Check, Play, Square } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
 
@@ -48,6 +48,25 @@ export default function AudioPresetSelector({
   const [newFile, setNewFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [playingId, setPlayingId] = useState<string | null>(null)
+
+  const handlePlay = (e: React.MouseEvent, presetId: string) => {
+    e.stopPropagation()
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (playingId === presetId) {
+      audio.pause()
+      audio.currentTime = 0
+      setPlayingId(null)
+      return
+    }
+
+    audio.src = `/api/audio-presets/${presetId}/stream`
+    audio.play()
+    setPlayingId(presetId)
+  }
 
   const fetchPresets = async () => {
     try {
@@ -195,6 +214,23 @@ export default function AudioPresetSelector({
               <Button
                 variant="ghost"
                 size="sm"
+                className={cn(
+                  'h-9 w-9 sm:h-7 sm:w-7 p-0 shrink-0',
+                  playingId === preset.id
+                    ? 'text-primary hover:text-primary/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={(e) => handlePlay(e, preset.id)}
+              >
+                {playingId === preset.id ? (
+                  <Square className="h-3.5 w-3.5" />
+                ) : (
+                  <Play className="h-3.5 w-3.5" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-9 w-9 sm:h-7 sm:w-7 p-0 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={(e) => {
                   e.stopPropagation()
@@ -207,6 +243,12 @@ export default function AudioPresetSelector({
           ))}
         </div>
       )}
+      <audio
+        ref={audioRef}
+        hidden
+        onEnded={() => setPlayingId(null)}
+        onError={() => setPlayingId(null)}
+      />
     </div>
   )
 }
