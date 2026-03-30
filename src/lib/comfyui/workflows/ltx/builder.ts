@@ -33,7 +33,6 @@ export async function buildLtxWorkflow(
 
   setNode(workflow, LTX.SAMPLER, { sampler_name: settings.sampler })
   setNode(workflow, LTX.SIGMAS, { sigmas: settings.sigmas })
-  setNode(workflow, LTX.AUDIO_NORM, { audio_normalization_factors: settings.audioNorm })
 
   setNode(workflow, LTX.NAG, {
     nag_scale: settings.nagScale,
@@ -83,14 +82,10 @@ export async function buildLtxWorkflow(
 
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     await applyLtxLoraChain(workflow, params.loraPreset, server)
-  } else {
-    removeLoraPlaceholder(workflow)
   }
 
   if (params.referenceAudio) {
     handleReferenceAudio(workflow, params.referenceAudio, settings)
-  } else {
-    handleReferenceAudioBypass(workflow)
   }
 
   setNode(workflow, LTX.NOISE_SEED, { noise_seed: generateSeed() })
@@ -145,11 +140,6 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   delete workflow[LTX.RESIZE_END_IMAGE]
 }
 
-function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
-  setNode(workflow, LTX.AUDIO_NORM, { model: [LTX.SAGE_ATTENTION, 0] })
-  delete workflow[LTX.LORA_PLACEHOLDER]
-}
-
 function handleReferenceAudio(
   workflow: ComfyUIWorkflow,
   audioFile: string,
@@ -161,30 +151,49 @@ function handleReferenceAudio(
     identityEndPercent: number
   }
 ) {
-  setNode(workflow, LTX.LOAD_AUDIO, { audio: audioFile })
-
-  const currentModelSource = workflow[LTX.AUDIO_NORM]?.inputs?.model as [string, number]
-
-  setNode(workflow, LTX.ID_LORA, {
-    lora_name: settings.idLoraName,
-    strength_model: settings.idLoraStrength,
-    model: currentModelSource,
-  })
-
-  setNode(workflow, LTX.REFERENCE_AUDIO, {
-    identity_guidance_scale: settings.identityGuidanceScale,
-    start_percent: settings.identityStartPercent,
-    end_percent: settings.identityEndPercent,
-    model: [LTX.ID_LORA, 0],
-  })
-
-  setNode(workflow, LTX.AUDIO_NORM, { model: [LTX.REFERENCE_AUDIO, 0] })
-
-  const conditioningNode = workflow['23']
-  if (conditioningNode?.inputs) {
-    conditioningNode.inputs.positive = [LTX.REFERENCE_AUDIO, 1]
-    conditioningNode.inputs.negative = [LTX.REFERENCE_AUDIO, 2]
+  workflow[LTX.LOAD_AUDIO] = {
+    inputs: { audio: audioFile },
+    class_type: 'LoadAudio',
+    _meta: { title: 'LTX_350' },
   }
+
+  const currentModelSource = workflow[LTX.NAG]?.inputs?.model as [string, number]
+
+  workflow[LTX.ID_LORA] = {
+    inputs: {
+      lora_name: settings.idLoraName,
+      strength_model: settings.idLoraStrength,
+      model: currentModelSource,
+    },
+    class_type: 'LoraLoaderModelOnly',
+    _meta: { title: 'LTX_296' },
+  }
+
+  workflow[LTX.REFERENCE_AUDIO] = {
+    inputs: {
+      identity_guidance_scale: settings.identityGuidanceScale,
+      start_percent: settings.identityStartPercent,
+      end_percent: settings.identityEndPercent,
+      model: [LTX.ID_LORA, 0],
+      positive: ['23', 0],
+      negative: ['23', 1],
+      reference_audio: [LTX.LOAD_AUDIO, 0],
+      audio_vae: [LTX.AUDIO_VAE, 0],
+    },
+    class_type: 'LTXVReferenceAudio',
+    _meta: { title: 'LTX_348' },
+  }
+
+  setNode(workflow, LTX.NAG, {
+    model: [LTX.REFERENCE_AUDIO, 0],
+    nag_cond_video: [LTX.REFERENCE_AUDIO, 2],
+    nag_cond_audio: [LTX.REFERENCE_AUDIO, 2],
+  })
+
+  setNode(workflow, LTX.CFG_GUIDER, {
+    positive: [LTX.REFERENCE_AUDIO, 1],
+    negative: [LTX.REFERENCE_AUDIO, 2],
+  })
 }
 
 function bypassVfi(workflow: ComfyUIWorkflow) {
@@ -193,12 +202,8 @@ function bypassVfi(workflow: ComfyUIWorkflow) {
   if (vfiInput) {
     setNode(workflow, LTX.RTX_SUPER_RES, { images: vfiInput })
   }
+  setNode(workflow, LTX.VIDEO_OUTPUT, { frame_rate: [LTX.FRAME_RATE_INT, 0] })
   delete workflow[LTX.VFI]
   delete workflow[LTX.VFI_MULTIPLIER]
-}
-
-function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
-  delete workflow[LTX.REFERENCE_AUDIO]
-  delete workflow[LTX.ID_LORA]
-  delete workflow[LTX.LOAD_AUDIO]
+  delete workflow[LTX.VFI_FRAME_RATE]
 }
