@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ui');
@@ -17,6 +17,7 @@ export function LoRAPresetManager({
   selectedPresetIds,
   onPresetChange,
   onPresetApply,
+  onUnavailableLoRAsChange,
   activeModel,
   className,
 }: LoRAPresetManagerProps) {
@@ -47,6 +48,14 @@ export function LoRAPresetManager({
     setPresets,
     reorderPresets,
   });
+
+  useEffect(() => {
+    if (!onUnavailableLoRAsChange) return;
+    const selectedPresets = presets.filter(p => selectedPresetIds.includes(p.id));
+    const allItems = selectedPresets.flatMap(p => p.loraItems);
+    const hasUnavailable = allItems.length > 0 && allItems.some(item => !isLoRAAvailable(item.loraFilename));
+    onUnavailableLoRAsChange(hasUnavailable);
+  }, [presets, selectedPresetIds, isLoRAAvailable, onUnavailableLoRAsChange]);
 
   const [expandedPresets, setExpandedPresets] = useState<Set<string>>(new Set());
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

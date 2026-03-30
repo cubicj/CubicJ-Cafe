@@ -91,6 +91,8 @@ interface UseI2VFormReturn {
   setActiveModel: (model: VideoModel) => void;
   capabilities: ModelCapabilities;
   isLoadingAuth: boolean;
+  hasUnavailableLoRAs: boolean;
+  setHasUnavailableLoRAs: (has: boolean) => void;
   isFormValid: boolean;
   handleSubmit: () => Promise<void>;
   handleReset: () => void;
@@ -125,6 +127,7 @@ export function useI2VForm(): UseI2VFormReturn {
   const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
   const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasUnavailableLoRAs, setHasUnavailableLoRAs] = useState(false);
 
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
   const { isLoading: isLoadingAuth } = useSession();
@@ -191,6 +194,11 @@ export function useI2VForm(): UseI2VFormReturn {
 
     if (!prompt.trim()) {
       setSubmitMessage({ type: 'error', message: '프롬프트를 입력해주세요.' });
+      return;
+    }
+
+    if (hasUnavailableLoRAs) {
+      setSubmitMessage({ type: 'error', message: '선택한 LoRA 프리셋에 서버에서 찾을 수 없는 LoRA가 포함되어 있습니다. 프리셋을 수정하거나 해제한 후 다시 시도해주세요.' });
       return;
     }
 
@@ -356,6 +364,8 @@ export function useI2VForm(): UseI2VFormReturn {
     submitMessage,
     setSubmitMessage,
     isLoadingAuth,
+    hasUnavailableLoRAs,
+    setHasUnavailableLoRAs,
     serverStatus,
     setServerStatus,
     isRefreshing,

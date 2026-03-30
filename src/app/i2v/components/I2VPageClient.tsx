@@ -40,6 +40,8 @@ export default function I2VPageClient() {
     activeModel,
     setActiveModel,
     capabilities,
+    hasUnavailableLoRAs,
+    setHasUnavailableLoRAs,
     isFormValid,
     handleSubmit,
     handleReset,
@@ -170,6 +172,7 @@ export default function I2VPageClient() {
                     selectedPresetIds={selectedPresetIds}
                     onPresetChange={setSelectedPresetIds}
                     onPresetApply={setCurrentPresets}
+                    onUnavailableLoRAsChange={setHasUnavailableLoRAs}
                     activeModel={activeModel}
                   />
                 </div>

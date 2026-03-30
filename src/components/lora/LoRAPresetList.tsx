@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Plus, Edit, Trash2, AlertCircle, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RefreshCw, Plus, Edit, Trash2, AlertCircle, AlertTriangle, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { LoRAPresetListProps } from "@/types/lora";
@@ -69,6 +70,11 @@ export function LoRAPresetList({
 
   const combinedLoRAItems = getCombinedLoRAItems();
   const flatCombinedLoRAItems = getFlatCombinedLoRAItems();
+
+  const allCombinedItems = activeModel === 'ltx' ? flatCombinedLoRAItems : combinedLoRAItems;
+  const unavailableLoRANames = allCombinedItems
+    .filter(item => !isLoRAAvailable(item.loraFilename))
+    .map(item => item.loraName);
 
   return (
     <div className="space-y-4">
@@ -392,6 +398,15 @@ export function LoRAPresetList({
                 )}
               </div>
             )
+          )}
+
+          {unavailableLoRANames.length > 0 && (
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                서버에서 찾을 수 없는 LoRA가 있어 비디오를 생성할 수 없습니다: {unavailableLoRANames.join(', ')}
+              </AlertDescription>
+            </Alert>
           )}
         </div>
       )}
