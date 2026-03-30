@@ -99,23 +99,26 @@ export default function AudioPresetSelector({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">
-          레퍼런스 오디오 <span className="text-gray-500 font-normal">(선택사항)</span>
-        </Label>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <div className="flex items-center justify-end">
+        <Dialog open={isAddOpen} onOpenChange={(open) => {
+          setIsAddOpen(open)
+          if (!open) {
+            setNewName('')
+            setNewFile(null)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+          }
+        }}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              추가
+            <Button variant="outline" size="sm" className="h-9 px-3">
+              <Plus className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>오디오 프리셋 추가</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
+            <div className="space-y-6 pt-2">
+              <div className="space-y-2">
                 <Label>프리셋 이름</Label>
                 <Input
                   value={newName}
@@ -124,25 +127,33 @@ export default function AudioPresetSelector({
                   maxLength={100}
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>오디오 파일</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="audio/wav,audio/mpeg,audio/flac,audio/ogg"
                   onChange={(e) => setNewFile(e.target.files?.[0] || null)}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                  className="hidden"
                 />
-                {newFile && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {newFile.name} ({formatFileSize(newFile.size)})
-                  </p>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start font-normal"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Music className="h-4 w-4 mr-2 shrink-0" />
+                  {newFile ? (
+                    <span className="truncate">{newFile.name} ({formatFileSize(newFile.size)})</span>
+                  ) : (
+                    <span className="text-muted-foreground">파일 선택 (WAV, MP3, FLAC, OGG)</span>
+                  )}
+                </Button>
               </div>
               <Button
                 onClick={handleAdd}
                 disabled={!newName.trim() || !newFile || isSubmitting}
-                className="w-full"
+                className="w-full mt-2"
               >
                 {isSubmitting ? '업로드 중...' : '추가'}
               </Button>
@@ -152,7 +163,7 @@ export default function AudioPresetSelector({
       </div>
 
       {presets.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-2">
+        <p className="text-sm text-muted-foreground py-4 text-center">
           등록된 오디오 프리셋이 없습니다.
         </p>
       ) : (
@@ -161,7 +172,7 @@ export default function AudioPresetSelector({
             <div
               key={preset.id}
               className={cn(
-                'flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors',
+                'flex items-center gap-2 sm:gap-2 p-3 sm:p-2 rounded-md cursor-pointer transition-colors',
                 selectedPresetId === preset.id
                   ? 'bg-primary/10 border border-primary/30'
                   : 'hover:bg-muted'
@@ -184,13 +195,13 @@ export default function AudioPresetSelector({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 shrink-0"
+                className="h-9 w-9 sm:h-7 sm:w-7 p-0 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleDelete(preset.id)
                 }}
               >
-                <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
           ))}

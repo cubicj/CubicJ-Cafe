@@ -6,7 +6,8 @@ import AudioPresetSelector from "@/components/audio/AudioPresetSelector";
 import { PromptInput } from "@/components/ui/prompt-input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bot, MessageSquare, ChevronDown } from "lucide-react";
+import { Bot, MessageSquare, Music, ChevronDown } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface ImageUploadSectionProps {
@@ -91,10 +92,18 @@ export function ImageUploadSection({
       )}
 
       {showAudio && (
-        <AudioPresetSelector
-          selectedPresetId={audioPresetId}
-          onPresetChange={onAudioPresetChange}
-        />
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Music className="h-4 w-4" />
+            레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
+          </h2>
+          <Card className="p-4">
+            <AudioPresetSelector
+              selectedPresetId={audioPresetId}
+              onPresetChange={onAudioPresetChange}
+            />
+          </Card>
+        </div>
       )}
 
       <div className="space-y-2">
