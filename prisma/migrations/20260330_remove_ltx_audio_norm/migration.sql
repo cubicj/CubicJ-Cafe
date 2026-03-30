@@ -1,1 +1,1 @@
-DELETE FROM "SystemSetting" WHERE "key" = 'ltx.audio_norm';
+DELETE FROM system_settings WHERE key = 'ltx.audio_norm';
