@@ -215,10 +215,10 @@ export default function AudioPresetSelector({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'h-9 w-9 sm:h-7 sm:w-7 p-0 shrink-0',
+                  'h-9 w-9 sm:h-7 sm:w-7 p-0 shrink-0 transition-colors',
                   playingId === preset.id
-                    ? 'text-primary hover:text-primary/80'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-primary bg-primary/10 hover:bg-destructive/10 hover:text-destructive'
+                    : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
                 )}
                 onClick={(e) => handlePlay(e, preset.id)}
               >

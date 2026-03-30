@@ -66,7 +66,7 @@ export default function ListDatabaseViewer() {
   }
 
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-3 sm:p-6 space-y-4">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -101,19 +101,24 @@ export default function ListDatabaseViewer() {
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold flex items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center justify-between sm:block">
+              <h3 className="text-base sm:text-lg font-semibold flex items-center">
                 {getTableIcon(selectedTable)}
                 <span className="ml-2">{tables.find(t => t.name === selectedTable)?.displayName}</span>
               </h3>
-              <p className="text-sm text-muted-foreground">
-                총 {tableData?.totalCount}개 레코드 중 {currentPage}페이지
-              </p>
+              <Button variant="outline" size="sm" className="sm:hidden" onClick={goBack}>
+                목록
+              </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={goBack}>
-              테이블 목록으로
-            </Button>
+            <div className="flex items-center justify-between sm:justify-end gap-2">
+              <p className="text-sm text-muted-foreground">
+                총 {tableData?.totalCount}개 중 {currentPage}페이지
+              </p>
+              <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={goBack}>
+                테이블 목록으로
+              </Button>
+            </div>
           </div>
           {loading ? (
             <p className="text-center py-8 text-sm text-muted-foreground">데이터 로딩 중...</p>

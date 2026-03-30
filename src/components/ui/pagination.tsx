@@ -15,21 +15,22 @@ export function Pagination({ currentPage, totalPages, totalCount, limit, onPageC
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
       <div className="text-sm text-muted-foreground">
         {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, totalCount)} / {totalCount}개
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
+          className="h-8 px-2 sm:px-3"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
           <ChevronLeft className="w-4 h-4" />
-          이전
+          <span className="hidden sm:inline">이전</span>
         </Button>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-1">
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             const pageNum = Math.max(1, currentPage - 2) + i;
             if (pageNum > totalPages) return null;
@@ -38,6 +39,7 @@ export function Pagination({ currentPage, totalPages, totalCount, limit, onPageC
                 key={pageNum}
                 variant={pageNum === currentPage ? "default" : "outline"}
                 size="sm"
+                className="h-8 w-8 p-0"
                 onClick={() => onPageChange(pageNum)}
               >
                 {pageNum}
@@ -48,10 +50,11 @@ export function Pagination({ currentPage, totalPages, totalCount, limit, onPageC
         <Button
           variant="outline"
           size="sm"
+          className="h-8 px-2 sm:px-3"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          다음
+          <span className="hidden sm:inline">다음</span>
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
