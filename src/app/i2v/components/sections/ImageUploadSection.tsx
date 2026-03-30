@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { FileUpload } from "@/components/ui/file-upload";
-import { AudioUpload } from "@/components/ui/audio-upload";
+import AudioPresetSelector from "@/components/audio/AudioPresetSelector";
 import { PromptInput } from "@/components/ui/prompt-input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bot, MessageSquare, Music, ChevronDown } from "lucide-react";
+import { Bot, MessageSquare, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ImageUploadSectionProps {
@@ -19,8 +19,8 @@ interface ImageUploadSectionProps {
   prompt: string;
   onPromptChange: (prompt: string) => void;
   showEndImage?: boolean;
-  audioFile: File | null;
-  onAudioSelect: (file: File | null) => void;
+  audioPresetId: string | null;
+  onAudioPresetChange: (id: string | null) => void;
   showAudio?: boolean;
 }
 
@@ -34,12 +34,11 @@ export function ImageUploadSection({
   prompt,
   onPromptChange,
   showEndImage = true,
-  audioFile,
-  onAudioSelect,
+  audioPresetId,
+  onAudioPresetChange,
   showAudio = false,
 }: ImageUploadSectionProps) {
   const [endImageOpen, setEndImageOpen] = useState(!!endImageFile);
-  const [audioOpen, setAudioOpen] = useState(!!audioFile);
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -92,24 +91,10 @@ export function ImageUploadSection({
       )}
 
       {showAudio && (
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setAudioOpen(!audioOpen)}
-            className="flex items-center gap-2 text-lg font-semibold w-full text-left py-2 -my-1"
-          >
-            <Music className="h-4 w-4 shrink-0" />
-            <span className="truncate">레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span></span>
-            <ChevronDown className={cn("h-4 w-4 ml-auto shrink-0 transition-transform", audioOpen && "rotate-180")} />
-          </button>
-          {audioOpen && (
-            <AudioUpload
-              onFileSelect={onAudioSelect}
-              selectedFile={audioFile}
-              maxSize={20 * 1024 * 1024}
-            />
-          )}
-        </div>
+        <AudioPresetSelector
+          selectedPresetId={audioPresetId}
+          onPresetChange={onAudioPresetChange}
+        />
       )}
 
       <div className="space-y-2">

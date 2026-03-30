@@ -2,9 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Music } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 
 type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'vfiCheckpoints';
 
@@ -73,13 +81,35 @@ function LtxLoRACopyButton() {
   );
 }
 
+function LtxHeaderExtra() {
+  return (
+    <div className="flex items-center gap-2">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Music className="h-4 w-4 mr-1" />
+            오디오 프리셋
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="w-[80vw] h-[90vh] max-w-[80vw] sm:max-w-[80vw] overflow-y-auto flex flex-col items-stretch justify-start">
+          <DialogHeader>
+            <DialogTitle>오디오 프리셋 관리</DialogTitle>
+          </DialogHeader>
+          <AudioPresetAdminManager />
+        </DialogContent>
+      </Dialog>
+      <LtxLoRACopyButton />
+    </div>
+  )
+}
+
 export default function LtxSettingsTab() {
   return (
     <ModelSettingsTab
       title="LTX 2.3 설정"
       category="ltx"
       fields={LTX_FIELDS}
-      headerExtra={<LtxLoRACopyButton />}
+      headerExtra={<LtxHeaderExtra />}
     />
   );
 }
