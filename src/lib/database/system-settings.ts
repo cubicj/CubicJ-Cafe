@@ -107,7 +107,6 @@ export interface LtxSettings {
   loraEnabled: boolean;
   sampler: string;
   sigmas: string;
-  audioNorm: string;
   nagScale: number;
   nagAlpha: number;
   nagTau: number;
@@ -181,7 +180,6 @@ export const LTX_KEYS = {
   loraEnabled: 'ltx.lora_enabled',
   sampler: 'ltx.sampler',
   sigmas: 'ltx.sigmas',
-  audioNorm: 'ltx.audio_norm',
   nagScale: 'ltx.nag_scale',
   nagAlpha: 'ltx.nag_alpha',
   nagTau: 'ltx.nag_tau',
@@ -286,7 +284,6 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
     sampler: map.get(LTX_KEYS.sampler)!,
     sigmas: map.get(LTX_KEYS.sigmas)!,
-    audioNorm: map.get(LTX_KEYS.audioNorm)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
     nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
     nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
