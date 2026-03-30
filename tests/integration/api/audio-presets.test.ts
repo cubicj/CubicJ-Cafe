@@ -4,7 +4,7 @@ import { createUser } from '../../helpers/fixtures'
 import { buildRequest, buildAuthenticatedRequest, noContext } from '../../helpers/auth'
 import { createTestSession } from '../../helpers/auth'
 import { GET, POST } from '@/app/api/audio-presets/route'
-import { GET as GET_BY_ID, PUT, DELETE } from '@/app/api/audio-presets/[id]/route'
+import { PUT, DELETE } from '@/app/api/audio-presets/[id]/route'
 import { PUT as REORDER } from '@/app/api/audio-presets/reorder/route'
 
 function createAudioFile(name = 'test.wav', size = 1024) {

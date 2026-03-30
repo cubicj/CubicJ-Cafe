@@ -21,8 +21,8 @@ export default function I2VPageClient() {
     setSelectedFile,
     endImageFile,
     setEndImageFile,
-    audioFile,
-    setAudioFile,
+    audioPresetId,
+    setAudioPresetId,
     isLoopEnabled,
     setIsLoopEnabled,
     prompt,
@@ -128,8 +128,8 @@ export default function I2VPageClient() {
               prompt={prompt}
               onPromptChange={setPrompt}
               showEndImage={capabilities.endImage}
-              audioFile={audioFile}
-              onAudioSelect={setAudioFile}
+              audioPresetId={audioPresetId}
+              onAudioPresetChange={setAudioPresetId}
               showAudio={capabilities.audio}
             />
 

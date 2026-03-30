@@ -7,8 +7,8 @@ interface I2VFormState {
   setSelectedFile: (file: File | null) => void;
   endImageFile: File | null;
   setEndImageFile: (file: File | null) => void;
-  audioFile: File | null;
-  setAudioFile: (file: File | null) => void;
+  audioPresetId: string | null;
+  setAudioPresetId: (id: string | null) => void;
   prompt: string;
   setPrompt: (prompt: string) => void;
   isNSFW: boolean;
@@ -23,8 +23,8 @@ const I2VFormContext = createContext<I2VFormState>({
   setSelectedFile: () => {},
   endImageFile: null,
   setEndImageFile: () => {},
-  audioFile: null,
-  setAudioFile: () => {},
+  audioPresetId: null,
+  setAudioPresetId: () => {},
   prompt: '',
   setPrompt: () => {},
   isNSFW: false,
@@ -41,7 +41,7 @@ export function useI2VFormContext() {
 export function I2VFormProvider({ children }: { children: ReactNode }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [endImageFile, setEndImageFile] = useState<File | null>(null);
-  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioPresetId, setAudioPresetId] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [isNSFW, setIsNSFW] = useState(false);
   const [isLoopEnabled, setIsLoopEnabled] = useState(false);
@@ -49,7 +49,7 @@ export function I2VFormProvider({ children }: { children: ReactNode }) {
   const clearForm = () => {
     setSelectedFile(null);
     setEndImageFile(null);
-    setAudioFile(null);
+    setAudioPresetId(null);
     setPrompt('');
     setIsNSFW(false);
     setIsLoopEnabled(false);
@@ -59,7 +59,7 @@ export function I2VFormProvider({ children }: { children: ReactNode }) {
     <I2VFormContext.Provider value={{
       selectedFile, setSelectedFile,
       endImageFile, setEndImageFile,
-      audioFile, setAudioFile,
+      audioPresetId, setAudioPresetId,
       prompt, setPrompt,
       isNSFW, setIsNSFW,
       isLoopEnabled, setIsLoopEnabled,
