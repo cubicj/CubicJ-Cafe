@@ -11,7 +11,6 @@ vi.mock('@/lib/database/system-settings', () => ({
     loraEnabled: true,
     sampler: 'test_sampler',
     sigmas: '1.0, 0.5, 0.0',
-    audioNorm: '1,1,1',
     nagScale: 5,
     nagAlpha: 0.3,
     nagTau: 1.5,
@@ -63,19 +62,18 @@ describe('buildLtxWorkflow', () => {
   it('generates random seeds that differ between calls', async () => {
     const w1 = await buildLtxWorkflow(baseParams)
     const w2 = await buildLtxWorkflow(baseParams)
-
     expect(w1['16']!.inputs!.noise_seed).not.toBe(w2['16']!.inputs!.noise_seed)
   })
 
   it('sets filename prefix with LTX/ prefix', async () => {
     const workflow = await buildLtxWorkflow(baseParams)
-    expect(workflow['319']!.inputs!.filename_prefix).toBe('LTX/test-image')
+    expect(workflow['345']!.inputs!.filename_prefix).toBe('LTX/test-image')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: LtxGenerationParams = { ...baseParams, inputImage: 'photo.jpg' }
     const workflow = await buildLtxWorkflow(params)
-    expect(workflow['319']!.inputs!.filename_prefix).toBe('LTX/photo')
+    expect(workflow['345']!.inputs!.filename_prefix).toBe('LTX/photo')
   })
 
   describe('end image handling', () => {
@@ -124,18 +122,16 @@ describe('buildLtxWorkflow', () => {
       const params: LtxGenerationParams = { ...baseParams, loraPreset }
       const workflow = await buildLtxWorkflow(params)
 
-      expect(workflow['296']).toBeUndefined()
       expect(workflow['400']).toBeDefined()
       expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
-      expect(workflow['400']!.inputs!.model).toEqual(['298', 0])
-      expect(workflow['317']!.inputs!.model).toEqual(['400', 0])
+      expect(workflow['400']!.inputs!.model).toEqual(['354', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['400', 0])
     })
 
-    it('removes placeholder and connects 317 directly to 298 when no preset', async () => {
+    it('connects NAG directly to TorchSettings when no preset', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['400']).toBeUndefined()
-      expect(workflow['296']).toBeUndefined()
-      expect(workflow['317']!.inputs!.model).toEqual(['298', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
     })
   })
 
@@ -172,11 +168,6 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['335']!.inputs!.sigmas).toBe('1.0, 0.5, 0.0')
     })
 
-    it('injects audio normalization into node 317', async () => {
-      const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['317']!.inputs!.audio_normalization_factors).toBe('1,1,1')
-    })
-
     it('injects duration into node 103', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['103']!.inputs!.value).toBe(4)
@@ -202,38 +193,81 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['322']!.inputs!.quality).toBe('HIGH')
     })
 
-    it('injects VFI settings into nodes 337/339', async () => {
+    it('injects VFI settings into nodes 378/339', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['337']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
-      expect(workflow['337']!.inputs!.clear_cache_after_n_frames).toBe(100)
+      expect(workflow['378']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
+      expect(workflow['378']!.inputs!.clear_cache_after_n_frames).toBe(100)
       expect(workflow['339']!.inputs!.value).toBe(2)
     })
 
-    it('injects CRF into node 319', async () => {
+    it('injects CRF into node 345', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['319']!.inputs!.crf).toBe(20)
+      expect(workflow['345']!.inputs!.crf).toBe(20)
     })
   })
 
   describe('structural integrity', () => {
-    it('preserves all critical nodes including VFI pipeline', async () => {
+    it('preserves all critical nodes including new pipeline nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      const criticalNodes = ['1', '2', '5', '6', '11', '12', '16', '20', '47', '72', '86', '87', '103', '265', '297', '317', '319', '322', '335', '336', '337', '339', '340']
+      const criticalNodes = [
+        '1', '2', '5', '6', '11', '12', '16', '20', '47', '72',
+        '86', '87', '103', '265', '297', '298', '322', '335',
+        '339', '340', '345', '354', '355', '362', '373', '378',
+      ]
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
       }
     })
 
-    it('connects VFI pipeline correctly: VAEDecode → VRAM → VFI → RTX', async () => {
+    it('does not contain removed nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['336']!.inputs!.image_pass).toEqual(['333', 0])
-      expect(workflow['337']!.inputs!.frames).toEqual(['336', 1])
-      expect(workflow['322']!.inputs!.images).toEqual(['337', 0])
+      const removedNodes = ['19', '82', '317', '319', '334', '336', '337']
+      for (const nodeId of removedNodes) {
+        expect(workflow[nodeId], `node ${nodeId} should not exist`).toBeUndefined()
+      }
+    })
+
+    it('connects VFI pipeline correctly: VAEDecode → VFI → RTX', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['378']!.inputs!.frames).toEqual(['333', 0])
+      expect(workflow['322']!.inputs!.images).toEqual(['378', 0])
+    })
+
+    it('connects TorchSettings into model chain', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['354']!.inputs!.model).toEqual(['298', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
+    })
+
+    it('connects CFGGuider with NAG and conditioning', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['355']!.inputs!.model).toEqual(['72', 0])
+      expect(workflow['355']!.inputs!.positive).toEqual(['23', 0])
+      expect(workflow['355']!.inputs!.negative).toEqual(['23', 1])
+    })
+
+    it('connects NAG with both video and audio conditioning', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['72']!.inputs!.nag_cond_video).toEqual(['23', 1])
+      expect(workflow['72']!.inputs!.nag_cond_audio).toEqual(['23', 1])
+    })
+
+    it('connects sampler guider to CFGGuider', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['17']!.inputs!.guider).toEqual(['355', 0])
+    })
+
+    it('connects post-sampling pipeline: Sampler → VRAM → SeparateAV', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['373']!.inputs!.any_input).toEqual(['17', 0])
+      expect(workflow['362']!.inputs!.av_latent).toEqual(['373', 0])
+      expect(workflow['333']!.inputs!.samples).toEqual(['362', 0])
+      expect(workflow['321']!.inputs!.samples).toEqual(['362', 1])
     })
 
     it('connects VideoCombine frame_rate to VFI math expression', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['319']!.inputs!.frame_rate).toEqual(['340', 1])
+      expect(workflow['345']!.inputs!.frame_rate).toEqual(['340', 1])
     })
   })
 })
