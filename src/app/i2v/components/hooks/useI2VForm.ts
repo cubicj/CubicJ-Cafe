@@ -143,7 +143,20 @@ export function useI2VForm(): UseI2VFormReturn {
     }
     return 'wan';
   });
-  const capabilities: ModelCapabilities = MODEL_REGISTRY[activeModel].capabilities;
+  const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
+  const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
+
+  useEffect(() => {
+    const fetchCapabilities = async () => {
+      try {
+        const data = await apiClient.get<{ capabilities: Record<VideoModel, ModelCapabilities> }>('/api/i2v/capabilities');
+        setCapabilitiesMap(data.capabilities);
+      } catch {
+        log.warn('Failed to fetch capabilities, using static defaults');
+      }
+    };
+    fetchCapabilities();
+  }, []);
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
