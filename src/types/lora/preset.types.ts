@@ -5,6 +5,7 @@ export interface LoRAPresetManagerProps {
   selectedPresetIds: string[];
   onPresetChange: (presetIds: string[]) => void;
   onPresetApply: (presets: LoRAPreset[]) => void;
+  onUnavailableLoRAsChange?: (hasUnavailable: boolean) => void;
   activeModel: string;
   className?: string;
 }
