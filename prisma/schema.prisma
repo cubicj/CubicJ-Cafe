@@ -16,6 +16,7 @@ model User {
   createdAt       DateTime       @default(now()) @map("created_at")
   lastLoginAt     DateTime       @default(now()) @map("last_login_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
+  audioPresets    AudioPreset[]
   loraPresets     LoRAPreset[]
   queueRequests   QueueRequest[]
   sessions        Session[]
@@ -147,6 +148,24 @@ model LoRABundle {
 
   @@index([order])
   @@map("lora_bundles")
+}
+
+model AudioPreset {
+  id            String   @id @default(cuid())
+  userId        Int      @map("user_id")
+  name          String
+  audioBlob     Bytes    @map("audio_blob")
+  audioFilename String   @map("audio_filename")
+  audioMimeType String   @map("audio_mime_type")
+  audioSize     Int      @map("audio_size")
+  order         Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([order])
+  @@map("audio_presets")
 }
 
 enum ServerType {
