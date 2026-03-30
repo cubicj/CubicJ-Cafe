@@ -4,6 +4,7 @@ import { QueueService } from '@/lib/database/queue'
 export async function cleanTables() {
   await prisma.loRAPresetItem.deleteMany()
   await prisma.loRAPreset.deleteMany()
+  await prisma.audioPreset.deleteMany()
   await prisma.queueRequest.deleteMany()
   await prisma.session.deleteMany()
   await prisma.user.deleteMany()
