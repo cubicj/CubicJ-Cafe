@@ -5,6 +5,7 @@ import { buildRequest, buildAuthenticatedRequest, noContext } from '../../helper
 import { createTestSession } from '../../helpers/auth'
 import { GET, POST } from '@/app/api/audio-presets/route'
 import { PUT, DELETE } from '@/app/api/audio-presets/[id]/route'
+import { GET as STREAM } from '@/app/api/audio-presets/[id]/stream/route'
 import { PUT as REORDER } from '@/app/api/audio-presets/reorder/route'
 
 function createAudioFile(name = 'test.wav', size = 1024) {
@@ -176,6 +177,63 @@ describe('Audio Presets API', () => {
       const res = await DELETE(
         buildAuthenticatedRequest(`/api/audio-presets/${preset.id}`, session2.id, { method: 'DELETE' }),
         { params: Promise.resolve({ id: preset.id }) }
+      )
+      expect(res.status).toBe(404)
+    })
+  })
+
+  describe('GET /api/audio-presets/[id]/stream', () => {
+    it('returns audio binary with correct headers', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const createRes = await POST(buildFormDataRequest('/api/audio-presets', session.id, 'Stream Test', createAudioFile('test.wav', 2048)))
+      const { preset } = await createRes.json()
+
+      const res = await STREAM(
+        buildAuthenticatedRequest(`/api/audio-presets/${preset.id}/stream`, session.id),
+        { params: Promise.resolve({ id: preset.id }) }
+      )
+
+      expect(res.status).toBe(200)
+      expect(res.headers.get('Content-Type')).toBe('audio/wav')
+      expect(res.headers.get('Content-Length')).toBe('2048')
+      expect(res.headers.get('Cache-Control')).toBe('private, max-age=3600')
+
+      const body = await res.arrayBuffer()
+      expect(body.byteLength).toBe(2048)
+    })
+
+    it('returns 401 when not authenticated', async () => {
+      const res = await STREAM(
+        buildRequest('/api/audio-presets/fake-id/stream'),
+        { params: Promise.resolve({ id: 'fake-id' }) }
+      )
+      expect(res.status).toBe(401)
+    })
+
+    it('returns 404 for other user preset', async () => {
+      const user1 = await createUser()
+      const session1 = await createTestSession(user1.id)
+      const createRes = await POST(buildFormDataRequest('/api/audio-presets', session1.id, 'Private', createAudioFile()))
+      const { preset } = await createRes.json()
+
+      const user2 = await createUser({ discordId: 'other-123', discordUsername: 'other', nickname: 'Other' })
+      const session2 = await createTestSession(user2.id)
+
+      const res = await STREAM(
+        buildAuthenticatedRequest(`/api/audio-presets/${preset.id}/stream`, session2.id),
+        { params: Promise.resolve({ id: preset.id }) }
+      )
+      expect(res.status).toBe(404)
+    })
+
+    it('returns 404 for non-existent preset', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+
+      const res = await STREAM(
+        buildAuthenticatedRequest('/api/audio-presets/nonexistent/stream', session.id),
+        { params: Promise.resolve({ id: 'nonexistent' }) }
       )
       expect(res.status).toBe(404)
     })
