@@ -36,7 +36,6 @@ function makeSettings(overrides = {}) {
     loraEnabled: false,
     sampler: 'test_sampler',
     sigmas: '1.0, 0.5, 0.0',
-    audioNorm: '1,1,1',
     nagScale: 5,
     nagAlpha: 0.3,
     nagTau: 1.5,
@@ -83,54 +82,77 @@ describe('LTX builder — reference audio handling', () => {
       referenceAudio: 'voice-sample.wav',
     }
 
-    it('sets audio filename in LoadAudio node', async () => {
+    it('creates LoadAudio node 350', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['350']).toBeDefined()
+      expect(workflow['350']!.class_type).toBe('LoadAudio')
       expect(workflow['350']!.inputs!.audio).toBe('voice-sample.wav')
     })
 
-    it('sets ID LoRA name and strength from settings', async () => {
+    it('creates ID LoRA node 296 with settings', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['349']!.inputs!.lora_name).toBe('test-id-lora.safetensors')
-      expect(workflow['349']!.inputs!.strength_model).toBe(0.8)
+      expect(workflow['296']).toBeDefined()
+      expect(workflow['296']!.class_type).toBe('LoraLoaderModelOnly')
+      expect(workflow['296']!.inputs!.lora_name).toBe('test-id-lora.safetensors')
+      expect(workflow['296']!.inputs!.strength_model).toBe(0.8)
     })
 
-    it('sets ReferenceAudio identity params from settings', async () => {
+    it('creates ReferenceAudio node 348 with settings', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['348']).toBeDefined()
+      expect(workflow['348']!.class_type).toBe('LTXVReferenceAudio')
       expect(workflow['348']!.inputs!.identity_guidance_scale).toBe(3.0)
       expect(workflow['348']!.inputs!.start_percent).toBe(0.0)
       expect(workflow['348']!.inputs!.end_percent).toBe(1.0)
     })
 
-    it('rewires conditioning through ReferenceAudio node', async () => {
+    it('chains ID LoRA from TorchSettings when no user LoRA', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['23']!.inputs!.positive).toEqual(['348', 1])
-      expect(workflow['23']!.inputs!.negative).toEqual(['348', 2])
+      expect(workflow['296']!.inputs!.model).toEqual(['354', 0])
+      expect(workflow['348']!.inputs!.model).toEqual(['296', 0])
     })
 
-    it('chains ReferenceAudio into model path before AudioNorm', async () => {
+    it('rewires NAG through ReferenceAudio', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['348']!.inputs!.model).toEqual(['349', 0])
-      expect(workflow['317']!.inputs!.model).toEqual(['348', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['348', 0])
+      expect(workflow['72']!.inputs!.nag_cond_video).toEqual(['348', 2])
+      expect(workflow['72']!.inputs!.nag_cond_audio).toEqual(['348', 2])
     })
 
-    it('connects ID LoRA to SageAttention when no user LoRA', async () => {
+    it('rewires CFGGuider through ReferenceAudio', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['349']!.inputs!.model).toEqual(['298', 0])
+      expect(workflow['355']!.inputs!.positive).toEqual(['348', 1])
+      expect(workflow['355']!.inputs!.negative).toEqual(['348', 2])
+    })
+
+    it('connects ReferenceAudio conditioning from LTXVConditioning', async () => {
+      const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['348']!.inputs!.positive).toEqual(['23', 0])
+      expect(workflow['348']!.inputs!.negative).toEqual(['23', 1])
+      expect(workflow['348']!.inputs!.reference_audio).toEqual(['350', 0])
+      expect(workflow['348']!.inputs!.audio_vae).toEqual(['1', 0])
     })
   })
 
   describe('when referenceAudio is not provided', () => {
-    it('removes all reference audio nodes', async () => {
+    it('does not create audio nodes', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['296']).toBeUndefined()
       expect(workflow['348']).toBeUndefined()
-      expect(workflow['349']).toBeUndefined()
       expect(workflow['350']).toBeUndefined()
     })
 
-    it('preserves original conditioning wiring', async () => {
+    it('NAG connects to TorchSettings directly', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['23']!.inputs!.positive).toEqual(['59', 0])
-      expect(workflow['23']!.inputs!.negative).toEqual(['61', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
+      expect(workflow['72']!.inputs!.nag_cond_video).toEqual(['23', 1])
+      expect(workflow['72']!.inputs!.nag_cond_audio).toEqual(['23', 1])
+    })
+
+    it('CFGGuider connects to LTXVConditioning directly', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['355']!.inputs!.positive).toEqual(['23', 0])
+      expect(workflow['355']!.inputs!.negative).toEqual(['23', 1])
     })
   })
 
@@ -142,13 +164,12 @@ describe('LTX builder — reference audio handling', () => {
           inputs: {
             lora_name: 'user-lora.safetensors',
             strength_model: 0.7,
-            model: ['298', 0],
+            model: ['354', 0],
           },
           class_type: 'LoraLoaderModelOnly',
           _meta: { title: 'Load LoRA' },
         }
-        workflow['317']!.inputs!.model = ['400', 0]
-        delete workflow['296']
+        workflow['72']!.inputs!.model = ['400', 0]
       })
 
       const params: LtxGenerationParams = {
@@ -169,9 +190,9 @@ describe('LTX builder — reference audio handling', () => {
 
       const workflow = await buildLtxWorkflow(params)
 
-      expect(workflow['349']!.inputs!.model).toEqual(['400', 0])
-      expect(workflow['348']!.inputs!.model).toEqual(['349', 0])
-      expect(workflow['317']!.inputs!.model).toEqual(['348', 0])
+      expect(workflow['296']!.inputs!.model).toEqual(['400', 0])
+      expect(workflow['348']!.inputs!.model).toEqual(['296', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['348', 0])
     })
   })
 })
