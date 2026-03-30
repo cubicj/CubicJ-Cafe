@@ -17,7 +17,7 @@ export function UsersTable({ data, sort, expandedItems, onSort, onToggleExpand }
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <div className="min-w-[700px]">
+        <div className="min-w-175">
       <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
         <div className="col-span-3">
           <SortableHeader field="nickname" sort={sort} onSort={onSort}>닉네임</SortableHeader>
