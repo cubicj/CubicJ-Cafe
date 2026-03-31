@@ -67,7 +67,7 @@ export interface WsExecutedData {
   output: {
     gifs?: Array<{ filename: string; subfolder: string; type: string }>
     images?: Array<{ filename: string; subfolder: string; type: string }>
-  }
+  } | null
   prompt_id: string
 }
 

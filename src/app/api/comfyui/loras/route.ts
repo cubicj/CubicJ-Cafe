@@ -58,7 +58,7 @@ export const GET = createRouteHandler(
       )
     }
 
-    log.info('LoRA list fetched', { model, count: loras.length })
+    log.debug('LoRA list fetched', { model, count: loras.length })
 
     const categorizedLoras = model === 'ltx'
       ? {

@@ -44,7 +44,7 @@ class ComfyUIJobMonitor {
     this.monitoringJobs.add(job.promptId)
 
     client.onExecuted(job.promptId, async (data: WsExecutedData) => {
-      if (!data.output.gifs || data.output.gifs.length === 0) return
+      if (!data.output?.gifs || data.output.gifs.length === 0) return
 
       const videoFile = data.output.gifs[0]
       const videoInfo: VideoFileInfo = {
