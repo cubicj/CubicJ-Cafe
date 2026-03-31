@@ -27,6 +27,11 @@ vi.mock('fs', () => ({
   existsSync: vi.fn(() => true),
 }))
 
+vi.mock('@/lib/database/system-settings', () => ({
+  getWanSettings: vi.fn(() => ({ loraEnabled: true })),
+  getLtxSettings: vi.fn(() => ({ loraEnabled: false })),
+}))
+
 import { POST } from '@/app/api/i2v/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 import { serverManager } from '@/lib/comfyui/server-manager'
