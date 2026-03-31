@@ -59,17 +59,17 @@ function makeSettings(overrides = {}) {
     identityGuidanceScale: 3.0,
     identityStartPercent: 0.0,
     identityEndPercent: 1.0,
-    schedulerSteps: 30,
-    schedulerMaxShift: 9.0,
-    schedulerBaseShift: 0.6,
+    schedulerSteps: 4,
+    schedulerMaxShift: 2.05,
+    schedulerBaseShift: 0.95,
     schedulerStretch: true,
     schedulerTerminal: 0.1,
-    sigmas2nd: '0.5, 0.25, 0.0',
+    sigmas2nd: '0.85, 0.725, 0.42, 0.18, 0.0',
     distilledLoraName: 'test-distilled-lora.safetensors',
-    distilledLoraStrength: 1.0,
-    upscaleModel: 'test-upscale-model.pt',
-    colorMatchMethod: 'none',
-    colorMatchStrength: 1.0,
+    distilledLoraStrength: 0.6,
+    upscaleModel: 'test-upscale-model.safetensors',
+    colorMatchMethod: 'mkl',
+    colorMatchStrength: 0.3,
     ...overrides,
   }
 }
@@ -135,6 +135,12 @@ describe('LTX builder — reference audio handling', () => {
       expect(workflow['355']!.inputs!.negative).toEqual(['348', 2])
     })
 
+    it('rewires CFGGuider_2nd through ReferenceAudio', async () => {
+      const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['407']!.inputs!.positive).toEqual(['348', 1])
+      expect(workflow['407']!.inputs!.negative).toEqual(['348', 2])
+    })
+
     it('connects ReferenceAudio conditioning from LTXVConditioning', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
       expect(workflow['348']!.inputs!.positive).toEqual(['23', 0])
@@ -163,6 +169,12 @@ describe('LTX builder — reference audio handling', () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['355']!.inputs!.positive).toEqual(['23', 0])
       expect(workflow['355']!.inputs!.negative).toEqual(['23', 1])
+    })
+
+    it('CFGGuider_2nd connects to LTXVConditioning directly', async () => {
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['407']!.inputs!.positive).toEqual(['23', 0])
+      expect(workflow['407']!.inputs!.negative).toEqual(['23', 1])
     })
   })
 
