@@ -4,6 +4,9 @@ import { createRouteHandler } from '@/lib/api/route-handler';
 import { initializeServices } from "@/lib/startup/init";
 import { isAdmin } from "@/lib/auth/admin";
 import { getQueuePauseAfterPosition } from '@/lib/comfyui/queue-pause-state';
+import { queueMonitor } from '@/lib/comfyui/queue-monitor';
+import { jobMonitor } from '@/lib/comfyui/job-monitor';
+import { serverManager } from '@/lib/comfyui/server-manager';
 import { createLogger } from '@/lib/logger';
 import { parseBody, parseQuery } from '@/lib/validations/parse';
 import { queueQuerySchema, queueActionSchema } from '@/lib/validations/schemas/queue';
@@ -84,7 +87,30 @@ export const POST = createRouteHandler(
 
     try {
       const userIsAdmin = isAdmin(req.user!.discordId);
-      await QueueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
+      const cancelled = await QueueService.cancelRequest(requestId, parseInt(req.user!.id), userIsAdmin);
+
+      if (cancelled.wasProcessing && cancelled.cancelledServerId) {
+        queueMonitor.releaseServerJob(requestId);
+
+        if (cancelled.cancelledJobId) {
+          jobMonitor.stopMonitoring(cancelled.cancelledJobId);
+        }
+
+        try {
+          const server = serverManager.getServerById(cancelled.cancelledServerId);
+          if (server) {
+            const client = serverManager.getClient(server);
+            if (cancelled.cancelledJobId) {
+              client.removeCallbacks(cancelled.cancelledJobId);
+            }
+            await client.interruptProcessing();
+            log.info('ComfyUI interrupted for cancelled job', { requestId, serverId: cancelled.cancelledServerId });
+          }
+        } catch (interruptError) {
+          log.warn('ComfyUI interrupt failed', { requestId, error: interruptError instanceof Error ? interruptError.message : String(interruptError) });
+        }
+      }
+
       return { message: '요청이 취소되었습니다.' };
     } catch (cancelError) {
       log.error('Queue cancel error', { error: cancelError instanceof Error ? cancelError.message : String(cancelError) });
