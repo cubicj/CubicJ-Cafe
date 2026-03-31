@@ -245,6 +245,10 @@ export class ComfyUIClient {
     return this.serverManager.pingServer()
   }
 
+  async freeMemory(): Promise<void> {
+    return this.serverManager.freeMemory()
+  }
+
   async interruptProcessing(): Promise<void> {
     return this.serverManager.interruptProcessing()
   }

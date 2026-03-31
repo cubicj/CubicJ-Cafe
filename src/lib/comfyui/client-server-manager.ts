@@ -38,6 +38,31 @@ export class ComfyUIServerManager {
     }
   }
 
+  async freeMemory(): Promise<void> {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      const response = await fetch(`${this.baseURL}/free`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ free_memory: true }),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        throw new Error(`ComfyUI /free failed: ${response.status}`)
+      }
+
+      log.info('VRAM freed successfully')
+    } catch (error) {
+      log.error('ComfyUI free memory failed', { error: error instanceof Error ? error.message : String(error) })
+      throw error
+    }
+  }
+
   async interruptProcessing(): Promise<void> {
     try {
       await this.makeRequest('/interrupt', {
