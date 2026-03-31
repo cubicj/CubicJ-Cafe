@@ -251,7 +251,7 @@ export class ComfyUIModelManager {
       const objectInfo = await this.getObjectInfoWithRunpodFallback()
       const normalizeRunpod = this.isRunpodServer || await this.isUsingRunpod()
       const loras = extractLoRAs(objectInfo.data, model, normalizeRunpod)
-      log.info('LoRA list fetched', { source: objectInfo.source, model, count: loras.length })
+      log.debug('LoRA list fetched', { source: objectInfo.source, model, count: loras.length })
       return loras
     } catch (error) {
       log.error('Failed to fetch LoRA list', { error: error instanceof Error ? error.message : String(error) })

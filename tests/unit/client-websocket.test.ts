@@ -20,7 +20,7 @@ describe('WebSocket types', () => {
       prompt_id: 'abc-123',
     }
     expect(data.prompt_id).toBe('abc-123')
-    expect(data.output.gifs![0].filename).toBe('test_00001-audio.mp4')
+    expect(data.output!.gifs![0].filename).toBe('test_00001-audio.mp4')
   })
 
   it('WsExecutionErrorData has correct shape', () => {

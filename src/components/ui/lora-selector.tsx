@@ -54,10 +54,10 @@ export function LoRASelector({
     setError(null);
     
     try {
-      log.info('Fetching LoRA list');
+      log.debug('Fetching LoRA list');
       const data = await apiClient.get<{ loras: string[]; count: number }>('/api/comfyui/loras');
 
-      log.info('LoRA list fetched', { count: data.count });
+      log.debug('LoRA list fetched', { count: data.count });
       
       const loraModels: LoRAModel[] = [
         {
