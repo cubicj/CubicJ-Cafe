@@ -21,6 +21,7 @@ class QueueMonitor {
   private currentlyProcessing = new Set<string>();
   private pauseLoggedOnce = false;
   private activeServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
+  private lastModelByServer = new Map<string, string>();
 
   constructor() {}
 
@@ -290,6 +291,16 @@ class QueueMonitor {
       const videoModel = (request.videoModel as 'wan' | 'ltx') || 'wan';
       const modelConfig = MODEL_REGISTRY[videoModel];
 
+      const lastModel = this.lastModelByServer.get(server.url);
+      if (lastModel && lastModel !== videoModel) {
+        log.info('Model switch detected, freeing VRAM', { server: server.name, from: lastModel, to: videoModel });
+        try {
+          await server.client.freeMemory();
+        } catch (error) {
+          log.warn('VRAM free failed, continuing anyway', { error: error instanceof Error ? error.message : String(error) });
+        }
+      }
+
       let loraPreset: LoRAPresetData | null = null;
       if (modelConfig.capabilities.loraPresets && request.loraPresetData) {
         try {
@@ -379,6 +390,8 @@ class QueueMonitor {
       // 선택된 서버에 워크플로우 전송
       const response = await server.client.submitPrompt(workflow);
       
+      this.lastModelByServer.set(server.url, videoModel);
+
       log.info('Workflow submitted', {
         server: server.name,
         requestId: requestId,
