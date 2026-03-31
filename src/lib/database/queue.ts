@@ -315,9 +315,12 @@ export class QueueService {
       throw new Error('취소할 수 있는 요청을 찾을 수 없습니다.');
     }
 
+    const wasProcessing = request.status === QueueStatus.PROCESSING;
+    const { jobId, serverId } = request;
+
     QueueService.invalidateCache();
 
-    return await prisma.queueRequest.update({
+    const updated = await prisma.queueRequest.update({
       where: { id: requestId },
       data: {
         status: QueueStatus.CANCELLED,
@@ -328,6 +331,8 @@ export class QueueService {
         audioBlob: null,
       }
     });
+
+    return { ...updated, wasProcessing, cancelledJobId: jobId, cancelledServerId: serverId };
   }
 
   static async peekNextPendingPosition(): Promise<number | null> {
