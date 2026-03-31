@@ -106,7 +106,6 @@ export interface LtxSettings {
   videoVae: string;
   loraEnabled: boolean;
   sampler: string;
-  sigmas: string;
   nagScale: number;
   nagAlpha: number;
   nagTau: number;
@@ -131,6 +130,17 @@ export interface LtxSettings {
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
+  schedulerSteps: number;
+  schedulerMaxShift: number;
+  schedulerBaseShift: number;
+  schedulerStretch: boolean;
+  schedulerTerminal: number;
+  sigmas2nd: string;
+  distilledLoraName: string;
+  distilledLoraStrength: number;
+  upscaleModel: string;
+  colorMatchMethod: string;
+  colorMatchStrength: number;
 }
 
 export const WAN_KEYS = {
@@ -179,7 +189,6 @@ export const LTX_KEYS = {
   videoVae: 'ltx.video_vae',
   loraEnabled: 'ltx.lora_enabled',
   sampler: 'ltx.sampler',
-  sigmas: 'ltx.sigmas',
   nagScale: 'ltx.nag_scale',
   nagAlpha: 'ltx.nag_alpha',
   nagTau: 'ltx.nag_tau',
@@ -204,6 +213,17 @@ export const LTX_KEYS = {
   identityGuidanceScale: 'ltx.identity_guidance_scale',
   identityStartPercent: 'ltx.identity_start_percent',
   identityEndPercent: 'ltx.identity_end_percent',
+  schedulerSteps: 'ltx.scheduler_steps',
+  schedulerMaxShift: 'ltx.scheduler_max_shift',
+  schedulerBaseShift: 'ltx.scheduler_base_shift',
+  schedulerStretch: 'ltx.scheduler_stretch',
+  schedulerTerminal: 'ltx.scheduler_terminal',
+  sigmas2nd: 'ltx.sigmas_2nd',
+  distilledLoraName: 'ltx.distilled_lora_name',
+  distilledLoraStrength: 'ltx.distilled_lora_strength',
+  upscaleModel: 'ltx.upscale_model',
+  colorMatchMethod: 'ltx.color_match_method',
+  colorMatchStrength: 'ltx.color_match_strength',
 } as const;
 
 function buildSettingsMap(
@@ -283,7 +303,6 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     videoVae: map.get(LTX_KEYS.videoVae)!,
     loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
     sampler: map.get(LTX_KEYS.sampler)!,
-    sigmas: map.get(LTX_KEYS.sigmas)!,
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
     nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
     nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
@@ -308,5 +327,16 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     identityGuidanceScale: parseFloat(map.get(LTX_KEYS.identityGuidanceScale)!),
     identityStartPercent: parseFloat(map.get(LTX_KEYS.identityStartPercent)!),
     identityEndPercent: parseFloat(map.get(LTX_KEYS.identityEndPercent)!),
+    schedulerSteps: parseInt(map.get(LTX_KEYS.schedulerSteps)!, 10),
+    schedulerMaxShift: parseFloat(map.get(LTX_KEYS.schedulerMaxShift)!),
+    schedulerBaseShift: parseFloat(map.get(LTX_KEYS.schedulerBaseShift)!),
+    schedulerStretch: map.get(LTX_KEYS.schedulerStretch)! === 'true',
+    schedulerTerminal: parseFloat(map.get(LTX_KEYS.schedulerTerminal)!),
+    sigmas2nd: map.get(LTX_KEYS.sigmas2nd)!,
+    distilledLoraName: map.get(LTX_KEYS.distilledLoraName)!,
+    distilledLoraStrength: parseFloat(map.get(LTX_KEYS.distilledLoraStrength)!),
+    upscaleModel: map.get(LTX_KEYS.upscaleModel)!,
+    colorMatchMethod: map.get(LTX_KEYS.colorMatchMethod)!,
+    colorMatchStrength: parseFloat(map.get(LTX_KEYS.colorMatchStrength)!),
   };
 }

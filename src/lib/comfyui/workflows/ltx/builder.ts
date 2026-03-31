@@ -32,7 +32,6 @@ export async function buildLtxWorkflow(
   setNode(workflow, LTX.NEGATIVE_PROMPT, { text: settings.negativePrompt })
 
   setNode(workflow, LTX.SAMPLER, { sampler_name: settings.sampler })
-  setNode(workflow, LTX.SIGMAS, { sigmas: settings.sigmas })
 
   setNode(workflow, LTX.NAG, {
     nag_scale: settings.nagScale,
