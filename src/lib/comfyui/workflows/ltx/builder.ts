@@ -31,7 +31,7 @@ export async function buildLtxWorkflow(
   setNode(workflow, LTX.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, LTX.NEGATIVE_PROMPT, { text: settings.negativePrompt })
 
-  setNode(workflow, LTX.SAMPLER, { sampler_name: settings.sampler })
+  setNode(workflow, LTX.SAMPLER_SELECT, { sampler_name: settings.sampler })
 
   setNode(workflow, LTX.NAG, {
     nag_scale: settings.nagScale,
@@ -40,13 +40,34 @@ export async function buildLtxWorkflow(
   })
 
   setNode(workflow, LTX.DURATION, { value: settings.duration })
-  setNode(workflow, LTX.FRAME_RATE_INT, { value: Math.round(settings.frameRate) })
-  setNode(workflow, LTX.FRAME_RATE_FLOAT, { value: settings.frameRate })
+  setNode(workflow, LTX.FRAME_RATE, { number: Math.round(settings.frameRate) })
 
   setNode(workflow, LTX.RESIZE, {
     megapixels: settings.megapixels,
     multiple_of: settings.resizeMultipleOf,
     upscale_method: settings.resizeUpscaleMethod,
+  })
+
+  setNode(workflow, LTX.SCHEDULER, {
+    steps: settings.schedulerSteps,
+    max_shift: settings.schedulerMaxShift,
+    base_shift: settings.schedulerBaseShift,
+    stretch: settings.schedulerStretch,
+    terminal: settings.schedulerTerminal,
+  })
+
+  setNode(workflow, LTX.SIGMAS_2ND, { sigmas: settings.sigmas2nd })
+
+  setNode(workflow, LTX.DISTILLED_LORA, {
+    lora_name: settings.distilledLoraName,
+    strength_model: settings.distilledLoraStrength,
+  })
+
+  setNode(workflow, LTX.UPSCALE_MODEL, { model_name: settings.upscaleModel })
+
+  setNode(workflow, LTX.COLOR_MATCH, {
+    method: settings.colorMatchMethod,
+    strength: settings.colorMatchStrength,
   })
 
   setNode(workflow, LTX.RTX_SUPER_RES, {
@@ -119,23 +140,46 @@ function handleEndImage(
     class_type: 'LoadImage',
     _meta: { title: 'LTX_EndImage' },
   }
-  setNode(workflow, LTX.RESIZE_END_IMAGE, {
-    image: [LTX.LOAD_IMAGE_END, 0],
-    megapixels: settings.megapixels,
-    multiple_of: settings.resizeMultipleOf,
-    upscale_method: settings.resizeUpscaleMethod,
-  })
+
+  workflow[LTX.END_FRAME_MATH] = {
+    inputs: {
+      expression: 'a - 1',
+      a: [LTX.FRAME_COUNT_MATH, 0],
+    },
+    class_type: 'MathExpression|pysssss',
+    _meta: { title: 'LTX_261' },
+  }
+
+  workflow[LTX.RESIZE_END_IMAGE] = {
+    inputs: {
+      image: [LTX.LOAD_IMAGE_END, 0],
+      megapixels: settings.megapixels,
+      multiple_of: settings.resizeMultipleOf,
+      upscale_method: settings.resizeUpscaleMethod,
+    },
+    class_type: 'ResizeImageToMegapixels',
+    _meta: { title: 'LTX_264' },
+  }
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
-  const endConfig = workflow[LTX.END_IMAGE_CONFIG]
-  if (endConfig?.inputs) {
-    endConfig.inputs['num_images'] = '1'
-    delete endConfig.inputs['num_images.image_2']
-    delete endConfig.inputs['num_images.index_2']
-    delete endConfig.inputs['num_images.strength_2']
+  const pass1 = workflow[LTX.IMG_TO_VIDEO]
+  if (pass1?.inputs) {
+    pass1.inputs['num_images'] = '1'
+    delete pass1.inputs['num_images.image_2']
+    delete pass1.inputs['num_images.index_2']
+    delete pass1.inputs['num_images.strength_2']
   }
-  delete workflow['261']
+
+  const pass2 = workflow[LTX.IMG_TO_VIDEO_2ND]
+  if (pass2?.inputs) {
+    pass2.inputs['num_images'] = '1'
+    delete pass2.inputs['num_images.image_2']
+    delete pass2.inputs['num_images.index_2']
+    delete pass2.inputs['num_images.strength_2']
+  }
+
+  delete workflow[LTX.END_FRAME_MATH]
   delete workflow[LTX.RESIZE_END_IMAGE]
 }
 
@@ -174,8 +218,8 @@ function handleReferenceAudio(
       start_percent: settings.identityStartPercent,
       end_percent: settings.identityEndPercent,
       model: [LTX.ID_LORA, 0],
-      positive: ['23', 0],
-      negative: ['23', 1],
+      positive: [LTX.CONDITIONING, 0],
+      negative: [LTX.CONDITIONING, 1],
       reference_audio: [LTX.LOAD_AUDIO, 0],
       audio_vae: [LTX.AUDIO_VAE, 0],
     },
@@ -193,15 +237,16 @@ function handleReferenceAudio(
     positive: [LTX.REFERENCE_AUDIO, 1],
     negative: [LTX.REFERENCE_AUDIO, 2],
   })
+
+  setNode(workflow, LTX.CFG_GUIDER_2ND, {
+    positive: [LTX.REFERENCE_AUDIO, 1],
+    negative: [LTX.REFERENCE_AUDIO, 2],
+  })
 }
 
 function bypassVfi(workflow: ComfyUIWorkflow) {
-  const vfiNode = workflow[LTX.VFI]
-  const vfiInput = vfiNode?.inputs?.frames as [string, number] | undefined
-  if (vfiInput) {
-    setNode(workflow, LTX.RTX_SUPER_RES, { images: vfiInput })
-  }
-  setNode(workflow, LTX.VIDEO_OUTPUT, { frame_rate: [LTX.FRAME_RATE_INT, 0] })
+  setNode(workflow, LTX.RTX_SUPER_RES, { images: [LTX.COLOR_MATCH, 0] })
+  setNode(workflow, LTX.VIDEO_OUTPUT, { frame_rate: [LTX.FRAME_RATE, 2] })
   delete workflow[LTX.VFI]
   delete workflow[LTX.VFI_MULTIPLIER]
   delete workflow[LTX.VFI_FRAME_RATE]
