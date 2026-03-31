@@ -10,7 +10,6 @@ vi.mock('@/lib/database/system-settings', () => ({
     videoVae: 'test-video-vae.safetensors',
     loraEnabled: true,
     sampler: 'test_sampler',
-    sigmas: '1.0, 0.5, 0.0',
     nagScale: 5,
     nagAlpha: 0.3,
     nagTau: 1.5,
@@ -35,6 +34,17 @@ vi.mock('@/lib/database/system-settings', () => ({
     identityGuidanceScale: 3.0,
     identityStartPercent: 0.0,
     identityEndPercent: 1.0,
+    schedulerSteps: 4,
+    schedulerMaxShift: 2.05,
+    schedulerBaseShift: 0.95,
+    schedulerStretch: true,
+    schedulerTerminal: 0.1,
+    sigmas2nd: '0.85, 0.725, 0.42, 0.18, 0.0',
+    distilledLoraName: 'test-distilled-lora.safetensors',
+    distilledLoraStrength: 0.6,
+    upscaleModel: 'test-upscale-model.safetensors',
+    colorMatchMethod: 'mkl',
+    colorMatchStrength: 0.3,
   }),
 }))
 
@@ -161,11 +171,6 @@ describe('buildLtxWorkflow', () => {
     it('injects sampler into node 20', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['20']!.inputs!.sampler_name).toBe('test_sampler')
-    })
-
-    it('injects sigmas into node 335', async () => {
-      const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['335']!.inputs!.sigmas).toBe('1.0, 0.5, 0.0')
     })
 
     it('injects duration into node 103', async () => {
