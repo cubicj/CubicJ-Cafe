@@ -21,18 +21,8 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "LTX_06" }
   },
-  "11": {
-    "inputs": { "value": 0 },
-    "class_type": "PrimitiveInt",
-    "_meta": { "title": "LTX_11" }
-  },
-  "12": {
-    "inputs": { "value": 0 },
-    "class_type": "PrimitiveFloat",
-    "_meta": { "title": "LTX_12" }
-  },
   "13": {
-    "inputs": { "frames_number": ["101", 0], "frame_rate": ["11", 0], "batch_size": 1, "audio_vae": ["1", 0] },
+    "inputs": { "frames_number": ["101", 0], "frame_rate": ["416", 2], "batch_size": 1, "audio_vae": ["1", 0] },
     "class_type": "LTXVEmptyLatentAudio",
     "_meta": { "title": "LTX_13" }
   },
@@ -51,7 +41,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "noise": ["16", 0],
       "guider": ["355", 0],
       "sampler": ["20", 0],
-      "sigmas": ["335", 0],
+      "sigmas": ["403", 0],
       "latent_image": ["15", 0]
     },
     "class_type": "SamplerCustomAdvanced",
@@ -63,7 +53,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_20" }
   },
   "23": {
-    "inputs": { "frame_rate": ["12", 0], "positive": ["5", 0], "negative": ["6", 0] },
+    "inputs": { "frame_rate": ["416", 1], "positive": ["5", 0], "negative": ["6", 0] },
     "class_type": "LTXVConditioning",
     "_meta": { "title": "LTX_23" }
   },
@@ -96,7 +86,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_90" }
   },
   "101": {
-    "inputs": { "expression": "a * b + 1", "a": ["11", 0], "b": ["103", 0] },
+    "inputs": { "expression": "a * b + 1", "a": ["416", 2], "b": ["103", 0] },
     "class_type": "MathExpression|pysssss",
     "_meta": { "title": "LTX_101" }
   },
@@ -104,16 +94,6 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": { "value": 0 },
     "class_type": "PrimitiveInt",
     "_meta": { "title": "LTX_103" }
-  },
-  "261": {
-    "inputs": { "expression": "a - 1", "a": ["101", 0] },
-    "class_type": "MathExpression|pysssss",
-    "_meta": { "title": "LTX_261" }
-  },
-  "264": {
-    "inputs": { "megapixels": 0, "multiple_of": 0, "upscale_method": "PLACEHOLDER" },
-    "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "LTX_264" }
   },
   "265": {
     "inputs": {
@@ -160,18 +140,13 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "VAEDecode",
     "_meta": { "title": "LTX_333" }
   },
-  "335": {
-    "inputs": { "sigmas": "PLACEHOLDER" },
-    "class_type": "ManualSigmas",
-    "_meta": { "title": "LTX_335" }
-  },
   "339": {
     "inputs": { "value": 0 },
     "class_type": "PrimitiveInt",
     "_meta": { "title": "LTX_339" }
   },
   "340": {
-    "inputs": { "expression": "a * b", "a": ["11", 0], "b": ["339", 0] },
+    "inputs": { "expression": "a * b", "a": ["416", 2], "b": ["339", 0] },
     "class_type": "MathExpression|pysssss",
     "_meta": { "title": "LTX_340" }
   },
@@ -180,8 +155,8 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "frame_rate": ["340", 1],
       "loop_count": 0,
       "filename_prefix": "PLACEHOLDER",
-      "format": "video/h264-mp4",
-      "pix_fmt": "yuv420p",
+      "format": "PLACEHOLDER",
+      "pix_fmt": "PLACEHOLDER",
       "crf": 0,
       "save_metadata": false,
       "trim_to_audio": false,
@@ -199,7 +174,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_354" }
   },
   "355": {
-    "inputs": { "cfg": 1, "model": ["72", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "inputs": { "cfg": 1, "model": ["433", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
     "_meta": { "title": "LTX_355" }
   },
@@ -209,7 +184,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_373" }
   },
   "384": {
-    "inputs": { "av_latent": ["373", 0] },
+    "inputs": { "av_latent": ["409", 0] },
     "class_type": "LTXVSeparateAVLatent",
     "_meta": { "title": "LTX_384" }
   },
@@ -223,9 +198,103 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "ckpt_name": "PLACEHOLDER",
       "clear_cache_after_n_frames": 0,
       "multiplier": ["339", 0],
-      "frames": ["333", 0]
+      "frames": ["437", 0]
     },
     "class_type": "GMFSS Fortuna VFI",
     "_meta": { "title": "LTX_395" }
+  },
+  "403": {
+    "inputs": {
+      "steps": 0,
+      "max_shift": 0,
+      "base_shift": 0,
+      "stretch": true,
+      "terminal": 0,
+      "latent": ["15", 0]
+    },
+    "class_type": "LTXVScheduler",
+    "_meta": { "title": "LTX_403" }
+  },
+  "406": {
+    "inputs": {
+      "noise": ["16", 0],
+      "guider": ["407", 0],
+      "sampler": ["20", 0],
+      "sigmas": ["431", 0],
+      "latent_image": ["419", 0]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": { "title": "LTX_406" }
+  },
+  "407": {
+    "inputs": { "cfg": 1, "model": ["72", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "class_type": "CFGGuider",
+    "_meta": { "title": "LTX_407" }
+  },
+  "409": {
+    "inputs": { "empty_cache": true, "gc_collect": true, "unload_all_models": true, "any_input": ["406", 0] },
+    "class_type": "VRAM_Debug",
+    "_meta": { "title": "LTX_409" }
+  },
+  "416": {
+    "inputs": { "number_type": "integer", "number": 0 },
+    "class_type": "Constant Number",
+    "_meta": { "title": "LTX_416" }
+  },
+  "417": {
+    "inputs": {
+      "num_images": "2",
+      "num_images.strength_1": 1,
+      "num_images.strength_2": 1,
+      "num_images.index_1": 0,
+      "num_images.index_2": ["261", 0],
+      "vae": ["2", 0],
+      "latent": ["422", 0],
+      "num_images.image_1": ["86", 0],
+      "num_images.image_2": ["264", 0]
+    },
+    "class_type": "LTXVImgToVideoInplaceKJ",
+    "_meta": { "title": "LTX_417" }
+  },
+  "418": {
+    "inputs": { "av_latent": ["373", 0] },
+    "class_type": "LTXVSeparateAVLatent",
+    "_meta": { "title": "LTX_418" }
+  },
+  "419": {
+    "inputs": { "video_latent": ["417", 0], "audio_latent": ["418", 1] },
+    "class_type": "LTXVConcatAVLatent",
+    "_meta": { "title": "LTX_419" }
+  },
+  "421": {
+    "inputs": { "model_name": "PLACEHOLDER" },
+    "class_type": "LatentUpscaleModelLoader",
+    "_meta": { "title": "LTX_421" }
+  },
+  "422": {
+    "inputs": { "samples": ["418", 0], "upscale_model": ["421", 0], "vae": ["2", 0] },
+    "class_type": "LTXVLatentUpsampler",
+    "_meta": { "title": "LTX_422" }
+  },
+  "431": {
+    "inputs": { "sigmas": "PLACEHOLDER" },
+    "class_type": "ManualSigmas",
+    "_meta": { "title": "LTX_431" }
+  },
+  "433": {
+    "inputs": { "lora_name": "PLACEHOLDER", "strength_model": 0, "model": ["72", 0] },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": { "title": "LTX_433" }
+  },
+  "437": {
+    "inputs": {
+      "method": "PLACEHOLDER",
+      "strength": 0,
+      "multithread": true,
+      "image_target": ["333", 0],
+      "image_ref": ["87", 0]
+    },
+    "class_type": "ColorMatchV2",
+    "_meta": { "title": "LTX_437" }
   }
 }
