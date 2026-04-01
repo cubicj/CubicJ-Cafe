@@ -70,6 +70,8 @@ function makeSettings(overrides = {}) {
     upscaleModel: 'test-upscale-model.safetensors',
     colorMatchMethod: 'mkl',
     colorMatchStrength: 0.3,
+    audioNorm1st: '1,1,0.7,1,1',
+    audioNorm2nd: '1,1,0.5,1,1',
     ...overrides,
   }
 }

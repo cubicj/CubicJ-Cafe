@@ -141,6 +141,8 @@ export interface LtxSettings {
   upscaleModel: string;
   colorMatchMethod: string;
   colorMatchStrength: number;
+  audioNorm1st: string;
+  audioNorm2nd: string;
 }
 
 export const WAN_KEYS = {
@@ -224,6 +226,8 @@ export const LTX_KEYS = {
   upscaleModel: 'ltx.upscale_model',
   colorMatchMethod: 'ltx.color_match_method',
   colorMatchStrength: 'ltx.color_match_strength',
+  audioNorm1st: 'ltx.audio_norm_1st',
+  audioNorm2nd: 'ltx.audio_norm_2nd',
 } as const;
 
 function buildSettingsMap(
@@ -338,5 +342,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     upscaleModel: map.get(LTX_KEYS.upscaleModel)!,
     colorMatchMethod: map.get(LTX_KEYS.colorMatchMethod)!,
     colorMatchStrength: parseFloat(map.get(LTX_KEYS.colorMatchStrength)!),
+    audioNorm1st: map.get(LTX_KEYS.audioNorm1st)!,
+    audioNorm2nd: map.get(LTX_KEYS.audioNorm2nd)!,
   };
 }

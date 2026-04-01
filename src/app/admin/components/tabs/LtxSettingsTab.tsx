@@ -44,6 +44,8 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.upscale_model', label: 'Upscale Model', type: 'string', group: 'Upscale' },
   { key: 'ltx.color_match_method', label: 'Method', type: 'string', group: 'Color Match' },
   { key: 'ltx.color_match_strength', label: 'Strength', type: 'number', step: 0.01, group: 'Color Match' },
+  { key: 'ltx.audio_norm_1st', label: '1st Pass Factors', type: 'string', group: 'Audio Norm' },
+  { key: 'ltx.audio_norm_2nd', label: '2nd Pass Factors', type: 'string', group: 'Audio Norm' },
   { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: 'VFI' },
   { key: 'ltx.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: 'VFI', modelCategory: 'vfiCheckpoints' as ModelCategory },
   { key: 'ltx.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },

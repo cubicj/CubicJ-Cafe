@@ -69,6 +69,8 @@ function makeSettings(overrides = {}) {
     upscaleModel: 'test-upscale-model.safetensors',
     colorMatchMethod: 'mkl',
     colorMatchStrength: 0.3,
+    audioNorm1st: '1,1,0.7,1,1',
+    audioNorm2nd: '1,1,0.5,1,1',
     ...overrides,
   }
 }
@@ -334,16 +336,18 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['384']!.inputs!.av_latent).toEqual(['409', 0])
     })
 
-    it('connects model chain: NAG → DistilledLoRA → CFGGuider', async () => {
+    it('connects model chain: NAG → DistilledLoRA → AudioNorm → CFGGuider', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
       expect(workflow['433']!.inputs!.model).toEqual(['72', 0])
-      expect(workflow['355']!.inputs!.model).toEqual(['433', 0])
+      expect(workflow['439']!.inputs!.model).toEqual(['433', 0])
+      expect(workflow['355']!.inputs!.model).toEqual(['439', 0])
     })
 
-    it('connects 2nd pass guider with model and conditioning', async () => {
+    it('connects 2nd pass guider with AudioNorm and conditioning', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['407']!.inputs!.model).toEqual(['72', 0])
+      expect(workflow['440']!.inputs!.model).toEqual(['72', 0])
+      expect(workflow['407']!.inputs!.model).toEqual(['440', 0])
       expect(workflow['407']!.inputs!.positive).toEqual(['23', 0])
       expect(workflow['407']!.inputs!.negative).toEqual(['23', 1])
     })

@@ -70,6 +70,9 @@ export async function buildLtxWorkflow(
     strength: settings.colorMatchStrength,
   })
 
+  setNode(workflow, LTX.AUDIO_NORM_1ST, { audio_normalization_factors: settings.audioNorm1st })
+  setNode(workflow, LTX.AUDIO_NORM_2ND, { audio_normalization_factors: settings.audioNorm2nd })
+
   setNode(workflow, LTX.RTX_SUPER_RES, {
     resize_type: settings.rtxResizeType,
     'resize_type.scale': settings.rtxScale,
