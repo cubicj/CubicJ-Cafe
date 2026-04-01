@@ -75,12 +75,10 @@ export interface WanSettings {
   nagTau: number;
   stepsHigh: number;
   stepsLow: number;
-  sigmaStartYHigh: number;
-  sigmaEndYHigh: number;
-  sigmaStartYLow: number;
-  sigmaEndYLow: number;
-  sigmaCurveData: string;
-  sigmaPreset: string;
+  moeScheduler: string;
+  moeBoundary: number;
+  moeInterval: number;
+  moeDenoise: number;
   length: number;
   sampler: string;
   negativePrompt: string;
@@ -163,12 +161,10 @@ export const WAN_KEYS = {
   nagTau: 'wan.nag_tau',
   stepsHigh: 'wan.steps_high',
   stepsLow: 'wan.steps_low',
-  sigmaStartYHigh: 'wan.sigma_start_y_high',
-  sigmaEndYHigh: 'wan.sigma_end_y_high',
-  sigmaStartYLow: 'wan.sigma_start_y_low',
-  sigmaEndYLow: 'wan.sigma_end_y_low',
-  sigmaCurveData: 'wan.sigma_curve_data',
-  sigmaPreset: 'wan.sigma_preset',
+  moeScheduler: 'wan.moe_scheduler',
+  moeBoundary: 'wan.moe_boundary',
+  moeInterval: 'wan.moe_interval',
+  moeDenoise: 'wan.moe_denoise',
   length: 'wan.length',
   sampler: 'wan.sampler',
   negativePrompt: 'wan.negative_prompt',
@@ -274,12 +270,10 @@ export async function getWanSettings(): Promise<WanSettings> {
     nagTau: parseFloat(map.get(WAN_KEYS.nagTau)!),
     stepsHigh: parseInt(map.get(WAN_KEYS.stepsHigh)!, 10),
     stepsLow: parseInt(map.get(WAN_KEYS.stepsLow)!, 10),
-    sigmaStartYHigh: parseFloat(map.get(WAN_KEYS.sigmaStartYHigh)!),
-    sigmaEndYHigh: parseFloat(map.get(WAN_KEYS.sigmaEndYHigh)!),
-    sigmaStartYLow: parseFloat(map.get(WAN_KEYS.sigmaStartYLow)!),
-    sigmaEndYLow: parseFloat(map.get(WAN_KEYS.sigmaEndYLow)!),
-    sigmaCurveData: map.get(WAN_KEYS.sigmaCurveData)!,
-    sigmaPreset: map.get(WAN_KEYS.sigmaPreset)!,
+    moeScheduler: map.get(WAN_KEYS.moeScheduler)!,
+    moeBoundary: parseFloat(map.get(WAN_KEYS.moeBoundary)!),
+    moeInterval: parseFloat(map.get(WAN_KEYS.moeInterval)!),
+    moeDenoise: parseFloat(map.get(WAN_KEYS.moeDenoise)!),
     length: parseInt(map.get(WAN_KEYS.length)!, 10),
     sampler: map.get(WAN_KEYS.sampler)!,
     negativePrompt: map.get(WAN_KEYS.negativePrompt)!,

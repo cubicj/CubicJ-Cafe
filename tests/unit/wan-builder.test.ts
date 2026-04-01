@@ -8,6 +8,10 @@ vi.mock('@/lib/database/system-settings', () => ({
     nagScale: 5,
     stepsHigh: 3,
     stepsLow: 3,
+    moeScheduler: 'beta',
+    moeBoundary: 0.9,
+    moeInterval: 0.01,
+    moeDenoise: 1,
     length: 121,
     sampler: 'euler',
     negativePrompt: 'test negative prompt',
@@ -117,10 +121,14 @@ describe('buildWanWorkflow', () => {
       expect(workflow['33']!.inputs!.shift).toBe(5)
     })
 
-    it('injects steps into CustomSplineSigma nodes', async () => {
+    it('injects settings into WanMoEScheduler node', async () => {
       const workflow = await buildWanWorkflow(baseParams)
-      expect(workflow['52']!.inputs!.steps).toBe(3)
-      expect(workflow['53']!.inputs!.steps).toBe(3)
+      expect(workflow['70']!.inputs!.scheduler).toBe('beta')
+      expect(workflow['70']!.inputs!.steps_high).toBe(3)
+      expect(workflow['70']!.inputs!.steps_low).toBe(3)
+      expect(workflow['70']!.inputs!.boundary).toBe(0.9)
+      expect(workflow['70']!.inputs!.interval).toBe(0.01)
+      expect(workflow['70']!.inputs!.denoise).toBe(1)
     })
 
     it('injects sampler into node 14', async () => {
@@ -139,7 +147,7 @@ describe('buildWanWorkflow', () => {
   describe('structural integrity', () => {
     it('preserves all critical nodes in start-only mode', async () => {
       const workflow = await buildWanWorkflow(baseParams)
-      const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '25', '26', '30', '31', '32', '33', '41', '42', '52', '53', '64']
+      const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '25', '26', '30', '31', '32', '33', '41', '42', '64', '70']
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
       }

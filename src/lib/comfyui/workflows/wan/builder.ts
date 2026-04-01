@@ -50,19 +50,13 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   setNode(workflow, WAN.NAG_HIGH, nagParams)
   setNode(workflow, WAN.NAG_LOW, nagParams)
 
-  setNode(workflow, WAN.SIGMA_HIGH, {
-    steps: settings.stepsHigh,
-    start_y: settings.sigmaStartYHigh,
-    end_y: settings.sigmaEndYHigh,
-    curve_data: settings.sigmaCurveData,
-    preset_selector: settings.sigmaPreset,
-  })
-  setNode(workflow, WAN.SIGMA_LOW, {
-    steps: settings.stepsLow,
-    start_y: settings.sigmaStartYLow,
-    end_y: settings.sigmaEndYLow,
-    curve_data: settings.sigmaCurveData,
-    preset_selector: settings.sigmaPreset,
+  setNode(workflow, WAN.MOE_SCHEDULER, {
+    scheduler: settings.moeScheduler,
+    steps_high: settings.stepsHigh,
+    steps_low: settings.stepsLow,
+    boundary: settings.moeBoundary,
+    interval: settings.moeInterval,
+    denoise: settings.moeDenoise,
   })
 
   setNode(workflow, WAN.FIRST_LAST_FRAME_HIGH, { length: settings.length })
