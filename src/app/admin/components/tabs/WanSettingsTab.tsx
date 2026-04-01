@@ -12,7 +12,7 @@ import { Layers } from 'lucide-react';
 import { LoRABundleManager } from '@/components/ui/lora-bundle-manager';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
-type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'vfiCheckpoints';
+type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'rifeModels';
 
 const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.unet_high', label: 'UNet HIGH 모델', type: 'model', group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
@@ -36,7 +36,9 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.moe_interval', label: 'Interval', type: 'number', step: 0.001, group: 'MoE Scheduler' },
   { key: 'wan.moe_denoise', label: 'Denoise', type: 'number', step: 0.01, group: 'MoE Scheduler' },
   { key: 'wan.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: 'VFI' },
-  { key: 'wan.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: 'VFI', modelCategory: 'vfiCheckpoints' as ModelCategory },
+  { key: 'wan.rife_model', label: 'RIFE Model', type: 'model', group: 'VFI', modelCategory: 'rifeModels' as ModelCategory },
+  { key: 'wan.rife_precision', label: 'RIFE Precision', type: 'nodeOption', group: 'VFI', nodeQuery: 'rife_precision:AutoLoadRifeTensorrtModel:precision' },
+  { key: 'wan.rife_resolution_profile', label: 'RIFE Resolution Profile', type: 'nodeOption', group: 'VFI', nodeQuery: 'rife_resolution_profile:AutoLoadRifeTensorrtModel:resolution_profile' },
   { key: 'wan.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
   { key: 'wan.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
   { key: 'wan.rtx_resize_type', label: 'RTX Resize Type', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },

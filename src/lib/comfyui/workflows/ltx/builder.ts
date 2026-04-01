@@ -81,10 +81,14 @@ export async function buildLtxWorkflow(
 
   if (settings.vfiEnabled) {
     setNode(workflow, LTX.VFI, {
-      ckpt_name: settings.vfiCheckpoint,
       clear_cache_after_n_frames: settings.vfiClearCache,
     })
     setNode(workflow, LTX.VFI_MULTIPLIER, { value: settings.vfiMultiplier })
+    setNode(workflow, LTX.RIFE_MODEL_LOADER, {
+      model: settings.rifeModel,
+      precision: settings.rifePrecision,
+      resolution_profile: settings.rifeResolutionProfile,
+    })
   } else {
     bypassVfi(workflow)
   }
@@ -271,4 +275,5 @@ function bypassVfi(workflow: ComfyUIWorkflow) {
   delete workflow[LTX.VFI]
   delete workflow[LTX.VFI_MULTIPLIER]
   delete workflow[LTX.VFI_FRAME_RATE]
+  delete workflow[LTX.RIFE_MODEL_LOADER]
 }

@@ -103,7 +103,7 @@ function extractModels(objectInfo: Record<string, unknown>): ModelListResponse {
     clipEmbeddings: [],
     kjVaes: [],
     latentUpscalers: [],
-    vfiCheckpoints: [],
+    rifeModels: [],
   }
 
   const loaderMap: Array<[keyof ModelListResponse, string, string]> = [
@@ -116,7 +116,7 @@ function extractModels(objectInfo: Record<string, unknown>): ModelListResponse {
     ['clipEmbeddings', 'DualCLIPLoaderGGUF', 'clip_name2'],
     ['kjVaes', 'VAELoaderKJ', 'vae_name'],
     ['latentUpscalers', 'LatentUpscaleModelLoader', 'model_name'],
-    ['vfiCheckpoints', 'GMFSS Fortuna VFI', 'ckpt_name'],
+    ['rifeModels', 'AutoLoadRifeTensorrtModel', 'model'],
   ]
 
   for (const [key, nodeName, fieldName] of loaderMap) {
@@ -284,7 +284,7 @@ export class ComfyUIModelManager {
       return result
     } catch (error) {
       log.error('Failed to fetch model list', { error: error instanceof Error ? error.message : String(error) })
-      return { diffusionModels: [], textEncoders: [], vaes: [], upscaleModels: [], clipVisions: [], ggufClips: [], clipEmbeddings: [], kjVaes: [], latentUpscalers: [], vfiCheckpoints: [] }
+      return { diffusionModels: [], textEncoders: [], vaes: [], upscaleModels: [], clipVisions: [], ggufClips: [], clipEmbeddings: [], kjVaes: [], latentUpscalers: [], rifeModels: [] }
     }
   }
 

@@ -66,7 +66,9 @@ export interface WanSettings {
   clip: string;
   vae: string;
   vfiEnabled: boolean;
-  vfiCheckpoint: string;
+  rifeModel: string;
+  rifePrecision: string;
+  rifeResolutionProfile: string;
   loraEnabled: boolean;
   megapixels: number;
   shift: number;
@@ -116,7 +118,9 @@ export interface LtxSettings {
   rtxScale: number;
   rtxQuality: string;
   vfiEnabled: boolean;
-  vfiCheckpoint: string;
+  rifeModel: string;
+  rifePrecision: string;
+  rifeResolutionProfile: string;
   vfiClearCache: number;
   vfiMultiplier: number;
   videoCrf: number;
@@ -152,7 +156,9 @@ export const WAN_KEYS = {
   clip: 'wan.clip',
   vae: 'wan.vae',
   vfiEnabled: 'wan.vfi_enabled',
-  vfiCheckpoint: 'wan.vfi_checkpoint',
+  rifeModel: 'wan.rife_model',
+  rifePrecision: 'wan.rife_precision',
+  rifeResolutionProfile: 'wan.rife_resolution_profile',
   loraEnabled: 'wan.lora_enabled',
   megapixels: 'wan.megapixels',
   shift: 'wan.shift',
@@ -202,7 +208,9 @@ export const LTX_KEYS = {
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
   vfiEnabled: 'ltx.vfi_enabled',
-  vfiCheckpoint: 'ltx.vfi_checkpoint',
+  rifeModel: 'ltx.rife_model',
+  rifePrecision: 'ltx.rife_precision',
+  rifeResolutionProfile: 'ltx.rife_resolution_profile',
   vfiClearCache: 'ltx.vfi_clear_cache',
   vfiMultiplier: 'ltx.vfi_multiplier',
   videoCrf: 'ltx.video_crf',
@@ -261,7 +269,9 @@ export async function getWanSettings(): Promise<WanSettings> {
     clip: map.get(WAN_KEYS.clip)!,
     vae: map.get(WAN_KEYS.vae)!,
     vfiEnabled: map.get(WAN_KEYS.vfiEnabled)! === 'true',
-    vfiCheckpoint: map.get(WAN_KEYS.vfiCheckpoint)!,
+    rifeModel: map.get(WAN_KEYS.rifeModel)!,
+    rifePrecision: map.get(WAN_KEYS.rifePrecision)!,
+    rifeResolutionProfile: map.get(WAN_KEYS.rifeResolutionProfile)!,
     loraEnabled: map.get(WAN_KEYS.loraEnabled)! === 'true',
     megapixels: parseFloat(map.get(WAN_KEYS.megapixels)!),
     shift: parseFloat(map.get(WAN_KEYS.shift)!),
@@ -319,7 +329,9 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
     rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
     vfiEnabled: map.get(LTX_KEYS.vfiEnabled)! === 'true',
-    vfiCheckpoint: map.get(LTX_KEYS.vfiCheckpoint)!,
+    rifeModel: map.get(LTX_KEYS.rifeModel)!,
+    rifePrecision: map.get(LTX_KEYS.rifePrecision)!,
+    rifeResolutionProfile: map.get(LTX_KEYS.rifeResolutionProfile)!,
     vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
     vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
     videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),

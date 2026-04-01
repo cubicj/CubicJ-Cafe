@@ -22,7 +22,7 @@ export const GET = createRouteHandler(
           clipEmbeddings: [],
           kjVaes: [],
           latentUpscalers: [],
-          vfiCheckpoints: []
+          rifeModels: []
         }
       };
     }
@@ -57,7 +57,7 @@ export const GET = createRouteHandler(
           clipEmbeddings: [],
           kjVaes: [],
           latentUpscalers: [],
-          vfiCheckpoints: []
+          rifeModels: []
         }
       }, {
         status: 503

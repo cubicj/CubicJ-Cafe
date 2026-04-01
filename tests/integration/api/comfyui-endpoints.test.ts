@@ -16,7 +16,7 @@ const mockGetModelList = vi.fn(() => Promise.resolve({
   clipEmbeddings: [],
   kjVaes: [],
   latentUpscalers: [],
-  vfiCheckpoints: [],
+  rifeModels: [],
 }))
 
 vi.mock('@/lib/comfyui/client', () => {
@@ -56,7 +56,7 @@ beforeEach(() => {
     clipEmbeddings: [],
     kjVaes: [],
     latentUpscalers: [],
-    vfiCheckpoints: [],
+    rifeModels: [],
   })
   vi.mocked(serverManager.selectBestServer).mockReturnValue(
     { id: 'local', type: 'local', url: 'http://127.0.0.1:8188', healthy: true } as any

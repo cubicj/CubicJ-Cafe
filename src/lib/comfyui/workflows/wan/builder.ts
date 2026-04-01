@@ -20,9 +20,13 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   setNode(workflow, WAN.VAE, { vae_name: settings.vae })
   if (settings.vfiEnabled) {
     setNode(workflow, WAN.VFI, {
-      ckpt_name: settings.vfiCheckpoint,
       clear_cache_after_n_frames: settings.vfiClearCache,
       multiplier: settings.vfiMultiplier,
+    })
+    setNode(workflow, WAN.RIFE_MODEL_LOADER, {
+      model: settings.rifeModel,
+      precision: settings.rifePrecision,
+      resolution_profile: settings.rifeResolutionProfile,
     })
   } else {
     bypassVfi(workflow)
@@ -119,6 +123,7 @@ function bypassVfi(workflow: ComfyUIWorkflow) {
     setNode(workflow, '45', { image_pass: vfiInput })
   }
   delete workflow[WAN.VFI]
+  delete workflow[WAN.RIFE_MODEL_LOADER]
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {

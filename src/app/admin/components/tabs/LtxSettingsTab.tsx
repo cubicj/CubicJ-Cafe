@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 
-type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'vfiCheckpoints';
+type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'rifeModels';
 
 const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.unet', label: 'UNet 모델', type: 'model', group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
@@ -47,7 +47,9 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.audio_norm_1st', label: '1st Pass Factors', type: 'string', group: 'Audio Norm' },
   { key: 'ltx.audio_norm_2nd', label: '2nd Pass Factors', type: 'string', group: 'Audio Norm' },
   { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: 'VFI' },
-  { key: 'ltx.vfi_checkpoint', label: 'VFI 체크포인트', type: 'model', group: 'VFI', modelCategory: 'vfiCheckpoints' as ModelCategory },
+  { key: 'ltx.rife_model', label: 'RIFE Model', type: 'model', group: 'VFI', modelCategory: 'rifeModels' as ModelCategory },
+  { key: 'ltx.rife_precision', label: 'RIFE Precision', type: 'nodeOption', group: 'VFI', nodeQuery: 'rife_precision:AutoLoadRifeTensorrtModel:precision' },
+  { key: 'ltx.rife_resolution_profile', label: 'RIFE Resolution Profile', type: 'nodeOption', group: 'VFI', nodeQuery: 'rife_resolution_profile:AutoLoadRifeTensorrtModel:resolution_profile' },
   { key: 'ltx.vfi_clear_cache', label: 'VFI Clear Cache (frames)', type: 'number', step: 1, group: 'VFI' },
   { key: 'ltx.vfi_multiplier', label: 'VFI Multiplier', type: 'number', step: 1, group: 'VFI' },
   { key: 'ltx.rtx_resize_type', label: 'RTX Resize Type', type: 'nodeOption', group: 'RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
