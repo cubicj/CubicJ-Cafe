@@ -174,7 +174,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_354" }
   },
   "355": {
-    "inputs": { "cfg": 1, "model": ["433", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "inputs": { "cfg": 1, "model": ["439", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
     "_meta": { "title": "LTX_355" }
   },
@@ -227,7 +227,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_406" }
   },
   "407": {
-    "inputs": { "cfg": 1, "model": ["72", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "inputs": { "cfg": 1, "model": ["440", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
     "_meta": { "title": "LTX_407" }
   },
@@ -296,5 +296,21 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     "class_type": "ColorMatchV2",
     "_meta": { "title": "LTX_437" }
+  },
+  "439": {
+    "inputs": {
+      "audio_normalization_factors": "PLACEHOLDER",
+      "model": ["433", 0]
+    },
+    "class_type": "LTX2AudioLatentNormalizingSampling",
+    "_meta": { "title": "LTX_439" }
+  },
+  "440": {
+    "inputs": {
+      "audio_normalization_factors": "PLACEHOLDER",
+      "model": ["72", 0]
+    },
+    "class_type": "LTX2AudioLatentNormalizingSampling",
+    "_meta": { "title": "LTX_440" }
   }
 }
