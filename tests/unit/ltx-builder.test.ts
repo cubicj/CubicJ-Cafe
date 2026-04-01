@@ -46,7 +46,9 @@ function makeSettings(overrides = {}) {
     rtxScale: 1.5,
     rtxQuality: 'HIGH',
     vfiEnabled: true,
-    vfiCheckpoint: 'test-vfi-checkpoint',
+    rifeModel: 'rife49_ensemble_True_scale_1_sim',
+    rifePrecision: 'fp32',
+    rifeResolutionProfile: 'large',
     vfiClearCache: 100,
     vfiMultiplier: 2,
     videoCrf: 20,
@@ -169,10 +171,12 @@ describe('buildLtxWorkflow', () => {
       expect(workflow['322']!.inputs!.quality).toBe('HIGH')
     })
 
-    it('injects VFI settings into nodes 395/339', async () => {
+    it('injects VFI settings into nodes 444/443/339', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['395']!.inputs!.ckpt_name).toBe('test-vfi-checkpoint')
-      expect(workflow['395']!.inputs!.clear_cache_after_n_frames).toBe(100)
+      expect(workflow['444']!.inputs!.clear_cache_after_n_frames).toBe(100)
+      expect(workflow['443']!.inputs!.model).toBe('rife49_ensemble_True_scale_1_sim')
+      expect(workflow['443']!.inputs!.precision).toBe('fp32')
+      expect(workflow['443']!.inputs!.resolution_profile).toBe('large')
       expect(workflow['339']!.inputs!.value).toBe(2)
     })
 
@@ -299,9 +303,9 @@ describe('buildLtxWorkflow', () => {
       const criticalNodes = [
         '1', '2', '5', '6', '16', '20', '72', '86', '87', '103',
         '265', '297', '298', '322', '333', '339', '340', '345',
-        '354', '355', '373', '384', '390', '395', '403', '406',
+        '354', '355', '373', '384', '390', '403', '406',
         '407', '409', '416', '417', '418', '419', '421', '422',
-        '431', '433', '437',
+        '431', '433', '437', '443', '444',
       ]
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
@@ -369,12 +373,12 @@ describe('buildLtxWorkflow', () => {
 
     it('connects VFI from ColorMatch', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['395']!.inputs!.frames).toEqual(['437', 0])
+      expect(workflow['444']!.inputs!.frames).toEqual(['437', 0])
     })
 
     it('connects RTX from VFI', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['322']!.inputs!.images).toEqual(['395', 0])
+      expect(workflow['322']!.inputs!.images).toEqual(['444', 0])
     })
 
     it('connects VideoCombine frame_rate to VFI math expression', async () => {
@@ -402,7 +406,8 @@ describe('buildLtxWorkflow', () => {
 
     it('removes VFI nodes when disabled', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
-      expect(workflow['395']).toBeUndefined()
+      expect(workflow['444']).toBeUndefined()
+      expect(workflow['443']).toBeUndefined()
       expect(workflow['339']).toBeUndefined()
       expect(workflow['340']).toBeUndefined()
     })

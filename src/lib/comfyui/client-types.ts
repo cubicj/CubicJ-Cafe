@@ -53,7 +53,7 @@ export interface ModelListResponse {
   clipEmbeddings: string[]
   kjVaes: string[]
   latentUpscalers: string[]
-  vfiCheckpoints: string[]
+  rifeModels: string[]
 }
 
 export interface VideoFileInfo {

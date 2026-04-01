@@ -315,7 +315,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "empty_cache": true,
       "gc_collect": true,
       "unload_all_models": true,
-      "image_pass": ["62", 0]
+      "image_pass": ["71", 0]
     },
     "class_type": "VRAM_Debug",
     "_meta": { "title": "WAN_45" }
@@ -333,15 +333,25 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "class_type": "WanMoEScheduler",
     "_meta": { "title": "WAN_70" }
   },
-  "62": {
+  "71": {
     "inputs": {
-      "ckpt_name": "PLACEHOLDER",
       "clear_cache_after_n_frames": 0,
       "multiplier": 0,
-      "frames": ["38", 0]
+      "keep_model_loaded": false,
+      "frames": ["38", 0],
+      "rife_trt_model": ["72", 0]
     },
-    "class_type": "GMFSS Fortuna VFI",
-    "_meta": { "title": "WAN_62" }
+    "class_type": "AutoRifeTensorrt",
+    "_meta": { "title": "WAN_71" }
+  },
+  "72": {
+    "inputs": {
+      "model": "PLACEHOLDER",
+      "precision": "PLACEHOLDER",
+      "resolution_profile": "PLACEHOLDER"
+    },
+    "class_type": "AutoLoadRifeTensorrtModel",
+    "_meta": { "title": "WAN_72" }
   },
   "63": {
     "inputs": {

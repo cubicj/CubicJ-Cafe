@@ -126,7 +126,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_321" }
   },
   "322": {
-    "inputs": { "resize_type": "PLACEHOLDER", "resize_type.scale": 0, "quality": "PLACEHOLDER", "images": ["395", 0] },
+    "inputs": { "resize_type": "PLACEHOLDER", "resize_type.scale": 0, "quality": "PLACEHOLDER", "images": ["444", 0] },
     "class_type": "RTXVideoSuperResolution",
     "_meta": { "title": "LTX_322" }
   },
@@ -193,15 +193,25 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "DualCLIPLoader",
     "_meta": { "title": "LTX_390" }
   },
-  "395": {
+  "443": {
     "inputs": {
-      "ckpt_name": "PLACEHOLDER",
+      "model": "PLACEHOLDER",
+      "precision": "PLACEHOLDER",
+      "resolution_profile": "PLACEHOLDER"
+    },
+    "class_type": "AutoLoadRifeTensorrtModel",
+    "_meta": { "title": "LTX_443" }
+  },
+  "444": {
+    "inputs": {
       "clear_cache_after_n_frames": 0,
       "multiplier": ["339", 0],
-      "frames": ["437", 0]
+      "keep_model_loaded": false,
+      "frames": ["437", 0],
+      "rife_trt_model": ["443", 0]
     },
-    "class_type": "GMFSS Fortuna VFI",
-    "_meta": { "title": "LTX_395" }
+    "class_type": "AutoRifeTensorrt",
+    "_meta": { "title": "LTX_444" }
   },
   "403": {
     "inputs": {
