@@ -36,7 +36,7 @@ describe('applyLtxLoraChain', () => {
     await applyLtxLoraChain(workflow, preset)
 
     expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
-    expect(workflow['400']).toBeUndefined()
+    expect(workflow['500']).toBeUndefined()
   })
 
   it('chains LoRA from TorchSettings(354) and rewires NAG(72)', async () => {
@@ -55,12 +55,12 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['400']).toBeDefined()
-    expect(workflow['400']!.class_type).toBe('LoraLoaderModelOnly')
-    expect(workflow['400']!.inputs!.lora_name).toBe('LTX\\Custom\\style-lora.safetensors')
-    expect(workflow['400']!.inputs!.strength_model).toBe(0.7)
-    expect(workflow['400']!.inputs!.model).toEqual(['354', 0])
-    expect(workflow['72']!.inputs!.model).toEqual(['400', 0])
+    expect(workflow['500']).toBeDefined()
+    expect(workflow['500']!.class_type).toBe('LoraLoaderModelOnly')
+    expect(workflow['500']!.inputs!.lora_name).toBe('LTX\\Custom\\style-lora.safetensors')
+    expect(workflow['500']!.inputs!.strength_model).toBe(0.7)
+    expect(workflow['500']!.inputs!.model).toEqual(['354', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['500', 0])
   })
 
   it('chains multiple LoRAs in order', async () => {
@@ -77,10 +77,10 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['400']!.inputs!.model).toEqual(['354', 0])
-    expect(workflow['401']!.inputs!.model).toEqual(['400', 0])
-    expect(workflow['402']!.inputs!.model).toEqual(['401', 0])
-    expect(workflow['72']!.inputs!.model).toEqual(['402', 0])
+    expect(workflow['500']!.inputs!.model).toEqual(['354', 0])
+    expect(workflow['501']!.inputs!.model).toEqual(['500', 0])
+    expect(workflow['502']!.inputs!.model).toEqual(['501', 0])
+    expect(workflow['72']!.inputs!.model).toEqual(['502', 0])
   })
 
   it('deduplicates by loraFilename', async () => {
@@ -97,10 +97,10 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset)
 
-    expect(workflow['400']).toBeDefined()
-    expect(workflow['401']).toBeDefined()
-    expect(workflow['402']).toBeUndefined()
-    expect(workflow['72']!.inputs!.model).toEqual(['401', 0])
+    expect(workflow['500']).toBeDefined()
+    expect(workflow['501']).toBeDefined()
+    expect(workflow['502']).toBeUndefined()
+    expect(workflow['72']!.inputs!.model).toEqual(['501', 0])
   })
 
   it('converts backslashes for RUNPOD server', async () => {
@@ -120,6 +120,6 @@ describe('applyLtxLoraChain', () => {
 
     await applyLtxLoraChain(workflow, preset, server)
 
-    expect(workflow['400']!.inputs!.lora_name).toBe('LTX/Custom/style.safetensors')
+    expect(workflow['500']!.inputs!.lora_name).toBe('LTX/Custom/style.safetensors')
   })
 })

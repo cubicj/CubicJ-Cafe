@@ -59,6 +59,9 @@ function makeSettings(overrides = {}) {
     identityGuidanceScale: 3.0,
     identityStartPercent: 0.0,
     identityEndPercent: 1.0,
+    identityGuidanceScale2nd: 2.5,
+    identityStartPercent2nd: 0.1,
+    identityEndPercent2nd: 0.8,
     schedulerSteps: 4,
     schedulerMaxShift: 2.05,
     schedulerBaseShift: 0.95,
@@ -118,29 +121,45 @@ describe('LTX builder — reference audio handling', () => {
       expect(workflow['348']!.inputs!.end_percent).toBe(1.0)
     })
 
-    it('chains ID LoRA from TorchSettings when no user LoRA', async () => {
+    it('chains ID LoRA from NAG output', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['296']!.inputs!.model).toEqual(['354', 0])
+      expect(workflow['296']!.inputs!.model).toEqual(['72', 0])
       expect(workflow['348']!.inputs!.model).toEqual(['296', 0])
     })
 
-    it('rewires NAG through ReferenceAudio', async () => {
+    it('does not rewire NAG model or conditioning', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['72']!.inputs!.model).toEqual(['348', 0])
-      expect(workflow['72']!.inputs!.nag_cond_video).toEqual(['348', 2])
-      expect(workflow['72']!.inputs!.nag_cond_audio).toEqual(['348', 2])
+      expect(workflow['72']!.inputs!.model).toEqual(['354', 0])
+      expect(workflow['72']!.inputs!.nag_cond_video).toEqual(['23', 1])
+      expect(workflow['72']!.inputs!.nag_cond_audio).toEqual(['23', 1])
     })
 
-    it('rewires CFGGuider through ReferenceAudio', async () => {
+    it('rewires DistilledLoRA through ReferenceAudio 1st', async () => {
+      const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['433']!.inputs!.model).toEqual(['348', 0])
+    })
+
+    it('rewires CFGGuider through ReferenceAudio 1st', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
       expect(workflow['355']!.inputs!.positive).toEqual(['348', 1])
       expect(workflow['355']!.inputs!.negative).toEqual(['348', 2])
     })
 
-    it('rewires CFGGuider_2nd through ReferenceAudio', async () => {
+    it('creates ReferenceAudio2nd node 441 with 2nd pass settings', async () => {
       const workflow = await buildLtxWorkflow(paramsWithAudio)
-      expect(workflow['407']!.inputs!.positive).toEqual(['348', 1])
-      expect(workflow['407']!.inputs!.negative).toEqual(['348', 2])
+      expect(workflow['441']).toBeDefined()
+      expect(workflow['441']!.class_type).toBe('LTXVReferenceAudio')
+      expect(workflow['441']!.inputs!.identity_guidance_scale).toBe(2.5)
+      expect(workflow['441']!.inputs!.start_percent).toBe(0.1)
+      expect(workflow['441']!.inputs!.end_percent).toBe(0.8)
+      expect(workflow['441']!.inputs!.model).toEqual(['296', 0])
+    })
+
+    it('rewires AudioNorm2nd and CFGGuider2nd through ReferenceAudio2nd', async () => {
+      const workflow = await buildLtxWorkflow(paramsWithAudio)
+      expect(workflow['440']!.inputs!.model).toEqual(['441', 0])
+      expect(workflow['407']!.inputs!.positive).toEqual(['441', 1])
+      expect(workflow['407']!.inputs!.negative).toEqual(['441', 2])
     })
 
     it('connects ReferenceAudio conditioning from LTXVConditioning', async () => {
@@ -181,10 +200,10 @@ describe('LTX builder — reference audio handling', () => {
   })
 
   describe('interaction with user LoRA chain', () => {
-    it('chains ID LoRA after last user LoRA node', async () => {
+    it('chains ID LoRA from NAG output when user LoRA is applied', async () => {
       mockGetLtxSettings.mockResolvedValue(makeSettings({ loraEnabled: true }))
       mockApplyLtxLoraChain.mockImplementation(async (workflow) => {
-        workflow['400'] = {
+        workflow['500'] = {
           inputs: {
             lora_name: 'user-lora.safetensors',
             strength_model: 0.7,
@@ -193,7 +212,7 @@ describe('LTX builder — reference audio handling', () => {
           class_type: 'LoraLoaderModelOnly',
           _meta: { title: 'Load LoRA' },
         }
-        workflow['72']!.inputs!.model = ['400', 0]
+        workflow['72']!.inputs!.model = ['500', 0]
       })
 
       const params: LtxGenerationParams = {
@@ -214,9 +233,10 @@ describe('LTX builder — reference audio handling', () => {
 
       const workflow = await buildLtxWorkflow(params)
 
-      expect(workflow['296']!.inputs!.model).toEqual(['400', 0])
+      expect(workflow['72']!.inputs!.model).toEqual(['500', 0])
+      expect(workflow['296']!.inputs!.model).toEqual(['72', 0])
       expect(workflow['348']!.inputs!.model).toEqual(['296', 0])
-      expect(workflow['72']!.inputs!.model).toEqual(['348', 0])
+      expect(workflow['433']!.inputs!.model).toEqual(['348', 0])
     })
   })
 })

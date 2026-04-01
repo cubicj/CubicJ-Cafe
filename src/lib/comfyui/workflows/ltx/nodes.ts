@@ -50,7 +50,9 @@ export const LTX = {
   COLOR_MATCH: '437',
   AUDIO_NORM_1ST: '439',
   AUDIO_NORM_2ND: '440',
+  CUSTOM_LORA: '438',
   ID_LORA: '296',
   REFERENCE_AUDIO: '348',
   LOAD_AUDIO: '350',
+  REFERENCE_AUDIO_2ND: '441',
 } as const

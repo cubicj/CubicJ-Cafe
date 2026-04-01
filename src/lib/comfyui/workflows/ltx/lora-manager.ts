@@ -6,7 +6,7 @@ import { deduplicateByFilename } from '../lora-utils'
 
 const log = createLogger('comfyui')
 
-const LTX_DYNAMIC_NODE_START = 400
+const LTX_DYNAMIC_NODE_START = 500
 const TORCH_SETTINGS_NODE = '354'
 const NAG_NODE = '72'
 

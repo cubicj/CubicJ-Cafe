@@ -195,6 +195,9 @@ function handleReferenceAudio(
     identityGuidanceScale: number
     identityStartPercent: number
     identityEndPercent: number
+    identityGuidanceScale2nd: number
+    identityStartPercent2nd: number
+    identityEndPercent2nd: number
   }
 ) {
   workflow[LTX.LOAD_AUDIO] = {
@@ -203,16 +206,22 @@ function handleReferenceAudio(
     _meta: { title: 'LTX_350' },
   }
 
-  const currentModelSource = workflow[LTX.NAG]?.inputs?.model as [string, number]
-
   workflow[LTX.ID_LORA] = {
     inputs: {
       lora_name: settings.idLoraName,
       strength_model: settings.idLoraStrength,
-      model: currentModelSource,
+      model: [LTX.NAG, 0],
     },
     class_type: 'LoraLoaderModelOnly',
     _meta: { title: 'LTX_296' },
+  }
+
+  const sharedInputs = {
+    model: [LTX.ID_LORA, 0],
+    positive: [LTX.CONDITIONING, 0],
+    negative: [LTX.CONDITIONING, 1],
+    reference_audio: [LTX.LOAD_AUDIO, 0],
+    audio_vae: [LTX.AUDIO_VAE, 0],
   }
 
   workflow[LTX.REFERENCE_AUDIO] = {
@@ -220,20 +229,25 @@ function handleReferenceAudio(
       identity_guidance_scale: settings.identityGuidanceScale,
       start_percent: settings.identityStartPercent,
       end_percent: settings.identityEndPercent,
-      model: [LTX.ID_LORA, 0],
-      positive: [LTX.CONDITIONING, 0],
-      negative: [LTX.CONDITIONING, 1],
-      reference_audio: [LTX.LOAD_AUDIO, 0],
-      audio_vae: [LTX.AUDIO_VAE, 0],
+      ...sharedInputs,
     },
     class_type: 'LTXVReferenceAudio',
     _meta: { title: 'LTX_348' },
   }
 
-  setNode(workflow, LTX.NAG, {
+  workflow[LTX.REFERENCE_AUDIO_2ND] = {
+    inputs: {
+      identity_guidance_scale: settings.identityGuidanceScale2nd,
+      start_percent: settings.identityStartPercent2nd,
+      end_percent: settings.identityEndPercent2nd,
+      ...sharedInputs,
+    },
+    class_type: 'LTXVReferenceAudio',
+    _meta: { title: 'LTX_441' },
+  }
+
+  setNode(workflow, LTX.DISTILLED_LORA, {
     model: [LTX.REFERENCE_AUDIO, 0],
-    nag_cond_video: [LTX.REFERENCE_AUDIO, 2],
-    nag_cond_audio: [LTX.REFERENCE_AUDIO, 2],
   })
 
   setNode(workflow, LTX.CFG_GUIDER, {
@@ -241,9 +255,13 @@ function handleReferenceAudio(
     negative: [LTX.REFERENCE_AUDIO, 2],
   })
 
+  setNode(workflow, LTX.AUDIO_NORM_2ND, {
+    model: [LTX.REFERENCE_AUDIO_2ND, 0],
+  })
+
   setNode(workflow, LTX.CFG_GUIDER_2ND, {
-    positive: [LTX.REFERENCE_AUDIO, 1],
-    negative: [LTX.REFERENCE_AUDIO, 2],
+    positive: [LTX.REFERENCE_AUDIO_2ND, 1],
+    negative: [LTX.REFERENCE_AUDIO_2ND, 2],
   })
 }
 
