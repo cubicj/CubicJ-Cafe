@@ -130,6 +130,9 @@ export interface LtxSettings {
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
+  identityGuidanceScale2nd: number;
+  identityStartPercent2nd: number;
+  identityEndPercent2nd: number;
   schedulerSteps: number;
   schedulerMaxShift: number;
   schedulerBaseShift: number;
@@ -215,6 +218,9 @@ export const LTX_KEYS = {
   identityGuidanceScale: 'ltx.identity_guidance_scale',
   identityStartPercent: 'ltx.identity_start_percent',
   identityEndPercent: 'ltx.identity_end_percent',
+  identityGuidanceScale2nd: 'ltx.identity_guidance_scale_2nd',
+  identityStartPercent2nd: 'ltx.identity_start_percent_2nd',
+  identityEndPercent2nd: 'ltx.identity_end_percent_2nd',
   schedulerSteps: 'ltx.scheduler_steps',
   schedulerMaxShift: 'ltx.scheduler_max_shift',
   schedulerBaseShift: 'ltx.scheduler_base_shift',
@@ -331,6 +337,9 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     identityGuidanceScale: parseFloat(map.get(LTX_KEYS.identityGuidanceScale)!),
     identityStartPercent: parseFloat(map.get(LTX_KEYS.identityStartPercent)!),
     identityEndPercent: parseFloat(map.get(LTX_KEYS.identityEndPercent)!),
+    identityGuidanceScale2nd: parseFloat(map.get(LTX_KEYS.identityGuidanceScale2nd)!),
+    identityStartPercent2nd: parseFloat(map.get(LTX_KEYS.identityStartPercent2nd)!),
+    identityEndPercent2nd: parseFloat(map.get(LTX_KEYS.identityEndPercent2nd)!),
     schedulerSteps: parseInt(map.get(LTX_KEYS.schedulerSteps)!, 10),
     schedulerMaxShift: parseFloat(map.get(LTX_KEYS.schedulerMaxShift)!),
     schedulerBaseShift: parseFloat(map.get(LTX_KEYS.schedulerBaseShift)!),
