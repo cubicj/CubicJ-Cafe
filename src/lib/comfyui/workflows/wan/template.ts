@@ -108,7 +108,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "noise": ["3", 0],
       "guider": ["4", 0],
       "sampler": ["14", 0],
-      "sigmas": ["52", 1],
+      "sigmas": ["70", 5],
       "latent_image": ["31", 2]
     },
     "class_type": "SamplerCustomAdvanced",
@@ -264,7 +264,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "noise": ["40", 0],
       "guider": ["17", 0],
       "sampler": ["14", 0],
-      "sigmas": ["53", 1],
+      "sigmas": ["70", 6],
       "latent_image": ["15", 0]
     },
     "class_type": "SamplerCustomAdvanced",
@@ -320,27 +320,18 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "class_type": "VRAM_Debug",
     "_meta": { "title": "WAN_45" }
   },
-  "52": {
+  "70": {
     "inputs": {
-      "steps": 0,
-      "start_y": 0,
-      "end_y": 0,
-      "curve_data": "PLACEHOLDER",
-      "preset_selector": "PLACEHOLDER"
+      "scheduler": "PLACEHOLDER",
+      "steps_high": 0,
+      "steps_low": 0,
+      "boundary": 0,
+      "interval": 0,
+      "denoise": 0,
+      "model": ["20", 0]
     },
-    "class_type": "CustomSplineSigma",
-    "_meta": { "title": "WAN_52" }
-  },
-  "53": {
-    "inputs": {
-      "steps": 0,
-      "start_y": 0,
-      "end_y": 0,
-      "curve_data": "PLACEHOLDER",
-      "preset_selector": "PLACEHOLDER"
-    },
-    "class_type": "CustomSplineSigma",
-    "_meta": { "title": "WAN_53" }
+    "class_type": "WanMoEScheduler",
+    "_meta": { "title": "WAN_70" }
   },
   "62": {
     "inputs": {
