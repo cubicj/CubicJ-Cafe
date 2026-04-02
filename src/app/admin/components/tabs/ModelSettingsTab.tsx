@@ -53,11 +53,13 @@ interface ModelSettingsTabProps {
   category: string;
   fields: SettingsField[];
   headerExtra?: ReactNode;
+  onValuesLoaded?: (values: Record<string, string>) => void;
+  onValueChange?: (key: string, value: string) => void;
 }
 
 const dropdownCaches = new Map<string, { samplers: string[]; models: Record<string, string[]>; nodeOptions: Record<string, string[]> }>();
 
-export default function ModelSettingsTab({ title, category, fields, headerExtra }: ModelSettingsTabProps) {
+export default function ModelSettingsTab({ title, category, fields, headerExtra, onValuesLoaded, onValueChange }: ModelSettingsTabProps) {
   const cache = dropdownCaches.get(category);
   const [values, setValues] = useState<Record<string, string>>({});
   const [samplers, setSamplers] = useState<string[]>(cache?.samplers ?? []);
@@ -107,6 +109,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra 
           initial[field.key] = settings[field.key]?.value ?? '';
         }
         setValues(initial);
+        onValuesLoaded?.(initial);
       } catch {
         setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
       } finally {
@@ -118,6 +121,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra 
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
+    onValueChange?.(key, value);
   };
 
   const handleSave = async () => {
