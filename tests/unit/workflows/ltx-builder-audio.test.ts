@@ -55,6 +55,9 @@ const SHARED_SETTINGS = {
   negativePrompt: 'fake test negative',
   idLoraName: 'fake-id-lora-q5.safetensors',
   upscaleModel: 'fake-upscale-q8.safetensors',
+  distilledLoraEnabled: false,
+  distilledLoraName: 'fake-distilled-p3.safetensors',
+  distilledLoraStrength: 0.45,
 }
 
 function make2PassSettings(overrides = {}) {

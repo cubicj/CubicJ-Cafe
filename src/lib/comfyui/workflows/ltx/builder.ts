@@ -31,6 +31,10 @@ export async function buildLtxWorkflow(
     configureAudioNorm2Pass(workflow, settings)
   }
 
+  if (settings.distilledLoraEnabled) {
+    applyDistilledLora(workflow, settings)
+  }
+
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     applyUserLoras(workflow, params.loraPreset, server)
   }
@@ -154,6 +158,19 @@ function strip2ndPass(workflow: ComfyUIWorkflow) {
   setNode(workflow, LTX.SEPARATE_AV, { av_latent: [LTX.VRAM_POST_SAMPLE, 0] })
 }
 
+function applyDistilledLora(workflow: ComfyUIWorkflow, settings: LtxSettings) {
+  const loraNodes = [LTX.POWER_LORA_1ST, LTX.POWER_LORA_2ND].filter(id => workflow[id])
+  for (const nodeId of loraNodes) {
+    const node = workflow[nodeId]
+    if (!node?.inputs) continue
+    node.inputs['lora_3'] = {
+      on: true,
+      lora: settings.distilledLoraName,
+      strength: settings.distilledLoraStrength,
+    }
+  }
+}
+
 function applyUserLoras(
   workflow: ComfyUIWorkflow,
   loraPreset: LoRAPresetData,
@@ -167,12 +184,15 @@ function applyUserLoras(
     const node = workflow[nodeId]
     if (!node?.inputs) continue
 
+    let startSlot = 3
+    while (node.inputs[`lora_${startSlot}`]) startSlot++
+
     for (let i = 0; i < deduplicated.length; i++) {
       let loraFilename = deduplicated[i].loraFilename
       if (server?.type === 'RUNPOD') {
         loraFilename = loraFilename.replace(/\\/g, '/')
       }
-      node.inputs[`lora_${i + 3}`] = {
+      node.inputs[`lora_${startSlot + i}`] = {
         on: true,
         lora: loraFilename,
         strength: deduplicated[i].strength,
