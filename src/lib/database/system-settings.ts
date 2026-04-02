@@ -100,6 +100,8 @@ export interface WanSettings {
 export interface LtxSettings {
   unet: string;
   weightDtype: string;
+  unet2nd: string;
+  weightDtype2nd: string;
   clipGguf: string;
   clipEmbeddings: string;
   audioVae: string;
@@ -109,18 +111,27 @@ export interface LtxSettings {
   nagScale: number;
   nagAlpha: number;
   nagTau: number;
+  nagScale2nd: number;
+  nagAlpha2nd: number;
+  nagTau2nd: number;
   duration: number;
   frameRate: number;
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
+  colorMatchEnabled: boolean;
+  colorMatchMethod: string;
+  colorMatchStrength: number;
+  rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
   vfiEnabled: boolean;
+  vfiMethod: string;
   rifeModel: string;
   rifePrecision: string;
   rifeResolutionProfile: string;
+  gmfssModel: string;
   vfiClearCache: number;
   vfiMultiplier: number;
   videoCrf: number;
@@ -129,6 +140,7 @@ export interface LtxSettings {
   negativePrompt: string;
   idLoraName: string;
   idLoraStrength: number;
+  idLoraStrength2nd: number;
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
@@ -141,11 +153,7 @@ export interface LtxSettings {
   schedulerStretch: boolean;
   schedulerTerminal: number;
   sigmas2nd: string;
-  distilledLoraName: string;
-  distilledLoraStrength: number;
   upscaleModel: string;
-  colorMatchMethod: string;
-  colorMatchStrength: number;
   audioNorm1st: string;
   audioNorm2nd: string;
 }
@@ -190,6 +198,8 @@ export const WAN_KEYS = {
 export const LTX_KEYS = {
   unet: 'ltx.unet',
   weightDtype: 'ltx.weight_dtype',
+  unet2nd: 'ltx.unet_2nd',
+  weightDtype2nd: 'ltx.weight_dtype_2nd',
   clipGguf: 'ltx.clip_gguf',
   clipEmbeddings: 'ltx.clip_embeddings',
   audioVae: 'ltx.audio_vae',
@@ -199,18 +209,27 @@ export const LTX_KEYS = {
   nagScale: 'ltx.nag_scale',
   nagAlpha: 'ltx.nag_alpha',
   nagTau: 'ltx.nag_tau',
+  nagScale2nd: 'ltx.nag_scale_2nd',
+  nagAlpha2nd: 'ltx.nag_alpha_2nd',
+  nagTau2nd: 'ltx.nag_tau_2nd',
   duration: 'ltx.duration',
   frameRate: 'ltx.frame_rate',
   megapixels: 'ltx.megapixels',
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
+  colorMatchEnabled: 'ltx.color_match_enabled',
+  colorMatchMethod: 'ltx.color_match_method',
+  colorMatchStrength: 'ltx.color_match_strength',
+  rtxEnabled: 'ltx.rtx_enabled',
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
   vfiEnabled: 'ltx.vfi_enabled',
+  vfiMethod: 'ltx.vfi_method',
   rifeModel: 'ltx.rife_model',
   rifePrecision: 'ltx.rife_precision',
   rifeResolutionProfile: 'ltx.rife_resolution_profile',
+  gmfssModel: 'ltx.gmfss_model',
   vfiClearCache: 'ltx.vfi_clear_cache',
   vfiMultiplier: 'ltx.vfi_multiplier',
   videoCrf: 'ltx.video_crf',
@@ -219,6 +238,7 @@ export const LTX_KEYS = {
   negativePrompt: 'ltx.negative_prompt',
   idLoraName: 'ltx.id_lora_name',
   idLoraStrength: 'ltx.id_lora_strength',
+  idLoraStrength2nd: 'ltx.id_lora_strength_2nd',
   identityGuidanceScale: 'ltx.identity_guidance_scale',
   identityStartPercent: 'ltx.identity_start_percent',
   identityEndPercent: 'ltx.identity_end_percent',
@@ -231,11 +251,7 @@ export const LTX_KEYS = {
   schedulerStretch: 'ltx.scheduler_stretch',
   schedulerTerminal: 'ltx.scheduler_terminal',
   sigmas2nd: 'ltx.sigmas_2nd',
-  distilledLoraName: 'ltx.distilled_lora_name',
-  distilledLoraStrength: 'ltx.distilled_lora_strength',
   upscaleModel: 'ltx.upscale_model',
-  colorMatchMethod: 'ltx.color_match_method',
-  colorMatchStrength: 'ltx.color_match_strength',
   audioNorm1st: 'ltx.audio_norm_1st',
   audioNorm2nd: 'ltx.audio_norm_2nd',
 } as const;
@@ -311,6 +327,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
   return {
     unet: map.get(LTX_KEYS.unet)!,
     weightDtype: map.get(LTX_KEYS.weightDtype)!,
+    unet2nd: map.get(LTX_KEYS.unet2nd)!,
+    weightDtype2nd: map.get(LTX_KEYS.weightDtype2nd)!,
     clipGguf: map.get(LTX_KEYS.clipGguf)!,
     clipEmbeddings: map.get(LTX_KEYS.clipEmbeddings)!,
     audioVae: map.get(LTX_KEYS.audioVae)!,
@@ -320,18 +338,27 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
     nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
     nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
+    nagScale2nd: parseFloat(map.get(LTX_KEYS.nagScale2nd)!),
+    nagAlpha2nd: parseFloat(map.get(LTX_KEYS.nagAlpha2nd)!),
+    nagTau2nd: parseFloat(map.get(LTX_KEYS.nagTau2nd)!),
     duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
     frameRate: parseFloat(map.get(LTX_KEYS.frameRate)!),
     megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
     resizeMultipleOf: parseInt(map.get(LTX_KEYS.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(LTX_KEYS.resizeUpscaleMethod)!,
+    colorMatchEnabled: map.get(LTX_KEYS.colorMatchEnabled)! === 'true',
+    colorMatchMethod: map.get(LTX_KEYS.colorMatchMethod)!,
+    colorMatchStrength: parseFloat(map.get(LTX_KEYS.colorMatchStrength)!),
+    rtxEnabled: map.get(LTX_KEYS.rtxEnabled)! === 'true',
     rtxResizeType: map.get(LTX_KEYS.rtxResizeType)!,
     rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
     rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
     vfiEnabled: map.get(LTX_KEYS.vfiEnabled)! === 'true',
+    vfiMethod: map.get(LTX_KEYS.vfiMethod)!,
     rifeModel: map.get(LTX_KEYS.rifeModel)!,
     rifePrecision: map.get(LTX_KEYS.rifePrecision)!,
     rifeResolutionProfile: map.get(LTX_KEYS.rifeResolutionProfile)!,
+    gmfssModel: map.get(LTX_KEYS.gmfssModel)!,
     vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
     vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
     videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),
@@ -340,6 +367,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
     idLoraName: map.get(LTX_KEYS.idLoraName)!,
     idLoraStrength: parseFloat(map.get(LTX_KEYS.idLoraStrength)!),
+    idLoraStrength2nd: parseFloat(map.get(LTX_KEYS.idLoraStrength2nd)!),
     identityGuidanceScale: parseFloat(map.get(LTX_KEYS.identityGuidanceScale)!),
     identityStartPercent: parseFloat(map.get(LTX_KEYS.identityStartPercent)!),
     identityEndPercent: parseFloat(map.get(LTX_KEYS.identityEndPercent)!),
@@ -352,11 +380,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     schedulerStretch: map.get(LTX_KEYS.schedulerStretch)! === 'true',
     schedulerTerminal: parseFloat(map.get(LTX_KEYS.schedulerTerminal)!),
     sigmas2nd: map.get(LTX_KEYS.sigmas2nd)!,
-    distilledLoraName: map.get(LTX_KEYS.distilledLoraName)!,
-    distilledLoraStrength: parseFloat(map.get(LTX_KEYS.distilledLoraStrength)!),
     upscaleModel: map.get(LTX_KEYS.upscaleModel)!,
-    colorMatchMethod: map.get(LTX_KEYS.colorMatchMethod)!,
-    colorMatchStrength: parseFloat(map.get(LTX_KEYS.colorMatchStrength)!),
     audioNorm1st: map.get(LTX_KEYS.audioNorm1st)!,
     audioNorm2nd: map.get(LTX_KEYS.audioNorm2nd)!,
   };
