@@ -19,6 +19,11 @@ type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVae
 const LTX_SHARED_TOP: SettingsField[] = [
   { key: 'ltx.pass_mode', label: 'Pass Mode', type: 'select', group: '모드', options: [{ label: '1 Pass', value: '1pass' }, { label: '2 Pass', value: '2pass' }] },
 
+  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋', type: 'boolean', group: '활성화' },
+  { key: 'ltx.color_match_enabled', label: 'Color Match', type: 'boolean', group: '활성화' },
+  { key: 'ltx.vfi_enabled', label: 'VFI', type: 'boolean', group: '활성화' },
+  { key: 'ltx.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: '활성화' },
+
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '입력' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '입력' },
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '입력', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
@@ -32,11 +37,9 @@ const LTX_SHARED_TOP: SettingsField[] = [
 ];
 
 const LTX_SHARED_BOTTOM: SettingsField[] = [
-  { key: 'ltx.color_match_enabled', label: 'Color Match 활성화', type: 'boolean', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_method', label: 'Method', type: 'string', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_strength', label: 'Strength', type: 'number', step: 0.01, group: '후처리 — Color Match' },
 
-  { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: '후처리 — VFI' },
   { key: 'ltx.vfi_method', label: 'VFI 방식', type: 'select', group: '후처리 — VFI', options: [{ label: 'RIFE (TensorRT)', value: 'rife' }, { label: 'GMFSS Fortuna', value: 'gmfss' }] },
   { key: 'ltx.vfi_multiplier', label: 'Multiplier', type: 'number', step: 1, group: '후처리 — VFI' },
   { key: 'ltx.vfi_clear_cache', label: 'Clear Cache (frames)', type: 'number', step: 1, group: '후처리 — VFI' },
@@ -48,7 +51,6 @@ const LTX_SHARED_BOTTOM: SettingsField[] = [
   { key: 'ltx.rife_custom_max_dim', label: 'RIFE Custom Max Dim', type: 'number', step: 1, group: '후처리 — VFI' },
   { key: 'ltx.gmfss_model', label: 'GMFSS Model', type: 'string', group: '후처리 — VFI' },
 
-  { key: 'ltx.rtx_enabled', label: 'RTX Upscale 활성화', type: 'boolean', group: '후처리 — Upscale' },
   { key: 'ltx.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltx.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: '후처리 — Upscale' },
   { key: 'ltx.rtx_quality', label: 'Quality', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
@@ -58,10 +60,12 @@ const LTX_SHARED_BOTTOM: SettingsField[] = [
   { key: 'ltx.video_format', label: 'Format', type: 'nodeOption', group: '출력', nodeQuery: 'video_format:VHS_VideoCombine:format' },
   { key: 'ltx.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: '출력', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '출력' },
-  { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '출력' },
 ];
 
 const LTX_1PASS_FIELDS: SettingsField[] = [
+  { key: 'ltx.1pass.audio_norm_enabled', label: 'Audio Norm', type: 'boolean', group: '활성화' },
+  { key: 'ltx.1pass.distilled_lora_enabled', label: 'Distilled LoRA', type: 'boolean', group: '활성화' },
+
   { key: 'ltx.1pass.unet', label: 'UNet 모델', type: 'model', group: '1 Pass', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'ltx.1pass.weight_dtype', label: 'Weight Dtype', type: 'string', group: '1 Pass' },
   { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: '1 Pass', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
@@ -72,20 +76,20 @@ const LTX_1PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.1pass.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1 Pass' },
   { key: 'ltx.1pass.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: '1 Pass' },
   { key: 'ltx.1pass.nag_tau', label: 'NAG Tau', type: 'number', step: 0.1, group: '1 Pass' },
-  { key: 'ltx.1pass.audio_norm_enabled', label: 'Audio Norm 활성화', type: 'boolean', group: '1 Pass' },
   { key: 'ltx.1pass.audio_norm', label: 'Audio Norm Factors', type: 'string', group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1 Pass' },
-  { key: 'ltx.1pass.distilled_lora_enabled', label: 'Distilled LoRA 활성화', type: 'boolean', group: '1 Pass' },
   { key: 'ltx.1pass.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: '1 Pass', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
   { key: 'ltx.1pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1 Pass' },
   { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1 Pass' },
 ];
 
 const LTX_2PASS_FIELDS: SettingsField[] = [
+  { key: 'ltx.2pass.distilled_lora_enabled', label: 'Distilled LoRA', type: 'boolean', group: '활성화' },
+
   { key: 'ltx.2pass.unet', label: 'UNet 모델', type: 'model', group: '1st Pass', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'ltx.2pass.weight_dtype', label: 'Weight Dtype', type: 'string', group: '1st Pass' },
   { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: '1st Pass', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
@@ -93,7 +97,6 @@ const LTX_2PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.2pass.identity_guidance_scale', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '1st Pass' },
   { key: 'ltx.2pass.identity_start_percent', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '1st Pass' },
   { key: 'ltx.2pass.identity_end_percent', label: 'RefAudio End %', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.2pass.distilled_lora_enabled', label: 'Distilled LoRA 활성화', type: 'boolean', group: '1st Pass' },
   { key: 'ltx.2pass.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: '1st Pass', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
   { key: 'ltx.2pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1st Pass' },
   { key: 'ltx.2pass.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1st Pass' },
