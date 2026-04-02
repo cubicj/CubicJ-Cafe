@@ -56,6 +56,9 @@ const SHARED_SETTINGS = {
   negativePrompt: 'fake test negative',
   idLoraName: 'fake-id-lora-q5.safetensors',
   upscaleModel: 'fake-upscale-q8.safetensors',
+  distilledLoraEnabled: false,
+  distilledLoraName: 'fake-distilled-p3.safetensors',
+  distilledLoraStrength: 0.45,
 }
 
 function make2PassSettings(overrides = {}) {
@@ -579,6 +582,66 @@ describe('buildLtxWorkflow', () => {
     it('does not create sigmas_2nd node 431', async () => {
       const workflow = await buildLtxWorkflow(baseParams)
       expect(workflow['431']).toBeUndefined()
+    })
+  })
+
+  describe('distilled LoRA', () => {
+    it('adds lora_3 to PowerLoRA when enabled (2pass)', async () => {
+      vi.clearAllMocks()
+      mockGetLtxSettings.mockResolvedValue(make2PassSettings({ distilledLoraEnabled: true }))
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['448']!.inputs!['lora_3']).toEqual({
+        on: true, lora: 'fake-distilled-p3.safetensors', strength: 0.45,
+      })
+      expect(workflow['452']!.inputs!['lora_3']).toEqual({
+        on: true, lora: 'fake-distilled-p3.safetensors', strength: 0.45,
+      })
+    })
+
+    it('adds lora_3 to PowerLoRA 448 only when enabled (1pass)', async () => {
+      vi.clearAllMocks()
+      mockGetLtxSettings.mockResolvedValue(make1PassSettings({ distilledLoraEnabled: true }))
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['448']!.inputs!['lora_3']).toEqual({
+        on: true, lora: 'fake-distilled-p3.safetensors', strength: 0.45,
+      })
+      expect(workflow['452']).toBeUndefined()
+    })
+
+    it('does not add lora_3 when disabled', async () => {
+      vi.clearAllMocks()
+      mockGetLtxSettings.mockResolvedValue(make2PassSettings({ distilledLoraEnabled: false }))
+      const workflow = await buildLtxWorkflow(baseParams)
+      expect(workflow['448']!.inputs!['lora_3']).toBeUndefined()
+    })
+
+    it('shifts user LoRAs to lora_4 when distilled enabled', async () => {
+      vi.clearAllMocks()
+      mockGetLtxSettings.mockResolvedValue(make2PassSettings({ distilledLoraEnabled: true }))
+      const loraPreset = {
+        presetId: '1', presetName: 'test',
+        loraItems: [{ loraFilename: 'user-lora.safetensors', loraName: 'User', strength: 0.7, group: 'HIGH' as const, order: 0 }],
+      }
+      const workflow = await buildLtxWorkflow({ ...baseParams, loraPreset })
+      expect(workflow['448']!.inputs!['lora_3']).toEqual({
+        on: true, lora: 'fake-distilled-p3.safetensors', strength: 0.45,
+      })
+      expect(workflow['448']!.inputs!['lora_4']).toEqual({
+        on: true, lora: 'user-lora.safetensors', strength: 0.7,
+      })
+    })
+
+    it('user LoRAs start at lora_3 when distilled disabled', async () => {
+      vi.clearAllMocks()
+      mockGetLtxSettings.mockResolvedValue(make2PassSettings({ distilledLoraEnabled: false }))
+      const loraPreset = {
+        presetId: '1', presetName: 'test',
+        loraItems: [{ loraFilename: 'user-lora.safetensors', loraName: 'User', strength: 0.7, group: 'HIGH' as const, order: 0 }],
+      }
+      const workflow = await buildLtxWorkflow({ ...baseParams, loraPreset })
+      expect(workflow['448']!.inputs!['lora_3']).toEqual({
+        on: true, lora: 'user-lora.safetensors', strength: 0.7,
+      })
     })
   })
 

@@ -79,6 +79,9 @@ const LTX_1PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.1pass.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1 Pass' },
   { key: 'ltx.1pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.distilled_lora_enabled', label: 'Distilled LoRA 활성화', type: 'boolean', group: '1 Pass' },
+  { key: 'ltx.1pass.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: '1 Pass', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.1pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1 Pass' },
   { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1 Pass' },
 ];
 
@@ -90,6 +93,9 @@ const LTX_2PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.2pass.identity_guidance_scale', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '1st Pass' },
   { key: 'ltx.2pass.identity_start_percent', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '1st Pass' },
   { key: 'ltx.2pass.identity_end_percent', label: 'RefAudio End %', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.distilled_lora_enabled', label: 'Distilled LoRA 활성화', type: 'boolean', group: '1st Pass' },
+  { key: 'ltx.2pass.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: '1st Pass', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.2pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1st Pass' },
   { key: 'ltx.2pass.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1st Pass' },
   { key: 'ltx.2pass.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: '1st Pass' },
   { key: 'ltx.2pass.nag_tau', label: 'NAG Tau', type: 'number', step: 0.1, group: '1st Pass' },
