@@ -263,7 +263,7 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSettings) {
-  let lastOutput = LTX.VAE_DECODE
+  let lastOutput: string = LTX.VAE_DECODE
 
   if (settings.colorMatchEnabled) {
     setNode(workflow, LTX.COLOR_MATCH, {
