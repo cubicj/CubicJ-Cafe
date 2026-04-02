@@ -35,26 +35,6 @@ export function TranslationControls({
     targetLang: null,
   });
 
-  const [translationService, setTranslationService] = useState<'google' | 'gemini'>('google');
-
-  useEffect(() => {
-    const loadTranslationSettings = async () => {
-      try {
-        const data = await apiClient.get<{ user?: { id: string } }>('/api/auth/session');
-        if (data.user?.id) {
-          const saved = localStorage.getItem(`translation_service_${data.user.id}`);
-          if (saved && (saved === 'google' || saved === 'gemini')) {
-            setTranslationService(saved);
-          }
-        }
-      } catch (error) {
-        log.error('Failed to load translation settings', { error: error instanceof Error ? error.message : String(error) });
-      }
-    };
-
-    loadTranslationSettings();
-  }, []);
-
   useEffect(() => {
     if (!state.isTranslated && text !== state.currentText) {
       setState(prev => ({
@@ -76,7 +56,6 @@ export function TranslationControls({
     try {
       const data = await apiClient.post<{ translatedText: string }>('/api/translate', {
         text: text.trim(),
-        service: translationService,
         sourceLang: 'ko',
         targetLang,
       });
@@ -174,10 +153,6 @@ export function TranslationControls({
           </Button>
         </div>
       )}
-      
-      <span className="text-xs text-gray-500 ml-auto">
-        {translationService === 'google' ? '구글 번역' : 'Gemini AI'}
-      </span>
     </div>
   );
 }

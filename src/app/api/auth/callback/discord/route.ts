@@ -10,9 +10,7 @@ export const GET = createRouteHandler(
   { auth: 'none', category: 'auth' },
   async (req) => {
     log.info('Discord callback called', {
-      url: req.url,
       origin: req.nextUrl.origin,
-      searchParams: Object.fromEntries(req.nextUrl.searchParams.entries()),
     });
 
     const searchParams = req.nextUrl.searchParams;
