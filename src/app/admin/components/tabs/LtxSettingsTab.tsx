@@ -16,7 +16,7 @@ import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 
 type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'rifeModels';
 
-const LTX_SHARED_FIELDS: SettingsField[] = [
+const LTX_SHARED_TOP: SettingsField[] = [
   { key: 'ltx.pass_mode', label: 'Pass Mode', type: 'select', group: '모드', options: [{ label: '1 Pass', value: '1pass' }, { label: '2 Pass', value: '2pass' }] },
 
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '입력' },
@@ -29,7 +29,9 @@ const LTX_SHARED_FIELDS: SettingsField[] = [
   { key: 'ltx.video_vae', label: 'Video VAE', type: 'model', group: '모델 & 인코딩', modelCategory: 'kjVaes' as ModelCategory },
   { key: 'ltx.frame_rate', label: 'FPS', type: 'number', step: 1, group: '모델 & 인코딩' },
   { key: 'ltx.duration', label: '길이 (초)', type: 'number', step: 1, group: '모델 & 인코딩' },
+];
 
+const LTX_SHARED_BOTTOM: SettingsField[] = [
   { key: 'ltx.color_match_enabled', label: 'Color Match 활성화', type: 'boolean', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_method', label: 'Method', type: 'string', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_strength', label: 'Strength', type: 'number', step: 0.01, group: '후처리 — Color Match' },
@@ -166,8 +168,9 @@ export default function LtxSettingsTab() {
   const [passMode, setPassMode] = useState<string>('2pass');
 
   const fields = useMemo(() => [
-    ...LTX_SHARED_FIELDS,
+    ...LTX_SHARED_TOP,
     ...(passMode === '1pass' ? LTX_1PASS_FIELDS : LTX_2PASS_FIELDS),
+    ...LTX_SHARED_BOTTOM,
   ], [passMode]);
 
   return (
