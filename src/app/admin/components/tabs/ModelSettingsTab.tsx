@@ -105,8 +105,8 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
         const data = await apiClient.get<Record<string, Record<string, SettingEntry>>>('/api/admin/settings');
         const settings = data[category] ?? {};
         const initial: Record<string, string> = {};
-        for (const field of fields) {
-          initial[field.key] = settings[field.key]?.value ?? '';
+        for (const [key, entry] of Object.entries(settings)) {
+          initial[key] = entry?.value ?? '';
         }
         setValues(initial);
         onValuesLoaded?.(initial);
@@ -117,7 +117,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
       }
     };
     load();
-  }, [category, fields]);
+  }, [category]);
 
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
