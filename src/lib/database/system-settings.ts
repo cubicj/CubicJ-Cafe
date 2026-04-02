@@ -153,6 +153,9 @@ export interface Ltx1PassModeSettings {
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
+  distilledLoraEnabled: boolean;
+  distilledLoraName: string;
+  distilledLoraStrength: number;
 }
 
 export interface Ltx2PassModeSettings {
@@ -182,6 +185,9 @@ export interface Ltx2PassModeSettings {
   identityGuidanceScale2nd: number;
   identityStartPercent2nd: number;
   identityEndPercent2nd: number;
+  distilledLoraEnabled: boolean;
+  distilledLoraName: string;
+  distilledLoraStrength: number;
 }
 
 export type Ltx1PassSettings = LtxSharedSettings & { passMode: '1pass' } & Ltx1PassModeSettings;
@@ -281,6 +287,9 @@ export const LTX_1PASS_KEYS = {
   identityGuidanceScale: 'ltx.1pass.identity_guidance_scale',
   identityStartPercent: 'ltx.1pass.identity_start_percent',
   identityEndPercent: 'ltx.1pass.identity_end_percent',
+  distilledLoraEnabled: 'ltx.1pass.distilled_lora_enabled',
+  distilledLoraName: 'ltx.1pass.distilled_lora_name',
+  distilledLoraStrength: 'ltx.1pass.distilled_lora_strength',
 } as const;
 
 export const LTX_2PASS_KEYS = {
@@ -310,6 +319,9 @@ export const LTX_2PASS_KEYS = {
   identityGuidanceScale2nd: 'ltx.2pass.identity_guidance_scale_2nd',
   identityStartPercent2nd: 'ltx.2pass.identity_start_percent_2nd',
   identityEndPercent2nd: 'ltx.2pass.identity_end_percent_2nd',
+  distilledLoraEnabled: 'ltx.2pass.distilled_lora_enabled',
+  distilledLoraName: 'ltx.2pass.distilled_lora_name',
+  distilledLoraStrength: 'ltx.2pass.distilled_lora_strength',
 } as const;
 
 function buildSettingsMap(
@@ -455,6 +467,9 @@ export async function getLtxSettings(): Promise<LtxSettings> {
       identityGuidanceScale: parseFloat(map.get(k.identityGuidanceScale)!),
       identityStartPercent: parseFloat(map.get(k.identityStartPercent)!),
       identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
+      distilledLoraEnabled: map.get(k.distilledLoraEnabled)! === 'true',
+      distilledLoraName: map.get(k.distilledLoraName)!,
+      distilledLoraStrength: parseFloat(map.get(k.distilledLoraStrength)!),
     };
   }
 
@@ -488,5 +503,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     identityGuidanceScale2nd: parseFloat(map.get(k.identityGuidanceScale2nd)!),
     identityStartPercent2nd: parseFloat(map.get(k.identityStartPercent2nd)!),
     identityEndPercent2nd: parseFloat(map.get(k.identityEndPercent2nd)!),
+    distilledLoraEnabled: map.get(k.distilledLoraEnabled)! === 'true',
+    distilledLoraName: map.get(k.distilledLoraName)!,
+    distilledLoraStrength: parseFloat(map.get(k.distilledLoraStrength)!),
   };
 }
