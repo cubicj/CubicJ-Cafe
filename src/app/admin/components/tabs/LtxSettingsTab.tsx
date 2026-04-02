@@ -69,7 +69,7 @@ const LTX_FIELDS: SettingsField[] = [
 
   // Post-Processing: VFI
   { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: '후처리 — VFI' },
-  { key: 'ltx.vfi_method', label: 'VFI 방식', type: 'string', group: '후처리 — VFI' },
+  { key: 'ltx.vfi_method', label: 'VFI 방식', type: 'select', group: '후처리 — VFI', options: [{ label: 'RIFE (TensorRT)', value: 'rife' }, { label: 'GMFSS Fortuna', value: 'gmfss' }] },
   { key: 'ltx.vfi_multiplier', label: 'Multiplier', type: 'number', step: 1, group: '후처리 — VFI' },
   { key: 'ltx.vfi_clear_cache', label: 'Clear Cache (frames)', type: 'number', step: 1, group: '후처리 — VFI' },
   { key: 'ltx.rife_model', label: 'RIFE Model', type: 'model', group: '후처리 — VFI', modelCategory: 'rifeModels' as ModelCategory },
