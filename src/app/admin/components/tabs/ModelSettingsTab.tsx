@@ -38,13 +38,14 @@ interface NodeOptionsResponse {
 export interface SettingsField {
   key: string;
   label: string;
-  type: 'model' | 'sampler' | 'boolean' | 'number' | 'string' | 'textarea' | 'nodeOption';
+  type: 'model' | 'sampler' | 'boolean' | 'number' | 'string' | 'textarea' | 'nodeOption' | 'select';
   group: string;
   modelCategory?: string;
   nodeQuery?: string;
   step?: number;
   textareaRows?: number;
   monoFont?: boolean;
+  options?: { label: string; value: string }[];
 }
 
 interface ModelSettingsTabProps {
@@ -228,6 +229,24 @@ function SettingsFieldRenderer({
           checked={value === 'true'}
           onCheckedChange={(checked) => onChange(field.key, String(checked))}
         />
+      </div>
+    );
+  }
+
+  if (field.type === 'select' && field.options) {
+    return (
+      <div className="space-y-1">
+        <Label>{field.label}</Label>
+        <Select value={value || undefined} onValueChange={(v) => onChange(field.key, v)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {field.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
   }
