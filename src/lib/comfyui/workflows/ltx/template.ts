@@ -59,11 +59,8 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "72": {
     "inputs": {
-      "nag_scale": 0,
-      "nag_alpha": 0,
-      "nag_tau": 0,
-      "inplace": true,
-      "model": ["354", 0],
+      "nag_scale": 0, "nag_alpha": 0, "nag_tau": 0, "inplace": true,
+      "model": ["448", 0],
       "nag_cond_video": ["23", 1],
       "nag_cond_audio": ["23", 1]
     },
@@ -98,14 +95,10 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "265": {
     "inputs": {
       "num_images": "2",
-      "num_images.strength_1": 1,
-      "num_images.strength_2": 1,
-      "num_images.index_1": 0,
-      "num_images.index_2": ["261", 0],
-      "vae": ["2", 0],
-      "latent": ["90", 0],
-      "num_images.image_1": ["86", 0],
-      "num_images.image_2": ["264", 0]
+      "num_images.strength_1": 1, "num_images.strength_2": 1,
+      "num_images.index_1": 0, "num_images.index_2": ["261", 0],
+      "vae": ["2", 0], "latent": ["90", 0],
+      "num_images.image_1": ["86", 0], "num_images.image_2": ["264", 0]
     },
     "class_type": "LTXVImgToVideoInplaceKJ",
     "_meta": { "title": "LTX_265" }
@@ -152,18 +145,12 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "345": {
     "inputs": {
-      "frame_rate": ["340", 1],
-      "loop_count": 0,
-      "filename_prefix": "PLACEHOLDER",
-      "format": "PLACEHOLDER",
-      "pix_fmt": "PLACEHOLDER",
-      "crf": 0,
-      "save_metadata": false,
-      "trim_to_audio": false,
-      "pingpong": false,
-      "save_output": false,
-      "images": ["322", 0],
-      "audio": ["321", 0]
+      "frame_rate": ["340", 1], "loop_count": 0,
+      "filename_prefix": "PLACEHOLDER", "format": "PLACEHOLDER",
+      "pix_fmt": "PLACEHOLDER", "crf": 0,
+      "save_metadata": false, "trim_to_audio": false,
+      "pingpong": false, "save_output": false,
+      "images": ["322", 0], "audio": ["321", 0]
     },
     "class_type": "VHS_VideoCombine",
     "_meta": { "title": "LTX_345" }
@@ -174,7 +161,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "_meta": { "title": "LTX_354" }
   },
   "355": {
-    "inputs": { "cfg": 1, "model": ["439", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "inputs": { "cfg": 1, "model": ["457", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
     "_meta": { "title": "LTX_355" }
   },
@@ -193,51 +180,25 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "DualCLIPLoader",
     "_meta": { "title": "LTX_390" }
   },
-  "443": {
-    "inputs": {
-      "model": "PLACEHOLDER",
-      "precision": "PLACEHOLDER",
-      "resolution_profile": "PLACEHOLDER"
-    },
-    "class_type": "AutoLoadRifeTensorrtModel",
-    "_meta": { "title": "LTX_443" }
-  },
-  "444": {
-    "inputs": {
-      "clear_cache_after_n_frames": 0,
-      "multiplier": ["339", 0],
-      "keep_model_loaded": false,
-      "frames": ["437", 0],
-      "rife_trt_model": ["443", 0]
-    },
-    "class_type": "AutoRifeTensorrt",
-    "_meta": { "title": "LTX_444" }
-  },
   "403": {
     "inputs": {
-      "steps": 0,
-      "max_shift": 0,
-      "base_shift": 0,
-      "stretch": true,
-      "terminal": 0,
-      "latent": ["15", 0]
+      "steps": 0, "max_shift": 0, "base_shift": 0,
+      "stretch": true, "terminal": 0, "latent": ["15", 0]
     },
     "class_type": "LTXVScheduler",
     "_meta": { "title": "LTX_403" }
   },
   "406": {
     "inputs": {
-      "noise": ["16", 0],
-      "guider": ["407", 0],
-      "sampler": ["20", 0],
-      "sigmas": ["431", 0],
+      "noise": ["16", 0], "guider": ["407", 0],
+      "sampler": ["20", 0], "sigmas": ["431", 0],
       "latent_image": ["419", 0]
     },
     "class_type": "SamplerCustomAdvanced",
     "_meta": { "title": "LTX_406" }
   },
   "407": {
-    "inputs": { "cfg": 1, "model": ["440", 0], "positive": ["23", 0], "negative": ["23", 1] },
+    "inputs": { "cfg": 1, "model": ["458", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
     "_meta": { "title": "LTX_407" }
   },
@@ -254,14 +215,10 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "417": {
     "inputs": {
       "num_images": "2",
-      "num_images.strength_1": 1,
-      "num_images.strength_2": 1,
-      "num_images.index_1": 0,
-      "num_images.index_2": ["261", 0],
-      "vae": ["2", 0],
-      "latent": ["422", 0],
-      "num_images.image_1": ["86", 0],
-      "num_images.image_2": ["264", 0]
+      "num_images.strength_1": 1, "num_images.strength_2": 1,
+      "num_images.index_1": 0, "num_images.index_2": ["261", 0],
+      "vae": ["2", 0], "latent": ["422", 0],
+      "num_images.image_1": ["86", 0], "num_images.image_2": ["264", 0]
     },
     "class_type": "LTXVImgToVideoInplaceKJ",
     "_meta": { "title": "LTX_417" }
@@ -291,36 +248,90 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "ManualSigmas",
     "_meta": { "title": "LTX_431" }
   },
-  "433": {
-    "inputs": { "lora_name": "PLACEHOLDER", "strength_model": 0, "model": ["72", 0] },
-    "class_type": "LoraLoaderModelOnly",
-    "_meta": { "title": "LTX_433" }
-  },
   "437": {
     "inputs": {
-      "method": "PLACEHOLDER",
-      "strength": 0,
-      "multithread": true,
-      "image_target": ["333", 0],
-      "image_ref": ["87", 0]
+      "method": "PLACEHOLDER", "strength": 0, "multithread": true,
+      "image_target": ["333", 0], "image_ref": ["87", 0]
     },
     "class_type": "ColorMatchV2",
     "_meta": { "title": "LTX_437" }
   },
-  "439": {
-    "inputs": {
-      "audio_normalization_factors": "PLACEHOLDER",
-      "model": ["433", 0]
-    },
-    "class_type": "LTX2AudioLatentNormalizingSampling",
-    "_meta": { "title": "LTX_439" }
+  "443": {
+    "inputs": { "model": "PLACEHOLDER", "precision": "PLACEHOLDER", "resolution_profile": "PLACEHOLDER" },
+    "class_type": "AutoLoadRifeTensorrtModel",
+    "_meta": { "title": "LTX_443" }
   },
-  "440": {
+  "444": {
     "inputs": {
-      "audio_normalization_factors": "PLACEHOLDER",
-      "model": ["72", 0]
+      "clear_cache_after_n_frames": 0, "multiplier": ["339", 0],
+      "keep_model_loaded": false, "frames": ["437", 0], "rife_trt_model": ["443", 0]
     },
+    "class_type": "AutoRifeTensorrt",
+    "_meta": { "title": "LTX_444" }
+  },
+  "448": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
+      "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
+      "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
+      "\u2795 Add Lora": "",
+      "model": ["354", 0]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": { "title": "LTX_448" }
+  },
+  "449": {
+    "inputs": { "triton_kernels": true, "model": ["450", 0] },
+    "class_type": "LTX2MemoryEfficientSageAttentionPatch",
+    "_meta": { "title": "LTX_449" }
+  },
+  "450": {
+    "inputs": { "unet_name": "PLACEHOLDER", "weight_dtype": "PLACEHOLDER" },
+    "class_type": "UNETLoader",
+    "_meta": { "title": "LTX_450" }
+  },
+  "451": {
+    "inputs": { "enable_fp16_accumulation": true, "model": ["449", 0] },
+    "class_type": "ModelPatchTorchSettings",
+    "_meta": { "title": "LTX_451" }
+  },
+  "452": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
+      "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
+      "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
+      "\u2795 Add Lora": "",
+      "model": ["451", 0]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": { "title": "LTX_452" }
+  },
+  "453": {
+    "inputs": {
+      "nag_scale": 0, "nag_alpha": 0, "nag_tau": 0, "inplace": true,
+      "model": ["452", 0],
+      "nag_cond_video": ["23", 1],
+      "nag_cond_audio": ["23", 1]
+    },
+    "class_type": "LTX2_NAG",
+    "_meta": { "title": "LTX_453" }
+  },
+  "456": {
+    "inputs": {
+      "ckpt_name": "PLACEHOLDER", "clear_cache_after_n_frames": 0,
+      "multiplier": ["339", 0], "frames": ["437", 0]
+    },
+    "class_type": "GMFSS Fortuna VFI",
+    "_meta": { "title": "LTX_456" }
+  },
+  "457": {
+    "inputs": { "audio_normalization_factors": "PLACEHOLDER", "model": ["72", 0] },
     "class_type": "LTX2AudioLatentNormalizingSampling",
-    "_meta": { "title": "LTX_440" }
+    "_meta": { "title": "LTX_457" }
+  },
+  "458": {
+    "inputs": { "audio_normalization_factors": "PLACEHOLDER", "model": ["453", 0] },
+    "class_type": "LTX2AudioLatentNormalizingSampling",
+    "_meta": { "title": "LTX_458" }
   }
 }
