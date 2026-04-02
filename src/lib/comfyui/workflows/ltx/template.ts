@@ -333,5 +333,10 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": { "audio_normalization_factors": "PLACEHOLDER", "model": ["453", 0] },
     "class_type": "LTX2AudioLatentNormalizingSampling",
     "_meta": { "title": "LTX_458" }
+  },
+  "459": {
+    "inputs": { "min_dim": 0, "opt_dim": 0, "max_dim": 0 },
+    "class_type": "CustomResolutionConfig",
+    "_meta": { "title": "LTX_459" }
   }
 }
