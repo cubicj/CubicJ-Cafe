@@ -38,7 +38,8 @@ export function setupGlobalErrorHandlers(): void {
       return;
     }
 
-    log.error('Uncaught exception occurred but continuing process');
+    log.error('Non-Discord uncaught exception, shutting down');
+    process.exit(1);
   });
 
   log.info('Global error handlers configured');

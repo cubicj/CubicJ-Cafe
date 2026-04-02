@@ -120,7 +120,7 @@ function bypassVfi(workflow: ComfyUIWorkflow) {
   const vfiNode = workflow[WAN.VFI]
   const vfiInput = vfiNode?.inputs?.frames as [string, number] | undefined
   if (vfiInput) {
-    setNode(workflow, '45', { image_pass: vfiInput })
+    setNode(workflow, WAN.VRAM_DEBUG_VFI, { image_pass: vfiInput })
   }
   delete workflow[WAN.VFI]
   delete workflow[WAN.RIFE_MODEL_LOADER]
