@@ -97,66 +97,96 @@ export interface WanSettings {
   videoPixFmt: string;
 }
 
-export interface LtxSettings {
-  unet: string;
-  weightDtype: string;
-  unet2nd: string;
-  weightDtype2nd: string;
+export interface LtxSharedSettings {
+  passMode: '1pass' | '2pass';
   clipGguf: string;
   clipEmbeddings: string;
   audioVae: string;
   videoVae: string;
-  loraEnabled: boolean;
-  sampler: string;
-  nagScale: number;
-  nagAlpha: number;
-  nagTau: number;
-  nagScale2nd: number;
-  nagAlpha2nd: number;
-  nagTau2nd: number;
-  duration: number;
   frameRate: number;
+  duration: number;
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
+  sampler: string;
+  negativePrompt: string;
+  loraEnabled: boolean;
+  idLoraName: string;
   colorMatchEnabled: boolean;
   colorMatchMethod: string;
   colorMatchStrength: number;
+  vfiEnabled: boolean;
+  vfiMethod: string;
+  vfiMultiplier: number;
+  vfiClearCache: number;
+  rifeModel: string;
+  rifePrecision: string;
+  rifeResolutionProfile: string;
+  rifeCustomMinDim: number;
+  rifeCustomOptDim: number;
+  rifeCustomMaxDim: number;
+  gmfssModel: string;
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
-  vfiEnabled: boolean;
-  vfiMethod: string;
-  rifeModel: string;
-  rifePrecision: string;
-  rifeResolutionProfile: string;
-  gmfssModel: string;
-  vfiClearCache: number;
-  vfiMultiplier: number;
+  upscaleModel: string;
   videoCrf: number;
   videoFormat: string;
   videoPixFmt: string;
-  negativePrompt: string;
-  idLoraName: string;
-  idLoraStrength: number;
-  idLoraStrength2nd: number;
-  identityGuidanceScale: number;
-  identityStartPercent: number;
-  identityEndPercent: number;
-  identityGuidanceScale2nd: number;
-  identityStartPercent2nd: number;
-  identityEndPercent2nd: number;
+}
+
+export interface Ltx1PassModeSettings {
+  unet: string;
+  weightDtype: string;
+  nagScale: number;
+  nagAlpha: number;
+  nagTau: number;
+  audioNormEnabled: boolean;
+  audioNorm: string;
   schedulerSteps: number;
   schedulerMaxShift: number;
   schedulerBaseShift: number;
   schedulerStretch: boolean;
   schedulerTerminal: number;
-  sigmas2nd: string;
-  upscaleModel: string;
-  audioNorm1st: string;
-  audioNorm2nd: string;
+  idLoraStrength: number;
+  identityGuidanceScale: number;
+  identityStartPercent: number;
+  identityEndPercent: number;
 }
+
+export interface Ltx2PassModeSettings {
+  unet: string;
+  weightDtype: string;
+  nagScale: number;
+  nagAlpha: number;
+  nagTau: number;
+  audioNorm1st: string;
+  schedulerSteps: number;
+  schedulerMaxShift: number;
+  schedulerBaseShift: number;
+  schedulerStretch: boolean;
+  schedulerTerminal: number;
+  idLoraStrength: number;
+  identityGuidanceScale: number;
+  identityStartPercent: number;
+  identityEndPercent: number;
+  unet2nd: string;
+  weightDtype2nd: string;
+  nagScale2nd: number;
+  nagAlpha2nd: number;
+  nagTau2nd: number;
+  audioNorm2nd: string;
+  sigmas2nd: string;
+  idLoraStrength2nd: number;
+  identityGuidanceScale2nd: number;
+  identityStartPercent2nd: number;
+  identityEndPercent2nd: number;
+}
+
+export type Ltx1PassSettings = LtxSharedSettings & { passMode: '1pass' } & Ltx1PassModeSettings;
+export type Ltx2PassSettings = LtxSharedSettings & { passMode: '2pass' } & Ltx2PassModeSettings;
+export type LtxSettings = Ltx1PassSettings | Ltx2PassSettings;
 
 export const WAN_KEYS = {
   unetHigh: 'wan.unet_high',
@@ -195,65 +225,91 @@ export const WAN_KEYS = {
   videoPixFmt: 'wan.video_pix_fmt',
 } as const;
 
-export const LTX_KEYS = {
-  unet: 'ltx.unet',
-  weightDtype: 'ltx.weight_dtype',
-  unet2nd: 'ltx.unet_2nd',
-  weightDtype2nd: 'ltx.weight_dtype_2nd',
+export const LTX_SHARED_KEYS = {
+  passMode: 'ltx.pass_mode',
   clipGguf: 'ltx.clip_gguf',
   clipEmbeddings: 'ltx.clip_embeddings',
   audioVae: 'ltx.audio_vae',
   videoVae: 'ltx.video_vae',
-  loraEnabled: 'ltx.lora_enabled',
-  sampler: 'ltx.sampler',
-  nagScale: 'ltx.nag_scale',
-  nagAlpha: 'ltx.nag_alpha',
-  nagTau: 'ltx.nag_tau',
-  nagScale2nd: 'ltx.nag_scale_2nd',
-  nagAlpha2nd: 'ltx.nag_alpha_2nd',
-  nagTau2nd: 'ltx.nag_tau_2nd',
-  duration: 'ltx.duration',
   frameRate: 'ltx.frame_rate',
+  duration: 'ltx.duration',
   megapixels: 'ltx.megapixels',
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
+  sampler: 'ltx.sampler',
+  negativePrompt: 'ltx.negative_prompt',
+  loraEnabled: 'ltx.lora_enabled',
+  idLoraName: 'ltx.id_lora_name',
   colorMatchEnabled: 'ltx.color_match_enabled',
   colorMatchMethod: 'ltx.color_match_method',
   colorMatchStrength: 'ltx.color_match_strength',
+  vfiEnabled: 'ltx.vfi_enabled',
+  vfiMethod: 'ltx.vfi_method',
+  vfiMultiplier: 'ltx.vfi_multiplier',
+  vfiClearCache: 'ltx.vfi_clear_cache',
+  rifeModel: 'ltx.rife_model',
+  rifePrecision: 'ltx.rife_precision',
+  rifeResolutionProfile: 'ltx.rife_resolution_profile',
+  rifeCustomMinDim: 'ltx.rife_custom_min_dim',
+  rifeCustomOptDim: 'ltx.rife_custom_opt_dim',
+  rifeCustomMaxDim: 'ltx.rife_custom_max_dim',
+  gmfssModel: 'ltx.gmfss_model',
   rtxEnabled: 'ltx.rtx_enabled',
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
-  vfiEnabled: 'ltx.vfi_enabled',
-  vfiMethod: 'ltx.vfi_method',
-  rifeModel: 'ltx.rife_model',
-  rifePrecision: 'ltx.rife_precision',
-  rifeResolutionProfile: 'ltx.rife_resolution_profile',
-  gmfssModel: 'ltx.gmfss_model',
-  vfiClearCache: 'ltx.vfi_clear_cache',
-  vfiMultiplier: 'ltx.vfi_multiplier',
+  upscaleModel: 'ltx.upscale_model',
   videoCrf: 'ltx.video_crf',
   videoFormat: 'ltx.video_format',
   videoPixFmt: 'ltx.video_pix_fmt',
-  negativePrompt: 'ltx.negative_prompt',
-  idLoraName: 'ltx.id_lora_name',
-  idLoraStrength: 'ltx.id_lora_strength',
-  idLoraStrength2nd: 'ltx.id_lora_strength_2nd',
-  identityGuidanceScale: 'ltx.identity_guidance_scale',
-  identityStartPercent: 'ltx.identity_start_percent',
-  identityEndPercent: 'ltx.identity_end_percent',
-  identityGuidanceScale2nd: 'ltx.identity_guidance_scale_2nd',
-  identityStartPercent2nd: 'ltx.identity_start_percent_2nd',
-  identityEndPercent2nd: 'ltx.identity_end_percent_2nd',
-  schedulerSteps: 'ltx.scheduler_steps',
-  schedulerMaxShift: 'ltx.scheduler_max_shift',
-  schedulerBaseShift: 'ltx.scheduler_base_shift',
-  schedulerStretch: 'ltx.scheduler_stretch',
-  schedulerTerminal: 'ltx.scheduler_terminal',
-  sigmas2nd: 'ltx.sigmas_2nd',
-  upscaleModel: 'ltx.upscale_model',
-  audioNorm1st: 'ltx.audio_norm_1st',
-  audioNorm2nd: 'ltx.audio_norm_2nd',
+} as const;
+
+export const LTX_1PASS_KEYS = {
+  unet: 'ltx.1pass.unet',
+  weightDtype: 'ltx.1pass.weight_dtype',
+  nagScale: 'ltx.1pass.nag_scale',
+  nagAlpha: 'ltx.1pass.nag_alpha',
+  nagTau: 'ltx.1pass.nag_tau',
+  audioNormEnabled: 'ltx.1pass.audio_norm_enabled',
+  audioNorm: 'ltx.1pass.audio_norm',
+  schedulerSteps: 'ltx.1pass.scheduler_steps',
+  schedulerMaxShift: 'ltx.1pass.scheduler_max_shift',
+  schedulerBaseShift: 'ltx.1pass.scheduler_base_shift',
+  schedulerStretch: 'ltx.1pass.scheduler_stretch',
+  schedulerTerminal: 'ltx.1pass.scheduler_terminal',
+  idLoraStrength: 'ltx.1pass.id_lora_strength',
+  identityGuidanceScale: 'ltx.1pass.identity_guidance_scale',
+  identityStartPercent: 'ltx.1pass.identity_start_percent',
+  identityEndPercent: 'ltx.1pass.identity_end_percent',
+} as const;
+
+export const LTX_2PASS_KEYS = {
+  unet: 'ltx.2pass.unet',
+  weightDtype: 'ltx.2pass.weight_dtype',
+  nagScale: 'ltx.2pass.nag_scale',
+  nagAlpha: 'ltx.2pass.nag_alpha',
+  nagTau: 'ltx.2pass.nag_tau',
+  audioNorm1st: 'ltx.2pass.audio_norm_1st',
+  schedulerSteps: 'ltx.2pass.scheduler_steps',
+  schedulerMaxShift: 'ltx.2pass.scheduler_max_shift',
+  schedulerBaseShift: 'ltx.2pass.scheduler_base_shift',
+  schedulerStretch: 'ltx.2pass.scheduler_stretch',
+  schedulerTerminal: 'ltx.2pass.scheduler_terminal',
+  idLoraStrength: 'ltx.2pass.id_lora_strength',
+  identityGuidanceScale: 'ltx.2pass.identity_guidance_scale',
+  identityStartPercent: 'ltx.2pass.identity_start_percent',
+  identityEndPercent: 'ltx.2pass.identity_end_percent',
+  unet2nd: 'ltx.2pass.unet_2nd',
+  weightDtype2nd: 'ltx.2pass.weight_dtype_2nd',
+  nagScale2nd: 'ltx.2pass.nag_scale_2nd',
+  nagAlpha2nd: 'ltx.2pass.nag_alpha_2nd',
+  nagTau2nd: 'ltx.2pass.nag_tau_2nd',
+  audioNorm2nd: 'ltx.2pass.audio_norm_2nd',
+  sigmas2nd: 'ltx.2pass.sigmas_2nd',
+  idLoraStrength2nd: 'ltx.2pass.id_lora_strength_2nd',
+  identityGuidanceScale2nd: 'ltx.2pass.identity_guidance_scale_2nd',
+  identityStartPercent2nd: 'ltx.2pass.identity_start_percent_2nd',
+  identityEndPercent2nd: 'ltx.2pass.identity_end_percent_2nd',
 } as const;
 
 function buildSettingsMap(
@@ -318,70 +374,119 @@ export async function getWanSettings(): Promise<WanSettings> {
 }
 
 export async function getLtxSettings(): Promise<LtxSettings> {
-  const keys = Object.values(LTX_KEYS);
-  const settings = await prisma.systemSetting.findMany({
-    where: { key: { in: keys } },
+  const passModeSetting = await prisma.systemSetting.findUnique({
+    where: { key: LTX_SHARED_KEYS.passMode },
   });
-  const map = buildSettingsMap(settings, LTX_KEYS);
+  const passMode = (passModeSetting?.value === '1pass' ? '1pass' : '2pass') as '1pass' | '2pass';
 
+  const modeKeys = passMode === '1pass' ? LTX_1PASS_KEYS : LTX_2PASS_KEYS;
+  const allKeys = [...Object.values(LTX_SHARED_KEYS), ...Object.values(modeKeys)];
+
+  const settings = await prisma.systemSetting.findMany({
+    where: { key: { in: allKeys } },
+  });
+  const map = new Map<string, string>();
+  for (const s of settings) {
+    map.set(s.key, s.value);
+  }
+
+  const missing = allKeys.filter(k => !map.has(k) || !map.get(k));
+  if (missing.length > 0) {
+    throw new Error(`Required LTX settings missing: ${missing.join(', ')}`);
+  }
+
+  const shared: LtxSharedSettings = {
+    passMode,
+    clipGguf: map.get(LTX_SHARED_KEYS.clipGguf)!,
+    clipEmbeddings: map.get(LTX_SHARED_KEYS.clipEmbeddings)!,
+    audioVae: map.get(LTX_SHARED_KEYS.audioVae)!,
+    videoVae: map.get(LTX_SHARED_KEYS.videoVae)!,
+    frameRate: parseFloat(map.get(LTX_SHARED_KEYS.frameRate)!),
+    duration: parseInt(map.get(LTX_SHARED_KEYS.duration)!, 10),
+    megapixels: parseFloat(map.get(LTX_SHARED_KEYS.megapixels)!),
+    resizeMultipleOf: parseInt(map.get(LTX_SHARED_KEYS.resizeMultipleOf)!, 10),
+    resizeUpscaleMethod: map.get(LTX_SHARED_KEYS.resizeUpscaleMethod)!,
+    sampler: map.get(LTX_SHARED_KEYS.sampler)!,
+    negativePrompt: map.get(LTX_SHARED_KEYS.negativePrompt)!,
+    loraEnabled: map.get(LTX_SHARED_KEYS.loraEnabled)! === 'true',
+    idLoraName: map.get(LTX_SHARED_KEYS.idLoraName)!,
+    colorMatchEnabled: map.get(LTX_SHARED_KEYS.colorMatchEnabled)! === 'true',
+    colorMatchMethod: map.get(LTX_SHARED_KEYS.colorMatchMethod)!,
+    colorMatchStrength: parseFloat(map.get(LTX_SHARED_KEYS.colorMatchStrength)!),
+    vfiEnabled: map.get(LTX_SHARED_KEYS.vfiEnabled)! === 'true',
+    vfiMethod: map.get(LTX_SHARED_KEYS.vfiMethod)!,
+    vfiMultiplier: parseInt(map.get(LTX_SHARED_KEYS.vfiMultiplier)!, 10),
+    vfiClearCache: parseInt(map.get(LTX_SHARED_KEYS.vfiClearCache)!, 10),
+    rifeModel: map.get(LTX_SHARED_KEYS.rifeModel)!,
+    rifePrecision: map.get(LTX_SHARED_KEYS.rifePrecision)!,
+    rifeResolutionProfile: map.get(LTX_SHARED_KEYS.rifeResolutionProfile)!,
+    rifeCustomMinDim: parseInt(map.get(LTX_SHARED_KEYS.rifeCustomMinDim)!, 10),
+    rifeCustomOptDim: parseInt(map.get(LTX_SHARED_KEYS.rifeCustomOptDim)!, 10),
+    rifeCustomMaxDim: parseInt(map.get(LTX_SHARED_KEYS.rifeCustomMaxDim)!, 10),
+    gmfssModel: map.get(LTX_SHARED_KEYS.gmfssModel)!,
+    rtxEnabled: map.get(LTX_SHARED_KEYS.rtxEnabled)! === 'true',
+    rtxResizeType: map.get(LTX_SHARED_KEYS.rtxResizeType)!,
+    rtxScale: parseFloat(map.get(LTX_SHARED_KEYS.rtxScale)!),
+    rtxQuality: map.get(LTX_SHARED_KEYS.rtxQuality)!,
+    upscaleModel: map.get(LTX_SHARED_KEYS.upscaleModel)!,
+    videoCrf: parseInt(map.get(LTX_SHARED_KEYS.videoCrf)!, 10),
+    videoFormat: map.get(LTX_SHARED_KEYS.videoFormat)!,
+    videoPixFmt: map.get(LTX_SHARED_KEYS.videoPixFmt)!,
+  };
+
+  if (passMode === '1pass') {
+    const k = LTX_1PASS_KEYS;
+    return {
+      ...shared,
+      passMode: '1pass',
+      unet: map.get(k.unet)!,
+      weightDtype: map.get(k.weightDtype)!,
+      nagScale: parseFloat(map.get(k.nagScale)!),
+      nagAlpha: parseFloat(map.get(k.nagAlpha)!),
+      nagTau: parseFloat(map.get(k.nagTau)!),
+      audioNormEnabled: map.get(k.audioNormEnabled)! === 'true',
+      audioNorm: map.get(k.audioNorm)!,
+      schedulerSteps: parseInt(map.get(k.schedulerSteps)!, 10),
+      schedulerMaxShift: parseFloat(map.get(k.schedulerMaxShift)!),
+      schedulerBaseShift: parseFloat(map.get(k.schedulerBaseShift)!),
+      schedulerStretch: map.get(k.schedulerStretch)! === 'true',
+      schedulerTerminal: parseFloat(map.get(k.schedulerTerminal)!),
+      idLoraStrength: parseFloat(map.get(k.idLoraStrength)!),
+      identityGuidanceScale: parseFloat(map.get(k.identityGuidanceScale)!),
+      identityStartPercent: parseFloat(map.get(k.identityStartPercent)!),
+      identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
+    };
+  }
+
+  const k = LTX_2PASS_KEYS;
   return {
-    unet: map.get(LTX_KEYS.unet)!,
-    weightDtype: map.get(LTX_KEYS.weightDtype)!,
-    unet2nd: map.get(LTX_KEYS.unet2nd)!,
-    weightDtype2nd: map.get(LTX_KEYS.weightDtype2nd)!,
-    clipGguf: map.get(LTX_KEYS.clipGguf)!,
-    clipEmbeddings: map.get(LTX_KEYS.clipEmbeddings)!,
-    audioVae: map.get(LTX_KEYS.audioVae)!,
-    videoVae: map.get(LTX_KEYS.videoVae)!,
-    loraEnabled: map.get(LTX_KEYS.loraEnabled)! === 'true',
-    sampler: map.get(LTX_KEYS.sampler)!,
-    nagScale: parseFloat(map.get(LTX_KEYS.nagScale)!),
-    nagAlpha: parseFloat(map.get(LTX_KEYS.nagAlpha)!),
-    nagTau: parseFloat(map.get(LTX_KEYS.nagTau)!),
-    nagScale2nd: parseFloat(map.get(LTX_KEYS.nagScale2nd)!),
-    nagAlpha2nd: parseFloat(map.get(LTX_KEYS.nagAlpha2nd)!),
-    nagTau2nd: parseFloat(map.get(LTX_KEYS.nagTau2nd)!),
-    duration: parseInt(map.get(LTX_KEYS.duration)!, 10),
-    frameRate: parseFloat(map.get(LTX_KEYS.frameRate)!),
-    megapixels: parseFloat(map.get(LTX_KEYS.megapixels)!),
-    resizeMultipleOf: parseInt(map.get(LTX_KEYS.resizeMultipleOf)!, 10),
-    resizeUpscaleMethod: map.get(LTX_KEYS.resizeUpscaleMethod)!,
-    colorMatchEnabled: map.get(LTX_KEYS.colorMatchEnabled)! === 'true',
-    colorMatchMethod: map.get(LTX_KEYS.colorMatchMethod)!,
-    colorMatchStrength: parseFloat(map.get(LTX_KEYS.colorMatchStrength)!),
-    rtxEnabled: map.get(LTX_KEYS.rtxEnabled)! === 'true',
-    rtxResizeType: map.get(LTX_KEYS.rtxResizeType)!,
-    rtxScale: parseFloat(map.get(LTX_KEYS.rtxScale)!),
-    rtxQuality: map.get(LTX_KEYS.rtxQuality)!,
-    vfiEnabled: map.get(LTX_KEYS.vfiEnabled)! === 'true',
-    vfiMethod: map.get(LTX_KEYS.vfiMethod)!,
-    rifeModel: map.get(LTX_KEYS.rifeModel)!,
-    rifePrecision: map.get(LTX_KEYS.rifePrecision)!,
-    rifeResolutionProfile: map.get(LTX_KEYS.rifeResolutionProfile)!,
-    gmfssModel: map.get(LTX_KEYS.gmfssModel)!,
-    vfiClearCache: parseInt(map.get(LTX_KEYS.vfiClearCache)!, 10),
-    vfiMultiplier: parseInt(map.get(LTX_KEYS.vfiMultiplier)!, 10),
-    videoCrf: parseInt(map.get(LTX_KEYS.videoCrf)!, 10),
-    videoFormat: map.get(LTX_KEYS.videoFormat)!,
-    videoPixFmt: map.get(LTX_KEYS.videoPixFmt)!,
-    negativePrompt: map.get(LTX_KEYS.negativePrompt)!,
-    idLoraName: map.get(LTX_KEYS.idLoraName)!,
-    idLoraStrength: parseFloat(map.get(LTX_KEYS.idLoraStrength)!),
-    idLoraStrength2nd: parseFloat(map.get(LTX_KEYS.idLoraStrength2nd)!),
-    identityGuidanceScale: parseFloat(map.get(LTX_KEYS.identityGuidanceScale)!),
-    identityStartPercent: parseFloat(map.get(LTX_KEYS.identityStartPercent)!),
-    identityEndPercent: parseFloat(map.get(LTX_KEYS.identityEndPercent)!),
-    identityGuidanceScale2nd: parseFloat(map.get(LTX_KEYS.identityGuidanceScale2nd)!),
-    identityStartPercent2nd: parseFloat(map.get(LTX_KEYS.identityStartPercent2nd)!),
-    identityEndPercent2nd: parseFloat(map.get(LTX_KEYS.identityEndPercent2nd)!),
-    schedulerSteps: parseInt(map.get(LTX_KEYS.schedulerSteps)!, 10),
-    schedulerMaxShift: parseFloat(map.get(LTX_KEYS.schedulerMaxShift)!),
-    schedulerBaseShift: parseFloat(map.get(LTX_KEYS.schedulerBaseShift)!),
-    schedulerStretch: map.get(LTX_KEYS.schedulerStretch)! === 'true',
-    schedulerTerminal: parseFloat(map.get(LTX_KEYS.schedulerTerminal)!),
-    sigmas2nd: map.get(LTX_KEYS.sigmas2nd)!,
-    upscaleModel: map.get(LTX_KEYS.upscaleModel)!,
-    audioNorm1st: map.get(LTX_KEYS.audioNorm1st)!,
-    audioNorm2nd: map.get(LTX_KEYS.audioNorm2nd)!,
+    ...shared,
+    passMode: '2pass',
+    unet: map.get(k.unet)!,
+    weightDtype: map.get(k.weightDtype)!,
+    nagScale: parseFloat(map.get(k.nagScale)!),
+    nagAlpha: parseFloat(map.get(k.nagAlpha)!),
+    nagTau: parseFloat(map.get(k.nagTau)!),
+    audioNorm1st: map.get(k.audioNorm1st)!,
+    schedulerSteps: parseInt(map.get(k.schedulerSteps)!, 10),
+    schedulerMaxShift: parseFloat(map.get(k.schedulerMaxShift)!),
+    schedulerBaseShift: parseFloat(map.get(k.schedulerBaseShift)!),
+    schedulerStretch: map.get(k.schedulerStretch)! === 'true',
+    schedulerTerminal: parseFloat(map.get(k.schedulerTerminal)!),
+    idLoraStrength: parseFloat(map.get(k.idLoraStrength)!),
+    identityGuidanceScale: parseFloat(map.get(k.identityGuidanceScale)!),
+    identityStartPercent: parseFloat(map.get(k.identityStartPercent)!),
+    identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
+    unet2nd: map.get(k.unet2nd)!,
+    weightDtype2nd: map.get(k.weightDtype2nd)!,
+    nagScale2nd: parseFloat(map.get(k.nagScale2nd)!),
+    nagAlpha2nd: parseFloat(map.get(k.nagAlpha2nd)!),
+    nagTau2nd: parseFloat(map.get(k.nagTau2nd)!),
+    audioNorm2nd: map.get(k.audioNorm2nd)!,
+    sigmas2nd: map.get(k.sigmas2nd)!,
+    idLoraStrength2nd: parseFloat(map.get(k.idLoraStrength2nd)!),
+    identityGuidanceScale2nd: parseFloat(map.get(k.identityGuidanceScale2nd)!),
+    identityStartPercent2nd: parseFloat(map.get(k.identityStartPercent2nd)!),
+    identityEndPercent2nd: parseFloat(map.get(k.identityEndPercent2nd)!),
   };
 }
