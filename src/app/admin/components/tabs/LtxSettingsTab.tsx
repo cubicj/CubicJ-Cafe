@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Music } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
@@ -16,13 +16,13 @@ import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 
 type ModelCategory = 'diffusionModels' | 'ggufClips' | 'clipEmbeddings' | 'kjVaes' | 'rifeModels';
 
-const LTX_FIELDS: SettingsField[] = [
-  // Input
+const LTX_SHARED_FIELDS: SettingsField[] = [
+  { key: 'ltx.pass_mode', label: 'Pass Mode', type: 'select', group: '모드', options: [{ label: '1 Pass', value: '1pass' }, { label: '2 Pass', value: '2pass' }] },
+
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '입력' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '입력' },
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '입력', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
 
-  // Models & Encoding
   { key: 'ltx.clip_gguf', label: 'CLIP GGUF 모델', type: 'model', group: '모델 & 인코딩', modelCategory: 'ggufClips' as ModelCategory },
   { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model', group: '모델 & 인코딩', modelCategory: 'clipEmbeddings' as ModelCategory },
   { key: 'ltx.audio_vae', label: 'Audio VAE', type: 'model', group: '모델 & 인코딩', modelCategory: 'kjVaes' as ModelCategory },
@@ -30,44 +30,10 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.frame_rate', label: 'FPS', type: 'number', step: 1, group: '모델 & 인코딩' },
   { key: 'ltx.duration', label: '길이 (초)', type: 'number', step: 1, group: '모델 & 인코딩' },
 
-  // 1st Pass
-  { key: 'ltx.unet', label: 'UNet 모델', type: 'model', group: '1st Pass', modelCategory: 'diffusionModels' as ModelCategory },
-  { key: 'ltx.weight_dtype', label: 'Weight Dtype', type: 'string', group: '1st Pass' },
-  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: '1st Pass', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
-  { key: 'ltx.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: '1st Pass' },
-  { key: 'ltx.identity_guidance_scale', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '1st Pass' },
-  { key: 'ltx.identity_start_percent', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.identity_end_percent', label: 'RefAudio End %', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1st Pass' },
-  { key: 'ltx.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.nag_tau', label: 'NAG Tau', type: 'number', step: 0.1, group: '1st Pass' },
-  { key: 'ltx.audio_norm_1st', label: 'Audio Norm Factors', type: 'string', group: '1st Pass' },
-  { key: 'ltx.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: '1st Pass' },
-  { key: 'ltx.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1st Pass' },
-  { key: 'ltx.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1st Pass' },
-
-  // 2nd Pass
-  { key: 'ltx.unet_2nd', label: 'UNet 모델', type: 'model', group: '2nd Pass', modelCategory: 'diffusionModels' as ModelCategory },
-  { key: 'ltx.weight_dtype_2nd', label: 'Weight Dtype', type: 'string', group: '2nd Pass' },
-  { key: 'ltx.id_lora_strength_2nd', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: '2nd Pass' },
-  { key: 'ltx.identity_guidance_scale_2nd', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '2nd Pass' },
-  { key: 'ltx.identity_start_percent_2nd', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '2nd Pass' },
-  { key: 'ltx.identity_end_percent_2nd', label: 'RefAudio End %', type: 'number', step: 0.01, group: '2nd Pass' },
-  { key: 'ltx.nag_scale_2nd', label: 'NAG Scale', type: 'number', step: 0.1, group: '2nd Pass' },
-  { key: 'ltx.nag_alpha_2nd', label: 'NAG Alpha', type: 'number', step: 0.01, group: '2nd Pass' },
-  { key: 'ltx.nag_tau_2nd', label: 'NAG Tau', type: 'number', step: 0.1, group: '2nd Pass' },
-  { key: 'ltx.audio_norm_2nd', label: 'Audio Norm Factors', type: 'string', group: '2nd Pass' },
-  { key: 'ltx.sigmas_2nd', label: 'Sigmas', type: 'string', group: '2nd Pass' },
-
-  // Post-Processing: Color Match
   { key: 'ltx.color_match_enabled', label: 'Color Match 활성화', type: 'boolean', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_method', label: 'Method', type: 'string', group: '후처리 — Color Match' },
   { key: 'ltx.color_match_strength', label: 'Strength', type: 'number', step: 0.01, group: '후처리 — Color Match' },
 
-  // Post-Processing: VFI
   { key: 'ltx.vfi_enabled', label: 'VFI 활성화', type: 'boolean', group: '후처리 — VFI' },
   { key: 'ltx.vfi_method', label: 'VFI 방식', type: 'select', group: '후처리 — VFI', options: [{ label: 'RIFE (TensorRT)', value: 'rife' }, { label: 'GMFSS Fortuna', value: 'gmfss' }] },
   { key: 'ltx.vfi_multiplier', label: 'Multiplier', type: 'number', step: 1, group: '후처리 — VFI' },
@@ -75,21 +41,75 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.rife_model', label: 'RIFE Model', type: 'model', group: '후처리 — VFI', modelCategory: 'rifeModels' as ModelCategory },
   { key: 'ltx.rife_precision', label: 'RIFE Precision', type: 'nodeOption', group: '후처리 — VFI', nodeQuery: 'rife_precision:AutoLoadRifeTensorrtModel:precision' },
   { key: 'ltx.rife_resolution_profile', label: 'RIFE Resolution Profile', type: 'nodeOption', group: '후처리 — VFI', nodeQuery: 'rife_resolution_profile:AutoLoadRifeTensorrtModel:resolution_profile' },
+  { key: 'ltx.rife_custom_min_dim', label: 'RIFE Custom Min Dim', type: 'number', step: 1, group: '후처리 — VFI' },
+  { key: 'ltx.rife_custom_opt_dim', label: 'RIFE Custom Opt Dim', type: 'number', step: 1, group: '후처리 — VFI' },
+  { key: 'ltx.rife_custom_max_dim', label: 'RIFE Custom Max Dim', type: 'number', step: 1, group: '후처리 — VFI' },
   { key: 'ltx.gmfss_model', label: 'GMFSS Model', type: 'string', group: '후처리 — VFI' },
 
-  // Post-Processing: Upscale
   { key: 'ltx.rtx_enabled', label: 'RTX Upscale 활성화', type: 'boolean', group: '후처리 — Upscale' },
   { key: 'ltx.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltx.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: '후처리 — Upscale' },
   { key: 'ltx.rtx_quality', label: 'Quality', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
   { key: 'ltx.upscale_model', label: 'Latent Upscale Model', type: 'string', group: '후처리 — Upscale' },
 
-  // Output
   { key: 'ltx.video_crf', label: 'CRF', type: 'number', step: 1, group: '출력' },
   { key: 'ltx.video_format', label: 'Format', type: 'nodeOption', group: '출력', nodeQuery: 'video_format:VHS_VideoCombine:format' },
   { key: 'ltx.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: '출력', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
   { key: 'ltx.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '출력' },
   { key: 'ltx.lora_enabled', label: 'LoRA 프리셋 활성화', type: 'boolean', group: '출력' },
+];
+
+const LTX_1PASS_FIELDS: SettingsField[] = [
+  { key: 'ltx.1pass.unet', label: 'UNet 모델', type: 'model', group: '1 Pass', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'ltx.1pass.weight_dtype', label: 'Weight Dtype', type: 'string', group: '1 Pass' },
+  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: '1 Pass', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.1pass.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: '1 Pass' },
+  { key: 'ltx.1pass.identity_guidance_scale', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '1 Pass' },
+  { key: 'ltx.1pass.identity_start_percent', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.identity_end_percent', label: 'RefAudio End %', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1 Pass' },
+  { key: 'ltx.1pass.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.nag_tau', label: 'NAG Tau', type: 'number', step: 0.1, group: '1 Pass' },
+  { key: 'ltx.1pass.audio_norm_enabled', label: 'Audio Norm 활성화', type: 'boolean', group: '1 Pass' },
+  { key: 'ltx.1pass.audio_norm', label: 'Audio Norm Factors', type: 'string', group: '1 Pass' },
+  { key: 'ltx.1pass.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: '1 Pass' },
+  { key: 'ltx.1pass.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.1pass.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1 Pass' },
+  { key: 'ltx.1pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1 Pass' },
+];
+
+const LTX_2PASS_FIELDS: SettingsField[] = [
+  { key: 'ltx.2pass.unet', label: 'UNet 모델', type: 'model', group: '1st Pass', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'ltx.2pass.weight_dtype', label: 'Weight Dtype', type: 'string', group: '1st Pass' },
+  { key: 'ltx.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: '1st Pass', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.2pass.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: '1st Pass' },
+  { key: 'ltx.2pass.identity_guidance_scale', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '1st Pass' },
+  { key: 'ltx.2pass.identity_start_percent', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.identity_end_percent', label: 'RefAudio End %', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: '1st Pass' },
+  { key: 'ltx.2pass.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.nag_tau', label: 'NAG Tau', type: 'number', step: 0.1, group: '1st Pass' },
+  { key: 'ltx.2pass.audio_norm_1st', label: 'Audio Norm Factors', type: 'string', group: '1st Pass' },
+  { key: 'ltx.2pass.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: '1st Pass' },
+  { key: 'ltx.2pass.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.2pass.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1st Pass' },
+  { key: 'ltx.2pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1st Pass' },
+
+  { key: 'ltx.2pass.unet_2nd', label: 'UNet 모델', type: 'model', group: '2nd Pass', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'ltx.2pass.weight_dtype_2nd', label: 'Weight Dtype', type: 'string', group: '2nd Pass' },
+  { key: 'ltx.2pass.id_lora_strength_2nd', label: 'ID LoRA Strength', type: 'number', step: 0.1, group: '2nd Pass' },
+  { key: 'ltx.2pass.identity_guidance_scale_2nd', label: 'RefAudio Guidance Scale', type: 'number', step: 0.1, group: '2nd Pass' },
+  { key: 'ltx.2pass.identity_start_percent_2nd', label: 'RefAudio Start %', type: 'number', step: 0.01, group: '2nd Pass' },
+  { key: 'ltx.2pass.identity_end_percent_2nd', label: 'RefAudio End %', type: 'number', step: 0.01, group: '2nd Pass' },
+  { key: 'ltx.2pass.nag_scale_2nd', label: 'NAG Scale', type: 'number', step: 0.1, group: '2nd Pass' },
+  { key: 'ltx.2pass.nag_alpha_2nd', label: 'NAG Alpha', type: 'number', step: 0.01, group: '2nd Pass' },
+  { key: 'ltx.2pass.nag_tau_2nd', label: 'NAG Tau', type: 'number', step: 0.1, group: '2nd Pass' },
+  { key: 'ltx.2pass.audio_norm_2nd', label: 'Audio Norm Factors', type: 'string', group: '2nd Pass' },
+  { key: 'ltx.2pass.sigmas_2nd', label: 'Sigmas', type: 'string', group: '2nd Pass' },
 ];
 
 function LtxLoRACopyButton() {
@@ -143,12 +163,23 @@ function LtxHeaderExtra() {
 }
 
 export default function LtxSettingsTab() {
+  const [passMode, setPassMode] = useState<string>('2pass');
+
+  const fields = useMemo(() => [
+    ...LTX_SHARED_FIELDS,
+    ...(passMode === '1pass' ? LTX_1PASS_FIELDS : LTX_2PASS_FIELDS),
+  ], [passMode]);
+
   return (
     <ModelSettingsTab
       title="LTX 2.3 설정"
       category="ltx"
-      fields={LTX_FIELDS}
+      fields={fields}
       headerExtra={<LtxHeaderExtra />}
+      onValuesLoaded={(values) => setPassMode(values['ltx.pass_mode'] || '2pass')}
+      onValueChange={(key, value) => {
+        if (key === 'ltx.pass_mode') setPassMode(value);
+      }}
     />
   );
 }
