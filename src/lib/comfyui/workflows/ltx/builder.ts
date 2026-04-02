@@ -1,7 +1,7 @@
 import type { LtxGenerationParams } from '../types'
 import type { ComfyUIWorkflow } from '@/types'
 import type { ComfyUIServer } from '../../server-manager'
-import type { LtxSettings } from '@/lib/database/system-settings'
+import type { LtxSettings, Ltx1PassSettings, Ltx2PassSettings } from '@/lib/database/system-settings'
 import type { LoRAPresetData } from '@/types/lora'
 import { LTX_WORKFLOW_TEMPLATE } from './template'
 import { LTX } from './nodes'
@@ -23,7 +23,13 @@ export async function buildLtxWorkflow(
   configureGeneration(workflow, params, settings)
   configureScheduler(workflow, settings)
   configureNag(workflow, settings)
-  configureAudioNorm(workflow, settings)
+
+  if (settings.passMode === '1pass') {
+    configureAudioNorm1Pass(workflow, settings)
+    strip2ndPass(workflow)
+  } else {
+    configureAudioNorm2Pass(workflow, settings)
+  }
 
   if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
     applyUserLoras(workflow, params.loraPreset, server)
@@ -46,6 +52,7 @@ export async function buildLtxWorkflow(
 
   log.info('LTX workflow built', {
     prompt: params.prompt.substring(0, 50),
+    passMode: settings.passMode,
     hasEndImage: !!params.endImage,
     duration: settings.duration,
     loraEnabled: settings.loraEnabled,
@@ -68,10 +75,12 @@ function configureModels(workflow: ComfyUIWorkflow, settings: LtxSettings) {
     unet_name: settings.unet,
     weight_dtype: settings.weightDtype,
   })
-  setNode(workflow, LTX.UNET_2ND, {
-    unet_name: settings.unet2nd,
-    weight_dtype: settings.weightDtype2nd,
-  })
+  if (settings.passMode === '2pass') {
+    setNode(workflow, LTX.UNET_2ND, {
+      unet_name: settings.unet2nd,
+      weight_dtype: settings.weightDtype2nd,
+    })
+  }
 }
 
 function configureGeneration(
@@ -99,7 +108,9 @@ function configureScheduler(workflow: ComfyUIWorkflow, settings: LtxSettings) {
     stretch: settings.schedulerStretch,
     terminal: settings.schedulerTerminal,
   })
-  setNode(workflow, LTX.SIGMAS_2ND, { sigmas: settings.sigmas2nd })
+  if (settings.passMode === '2pass') {
+    setNode(workflow, LTX.SIGMAS_2ND, { sigmas: settings.sigmas2nd })
+  }
 }
 
 function configureNag(workflow: ComfyUIWorkflow, settings: LtxSettings) {
@@ -108,16 +119,39 @@ function configureNag(workflow: ComfyUIWorkflow, settings: LtxSettings) {
     nag_alpha: settings.nagAlpha,
     nag_tau: settings.nagTau,
   })
-  setNode(workflow, LTX.NAG_2ND, {
-    nag_scale: settings.nagScale2nd,
-    nag_alpha: settings.nagAlpha2nd,
-    nag_tau: settings.nagTau2nd,
-  })
+  if (settings.passMode === '2pass') {
+    setNode(workflow, LTX.NAG_2ND, {
+      nag_scale: settings.nagScale2nd,
+      nag_alpha: settings.nagAlpha2nd,
+      nag_tau: settings.nagTau2nd,
+    })
+  }
 }
 
-function configureAudioNorm(workflow: ComfyUIWorkflow, settings: LtxSettings) {
+function configureAudioNorm1Pass(workflow: ComfyUIWorkflow, settings: Ltx1PassSettings) {
+  if (settings.audioNormEnabled) {
+    setNode(workflow, LTX.AUDIO_NORM_1ST, { audio_normalization_factors: settings.audioNorm })
+  } else {
+    delete workflow[LTX.AUDIO_NORM_1ST]
+    setNode(workflow, LTX.CFG_GUIDER, { model: [LTX.NAG, 0] })
+  }
+}
+
+function configureAudioNorm2Pass(workflow: ComfyUIWorkflow, settings: Ltx2PassSettings) {
   setNode(workflow, LTX.AUDIO_NORM_1ST, { audio_normalization_factors: settings.audioNorm1st })
   setNode(workflow, LTX.AUDIO_NORM_2ND, { audio_normalization_factors: settings.audioNorm2nd })
+}
+
+function strip2ndPass(workflow: ComfyUIWorkflow) {
+  const nodesToDelete = [
+    LTX.UNET_2ND, LTX.SAGE_ATTENTION_2ND, LTX.TORCH_SETTINGS_2ND,
+    LTX.POWER_LORA_2ND, LTX.NAG_2ND, LTX.AUDIO_NORM_2ND, LTX.CFG_GUIDER_2ND,
+    LTX.SAMPLER_2ND, LTX.VRAM_POST_SAMPLE_2ND,
+    LTX.SEPARATE_AV_1ST, LTX.UPSCALE_MODEL, LTX.LATENT_UPSAMPLER,
+    LTX.IMG_TO_VIDEO_2ND, LTX.CONCAT_AV_2ND, LTX.SIGMAS_2ND,
+  ]
+  for (const id of nodesToDelete) delete workflow[id]
+  setNode(workflow, LTX.SEPARATE_AV, { av_latent: [LTX.VRAM_POST_SAMPLE, 0] })
 }
 
 function applyUserLoras(
@@ -128,7 +162,8 @@ function applyUserLoras(
   const deduplicated = deduplicateByFilename(loraPreset.loraItems)
   if (deduplicated.length === 0) return
 
-  for (const nodeId of [LTX.POWER_LORA_1ST, LTX.POWER_LORA_2ND]) {
+  const loraNodes = [LTX.POWER_LORA_1ST, LTX.POWER_LORA_2ND].filter(id => workflow[id])
+  for (const nodeId of loraNodes) {
     const node = workflow[nodeId]
     if (!node?.inputs) continue
 
@@ -182,25 +217,9 @@ function handleReferenceAudio(
     _meta: { title: 'LTX_348' },
   }
 
-  workflow[LTX.REFERENCE_AUDIO_2ND] = {
-    inputs: {
-      identity_guidance_scale: settings.identityGuidanceScale2nd,
-      start_percent: settings.identityStartPercent2nd,
-      end_percent: settings.identityEndPercent2nd,
-      model: [LTX.POWER_LORA_2ND, 0],
-      ...sharedRefInputs,
-    },
-    class_type: 'LTXVReferenceAudio',
-    _meta: { title: 'LTX_441' },
-  }
-
   const node1st = workflow[LTX.POWER_LORA_1ST]
   if (node1st?.inputs) {
     node1st.inputs['lora_2'] = { on: true, lora: settings.idLoraName, strength: settings.idLoraStrength }
-  }
-  const node2nd = workflow[LTX.POWER_LORA_2ND]
-  if (node2nd?.inputs) {
-    node2nd.inputs['lora_2'] = { on: true, lora: settings.idLoraName, strength: settings.idLoraStrength2nd }
   }
 
   setNode(workflow, LTX.NAG, { model: [LTX.REFERENCE_AUDIO, 0] })
@@ -209,11 +228,30 @@ function handleReferenceAudio(
     negative: [LTX.REFERENCE_AUDIO, 2],
   })
 
-  setNode(workflow, LTX.NAG_2ND, { model: [LTX.REFERENCE_AUDIO_2ND, 0] })
-  setNode(workflow, LTX.CFG_GUIDER_2ND, {
-    positive: [LTX.REFERENCE_AUDIO_2ND, 1],
-    negative: [LTX.REFERENCE_AUDIO_2ND, 2],
-  })
+  if (settings.passMode === '2pass') {
+    workflow[LTX.REFERENCE_AUDIO_2ND] = {
+      inputs: {
+        identity_guidance_scale: settings.identityGuidanceScale2nd,
+        start_percent: settings.identityStartPercent2nd,
+        end_percent: settings.identityEndPercent2nd,
+        model: [LTX.POWER_LORA_2ND, 0],
+        ...sharedRefInputs,
+      },
+      class_type: 'LTXVReferenceAudio',
+      _meta: { title: 'LTX_441' },
+    }
+
+    const node2nd = workflow[LTX.POWER_LORA_2ND]
+    if (node2nd?.inputs) {
+      node2nd.inputs['lora_2'] = { on: true, lora: settings.idLoraName, strength: settings.idLoraStrength2nd }
+    }
+
+    setNode(workflow, LTX.NAG_2ND, { model: [LTX.REFERENCE_AUDIO_2ND, 0] })
+    setNode(workflow, LTX.CFG_GUIDER_2ND, {
+      positive: [LTX.REFERENCE_AUDIO_2ND, 1],
+      negative: [LTX.REFERENCE_AUDIO_2ND, 2],
+    })
+  }
 }
 
 function handleEndImage(
@@ -288,6 +326,18 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSetting
         precision: settings.rifePrecision,
         resolution_profile: settings.rifeResolutionProfile,
       })
+      if (settings.rifeResolutionProfile === 'custom') {
+        setNode(workflow, LTX.RIFE_CUSTOM_CONFIG, {
+          min_dim: settings.rifeCustomMinDim,
+          opt_dim: settings.rifeCustomOptDim,
+          max_dim: settings.rifeCustomMaxDim,
+        })
+        setNode(workflow, LTX.RIFE_MODEL_LOADER, {
+          custom_config: [LTX.RIFE_CUSTOM_CONFIG, 0],
+        })
+      } else {
+        delete workflow[LTX.RIFE_CUSTOM_CONFIG]
+      }
       lastOutput = LTX.VFI
       delete workflow[LTX.GMFSS_VFI]
     } else {
@@ -299,10 +349,12 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSetting
       lastOutput = LTX.GMFSS_VFI
       delete workflow[LTX.VFI]
       delete workflow[LTX.RIFE_MODEL_LOADER]
+      delete workflow[LTX.RIFE_CUSTOM_CONFIG]
     }
   } else {
     delete workflow[LTX.VFI]
     delete workflow[LTX.RIFE_MODEL_LOADER]
+    delete workflow[LTX.RIFE_CUSTOM_CONFIG]
     delete workflow[LTX.GMFSS_VFI]
     delete workflow[LTX.VFI_MULTIPLIER]
     delete workflow[LTX.VFI_FRAME_RATE]
