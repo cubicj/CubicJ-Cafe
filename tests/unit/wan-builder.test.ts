@@ -18,7 +18,6 @@ vi.mock('@/lib/database/system-settings', () => ({
     moeBoundary: 0.9,
     moeInterval: 0.01,
     moeDenoise: 1,
-    length: 121,
     sampler: 'euler',
     negativePrompt: 'test negative prompt',
     resizeMultipleOf: 16,
@@ -64,6 +63,7 @@ const baseParams: WanGenerationParams = {
   model: 'wan',
   prompt: 'a dragon flying through clouds',
   inputImage: 'dragon-input.png',
+  videoDuration: 5,
 }
 
 describe('buildWanWorkflow', () => {
@@ -103,11 +103,11 @@ describe('buildWanWorkflow', () => {
     expect(workflow['5']!.inputs!.image).toBe('dragon-input.png')
   })
 
-  it('uses fixed 121 frame length in WanFirstLastFrameToVideo nodes when endImage provided', async () => {
+  it('uses computed frame length in WanFirstLastFrameToVideo nodes when endImage provided', async () => {
     const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
     const workflow = await buildWanWorkflow(params)
-    expect(workflow['31']!.inputs!.length).toBe(121)
-    expect(workflow['30']!.inputs!.length).toBe(121)
+    expect(workflow['31']!.inputs!.length).toBe(81)
+    expect(workflow['30']!.inputs!.length).toBe(81)
   })
 
   it('sets end image when provided', async () => {
@@ -169,8 +169,8 @@ describe('buildWanWorkflow', () => {
     it('injects frame length into WanFirstLastFrameToVideo nodes', async () => {
       const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
       const workflow = await buildWanWorkflow(params)
-      expect(workflow['31']!.inputs!.length).toBe(121)
-      expect(workflow['30']!.inputs!.length).toBe(121)
+      expect(workflow['31']!.inputs!.length).toBe(81)
+      expect(workflow['30']!.inputs!.length).toBe(81)
     })
   })
 

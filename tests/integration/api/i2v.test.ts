@@ -55,6 +55,7 @@ function buildFormData(overrides?: Record<string, string | Blob>) {
   form.set('prompt', 'a cat walking in the garden')
   form.set('image', new File(['fake-image-data'], 'test.png', { type: 'image/png' }))
   form.set('isNSFW', 'false')
+  form.set('videoDuration', '5')
   if (overrides) {
     for (const [key, value] of Object.entries(overrides)) {
       form.set(key, value)
@@ -180,5 +181,35 @@ describe('POST /api/i2v', () => {
     const nextReq = new NextRequest(req)
     const res = await POST(nextReq)
     expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when videoDuration is out of range', async () => {
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ videoDuration: '99' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const nextReq = new NextRequest(req)
+    const res = await POST(nextReq)
+    expect(res.status).toBe(400)
+  })
+
+  it('stores videoDuration in queue request', async () => {
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ videoDuration: '7' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const nextReq = new NextRequest(req)
+    const res = await POST(nextReq)
+    const body = await res.json()
+    expect(res.status).toBe(200)
+
+    const { prisma } = await import('@/lib/database/prisma')
+    const queueRequest = await prisma.queueRequest.findUnique({
+      where: { id: body.requestId },
+      select: { videoDuration: true },
+    })
+    expect(queueRequest?.videoDuration).toBe(7)
   })
 })

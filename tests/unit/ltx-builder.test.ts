@@ -30,7 +30,6 @@ const SHARED_SETTINGS = {
   clownEta: 1.0,
   clownBongmath: false,
   imgCompression: 6,
-  duration: 6,
   frameRate: 12,
   megapixels: 0.35,
   resizeMultipleOf: 48,
@@ -126,6 +125,7 @@ const baseParams: LtxGenerationParams = {
   model: 'ltx',
   prompt: 'a cat dancing on the moon',
   inputImage: 'test-image.png',
+  videoDuration: 6,
 }
 
 describe('buildLtxWorkflow', () => {
