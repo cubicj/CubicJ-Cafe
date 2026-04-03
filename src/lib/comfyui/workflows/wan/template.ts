@@ -338,7 +338,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "clear_cache_after_n_frames": 0,
       "multiplier": 0,
       "keep_model_loaded": false,
-      "frames": ["38", 0],
+      "frames": ["74", 0],
       "rife_trt_model": ["72", 0]
     },
     "class_type": "AutoRifeTensorrt",
@@ -352,6 +352,36 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "AutoLoadRifeTensorrtModel",
     "_meta": { "title": "WAN_72" }
+  },
+  "73": {
+    "inputs": {
+      "min_dim": 0,
+      "opt_dim": 0,
+      "max_dim": 0
+    },
+    "class_type": "CustomResolutionConfig",
+    "_meta": { "title": "WAN_73" }
+  },
+  "74": {
+    "inputs": {
+      "method": "PLACEHOLDER",
+      "strength": 0,
+      "multithread": true,
+      "image_target": ["38", 0],
+      "image_ref": ["5", 0]
+    },
+    "class_type": "ColorMatchV2",
+    "_meta": { "title": "WAN_74" }
+  },
+  "75": {
+    "inputs": {
+      "ckpt_name": "PLACEHOLDER",
+      "clear_cache_after_n_frames": 0,
+      "multiplier": 0,
+      "frames": ["74", 0]
+    },
+    "class_type": "GMFSS Fortuna VFI",
+    "_meta": { "title": "WAN_75" }
   },
   "63": {
     "inputs": {
