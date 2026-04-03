@@ -87,7 +87,6 @@ const LTX_1PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.1pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1 Pass' },
   { key: 'ltx.sampler', label: '샘플러', type: 'nodeOption', group: '1 Pass', nodeQuery: 'clown_sampler:ClownSampler_Beta:sampler_name' },
   { key: 'ltx.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: '1 Pass' },
-  { key: 'ltx.clown_seed', label: 'Seed', type: 'number', step: 1, group: '1 Pass' },
   { key: 'ltx.clown_bongmath', label: 'Bongmath', type: 'boolean', group: '1 Pass' },
 ];
 
@@ -114,7 +113,6 @@ const LTX_2PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.2pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1st Pass' },
   { key: 'ltx.sampler', label: '샘플러', type: 'nodeOption', group: '1st Pass', nodeQuery: 'clown_sampler:ClownSampler_Beta:sampler_name' },
   { key: 'ltx.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.clown_seed', label: 'Seed', type: 'number', step: 1, group: '1st Pass' },
   { key: 'ltx.clown_bongmath', label: 'Bongmath', type: 'boolean', group: '1st Pass' },
 
   { key: 'ltx.2pass.unet_2nd', label: 'UNet 모델', type: 'model', group: '2nd Pass', modelCategory: 'diffusionModels' as ModelCategory },

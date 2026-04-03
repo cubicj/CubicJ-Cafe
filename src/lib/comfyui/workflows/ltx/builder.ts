@@ -97,7 +97,7 @@ function configureGeneration(
   setNode(workflow, LTX.CLOWN_SAMPLER, {
     sampler_name: settings.sampler,
     eta: settings.clownEta,
-    seed: settings.clownSeed,
+    seed: generateSeed(),
     bongmath: settings.clownBongmath,
   })
   setNode(workflow, LTX.PREPROCESS_START, { img_compression: settings.imgCompression })

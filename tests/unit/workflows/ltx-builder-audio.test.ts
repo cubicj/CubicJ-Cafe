@@ -27,7 +27,6 @@ const SHARED_SETTINGS = {
   loraEnabled: false,
   sampler: 'fake_sampler_v2',
   clownEta: 1.0,
-  clownSeed: 0,
   clownBongmath: false,
   imgCompression: 6,
   duration: 6,
