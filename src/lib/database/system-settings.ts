@@ -118,6 +118,10 @@ export interface LtxSharedSettings {
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
   sampler: string;
+  clownEta: number;
+  clownSeed: number;
+  clownBongmath: boolean;
+  imgCompression: number;
   negativePrompt: string;
   loraEnabled: boolean;
   idLoraName: string;
@@ -261,6 +265,10 @@ export const LTX_SHARED_KEYS = {
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
   sampler: 'ltx.sampler',
+  clownEta: 'ltx.clown_eta',
+  clownSeed: 'ltx.clown_seed',
+  clownBongmath: 'ltx.clown_bongmath',
+  imgCompression: 'ltx.img_compression',
   negativePrompt: 'ltx.negative_prompt',
   loraEnabled: 'ltx.lora_enabled',
   idLoraName: 'ltx.id_lora_name',
@@ -446,6 +454,10 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     resizeMultipleOf: parseInt(map.get(LTX_SHARED_KEYS.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(LTX_SHARED_KEYS.resizeUpscaleMethod)!,
     sampler: map.get(LTX_SHARED_KEYS.sampler)!,
+    clownEta: parseFloat(map.get(LTX_SHARED_KEYS.clownEta)!),
+    clownSeed: parseInt(map.get(LTX_SHARED_KEYS.clownSeed)!, 10),
+    clownBongmath: map.get(LTX_SHARED_KEYS.clownBongmath)! === 'true',
+    imgCompression: parseInt(map.get(LTX_SHARED_KEYS.imgCompression)!, 10),
     negativePrompt: map.get(LTX_SHARED_KEYS.negativePrompt)!,
     loraEnabled: map.get(LTX_SHARED_KEYS.loraEnabled)! === 'true',
     idLoraName: map.get(LTX_SHARED_KEYS.idLoraName)!,

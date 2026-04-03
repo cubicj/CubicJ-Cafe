@@ -94,7 +94,7 @@ function configureGeneration(
 ) {
   setNode(workflow, LTX.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, LTX.NEGATIVE_PROMPT, { text: settings.negativePrompt })
-  setNode(workflow, LTX.SAMPLER_SELECT, { sampler_name: settings.sampler })
+  setNode(workflow, LTX.CLOWN_SAMPLER, { sampler_name: settings.sampler })
   setNode(workflow, LTX.DURATION, { value: settings.duration })
   setNode(workflow, LTX.FRAME_RATE, { number: Math.round(settings.frameRate) })
   setNode(workflow, LTX.RESIZE, {
@@ -148,7 +148,7 @@ function configureAudioNorm2Pass(workflow: ComfyUIWorkflow, settings: Ltx2PassSe
 
 function strip2ndPass(workflow: ComfyUIWorkflow) {
   const nodesToDelete = [
-    LTX.UNET_2ND, LTX.SAGE_ATTENTION_2ND, LTX.TORCH_SETTINGS_2ND,
+    LTX.UNET_2ND, LTX.SAGE_ATTENTION_2ND,
     LTX.POWER_LORA_2ND, LTX.NAG_2ND, LTX.AUDIO_NORM_2ND, LTX.CFG_GUIDER_2ND,
     LTX.SAMPLER_2ND, LTX.VRAM_POST_SAMPLE_2ND,
     LTX.SEPARATE_AV_1ST, LTX.UPSCALE_MODEL, LTX.LATENT_UPSAMPLER,
