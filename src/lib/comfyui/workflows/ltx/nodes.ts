@@ -5,6 +5,8 @@ export const LTX = {
   LOAD_IMAGE_END: '260',
   RESIZE_END_IMAGE: '264',
   END_FRAME_MATH: '261',
+  PREPROCESS_START: '466',
+  PREPROCESS_END: '469',
 
   // === Models & Encoding ===
   AUDIO_VAE: '1',
@@ -17,7 +19,6 @@ export const LTX = {
   // === 1st Pass Model Chain ===
   UNET: '297',
   SAGE_ATTENTION: '298',
-  TORCH_SETTINGS: '354',
   POWER_LORA_1ST: '448',
   REFERENCE_AUDIO: '348',
   LOAD_AUDIO: '350',
@@ -34,14 +35,13 @@ export const LTX = {
   IMG_TO_VIDEO: '265',
   CONCAT_AV: '15',
   NOISE_SEED: '16',
-  SAMPLER_SELECT: '20',
+  CLOWN_SAMPLER: '463',
   SCHEDULER: '403',
   SAMPLER: '17',
 
   // === 2nd Pass Model Chain ===
   UNET_2ND: '450',
   SAGE_ATTENTION_2ND: '449',
-  TORCH_SETTINGS_2ND: '451',
   POWER_LORA_2ND: '452',
   REFERENCE_AUDIO_2ND: '441',
   NAG_2ND: '453',
