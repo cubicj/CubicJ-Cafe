@@ -24,7 +24,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
         <div className="col-span-1">
           <SortableHeader field="position" sort={sort} onSort={onSort}>위치</SortableHeader>
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <SortableHeader field="nickname" sort={sort} onSort={onSort}>닉네임</SortableHeader>
         </div>
         <div className="col-span-2">
@@ -32,7 +32,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
         </div>
         <div className="col-span-1">길이</div>
         <div className="col-span-2">모델/NSFW</div>
-        <div className="col-span-3">작업 정보</div>
+        <div className="col-span-4">작업 정보</div>
       </div>
 
       <div className="divide-y">
@@ -48,7 +48,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 onClick={() => onToggleExpand(itemId)}
               >
                 <div className="col-span-1">#{request.position}</div>
-                <div className="col-span-3 font-medium">{request.nickname}</div>
+                <div className="col-span-2 font-medium truncate">{request.nickname}</div>
                 <div className="col-span-2">
                   <Badge className={`text-xs ${getStatusBgColor(request.status)}`}>
                     {request.status}
@@ -65,7 +65,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
                   )}
                 </div>
-                <div className="col-span-3 flex items-center">
+                <div className="col-span-4 flex items-center">
                   {request.generationMode && (
                     <Badge variant="outline" className="text-xs">
                       {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : '기본'}{request.audioPresetName ? `+${request.audioPresetName}` : request.audioFile ? '+오디오' : ''}
