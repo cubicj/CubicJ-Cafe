@@ -69,6 +69,15 @@ export interface WanSettings {
   rifeModel: string;
   rifePrecision: string;
   rifeResolutionProfile: string;
+  rifeCustomMinDim: number;
+  rifeCustomOptDim: number;
+  rifeCustomMaxDim: number;
+  vfiMethod: string;
+  gmfssModel: string;
+  colorMatchEnabled: boolean;
+  colorMatchMethod: string;
+  colorMatchStrength: number;
+  rtxEnabled: boolean;
   loraEnabled: boolean;
   megapixels: number;
   shift: number;
@@ -203,6 +212,15 @@ export const WAN_KEYS = {
   rifeModel: 'wan.rife_model',
   rifePrecision: 'wan.rife_precision',
   rifeResolutionProfile: 'wan.rife_resolution_profile',
+  rifeCustomMinDim: 'wan.rife_custom_min_dim',
+  rifeCustomOptDim: 'wan.rife_custom_opt_dim',
+  rifeCustomMaxDim: 'wan.rife_custom_max_dim',
+  vfiMethod: 'wan.vfi_method',
+  gmfssModel: 'wan.gmfss_model',
+  colorMatchEnabled: 'wan.color_match_enabled',
+  colorMatchMethod: 'wan.color_match_method',
+  colorMatchStrength: 'wan.color_match_strength',
+  rtxEnabled: 'wan.rtx_enabled',
   loraEnabled: 'wan.lora_enabled',
   megapixels: 'wan.megapixels',
   shift: 'wan.shift',
@@ -356,6 +374,15 @@ export async function getWanSettings(): Promise<WanSettings> {
     rifeModel: map.get(WAN_KEYS.rifeModel)!,
     rifePrecision: map.get(WAN_KEYS.rifePrecision)!,
     rifeResolutionProfile: map.get(WAN_KEYS.rifeResolutionProfile)!,
+    rifeCustomMinDim: parseInt(map.get(WAN_KEYS.rifeCustomMinDim)!, 10),
+    rifeCustomOptDim: parseInt(map.get(WAN_KEYS.rifeCustomOptDim)!, 10),
+    rifeCustomMaxDim: parseInt(map.get(WAN_KEYS.rifeCustomMaxDim)!, 10),
+    vfiMethod: map.get(WAN_KEYS.vfiMethod)!,
+    gmfssModel: map.get(WAN_KEYS.gmfssModel)!,
+    colorMatchEnabled: map.get(WAN_KEYS.colorMatchEnabled)! === 'true',
+    colorMatchMethod: map.get(WAN_KEYS.colorMatchMethod)!,
+    colorMatchStrength: parseFloat(map.get(WAN_KEYS.colorMatchStrength)!),
+    rtxEnabled: map.get(WAN_KEYS.rtxEnabled)! === 'true',
     loraEnabled: map.get(WAN_KEYS.loraEnabled)! === 'true',
     megapixels: parseFloat(map.get(WAN_KEYS.megapixels)!),
     shift: parseFloat(map.get(WAN_KEYS.shift)!),
