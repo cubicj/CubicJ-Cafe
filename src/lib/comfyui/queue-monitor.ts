@@ -361,6 +361,7 @@ class QueueMonitor {
           model: 'wan',
           prompt: request.prompt,
           inputImage,
+          videoDuration: request.videoDuration,
           loraPreset: loraPreset || undefined,
           endImage: uploadedEndImageName || undefined,
         };
@@ -369,6 +370,7 @@ class QueueMonitor {
           model: 'ltx',
           prompt: request.prompt,
           inputImage,
+          videoDuration: request.videoDuration,
           endImage: uploadedEndImageName || undefined,
           loraPreset: loraPreset || undefined,
           referenceAudio: uploadedAudioName || undefined,
