@@ -82,7 +82,7 @@ export const POST = createRouteHandler(
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
     const loraPresetData = loraEnabled ? validated.loraPreset : undefined;
 
-    const { prompt, isNSFW, isLoop } = validated;
+    const { prompt, isNSFW, isLoop, videoDuration } = validated;
     const imageFile = validated.image;
 
     const generationMode = isLoop
@@ -147,7 +147,8 @@ export const POST = createRouteHandler(
         serverType: selectedServer.serverType,
         serverId: selectedServer.serverId,
         videoModel: activeModel,
-        generationMode
+        generationMode,
+        videoDuration,
       });
 
       UserService.updateLastLogin(req.user!.discordId).catch(() => {});
