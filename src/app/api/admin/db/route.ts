@@ -92,6 +92,7 @@ export const GET = createRouteHandler(
             jobId: true,
             videoModel: true,
             generationMode: true,
+            videoDuration: true,
             workflowJson: true,
             createdAt: true,
             startedAt: true,
