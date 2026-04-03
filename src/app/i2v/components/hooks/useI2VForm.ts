@@ -79,6 +79,8 @@ interface UseI2VFormReturn {
   setIsGenerating: (generating: boolean) => void;
   isNSFW: boolean;
   setIsNSFW: (nsfw: boolean) => void;
+  videoDuration: number;
+  setVideoDuration: (duration: number) => void;
   submitMessage: SubmitMessage | null;
   setSubmitMessage: (message: SubmitMessage | null) => void;
   serverStatus: ComfyUIStatus | null;
@@ -143,6 +145,9 @@ export function useI2VForm(): UseI2VFormReturn {
     }
     return 'wan';
   });
+  const [videoDuration, setVideoDuration] = useState<number>(
+    MODEL_REGISTRY[activeModel].defaultDuration
+  );
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
 
@@ -228,6 +233,7 @@ export function useI2VForm(): UseI2VFormReturn {
       formData.append('model', activeModel);
       formData.append('isNSFW', isNSFW.toString());
       formData.append('isLoop', isLoopEnabled.toString());
+      formData.append('videoDuration', videoDuration.toString());
 
       if (audioPresetId) {
         formData.append('audioPresetId', audioPresetId);
@@ -319,6 +325,7 @@ export function useI2VForm(): UseI2VFormReturn {
     }
     setSelectedPresetIds([]);
     setCurrentPresets([]);
+    setVideoDuration(MODEL_REGISTRY[model].defaultDuration);
   };
 
   useEffect(() => {
@@ -374,6 +381,8 @@ export function useI2VForm(): UseI2VFormReturn {
     setIsGenerating,
     isNSFW,
     setIsNSFW,
+    videoDuration,
+    setVideoDuration,
     submitMessage,
     setSubmitMessage,
     isLoadingAuth,
