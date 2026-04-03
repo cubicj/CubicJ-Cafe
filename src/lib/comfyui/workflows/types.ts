@@ -13,18 +13,20 @@ export interface ModelConfig {
   displayName: string
   capabilities: ModelCapabilities
   defaultSubfolder: string
+  durationOptions: number[]
+  defaultDuration: number
 }
 
 export interface BaseGenerationParams {
   prompt: string
   inputImage: string
+  videoDuration: number
 }
 
 export interface WanGenerationParams extends BaseGenerationParams {
   model: 'wan'
   loraPreset?: LoRAPresetData
   endImage?: string
-  videoLength?: number
 }
 
 export interface LtxGenerationParams extends BaseGenerationParams {
