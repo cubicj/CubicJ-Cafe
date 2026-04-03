@@ -61,6 +61,9 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   {request.videoModel && (
                     <Badge variant="outline" className="text-xs">{request.videoModel === 'wan' ? 'WAN' : 'LTX'}</Badge>
                   )}
+                  {request.videoDuration && (
+                    <Badge variant="outline" className="text-xs">{request.videoDuration}초</Badge>
+                  )}
                   {request.isNSFW && (
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
                   )}
