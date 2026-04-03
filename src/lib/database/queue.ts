@@ -31,6 +31,7 @@ export interface QueueRequestData {
   endImageBlob?: Uint8Array;
   audioFile?: string;
   audioBlob?: Uint8Array;
+  audioPresetName?: string;
   loraPreset?: LoRAPresetData;
   isNSFW?: boolean;
   serverType?: ServerType;
@@ -111,6 +112,7 @@ export class QueueService {
       endImageBlob: data.endImageBlob as Uint8Array<ArrayBuffer> | undefined,
       audioFile: data.audioFile,
       audioBlob: data.audioBlob as Uint8Array<ArrayBuffer> | undefined,
+      audioPresetName: data.audioPresetName,
       loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
       isNSFW: data.isNSFW || false,
       serverType: data.serverType,

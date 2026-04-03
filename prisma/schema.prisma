@@ -48,6 +48,7 @@ model QueueRequest {
   endImageBlob   Bytes?      @map("end_image_blob")
   audioFile      String?     @map("audio_file")
   audioBlob      Bytes?      @map("audio_blob")
+  audioPresetName String?    @map("audio_preset_name")
   loraPresetData String?     @map("lora_preset_data")
   isNSFW         Boolean     @default(false) @map("is_nsfw")
   jobId          String?     @map("job_id")
