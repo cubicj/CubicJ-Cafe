@@ -94,7 +94,13 @@ function configureGeneration(
 ) {
   setNode(workflow, LTX.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, LTX.NEGATIVE_PROMPT, { text: settings.negativePrompt })
-  setNode(workflow, LTX.CLOWN_SAMPLER, { sampler_name: settings.sampler })
+  setNode(workflow, LTX.CLOWN_SAMPLER, {
+    sampler_name: settings.sampler,
+    eta: settings.clownEta,
+    seed: settings.clownSeed,
+    bongmath: settings.clownBongmath,
+  })
+  setNode(workflow, LTX.PREPROCESS_START, { img_compression: settings.imgCompression })
   setNode(workflow, LTX.DURATION, { value: settings.duration })
   setNode(workflow, LTX.FRAME_RATE, { number: Math.round(settings.frameRate) })
   setNode(workflow, LTX.RESIZE, {
@@ -277,7 +283,7 @@ function handleReferenceAudio(
 function handleEndImage(
   workflow: ComfyUIWorkflow,
   endImage: string,
-  settings: { megapixels: number; resizeMultipleOf: number; resizeUpscaleMethod: string }
+  settings: { megapixels: number; resizeMultipleOf: number; resizeUpscaleMethod: string; imgCompression: number }
 ) {
   workflow[LTX.LOAD_IMAGE_END] = {
     inputs: { image: endImage },
@@ -304,6 +310,7 @@ function handleEndImage(
     class_type: 'ResizeImageToMegapixels',
     _meta: { title: 'LTX_264' },
   }
+  setNode(workflow, LTX.PREPROCESS_END, { img_compression: settings.imgCompression })
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
@@ -318,6 +325,7 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   }
   delete workflow[LTX.END_FRAME_MATH]
   delete workflow[LTX.RESIZE_END_IMAGE]
+  delete workflow[LTX.PREPROCESS_END]
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSettings) {
