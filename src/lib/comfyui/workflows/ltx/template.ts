@@ -40,17 +40,12 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "noise": ["16", 0],
       "guider": ["355", 0],
-      "sampler": ["20", 0],
+      "sampler": ["463", 0],
       "sigmas": ["403", 0],
       "latent_image": ["15", 0]
     },
     "class_type": "SamplerCustomAdvanced",
     "_meta": { "title": "LTX_17" }
-  },
-  "20": {
-    "inputs": { "sampler_name": "PLACEHOLDER" },
-    "class_type": "KSamplerSelect",
-    "_meta": { "title": "LTX_20" }
   },
   "23": {
     "inputs": { "frame_rate": ["416", 1], "positive": ["5", 0], "negative": ["6", 0] },
@@ -98,7 +93,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "num_images.strength_1": 1, "num_images.strength_2": 1,
       "num_images.index_1": 0, "num_images.index_2": ["261", 0],
       "vae": ["2", 0], "latent": ["90", 0],
-      "num_images.image_1": ["86", 0], "num_images.image_2": ["264", 0]
+      "num_images.image_1": ["466", 0], "num_images.image_2": ["469", 0]
     },
     "class_type": "LTXVImgToVideoInplaceKJ",
     "_meta": { "title": "LTX_265" }
@@ -155,11 +150,6 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "VHS_VideoCombine",
     "_meta": { "title": "LTX_345" }
   },
-  "354": {
-    "inputs": { "enable_fp16_accumulation": true, "model": ["298", 0] },
-    "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "LTX_354" }
-  },
   "355": {
     "inputs": { "cfg": 1, "model": ["457", 0], "positive": ["23", 0], "negative": ["23", 1] },
     "class_type": "CFGGuider",
@@ -191,7 +181,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "406": {
     "inputs": {
       "noise": ["16", 0], "guider": ["407", 0],
-      "sampler": ["20", 0], "sigmas": ["431", 0],
+      "sampler": ["463", 0], "sigmas": ["431", 0],
       "latent_image": ["419", 0]
     },
     "class_type": "SamplerCustomAdvanced",
@@ -275,7 +265,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
       "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
       "\u2795 Add Lora": "",
-      "model": ["354", 0]
+      "model": ["298", 0]
     },
     "class_type": "Power Lora Loader (rgthree)",
     "_meta": { "title": "LTX_448" }
@@ -290,18 +280,13 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "UNETLoader",
     "_meta": { "title": "LTX_450" }
   },
-  "451": {
-    "inputs": { "enable_fp16_accumulation": true, "model": ["449", 0] },
-    "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "LTX_451" }
-  },
   "452": {
     "inputs": {
       "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
       "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
       "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
       "\u2795 Add Lora": "",
-      "model": ["451", 0]
+      "model": ["449", 0]
     },
     "class_type": "Power Lora Loader (rgthree)",
     "_meta": { "title": "LTX_452" }
@@ -338,5 +323,20 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": { "min_dim": 0, "opt_dim": 0, "max_dim": 0 },
     "class_type": "CustomResolutionConfig",
     "_meta": { "title": "LTX_459" }
+  },
+  "463": {
+    "inputs": { "eta": 0, "sampler_name": "PLACEHOLDER", "seed": 0, "bongmath": false },
+    "class_type": "ClownSampler_Beta",
+    "_meta": { "title": "LTX_463" }
+  },
+  "466": {
+    "inputs": { "img_compression": 0, "image": ["86", 0] },
+    "class_type": "LTXVPreprocess",
+    "_meta": { "title": "LTX_466" }
+  },
+  "469": {
+    "inputs": { "img_compression": 0, "image": ["264", 0] },
+    "class_type": "LTXVPreprocess",
+    "_meta": { "title": "LTX_469" }
   }
 }
