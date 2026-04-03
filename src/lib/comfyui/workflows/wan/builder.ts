@@ -4,7 +4,7 @@ import type { WanGenerationParams } from '../types'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
-import { getWanSettings } from '@/lib/database/system-settings'
+import { getWanSettings, type WanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
 import { applyLoraPreset, removeLoraPlaceholder } from './lora-manager'
 
@@ -18,20 +18,6 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   setNode(workflow, WAN.UNET_LOW, { unet_name: settings.unetLow })
   setNode(workflow, WAN.CLIP, { clip_name: settings.clip })
   setNode(workflow, WAN.VAE, { vae_name: settings.vae })
-  if (settings.vfiEnabled) {
-    setNode(workflow, WAN.VFI, {
-      clear_cache_after_n_frames: settings.vfiClearCache,
-      multiplier: settings.vfiMultiplier,
-    })
-    setNode(workflow, WAN.RIFE_MODEL_LOADER, {
-      model: settings.rifeModel,
-      precision: settings.rifePrecision,
-      resolution_profile: settings.rifeResolutionProfile,
-    })
-  } else {
-    bypassVfi(workflow)
-  }
-
   setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
 
@@ -68,18 +54,14 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
 
   setNode(workflow, WAN.SAMPLER, { sampler_name: settings.sampler })
 
-  setNode(workflow, WAN.RTX_SUPER_RES, {
-    resize_type: settings.rtxResizeType,
-    'resize_type.scale': settings.rtxScale,
-    quality: settings.rtxQuality,
-  })
-
   setNode(workflow, WAN.VIDEO_COMBINE, {
     frame_rate: settings.frameRate,
     crf: settings.videoCrf,
     format: settings.videoFormat,
     pix_fmt: settings.videoPixFmt,
   })
+
+  configurePostProcessing(workflow, settings)
 
   setNode(workflow, WAN.LOAD_IMAGE_START, { image: params.inputImage })
 
@@ -116,14 +98,78 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   return workflow
 }
 
-function bypassVfi(workflow: ComfyUIWorkflow) {
-  const vfiNode = workflow[WAN.VFI]
-  const vfiInput = vfiNode?.inputs?.frames as [string, number] | undefined
-  if (vfiInput) {
-    setNode(workflow, WAN.VRAM_DEBUG_VFI, { image_pass: vfiInput })
+function configurePostProcessing(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  let lastOutput: string = WAN.VAE_DECODE
+
+  if (settings.colorMatchEnabled) {
+    setNode(workflow, WAN.COLOR_MATCH, {
+      method: settings.colorMatchMethod,
+      strength: settings.colorMatchStrength,
+      image_target: [lastOutput, 0],
+    })
+    lastOutput = WAN.COLOR_MATCH
+  } else {
+    delete workflow[WAN.COLOR_MATCH]
   }
-  delete workflow[WAN.VFI]
-  delete workflow[WAN.RIFE_MODEL_LOADER]
+
+  if (settings.vfiEnabled) {
+    if (settings.vfiMethod === 'rife') {
+      setNode(workflow, WAN.VFI, {
+        clear_cache_after_n_frames: settings.vfiClearCache,
+        multiplier: settings.vfiMultiplier,
+        frames: [lastOutput, 0],
+      })
+      setNode(workflow, WAN.RIFE_MODEL_LOADER, {
+        model: settings.rifeModel,
+        precision: settings.rifePrecision,
+        resolution_profile: settings.rifeResolutionProfile,
+      })
+      if (settings.rifeResolutionProfile === 'custom') {
+        setNode(workflow, WAN.RIFE_CUSTOM_CONFIG, {
+          min_dim: settings.rifeCustomMinDim,
+          opt_dim: settings.rifeCustomOptDim,
+          max_dim: settings.rifeCustomMaxDim,
+        })
+        setNode(workflow, WAN.RIFE_MODEL_LOADER, {
+          custom_config: [WAN.RIFE_CUSTOM_CONFIG, 0],
+        })
+      } else {
+        delete workflow[WAN.RIFE_CUSTOM_CONFIG]
+      }
+      lastOutput = WAN.VFI
+      delete workflow[WAN.GMFSS_VFI]
+    } else {
+      setNode(workflow, WAN.GMFSS_VFI, {
+        ckpt_name: settings.gmfssModel,
+        clear_cache_after_n_frames: settings.vfiClearCache,
+        multiplier: settings.vfiMultiplier,
+        frames: [lastOutput, 0],
+      })
+      lastOutput = WAN.GMFSS_VFI
+      delete workflow[WAN.VFI]
+      delete workflow[WAN.RIFE_MODEL_LOADER]
+      delete workflow[WAN.RIFE_CUSTOM_CONFIG]
+    }
+  } else {
+    delete workflow[WAN.VFI]
+    delete workflow[WAN.RIFE_MODEL_LOADER]
+    delete workflow[WAN.RIFE_CUSTOM_CONFIG]
+    delete workflow[WAN.GMFSS_VFI]
+  }
+
+  setNode(workflow, WAN.VRAM_DEBUG_VFI, { image_pass: [lastOutput, 0] })
+
+  if (settings.rtxEnabled) {
+    setNode(workflow, WAN.RTX_SUPER_RES, {
+      resize_type: settings.rtxResizeType,
+      'resize_type.scale': settings.rtxScale,
+      quality: settings.rtxQuality,
+      images: [WAN.VRAM_DEBUG_VFI, 1],
+    })
+  } else {
+    delete workflow[WAN.RTX_SUPER_RES]
+    setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.VRAM_DEBUG_VFI, 1] })
+  }
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
