@@ -21,7 +21,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
       <div className="overflow-x-auto">
         <div className="min-w-175">
       <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
-        <div className="col-span-2">
+        <div className="col-span-3">
           <SortableHeader field="nickname" sort={sort} onSort={onSort}>닉네임</SortableHeader>
         </div>
         <div className="col-span-2">
@@ -30,11 +30,8 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
         <div className="col-span-1">
           <SortableHeader field="position" sort={sort} onSort={onSort}>위치</SortableHeader>
         </div>
-        <div className="col-span-3">
-          <SortableHeader field="createdAt" sort={sort} onSort={onSort}>생성일</SortableHeader>
-        </div>
-        <div className="col-span-2">NSFW/기타</div>
-        <div className="col-span-2">작업 정보</div>
+        <div className="col-span-3">NSFW/기타</div>
+        <div className="col-span-3">작업 정보</div>
       </div>
 
       <div className="divide-y">
@@ -49,15 +46,14 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 className="px-4 py-3 hover:bg-muted/50 cursor-pointer grid grid-cols-12 gap-4 items-center text-sm"
                 onClick={() => onToggleExpand(itemId)}
               >
-                <div className="col-span-2 font-medium">{request.nickname}</div>
+                <div className="col-span-3 font-medium">{request.nickname}</div>
                 <div className="col-span-2">
                   <Badge className={`text-xs ${getStatusBgColor(request.status)}`}>
                     {request.status}
                   </Badge>
                 </div>
                 <div className="col-span-1">#{request.position}</div>
-                <div className="col-span-3 text-xs">{formatDate(request.createdAt)}</div>
-                <div className="col-span-2 flex items-center gap-1">
+                <div className="col-span-3 flex items-center gap-1">
                   {request.videoModel && (
                     <Badge variant="outline" className="text-xs">{request.videoModel === 'wan' ? 'WAN' : 'LTX'}</Badge>
                   )}
@@ -68,7 +64,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
                   )}
                 </div>
-                <div className="col-span-2 flex items-center">
+                <div className="col-span-3 flex items-center">
                   {request.generationMode && (
                     <Badge variant="outline" className="text-xs">
                       {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : '기본'}{request.audioFile ? '+오디오' : ''}
@@ -110,6 +106,13 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <div>
                       <span className="font-medium">모델:</span>
                       <span className="ml-2">{request.videoModel === 'wan' ? 'WAN 2.2' : request.videoModel === 'ltx' ? 'LTX 2.3' : request.videoModel}</span>
+                    </div>
+                  )}
+
+                  {request.createdAt && (
+                    <div>
+                      <span className="font-medium">생성일:</span>
+                      <span className="ml-2">{formatDate(request.createdAt)}</span>
                     </div>
                   )}
 
