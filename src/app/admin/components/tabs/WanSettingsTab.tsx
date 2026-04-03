@@ -30,7 +30,6 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
   { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: '생성' },
-  { key: 'wan.length', label: '프레임 수', type: 'number', step: 1, group: '생성' },
 
   { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'NAG' },
   { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'NAG' },

@@ -34,7 +34,6 @@ const LTX_SHARED_TOP: SettingsField[] = [
   { key: 'ltx.audio_vae', label: 'Audio VAE', type: 'model', group: '모델 & 인코딩', modelCategory: 'kjVaes' as ModelCategory },
   { key: 'ltx.video_vae', label: 'Video VAE', type: 'model', group: '모델 & 인코딩', modelCategory: 'kjVaes' as ModelCategory },
   { key: 'ltx.frame_rate', label: 'FPS', type: 'number', step: 1, group: '모델 & 인코딩' },
-  { key: 'ltx.duration', label: '길이 (초)', type: 'number', step: 1, group: '모델 & 인코딩' },
 ];
 
 const LTX_SHARED_BOTTOM: SettingsField[] = [

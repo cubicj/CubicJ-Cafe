@@ -90,7 +90,6 @@ export interface WanSettings {
   moeBoundary: number;
   moeInterval: number;
   moeDenoise: number;
-  length: number;
   sampler: string;
   negativePrompt: string;
   resizeMultipleOf: number;
@@ -113,7 +112,6 @@ export interface LtxSharedSettings {
   audioVae: string;
   videoVae: string;
   frameRate: number;
-  duration: number;
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
@@ -236,7 +234,6 @@ export const WAN_KEYS = {
   moeBoundary: 'wan.moe_boundary',
   moeInterval: 'wan.moe_interval',
   moeDenoise: 'wan.moe_denoise',
-  length: 'wan.length',
   sampler: 'wan.sampler',
   negativePrompt: 'wan.negative_prompt',
   resizeMultipleOf: 'wan.resize_multiple_of',
@@ -259,7 +256,6 @@ export const LTX_SHARED_KEYS = {
   audioVae: 'ltx.audio_vae',
   videoVae: 'ltx.video_vae',
   frameRate: 'ltx.frame_rate',
-  duration: 'ltx.duration',
   megapixels: 'ltx.megapixels',
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
@@ -401,7 +397,6 @@ export async function getWanSettings(): Promise<WanSettings> {
     moeBoundary: parseFloat(map.get(WAN_KEYS.moeBoundary)!),
     moeInterval: parseFloat(map.get(WAN_KEYS.moeInterval)!),
     moeDenoise: parseFloat(map.get(WAN_KEYS.moeDenoise)!),
-    length: parseInt(map.get(WAN_KEYS.length)!, 10),
     sampler: map.get(WAN_KEYS.sampler)!,
     negativePrompt: map.get(WAN_KEYS.negativePrompt)!,
     resizeMultipleOf: parseInt(map.get(WAN_KEYS.resizeMultipleOf)!, 10),
@@ -447,7 +442,6 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     audioVae: map.get(LTX_SHARED_KEYS.audioVae)!,
     videoVae: map.get(LTX_SHARED_KEYS.videoVae)!,
     frameRate: parseFloat(map.get(LTX_SHARED_KEYS.frameRate)!),
-    duration: parseInt(map.get(LTX_SHARED_KEYS.duration)!, 10),
     megapixels: parseFloat(map.get(LTX_SHARED_KEYS.megapixels)!),
     resizeMultipleOf: parseInt(map.get(LTX_SHARED_KEYS.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(LTX_SHARED_KEYS.resizeUpscaleMethod)!,
