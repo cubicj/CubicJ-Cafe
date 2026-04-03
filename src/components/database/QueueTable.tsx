@@ -30,7 +30,8 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
         <div className="col-span-1">
           <SortableHeader field="position" sort={sort} onSort={onSort}>위치</SortableHeader>
         </div>
-        <div className="col-span-3">NSFW/기타</div>
+        <div className="col-span-1">길이</div>
+        <div className="col-span-2">NSFW/기타</div>
         <div className="col-span-3">작업 정보</div>
       </div>
 
@@ -53,12 +54,12 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   </Badge>
                 </div>
                 <div className="col-span-1">#{request.position}</div>
-                <div className="col-span-3 flex items-center gap-1">
+                <div className="col-span-1 text-xs">
+                  {request.videoDuration && `${request.videoDuration}초`}
+                </div>
+                <div className="col-span-2 flex items-center gap-1">
                   {request.videoModel && (
                     <Badge variant="outline" className="text-xs">{request.videoModel === 'wan' ? 'WAN' : 'LTX'}</Badge>
-                  )}
-                  {request.videoDuration && (
-                    <Badge variant="outline" className="text-xs">{request.videoDuration}초</Badge>
                   )}
                   {request.isNSFW && (
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
