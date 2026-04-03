@@ -21,17 +21,17 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
       <div className="overflow-x-auto">
         <div className="min-w-175">
       <div className="bg-muted px-4 py-3 border-b font-medium text-sm grid grid-cols-12 gap-4">
+        <div className="col-span-1">
+          <SortableHeader field="position" sort={sort} onSort={onSort}>위치</SortableHeader>
+        </div>
         <div className="col-span-3">
           <SortableHeader field="nickname" sort={sort} onSort={onSort}>닉네임</SortableHeader>
         </div>
         <div className="col-span-2">
           <SortableHeader field="status" sort={sort} onSort={onSort}>상태</SortableHeader>
         </div>
-        <div className="col-span-1">
-          <SortableHeader field="position" sort={sort} onSort={onSort}>위치</SortableHeader>
-        </div>
         <div className="col-span-1">길이</div>
-        <div className="col-span-2">NSFW/기타</div>
+        <div className="col-span-2">모델/NSFW</div>
         <div className="col-span-3">작업 정보</div>
       </div>
 
@@ -47,13 +47,13 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 className="px-4 py-3 hover:bg-muted/50 cursor-pointer grid grid-cols-12 gap-4 items-center text-sm"
                 onClick={() => onToggleExpand(itemId)}
               >
+                <div className="col-span-1">#{request.position}</div>
                 <div className="col-span-3 font-medium">{request.nickname}</div>
                 <div className="col-span-2">
                   <Badge className={`text-xs ${getStatusBgColor(request.status)}`}>
                     {request.status}
                   </Badge>
                 </div>
-                <div className="col-span-1">#{request.position}</div>
                 <div className="col-span-1 text-xs">
                   {request.videoDuration && `${request.videoDuration}초`}
                 </div>
