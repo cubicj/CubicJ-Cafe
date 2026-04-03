@@ -27,6 +27,7 @@ const LTX_SHARED_TOP: SettingsField[] = [
   { key: 'ltx.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '입력' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '입력' },
   { key: 'ltx.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '입력', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
+  { key: 'ltx.img_compression', label: 'Image Compression', type: 'number', step: 1, group: '입력' },
 
   { key: 'ltx.clip_gguf', label: 'CLIP GGUF 모델', type: 'model', group: '모델 & 인코딩', modelCategory: 'ggufClips' as ModelCategory },
   { key: 'ltx.clip_embeddings', label: 'CLIP Embeddings 모델', type: 'model', group: '모델 & 인코딩', modelCategory: 'clipEmbeddings' as ModelCategory },
@@ -84,7 +85,10 @@ const LTX_1PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.1pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1 Pass' },
   { key: 'ltx.1pass.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: '1 Pass', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
   { key: 'ltx.1pass.distilled_lora_strength', label: 'Distilled LoRA Strength', type: 'number', step: 0.1, group: '1 Pass' },
-  { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1 Pass' },
+  { key: 'ltx.sampler', label: '샘플러', type: 'nodeOption', group: '1 Pass', nodeQuery: 'clown_sampler:ClownSampler_Beta:sampler_name' },
+  { key: 'ltx.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: '1 Pass' },
+  { key: 'ltx.clown_seed', label: 'Seed', type: 'number', step: 1, group: '1 Pass' },
+  { key: 'ltx.clown_bongmath', label: 'Bongmath', type: 'boolean', group: '1 Pass' },
 ];
 
 const LTX_2PASS_FIELDS: SettingsField[] = [
@@ -108,7 +112,10 @@ const LTX_2PASS_FIELDS: SettingsField[] = [
   { key: 'ltx.2pass.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: '1st Pass' },
   { key: 'ltx.2pass.scheduler_stretch', label: 'Stretch', type: 'boolean', group: '1st Pass' },
   { key: 'ltx.2pass.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: '1st Pass' },
-  { key: 'ltx.sampler', label: '샘플러', type: 'sampler', group: '1st Pass' },
+  { key: 'ltx.sampler', label: '샘플러', type: 'nodeOption', group: '1st Pass', nodeQuery: 'clown_sampler:ClownSampler_Beta:sampler_name' },
+  { key: 'ltx.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: '1st Pass' },
+  { key: 'ltx.clown_seed', label: 'Seed', type: 'number', step: 1, group: '1st Pass' },
+  { key: 'ltx.clown_bongmath', label: 'Bongmath', type: 'boolean', group: '1st Pass' },
 
   { key: 'ltx.2pass.unet_2nd', label: 'UNet 모델', type: 'model', group: '2nd Pass', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'ltx.2pass.weight_dtype_2nd', label: 'Weight Dtype', type: 'string', group: '2nd Pass' },
