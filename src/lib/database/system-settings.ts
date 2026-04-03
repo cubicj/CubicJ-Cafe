@@ -119,7 +119,6 @@ export interface LtxSharedSettings {
   resizeUpscaleMethod: string;
   sampler: string;
   clownEta: number;
-  clownSeed: number;
   clownBongmath: boolean;
   imgCompression: number;
   negativePrompt: string;
@@ -266,7 +265,6 @@ export const LTX_SHARED_KEYS = {
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
   sampler: 'ltx.sampler',
   clownEta: 'ltx.clown_eta',
-  clownSeed: 'ltx.clown_seed',
   clownBongmath: 'ltx.clown_bongmath',
   imgCompression: 'ltx.img_compression',
   negativePrompt: 'ltx.negative_prompt',
@@ -455,7 +453,6 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     resizeUpscaleMethod: map.get(LTX_SHARED_KEYS.resizeUpscaleMethod)!,
     sampler: map.get(LTX_SHARED_KEYS.sampler)!,
     clownEta: parseFloat(map.get(LTX_SHARED_KEYS.clownEta)!),
-    clownSeed: parseInt(map.get(LTX_SHARED_KEYS.clownSeed)!, 10),
     clownBongmath: map.get(LTX_SHARED_KEYS.clownBongmath)! === 'true',
     imgCompression: parseInt(map.get(LTX_SHARED_KEYS.imgCompression)!, 10),
     negativePrompt: map.get(LTX_SHARED_KEYS.negativePrompt)!,

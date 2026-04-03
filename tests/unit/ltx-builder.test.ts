@@ -28,7 +28,6 @@ const SHARED_SETTINGS = {
   loraEnabled: true,
   sampler: 'fake_sampler_v2',
   clownEta: 1.0,
-  clownSeed: 0,
   clownBongmath: false,
   imgCompression: 6,
   duration: 6,
@@ -209,7 +208,7 @@ describe('buildLtxWorkflow', () => {
         expect(workflow['463']).toBeDefined()
         expect(workflow['463']!.inputs!.sampler_name).toBe(SHARED_SETTINGS.sampler)
         expect(workflow['463']!.inputs!.eta).toBe(SHARED_SETTINGS.clownEta)
-        expect(workflow['463']!.inputs!.seed).toBe(SHARED_SETTINGS.clownSeed)
+        expect(typeof workflow['463']!.inputs!.seed).toBe('number')
         expect(workflow['463']!.inputs!.bongmath).toBe(SHARED_SETTINGS.clownBongmath)
       })
 
