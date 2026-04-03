@@ -58,7 +58,7 @@ export async function buildLtxWorkflow(
     prompt: params.prompt.substring(0, 50),
     passMode: settings.passMode,
     hasEndImage: !!params.endImage,
-    duration: settings.duration,
+    videoDuration: params.videoDuration,
     loraEnabled: settings.loraEnabled,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
     hasReferenceAudio: !!params.referenceAudio,
@@ -101,7 +101,7 @@ function configureGeneration(
     bongmath: settings.clownBongmath,
   })
   setNode(workflow, LTX.PREPROCESS_START, { img_compression: settings.imgCompression })
-  setNode(workflow, LTX.DURATION, { value: settings.duration })
+  setNode(workflow, LTX.DURATION, { value: params.videoDuration })
   setNode(workflow, LTX.FRAME_RATE, { number: Math.round(settings.frameRate) })
   setNode(workflow, LTX.RESIZE, {
     megapixels: settings.megapixels,

@@ -49,8 +49,9 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
     denoise: settings.moeDenoise,
   })
 
-  setNode(workflow, WAN.FIRST_LAST_FRAME_HIGH, { length: settings.length })
-  setNode(workflow, WAN.FIRST_LAST_FRAME_LOW, { length: settings.length })
+  const frameCount = 16 * params.videoDuration + 1
+  setNode(workflow, WAN.FIRST_LAST_FRAME_HIGH, { length: frameCount })
+  setNode(workflow, WAN.FIRST_LAST_FRAME_LOW, { length: frameCount })
 
   setNode(workflow, WAN.SAMPLER, { sampler_name: settings.sampler })
 
@@ -88,7 +89,7 @@ export async function buildWanWorkflow(params: WanGenerationParams, _server?: Co
   log.info('WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
-    videoLength: settings.length,
+    videoDuration: params.videoDuration,
     loraEnabled: settings.loraEnabled,
     hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
   })
