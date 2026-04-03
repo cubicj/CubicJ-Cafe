@@ -111,6 +111,7 @@ export const POST = createRouteHandler(
 
       let audioBuffer = null;
       let audioTempFileName = null;
+      let audioPresetName = null;
       if (capabilities.audio && validated.audioPresetId) {
         const audioPreset = await AudioPresetService.getPresetWithBlob(
           validated.audioPresetId,
@@ -118,6 +119,7 @@ export const POST = createRouteHandler(
         );
         if (audioPreset) {
           audioBuffer = Buffer.from(audioPreset.audioBlob);
+          audioPresetName = audioPreset.name;
           const audioExtension = audioPreset.audioFilename.split('.').pop() || 'wav';
           audioTempFileName = `audio_${randomUUID()}_${req.user!.id}_${Date.now()}.${audioExtension}`;
         }
@@ -142,6 +144,7 @@ export const POST = createRouteHandler(
         endImageBlob: endImageBuffer || undefined,
         audioFile: audioTempFileName || undefined,
         audioBlob: audioBuffer || undefined,
+        audioPresetName: audioPresetName || undefined,
         loraPreset: loraPresetData,
         isNSFW: isNSFW,
         serverType: selectedServer.serverType,

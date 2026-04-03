@@ -87,6 +87,7 @@ export const GET = createRouteHandler(
             imageFile: true,
             endImageFile: true,
             audioFile: true,
+            audioPresetName: true,
             loraPresetData: true,
             isNSFW: true,
             jobId: true,
