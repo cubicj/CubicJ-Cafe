@@ -46,6 +46,8 @@ export default function I2VPageClient() {
     handleSubmit,
     handleReset,
     handleRefreshStatus,
+    videoDuration,
+    setVideoDuration,
   } = useI2VForm();
 
   const handleSignIn = () => {
@@ -155,6 +157,32 @@ export default function I2VPageClient() {
                           }`}
                         >
                           {MODEL_REGISTRY[model].displayName}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </Card>
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Film className="h-4 w-4" />
+                  영상 길이
+                </h2>
+                <Card className="p-4">
+                  <div className="flex gap-2">
+                    {MODEL_REGISTRY[activeModel].durationOptions.map(
+                      duration => (
+                        <button
+                          key={duration}
+                          onClick={() => setVideoDuration(duration)}
+                          className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            videoDuration === duration
+                              ? 'bg-violet-600 text-white shadow-md'
+                              : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          {duration}초
                         </button>
                       )
                     )}
