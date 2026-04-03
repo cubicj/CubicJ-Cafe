@@ -199,9 +199,57 @@ describe('buildLtxWorkflow', () => {
         expect(workflow['453']!.inputs!.nag_tau).toBe(2.1)
       })
 
-      it('injects sampler into node 20', async () => {
+      it('injects sampler into ClownSampler node 463', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
-        expect(workflow['20']!.inputs!.sampler_name).toBe('fake_sampler_v2')
+        expect(workflow['463']!.inputs!.sampler_name).toBe('fake_sampler_v2')
+      })
+
+      it('sets ClownSampler params in node 463', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['463']).toBeDefined()
+        expect(workflow['463']!.inputs!.sampler_name).toBe(SHARED_SETTINGS.sampler)
+        expect(workflow['463']!.inputs!.eta).toBe(SHARED_SETTINGS.clownEta)
+        expect(workflow['463']!.inputs!.seed).toBe(SHARED_SETTINGS.clownSeed)
+        expect(workflow['463']!.inputs!.bongmath).toBe(SHARED_SETTINGS.clownBongmath)
+      })
+
+      it('does not contain old KSamplerSelect node 20', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['20']).toBeUndefined()
+      })
+
+      it('sets LTXVPreprocess start image compression in node 466', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['466']).toBeDefined()
+        expect(workflow['466']!.inputs!.img_compression).toBe(SHARED_SETTINGS.imgCompression)
+      })
+
+      it('sets LTXVPreprocess end image in node 469 when endImage provided', async () => {
+        const params: LtxGenerationParams = { ...baseParams, endImage: 'end.png' }
+        const workflow = await buildLtxWorkflow(params)
+        expect(workflow['469']).toBeDefined()
+        expect(workflow['469']!.inputs!.img_compression).toBe(SHARED_SETTINGS.imgCompression)
+      })
+
+      it('removes LTXVPreprocess end node 469 when no endImage', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['469']).toBeUndefined()
+      })
+
+      it('does not contain ModelPatchTorchSettings nodes 354 and 451', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['354']).toBeUndefined()
+        expect(workflow['451']).toBeUndefined()
+      })
+
+      it('wires PowerLora 1st directly to SageAttention', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['448']!.inputs!.model).toEqual(['298', 0])
+      })
+
+      it('wires sampler to ClownSampler', async () => {
+        const workflow = await buildLtxWorkflow(baseParams)
+        expect(workflow['17']!.inputs!.sampler).toEqual(['463', 0])
       })
 
       it('injects duration into node 103', async () => {
@@ -353,12 +401,12 @@ describe('buildLtxWorkflow', () => {
       it('preserves all critical nodes', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
         const criticalNodes = [
-          '1', '2', '5', '6', '16', '20', '72', '86', '87', '103',
+          '1', '2', '5', '6', '16', '72', '86', '87', '103',
           '265', '297', '298', '322', '333', '339', '340', '345',
-          '354', '355', '373', '384', '390', '403', '406',
+          '355', '373', '384', '390', '403', '406',
           '407', '409', '416', '417', '418', '419', '421', '422',
-          '431', '437', '443', '444', '448', '449', '450', '451',
-          '452', '453', '457', '458',
+          '431', '437', '443', '444', '448', '449', '450',
+          '452', '453', '457', '458', '463', '466',
         ]
         for (const nodeId of criticalNodes) {
           expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
@@ -378,7 +426,7 @@ describe('buildLtxWorkflow', () => {
 
       it('connects 1st pass model chain: PowerLoRA → NAG → AudioNorm → CFGGuider', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
-        expect(workflow['448']!.inputs!.model).toEqual(['354', 0])
+        expect(workflow['448']!.inputs!.model).toEqual(['298', 0])
         expect(workflow['72']!.inputs!.model).toEqual(['448', 0])
         expect(workflow['457']!.inputs!.model).toEqual(['72', 0])
         expect(workflow['355']!.inputs!.model).toEqual(['457', 0])
@@ -386,7 +434,7 @@ describe('buildLtxWorkflow', () => {
 
       it('connects 2nd pass model chain: PowerLoRA → NAG_2ND → AudioNorm → CFGGuider_2ND', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
-        expect(workflow['452']!.inputs!.model).toEqual(['451', 0])
+        expect(workflow['452']!.inputs!.model).toEqual(['449', 0])
         expect(workflow['453']!.inputs!.model).toEqual(['452', 0])
         expect(workflow['458']!.inputs!.model).toEqual(['453', 0])
         expect(workflow['407']!.inputs!.model).toEqual(['458', 0])
