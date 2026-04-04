@@ -12,8 +12,8 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     displayName: 'LTX 2.3',
     capabilities: { loraPresets: true, endImage: true, videoDuration: true, audio: true },
     defaultSubfolder: 'LTX',
-    durationOptions: [6, 7, 8],
-    defaultDuration: 6,
+    durationOptions: [5, 6, 7, 8],
+    defaultDuration: 5,
   },
 }
 
