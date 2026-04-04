@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientIcon } from '@/components/ui/client-icon';
 import { Video, Image } from 'lucide-react';
-import { Github } from 'lucide-react';
+import { GithubIcon } from '@/components/icons/GithubIcon';
 
 export default function Home() {
   return (
@@ -47,7 +47,7 @@ export default function Home() {
 
           <Card className="text-center">
             <CardHeader>
-              <ClientIcon icon={Github} className="h-12 w-12 mx-auto text-slate-700" fallback="🐙" />
+              <GithubIcon className="h-12 w-12 mx-auto text-slate-700" />
               <CardTitle>GitHub</CardTitle>
             </CardHeader>
             <CardContent>
