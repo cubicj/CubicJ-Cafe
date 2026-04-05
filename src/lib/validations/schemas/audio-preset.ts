@@ -18,14 +18,6 @@ export const createAudioPresetSchema = z.object({
   audio: audioFileSchema,
 })
 
-export const renameAudioPresetSchema = z.object({
-  name: z
-    .string()
-    .min(1, '프리셋 이름은 필수입니다')
-    .max(100)
-    .transform((s) => s.trim()),
-})
-
 export const updateAudioPresetSchema = z.object({
   name: z
     .string()

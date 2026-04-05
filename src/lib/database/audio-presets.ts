@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/database/prisma'
 import { createLogger } from '@/lib/logger'
 
@@ -65,26 +66,13 @@ export class AudioPresetService {
     return preset
   }
 
-  static async renamePreset(presetId: string, userId: number, name: string) {
-    const existing = await prisma.audioPreset.findFirst({
-      where: { id: presetId, userId },
-    })
-    if (!existing) return null
-
-    return prisma.audioPreset.update({
-      where: { id: presetId },
-      data: { name },
-      select: PRESET_SELECT_WITHOUT_BLOB,
-    })
-  }
-
   static async updatePreset(presetId: string, userId: number, data: UpdateAudioPresetData) {
     const existing = await prisma.audioPreset.findFirst({
       where: { id: presetId, userId },
     })
     if (!existing) return null
 
-    const updateData: Record<string, unknown> = { name: data.name }
+    const updateData: Prisma.AudioPresetUpdateInput = { name: data.name }
     if (data.audioBlob) {
       updateData.audioBlob = data.audioBlob as Uint8Array<ArrayBuffer>
       updateData.audioFilename = data.audioFilename
