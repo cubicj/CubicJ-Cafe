@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandler } from '@/lib/api/route-handler'
-import { AudioPresetService } from '@/lib/database/audio-presets'
-import { parseBody } from '@/lib/validations/parse'
-import { renameAudioPresetSchema } from '@/lib/validations/schemas/audio-preset'
+import { AudioPresetService, UpdateAudioPresetData } from '@/lib/database/audio-presets'
+import { parseFormData } from '@/lib/validations/parse'
+import { updateAudioPresetSchema } from '@/lib/validations/schemas/audio-preset'
 
 export const GET = createRouteHandler<{ id: string }>(
   { auth: 'user' },
@@ -20,16 +20,21 @@ export const PUT = createRouteHandler<{ id: string }>(
   { auth: 'user' },
   async (req, { params }) => {
     const { id } = params
-    let body
-    try {
-      body = await req.json()
-    } catch {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-    }
-    const result = parseBody(renameAudioPresetSchema, body)
+    const formData = await req.formData()
+    const result = parseFormData(updateAudioPresetSchema, formData)
     if (!result.success) return result.response
 
-    const preset = await AudioPresetService.renamePreset(id, Number(req.user!.id), result.data.name)
+    const { name, audio } = result.data
+    const updateData: UpdateAudioPresetData = { name }
+
+    if (audio) {
+      updateData.audioBlob = new Uint8Array(await audio.arrayBuffer())
+      updateData.audioFilename = audio.name
+      updateData.audioMimeType = audio.type
+      updateData.audioSize = audio.size
+    }
+
+    const preset = await AudioPresetService.updatePreset(id, Number(req.user!.id), updateData)
     if (!preset) {
       return NextResponse.json({ error: 'Preset not found or no permission' }, { status: 404 })
     }
