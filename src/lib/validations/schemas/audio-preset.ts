@@ -26,6 +26,15 @@ export const renameAudioPresetSchema = z.object({
     .transform((s) => s.trim()),
 })
 
+export const updateAudioPresetSchema = z.object({
+  name: z
+    .string()
+    .min(1, '프리셋 이름은 필수입니다')
+    .max(100)
+    .transform((s) => s.trim()),
+  audio: audioFileSchema.optional(),
+})
+
 export const reorderAudioPresetsSchema = z.object({
   presetIds: z.array(z.string().min(1)).min(1, '프리셋 ID 배열이 필요합니다').max(100),
 })

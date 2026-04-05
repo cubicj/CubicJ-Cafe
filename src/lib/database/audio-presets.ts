@@ -25,6 +25,14 @@ export interface CreateAudioPresetData {
   audioSize: number
 }
 
+export interface UpdateAudioPresetData {
+  name: string
+  audioBlob?: Uint8Array
+  audioFilename?: string
+  audioMimeType?: string
+  audioSize?: number
+}
+
 export class AudioPresetService {
   static async getUserPresets(userId: number) {
     return prisma.audioPreset.findMany({
@@ -68,6 +76,30 @@ export class AudioPresetService {
       data: { name },
       select: PRESET_SELECT_WITHOUT_BLOB,
     })
+  }
+
+  static async updatePreset(presetId: string, userId: number, data: UpdateAudioPresetData) {
+    const existing = await prisma.audioPreset.findFirst({
+      where: { id: presetId, userId },
+    })
+    if (!existing) return null
+
+    const updateData: Record<string, unknown> = { name: data.name }
+    if (data.audioBlob) {
+      updateData.audioBlob = data.audioBlob as Uint8Array<ArrayBuffer>
+      updateData.audioFilename = data.audioFilename
+      updateData.audioMimeType = data.audioMimeType
+      updateData.audioSize = data.audioSize
+    }
+
+    const preset = await prisma.audioPreset.update({
+      where: { id: presetId },
+      data: updateData,
+      select: PRESET_SELECT_WITHOUT_BLOB,
+    })
+
+    log.info('Audio preset updated', { name: preset.name, id: preset.id, audioReplaced: !!data.audioBlob })
+    return preset
   }
 
   static async deletePreset(presetId: string, userId: number): Promise<boolean> {
