@@ -34,4 +34,6 @@ export const apiClient = {
   delete: <T>(url: string) => request<T>(url, { method: 'DELETE' }),
   postFormData: <T>(url: string, formData: FormData) =>
     request<T>(url, { method: 'POST', body: formData }),
+  putFormData: <T>(url: string, formData: FormData) =>
+    request<T>(url, { method: 'PUT', body: formData }),
 };
