@@ -11,27 +11,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Music, Play, Square } from 'lucide-react'
-
-interface AudioPreset {
-  id: string
-  name: string
-  audioFilename: string
-  audioMimeType: string
-  audioSize: number
-  order: number
-}
+import { AudioPreset, formatFileSize } from '@/types/audio'
 
 interface AudioPresetDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (name: string, file: File | null) => Promise<void>
   preset?: AudioPreset | null
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export default function AudioPresetDialog({
