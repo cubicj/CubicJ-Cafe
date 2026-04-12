@@ -112,11 +112,12 @@ describe('Audio Presets API', () => {
       const createRes = await POST(buildFormDataRequest('/api/audio-presets', session.id, 'Original', createAudioFile()))
       const { preset } = await createRes.json()
 
+      const renameForm = new FormData()
+      renameForm.append('name', 'Renamed')
       const res = await PUT(
         buildAuthenticatedRequest(`/api/audio-presets/${preset.id}`, session.id, {
           method: 'PUT',
-          body: JSON.stringify({ name: 'Renamed' }),
-          headers: { 'content-type': 'application/json' },
+          body: renameForm,
         }),
         { params: Promise.resolve({ id: preset.id }) }
       )
@@ -135,11 +136,12 @@ describe('Audio Presets API', () => {
       const user2 = await createUser({ discordId: 'other-123', discordUsername: 'other', nickname: 'Other' })
       const session2 = await createTestSession(user2.id)
 
+      const hijackForm = new FormData()
+      hijackForm.append('name', 'Hijack')
       const res = await PUT(
         buildAuthenticatedRequest(`/api/audio-presets/${preset.id}`, session2.id, {
           method: 'PUT',
-          body: JSON.stringify({ name: 'Hijack' }),
-          headers: { 'content-type': 'application/json' },
+          body: hijackForm,
         }),
         { params: Promise.resolve({ id: preset.id }) }
       )
