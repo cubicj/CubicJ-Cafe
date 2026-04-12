@@ -36,7 +36,7 @@ export const i2vSchema = z.object({
   loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   isLoop: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
-  videoDuration: z.coerce.number().int().min(5).max(7).default(5),
+  videoDuration: z.coerce.number().int().min(5).max(8).default(5),
 })
 
 export const i2vStatusQuerySchema = z.object({
