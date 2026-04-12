@@ -276,7 +276,12 @@ class DiscordBot {
         throw new Error('videoPath 또는 filename 중 하나는 반드시 제공되어야 합니다');
       }
       
-      const modelDisplayName = MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName || 'I2V';
+      const DISCORD_MODEL_NAMES: Partial<Record<VideoModel, string>> = {
+        'ltx-wan': 'LTX 2.3+WAN 2.2',
+      }
+      const modelDisplayName = DISCORD_MODEL_NAMES[params.videoModel as VideoModel]
+        ?? MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName
+        ?? 'I2V';
       const embed = {
         title: `CubicJ Cafe I2V - ${modelDisplayName} ${params.isNSFW ? '🔞' : ''}`,
         description: `\`\`\`${params.prompt}\`\`\``,
