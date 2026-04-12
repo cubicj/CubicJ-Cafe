@@ -3,7 +3,7 @@ import { QueueStatus } from '@prisma/client';
 import { ComfyUIClient } from './client';
 import { buildWorkflow } from './workflow-router';
 import { MODEL_REGISTRY } from './workflows/registry';
-import type { GenerationParams } from './workflows/types';
+import type { GenerationParams, VideoModel } from './workflows/types';
 import { jobMonitor } from './job-monitor';
 import type { LoRAPresetData } from '@/types';
 
@@ -288,7 +288,7 @@ class QueueMonitor {
 
 
     try {
-      const videoModel = (request.videoModel as 'wan' | 'ltx') || 'wan';
+      const videoModel = (request.videoModel as VideoModel) || 'wan';
       const modelConfig = MODEL_REGISTRY[videoModel];
 
       const lastModel = this.lastModelByServer.get(server.url);
@@ -364,6 +364,15 @@ class QueueMonitor {
           videoDuration: request.videoDuration,
           loraPreset: loraPreset || undefined,
           endImage: uploadedEndImageName || undefined,
+        };
+      } else if (videoModel === 'ltx-wan') {
+        params = {
+          model: 'ltx-wan',
+          prompt: request.prompt,
+          inputImage,
+          videoDuration: request.videoDuration,
+          endImage: uploadedEndImageName || undefined,
+          referenceAudio: uploadedAudioName || undefined,
         };
       } else {
         params = {
