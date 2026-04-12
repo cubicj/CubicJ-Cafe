@@ -23,6 +23,10 @@ export async function buildLtxWanWorkflow(
   configureLtxNag(workflow, settings)
   configureAudioNorm(workflow, settings)
 
+  if (settings.distilledLoraEnabled) {
+    applyDistilledLora(workflow, settings)
+  }
+
   if (params.referenceAudio) {
     handleReferenceAudio(workflow, params.referenceAudio, settings)
   }
@@ -121,6 +125,16 @@ function configureAudioNorm(workflow: ComfyUIWorkflow, settings: LtxWanSettings)
   } else {
     delete workflow[LTX_WAN.AUDIO_NORM]
     setNode(workflow, LTX_WAN.CFG_GUIDER, { model: [LTX_WAN.NAG_LTX, 0] })
+  }
+}
+
+function applyDistilledLora(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
+  const node = workflow[LTX_WAN.POWER_LORA]
+  if (!node?.inputs) return
+  node.inputs['lora_3'] = {
+    on: true,
+    lora: settings.distilledLoraName,
+    strength: settings.distilledLoraStrength,
   }
 }
 
