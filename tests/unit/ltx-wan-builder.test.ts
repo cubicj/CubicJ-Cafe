@@ -152,7 +152,7 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
     expect(workflow[LTX_WAN.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
     expect(workflow[LTX_WAN.LOAD_IMAGE_END]).toBeUndefined()
-    expect(workflow[LTX_WAN.END_FRAME_MATH]).toBeUndefined()
+    expect(workflow[LTX_WAN.END_FRAME_MATH]).toBeDefined()
   })
 
   it('includes end image when provided', async () => {
