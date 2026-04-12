@@ -1,0 +1,88 @@
+export const LTX_WAN = {
+  // === LTX Pass — Input ===
+  LOAD_IMAGE_START: '8',
+  RESIZE_START: '25',
+  LOAD_IMAGE_END: '6',
+  RESIZE_END: '20',
+  PREPROCESS_START: '17',
+  PREPROCESS_END: '1',
+
+  // === LTX Pass — Models & Encoding ===
+  UNET: '30',
+  SAGE_ATTENTION: '21',
+  CLIP: '39',
+  VIDEO_VAE: '38',
+  AUDIO_VAE: '37',
+  POWER_LORA: '33',
+  FRAME_RATE: '3',
+  DURATION: '36',
+  FRAME_COUNT_MATH: '2',
+
+  // === LTX Pass — Conditioning & Sampling ===
+  POSITIVE_PROMPT: '55',
+  NEGATIVE_PROMPT_LTX: '161',
+  CLIP_ENCODE_POS: '13',
+  CLIP_ENCODE_NEG: '27',
+  CONDITIONING: '7',
+  REFERENCE_AUDIO: '28',
+  LOAD_AUDIO: '14',
+  NAG_LTX: '23',
+  AUDIO_NORM: '157',
+  CFG_GUIDER: '29',
+  EMPTY_LATENT_VIDEO: '19',
+  EMPTY_LATENT_AUDIO: '9',
+  IMG_TO_VIDEO: '18',
+  END_FRAME_MATH: '31',
+  CONCAT_AV: '24',
+  SCHEDULER: '32',
+  CLOWN_SAMPLER_LTX: '41',
+  NOISE_SEED_LTX: '42',
+  SAMPLER_LTX: '12',
+
+  // === LTX Pass — Decode ===
+  VRAM_POST_SAMPLE: '15',
+  SEPARATE_AV: '16',
+  VAE_DECODE_LTX: '10',
+  AUDIO_DECODE: '11',
+  VRAM_POST_DECODE: '5',
+
+  // === WAN Pass — Models ===
+  UNET_WAN: '75',
+  MODEL_SAMPLING: '59',
+  SAGE_ATTENTION_WAN: '43',
+  CLIP_WAN: '73',
+  VAE_WAN: '74',
+  POWER_LORA_WAN: '72',
+
+  // === WAN Pass — Conditioning & Sampling ===
+  CLIP_ENCODE_POS_WAN: '51',
+  CLIP_ENCODE_NEG_WAN: '52',
+  NEGATIVE_PROMPT_WAN: '56',
+  FIRST_LAST_FRAME: '53',
+  FRAME_FROM_BATCH_START: '91',
+  FRAME_FROM_BATCH_END: '92',
+  VAE_ENCODE_WAN: '93',
+  NAG_WAN: '77',
+  BASIC_GUIDER: '66',
+  BASIC_SCHEDULER: '160',
+  SIGMAS_RESCALE: '154',
+  CLOWN_SAMPLER_WAN: '166',
+  NOISE_SEED_WAN: '95',
+  SAMPLER_WAN: '67',
+
+  // === WAN Pass — Decode ===
+  VRAM_POST_SAMPLE_WAN: '78',
+  VAE_DECODE_WAN: '60',
+
+  // === Post Processing ===
+  VFI_MULTIPLIER: '34',
+  VFI: '168',
+  RIFE_MODEL_LOADER: '169',
+  RIFE_CUSTOM_CONFIG: '170',
+  RTX_SUPER_RES: '84',
+  VFI_FRAME_RATE: '35',
+
+  // === Output ===
+  VIDEO_OUTPUT: '82',
+  VRAM_POST_OUTPUT: '64',
+} as const
