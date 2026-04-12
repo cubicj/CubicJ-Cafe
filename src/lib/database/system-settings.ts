@@ -541,6 +541,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
 
 export interface LtxWanSettings {
   audioNormEnabled: boolean
+  distilledLoraEnabled: boolean
   loraEnabledWan: boolean
   vfiEnabled: boolean
   rtxEnabled: boolean
@@ -577,6 +578,9 @@ export interface LtxWanSettings {
   identityEndPercent: number
   idLoraName: string
   idLoraStrength: number
+
+  distilledLoraName: string
+  distilledLoraStrength: number
 
   negativePromptLtx: string
 
@@ -623,6 +627,7 @@ export interface LtxWanSettings {
 
 export const LTX_WAN_KEYS = {
   audioNormEnabled: 'ltx-wan.audio_norm_enabled',
+  distilledLoraEnabled: 'ltx-wan.distilled_lora_enabled',
   loraEnabledWan: 'ltx-wan.lora_enabled_wan',
   vfiEnabled: 'ltx-wan.vfi_enabled',
   rtxEnabled: 'ltx-wan.rtx_enabled',
@@ -659,6 +664,9 @@ export const LTX_WAN_KEYS = {
   identityEndPercent: 'ltx-wan.identity_end_percent',
   idLoraName: 'ltx-wan.id_lora_name',
   idLoraStrength: 'ltx-wan.id_lora_strength',
+
+  distilledLoraName: 'ltx-wan.distilled_lora_name',
+  distilledLoraStrength: 'ltx-wan.distilled_lora_strength',
 
   negativePromptLtx: 'ltx-wan.negative_prompt_ltx',
 
@@ -713,6 +721,7 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
 
   return {
     audioNormEnabled: map.get(k.audioNormEnabled)! === 'true',
+    distilledLoraEnabled: map.get(k.distilledLoraEnabled)! === 'true',
     loraEnabledWan: map.get(k.loraEnabledWan)! === 'true',
     vfiEnabled: map.get(k.vfiEnabled)! === 'true',
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
@@ -749,6 +758,9 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
     idLoraName: map.get(k.idLoraName)!,
     idLoraStrength: parseFloat(map.get(k.idLoraStrength)!),
+
+    distilledLoraName: map.get(k.distilledLoraName)!,
+    distilledLoraStrength: parseFloat(map.get(k.distilledLoraStrength)!),
 
     negativePromptLtx: map.get(k.negativePromptLtx)!,
 

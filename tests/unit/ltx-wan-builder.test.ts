@@ -22,6 +22,7 @@ const mockSettings = vi.mocked(getLtxWanSettings)
 
 const BASE_SETTINGS = {
   audioNormEnabled: true,
+  distilledLoraEnabled: true,
   loraEnabledWan: false,
   vfiEnabled: true,
   rtxEnabled: true,
@@ -58,6 +59,9 @@ const BASE_SETTINGS = {
   identityEndPercent: 1,
   idLoraName: 'fake-lw-idlora-j5d.safetensors',
   idLoraStrength: 0.68,
+
+  distilledLoraName: 'fake-lw-distilled-v3r.safetensors',
+  distilledLoraStrength: 0.5,
 
   negativePromptLtx: 'fake ltx negative',
 

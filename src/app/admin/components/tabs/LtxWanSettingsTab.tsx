@@ -6,6 +6,7 @@ type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'rifeModels';
 
 const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.audio_norm_enabled', label: 'Audio Norm', type: 'boolean', group: '활성화' },
+  { key: 'ltx-wan.distilled_lora_enabled', label: 'Distilled LoRA', type: 'boolean', group: '활성화' },
   { key: 'ltx-wan.lora_enabled_wan', label: 'WAN LoRA', type: 'boolean', group: '활성화' },
   { key: 'ltx-wan.vfi_enabled', label: 'VFI', type: 'boolean', group: '활성화' },
   { key: 'ltx-wan.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: '활성화' },
@@ -42,6 +43,9 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.identity_end_percent', label: 'ID End %', type: 'number', step: 0.01, group: 'LTX — 오디오' },
   { key: 'ltx-wan.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'LTX — 오디오', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
   { key: 'ltx-wan.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.01, group: 'LTX — 오디오' },
+
+  { key: 'ltx-wan.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: 'LTX — Distilled LoRA', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx-wan.distilled_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX — Distilled LoRA' },
 
   { key: 'ltx-wan.negative_prompt_ltx', label: 'LTX 네거티브', type: 'textarea', group: 'LTX — 프롬프트' },
 

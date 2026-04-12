@@ -1,5 +1,6 @@
 INSERT INTO system_settings (id, key, value, type, category, created_at, updated_at) VALUES
   ('lw_audio_norm_enabled', 'ltx-wan.audio_norm_enabled', 'true', 'string', 'ltx-wan', datetime('now'), datetime('now')),
+  ('lw_distilled_lora_enabled', 'ltx-wan.distilled_lora_enabled', 'true', 'string', 'ltx-wan', datetime('now'), datetime('now')),
   ('lw_lora_enabled_wan', 'ltx-wan.lora_enabled_wan', 'false', 'string', 'ltx-wan', datetime('now'), datetime('now')),
   ('lw_vfi_enabled', 'ltx-wan.vfi_enabled', 'true', 'string', 'ltx-wan', datetime('now'), datetime('now')),
   ('lw_rtx_enabled', 'ltx-wan.rtx_enabled', 'true', 'string', 'ltx-wan', datetime('now'), datetime('now')),
@@ -36,6 +37,9 @@ INSERT INTO system_settings (id, key, value, type, category, created_at, updated
   ('lw_identity_end_percent', 'ltx-wan.identity_end_percent', '1', 'string', 'ltx-wan', datetime('now'), datetime('now')),
   ('lw_id_lora_name', 'ltx-wan.id_lora_name', 'CONFIGURE_IN_ADMIN', 'string', 'ltx-wan', datetime('now'), datetime('now')),
   ('lw_id_lora_strength', 'ltx-wan.id_lora_strength', '0.68', 'string', 'ltx-wan', datetime('now'), datetime('now')),
+
+  ('lw_distilled_lora_name', 'ltx-wan.distilled_lora_name', 'CONFIGURE_IN_ADMIN', 'string', 'ltx-wan', datetime('now'), datetime('now')),
+  ('lw_distilled_lora_strength', 'ltx-wan.distilled_lora_strength', '0.5', 'string', 'ltx-wan', datetime('now'), datetime('now')),
 
   ('lw_negative_prompt_ltx', 'ltx-wan.negative_prompt_ltx', 'realistic, photorealistic, live action, 3d render, morphing, distortion, warping, flicker, jitter, blurry, artifacts, glitch, overexposure, watermark, text, subtitles, music', 'string', 'ltx-wan', datetime('now'), datetime('now')),
 
