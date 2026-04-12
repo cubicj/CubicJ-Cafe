@@ -538,3 +538,258 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     distilledLoraStrength: parseFloat(map.get(k.distilledLoraStrength)!),
   };
 }
+
+export interface LtxWanSettings {
+  audioNormEnabled: boolean
+  loraEnabledWan: boolean
+  vfiEnabled: boolean
+  rtxEnabled: boolean
+
+  unet: string
+  weightDtype: string
+  clipGguf: string
+  clipEmbeddings: string
+  videoVae: string
+  audioVae: string
+
+  frameRate: number
+  megapixels: number
+  resizeMultipleOf: number
+  resizeUpscaleMethod: string
+  imgCompression: number
+  sampler: string
+  clownEta: number
+  clownBongmath: boolean
+
+  schedulerSteps: number
+  schedulerMaxShift: number
+  schedulerBaseShift: number
+  schedulerStretch: boolean
+  schedulerTerminal: number
+
+  nagScale: number
+  nagAlpha: number
+  nagTau: number
+
+  audioNorm: string
+  identityGuidanceScale: number
+  identityStartPercent: number
+  identityEndPercent: number
+  idLoraName: string
+  idLoraStrength: number
+
+  negativePromptLtx: string
+
+  unetWan: string
+  clipWan: string
+  vaeWan: string
+  shift: number
+
+  samplerWan: string
+  clownEtaWan: number
+  clownBongmathWan: boolean
+
+  schedulerWan: string
+  stepsWan: number
+  denoiseWan: number
+  sigmasRescaleStart: number
+  sigmasRescaleEnd: number
+
+  nagScaleWan: number
+  nagAlphaWan: number
+  nagTauWan: number
+
+  negativePromptWan: string
+
+  vfiMethod: string
+  rifeModel: string
+  rifePrecision: string
+  rifeResolutionProfile: string
+  rifeCustomMinDim: number
+  rifeCustomOptDim: number
+  rifeCustomMaxDim: number
+  gmfssModel: string
+  vfiMultiplier: number
+  vfiClearCache: number
+
+  rtxResizeType: string
+  rtxScale: number
+  rtxQuality: string
+
+  videoCrf: number
+  videoFormat: string
+  videoPixFmt: string
+}
+
+export const LTX_WAN_KEYS = {
+  audioNormEnabled: 'ltx-wan.audio_norm_enabled',
+  loraEnabledWan: 'ltx-wan.lora_enabled_wan',
+  vfiEnabled: 'ltx-wan.vfi_enabled',
+  rtxEnabled: 'ltx-wan.rtx_enabled',
+
+  unet: 'ltx-wan.unet',
+  weightDtype: 'ltx-wan.weight_dtype',
+  clipGguf: 'ltx-wan.clip_gguf',
+  clipEmbeddings: 'ltx-wan.clip_embeddings',
+  videoVae: 'ltx-wan.video_vae',
+  audioVae: 'ltx-wan.audio_vae',
+
+  frameRate: 'ltx-wan.frame_rate',
+  megapixels: 'ltx-wan.megapixels',
+  resizeMultipleOf: 'ltx-wan.resize_multiple_of',
+  resizeUpscaleMethod: 'ltx-wan.resize_upscale_method',
+  imgCompression: 'ltx-wan.img_compression',
+  sampler: 'ltx-wan.sampler',
+  clownEta: 'ltx-wan.clown_eta',
+  clownBongmath: 'ltx-wan.clown_bongmath',
+
+  schedulerSteps: 'ltx-wan.scheduler_steps',
+  schedulerMaxShift: 'ltx-wan.scheduler_max_shift',
+  schedulerBaseShift: 'ltx-wan.scheduler_base_shift',
+  schedulerStretch: 'ltx-wan.scheduler_stretch',
+  schedulerTerminal: 'ltx-wan.scheduler_terminal',
+
+  nagScale: 'ltx-wan.nag_scale',
+  nagAlpha: 'ltx-wan.nag_alpha',
+  nagTau: 'ltx-wan.nag_tau',
+
+  audioNorm: 'ltx-wan.audio_norm',
+  identityGuidanceScale: 'ltx-wan.identity_guidance_scale',
+  identityStartPercent: 'ltx-wan.identity_start_percent',
+  identityEndPercent: 'ltx-wan.identity_end_percent',
+  idLoraName: 'ltx-wan.id_lora_name',
+  idLoraStrength: 'ltx-wan.id_lora_strength',
+
+  negativePromptLtx: 'ltx-wan.negative_prompt_ltx',
+
+  unetWan: 'ltx-wan.unet_wan',
+  clipWan: 'ltx-wan.clip_wan',
+  vaeWan: 'ltx-wan.vae_wan',
+  shift: 'ltx-wan.shift',
+
+  samplerWan: 'ltx-wan.sampler_wan',
+  clownEtaWan: 'ltx-wan.clown_eta_wan',
+  clownBongmathWan: 'ltx-wan.clown_bongmath_wan',
+
+  schedulerWan: 'ltx-wan.scheduler_wan',
+  stepsWan: 'ltx-wan.steps_wan',
+  denoiseWan: 'ltx-wan.denoise_wan',
+  sigmasRescaleStart: 'ltx-wan.sigmas_rescale_start',
+  sigmasRescaleEnd: 'ltx-wan.sigmas_rescale_end',
+
+  nagScaleWan: 'ltx-wan.nag_scale_wan',
+  nagAlphaWan: 'ltx-wan.nag_alpha_wan',
+  nagTauWan: 'ltx-wan.nag_tau_wan',
+
+  negativePromptWan: 'ltx-wan.negative_prompt_wan',
+
+  vfiMethod: 'ltx-wan.vfi_method',
+  rifeModel: 'ltx-wan.rife_model',
+  rifePrecision: 'ltx-wan.rife_precision',
+  rifeResolutionProfile: 'ltx-wan.rife_resolution_profile',
+  rifeCustomMinDim: 'ltx-wan.rife_custom_min_dim',
+  rifeCustomOptDim: 'ltx-wan.rife_custom_opt_dim',
+  rifeCustomMaxDim: 'ltx-wan.rife_custom_max_dim',
+  gmfssModel: 'ltx-wan.gmfss_model',
+  vfiMultiplier: 'ltx-wan.vfi_multiplier',
+  vfiClearCache: 'ltx-wan.vfi_clear_cache',
+
+  rtxResizeType: 'ltx-wan.rtx_resize_type',
+  rtxScale: 'ltx-wan.rtx_scale',
+  rtxQuality: 'ltx-wan.rtx_quality',
+
+  videoCrf: 'ltx-wan.video_crf',
+  videoFormat: 'ltx-wan.video_format',
+  videoPixFmt: 'ltx-wan.video_pix_fmt',
+} as const
+
+export async function getLtxWanSettings(): Promise<LtxWanSettings> {
+  const keys = Object.values(LTX_WAN_KEYS)
+  const settings = await prisma.systemSetting.findMany({
+    where: { key: { in: keys } },
+  })
+  const map = buildSettingsMap(settings, LTX_WAN_KEYS)
+  const k = LTX_WAN_KEYS
+
+  return {
+    audioNormEnabled: map.get(k.audioNormEnabled)! === 'true',
+    loraEnabledWan: map.get(k.loraEnabledWan)! === 'true',
+    vfiEnabled: map.get(k.vfiEnabled)! === 'true',
+    rtxEnabled: map.get(k.rtxEnabled)! === 'true',
+
+    unet: map.get(k.unet)!,
+    weightDtype: map.get(k.weightDtype)!,
+    clipGguf: map.get(k.clipGguf)!,
+    clipEmbeddings: map.get(k.clipEmbeddings)!,
+    videoVae: map.get(k.videoVae)!,
+    audioVae: map.get(k.audioVae)!,
+
+    frameRate: parseInt(map.get(k.frameRate)!, 10),
+    megapixels: parseFloat(map.get(k.megapixels)!),
+    resizeMultipleOf: parseInt(map.get(k.resizeMultipleOf)!, 10),
+    resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
+    imgCompression: parseInt(map.get(k.imgCompression)!, 10),
+    sampler: map.get(k.sampler)!,
+    clownEta: parseFloat(map.get(k.clownEta)!),
+    clownBongmath: map.get(k.clownBongmath)! === 'true',
+
+    schedulerSteps: parseInt(map.get(k.schedulerSteps)!, 10),
+    schedulerMaxShift: parseFloat(map.get(k.schedulerMaxShift)!),
+    schedulerBaseShift: parseFloat(map.get(k.schedulerBaseShift)!),
+    schedulerStretch: map.get(k.schedulerStretch)! === 'true',
+    schedulerTerminal: parseFloat(map.get(k.schedulerTerminal)!),
+
+    nagScale: parseFloat(map.get(k.nagScale)!),
+    nagAlpha: parseFloat(map.get(k.nagAlpha)!),
+    nagTau: parseFloat(map.get(k.nagTau)!),
+
+    audioNorm: map.get(k.audioNorm)!,
+    identityGuidanceScale: parseFloat(map.get(k.identityGuidanceScale)!),
+    identityStartPercent: parseFloat(map.get(k.identityStartPercent)!),
+    identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
+    idLoraName: map.get(k.idLoraName)!,
+    idLoraStrength: parseFloat(map.get(k.idLoraStrength)!),
+
+    negativePromptLtx: map.get(k.negativePromptLtx)!,
+
+    unetWan: map.get(k.unetWan)!,
+    clipWan: map.get(k.clipWan)!,
+    vaeWan: map.get(k.vaeWan)!,
+    shift: parseFloat(map.get(k.shift)!),
+
+    samplerWan: map.get(k.samplerWan)!,
+    clownEtaWan: parseFloat(map.get(k.clownEtaWan)!),
+    clownBongmathWan: map.get(k.clownBongmathWan)! === 'true',
+
+    schedulerWan: map.get(k.schedulerWan)!,
+    stepsWan: parseInt(map.get(k.stepsWan)!, 10),
+    denoiseWan: parseFloat(map.get(k.denoiseWan)!),
+    sigmasRescaleStart: parseFloat(map.get(k.sigmasRescaleStart)!),
+    sigmasRescaleEnd: parseFloat(map.get(k.sigmasRescaleEnd)!),
+
+    nagScaleWan: parseFloat(map.get(k.nagScaleWan)!),
+    nagAlphaWan: parseFloat(map.get(k.nagAlphaWan)!),
+    nagTauWan: parseFloat(map.get(k.nagTauWan)!),
+
+    negativePromptWan: map.get(k.negativePromptWan)!,
+
+    vfiMethod: map.get(k.vfiMethod)!,
+    rifeModel: map.get(k.rifeModel)!,
+    rifePrecision: map.get(k.rifePrecision)!,
+    rifeResolutionProfile: map.get(k.rifeResolutionProfile)!,
+    rifeCustomMinDim: parseInt(map.get(k.rifeCustomMinDim)!, 10),
+    rifeCustomOptDim: parseInt(map.get(k.rifeCustomOptDim)!, 10),
+    rifeCustomMaxDim: parseInt(map.get(k.rifeCustomMaxDim)!, 10),
+    gmfssModel: map.get(k.gmfssModel)!,
+    vfiMultiplier: parseInt(map.get(k.vfiMultiplier)!, 10),
+    vfiClearCache: parseInt(map.get(k.vfiClearCache)!, 10),
+
+    rtxResizeType: map.get(k.rtxResizeType)!,
+    rtxScale: parseFloat(map.get(k.rtxScale)!),
+    rtxQuality: map.get(k.rtxQuality)!,
+
+    videoCrf: parseInt(map.get(k.videoCrf)!, 10),
+    videoFormat: map.get(k.videoFormat)!,
+    videoPixFmt: map.get(k.videoPixFmt)!,
+  }
+}
