@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { SortableHeader, formatDate, LoRAPresetDisplay } from './db-utils';
 import { getStatusBgColor } from '@/lib/queue-status';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import type { SortState } from '@/hooks/useDatabaseTable';
 
 interface QueueTableProps {
@@ -59,7 +61,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 </div>
                 <div className="col-span-2 flex items-center gap-1">
                   {request.videoModel && (
-                    <Badge variant="outline" className="text-xs">{request.videoModel === 'wan' ? 'WAN' : 'LTX'}</Badge>
+                    <Badge variant="outline" className="text-xs">{MODEL_REGISTRY[request.videoModel as VideoModel]?.displayName ?? request.videoModel}</Badge>
                   )}
                   {request.isNSFW && (
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
@@ -106,7 +108,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   {request.videoModel && (
                     <div>
                       <span className="font-medium">모델:</span>
-                      <span className="ml-2">{request.videoModel === 'wan' ? 'WAN 2.2' : request.videoModel === 'ltx' ? 'LTX 2.3' : request.videoModel}</span>
+                      <span className="ml-2">{MODEL_REGISTRY[request.videoModel as VideoModel]?.displayName ?? request.videoModel}</span>
                     </div>
                   )}
 
