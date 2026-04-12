@@ -94,6 +94,7 @@ function configureLtxGeneration(
     upscale_method: settings.resizeUpscaleMethod,
   })
   setNode(workflow, LTX_WAN.LOAD_IMAGE_START, { image: params.inputImage })
+  setNode(workflow, LTX_WAN.CFG_GUIDER, { cfg: 1 })
 }
 
 function configureLtxScheduler(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
