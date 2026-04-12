@@ -15,6 +15,13 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     durationOptions: [5, 6, 7],
     defaultDuration: 5,
   },
+  'ltx-wan': {
+    displayName: 'L+W',
+    capabilities: { loraPresets: false, endImage: true, videoDuration: true, audio: true },
+    defaultSubfolder: 'LTX-WAN',
+    durationOptions: [5],
+    defaultDuration: 5,
+  },
 }
 
 export const VIDEO_OUTPUT_TYPES: Record<VideoModel, {
@@ -23,4 +30,5 @@ export const VIDEO_OUTPUT_TYPES: Record<VideoModel, {
 }> = {
   wan: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
   ltx: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
+  'ltx-wan': { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
 }
