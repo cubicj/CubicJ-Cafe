@@ -14,6 +14,7 @@ export const GET = createRouteHandler(
     const loraEnabledMap: Record<VideoModel, boolean> = {
       wan: wanSettings.loraEnabled,
       ltx: ltxSettings.loraEnabled,
+      'ltx-wan': false,
     }
 
     const capabilities: Record<VideoModel, ModelCapabilities> = {} as Record<VideoModel, ModelCapabilities>

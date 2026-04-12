@@ -8,7 +8,7 @@ import { ServerType, GenerationMode } from '@prisma/client';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { getWanSettings, getLtxSettings } from '@/lib/database/system-settings';
+import { getWanSettings, getLtxSettings, getLtxWanSettings } from '@/lib/database/system-settings';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
 import { AudioPresetService } from '@/lib/database/audio-presets';
@@ -76,8 +76,12 @@ export const POST = createRouteHandler(
     const activeModel = validated.model as VideoModel;
     const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
-    const modelSettings = activeModel === 'wan' ? await getWanSettings() : await getLtxSettings();
-    const loraEnabled = capabilities.loraPresets && modelSettings.loraEnabled;
+    const modelSettings = activeModel === 'wan'
+      ? await getWanSettings()
+      : activeModel === 'ltx'
+        ? await getLtxSettings()
+        : await getLtxWanSettings();
+    const loraEnabled = capabilities.loraPresets && 'loraEnabled' in modelSettings && modelSettings.loraEnabled;
 
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
     const loraPresetData = loraEnabled ? validated.loraPreset : undefined;
