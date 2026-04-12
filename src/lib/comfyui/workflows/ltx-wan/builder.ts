@@ -183,14 +183,13 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
     delete node.inputs['num_images.index_2']
     delete node.inputs['num_images.strength_2']
   }
-  delete workflow[LTX_WAN.END_FRAME_MATH]
   delete workflow[LTX_WAN.LOAD_IMAGE_END]
   delete workflow[LTX_WAN.RESIZE_END]
   delete workflow[LTX_WAN.PREPROCESS_END]
 }
 
 function configureWanModels(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  setNode(workflow, LTX_WAN.UNET_WAN, { unet_name: settings.unetWan })
+  setNode(workflow, LTX_WAN.UNET_WAN, { unet_name: settings.unetWan, weight_dtype: 'default' })
   setNode(workflow, LTX_WAN.CLIP_WAN, { clip_name: settings.clipWan })
   setNode(workflow, LTX_WAN.VAE_WAN, { vae_name: settings.vaeWan })
   setNode(workflow, LTX_WAN.MODEL_SAMPLING, { shift: settings.shift })
