@@ -19,7 +19,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     displayName: 'L+W',
     capabilities: { loraPresets: false, endImage: true, videoDuration: true, audio: true },
     defaultSubfolder: 'LTX-WAN',
-    durationOptions: [5, 6, 7],
+    durationOptions: [5, 6],
     defaultDuration: 5,
   },
 }
