@@ -32,7 +32,7 @@ export const i2vSchema = z.object({
   image: imageSchema,
   endImage: optionalImageSchema,
   audioPresetId: z.string().min(1).optional(),
-  model: z.enum(['wan', 'ltx']).default('wan'),
+  model: z.enum(['wan', 'ltx', 'ltx-wan']).default('wan'),
   loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   isLoop: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
