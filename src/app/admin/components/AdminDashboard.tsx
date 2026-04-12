@@ -18,6 +18,7 @@ import DatabaseTab from './tabs/DatabaseTab';
 import LogViewerTab from './tabs/LogViewerTab';
 import WanSettingsTab from './tabs/WanSettingsTab';
 import LtxSettingsTab from './tabs/LtxSettingsTab';
+import LtxWanSettingsTab from './tabs/LtxWanSettingsTab';
 
 const log = createLogger('admin');
 
@@ -25,6 +26,7 @@ const ADMIN_TABS = [
   { value: 'database', label: '데이터베이스', icon: Database },
   { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
   { value: 'ltx-settings', label: 'LTX', icon: SlidersHorizontal },
+  { value: 'ltx-wan-settings', label: 'L+W', icon: SlidersHorizontal },
   { value: 'logs', label: 'Logs', icon: ScrollText },
 ] as const;
 
@@ -281,7 +283,7 @@ export default function AdminDashboard() {
           </Select>
         </div>
 
-        <TabsList className="hidden md:grid w-full grid-cols-4">
+        <TabsList className="hidden md:grid w-full grid-cols-5">
           {ADMIN_TABS.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center">
               <tab.icon className="w-4 h-4 mr-2" />
@@ -296,6 +298,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="ltx-settings" className="space-y-4">
           <LtxSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="ltx-wan-settings" className="space-y-4">
+          <LtxWanSettingsTab />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">
