@@ -158,18 +158,18 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: WanSetting
     delete workflow[WAN.GMFSS_VFI]
   }
 
-  setNode(workflow, WAN.VRAM_DEBUG_VFI, { image_pass: [lastOutput, 0] })
+  setNode(workflow, WAN.VRAM_DEBUG_VFI, { anything: [lastOutput, 0] })
 
   if (settings.rtxEnabled) {
     setNode(workflow, WAN.RTX_SUPER_RES, {
       resize_type: settings.rtxResizeType,
       'resize_type.scale': settings.rtxScale,
       quality: settings.rtxQuality,
-      images: [WAN.VRAM_DEBUG_VFI, 1],
+      images: [WAN.VRAM_DEBUG_VFI, 0],
     })
   } else {
     delete workflow[WAN.RTX_SUPER_RES]
-    setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.VRAM_DEBUG_VFI, 1] })
+    setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.VRAM_DEBUG_VFI, 0] })
   }
 }
 

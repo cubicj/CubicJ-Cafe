@@ -266,8 +266,8 @@ describe('buildWanWorkflow', () => {
       const workflow = await buildWanWorkflow(baseParams)
       expect(workflow['74']!.inputs!.image_target).toEqual(['38', 0])
       expect(workflow['71']!.inputs!.frames).toEqual(['74', 0])
-      expect(workflow['45']!.inputs!.image_pass).toEqual(['71', 0])
-      expect(workflow['42']!.inputs!.images).toEqual(['45', 1])
+      expect(workflow['45']!.inputs!.anything).toEqual(['71', 0])
+      expect(workflow['42']!.inputs!.images).toEqual(['45', 0])
     })
 
     it('wires GMFSS chain when vfiMethod is gmfss', async () => {
@@ -278,7 +278,7 @@ describe('buildWanWorkflow', () => {
       })
       const workflow = await buildWanWorkflow(baseParams)
       expect(workflow['75']!.inputs!.frames).toEqual(['74', 0])
-      expect(workflow['45']!.inputs!.image_pass).toEqual(['75', 0])
+      expect(workflow['45']!.inputs!.anything).toEqual(['75', 0])
     })
 
     it('wires Video Combine to VRAM_DEBUG_VFI when RTX disabled', async () => {
@@ -288,7 +288,7 @@ describe('buildWanWorkflow', () => {
         rtxEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
-      expect(workflow['64']!.inputs!.images).toEqual(['45', 1])
+      expect(workflow['64']!.inputs!.images).toEqual(['45', 0])
     })
 
     it('bypasses ColorMatch and VFI when both disabled', async () => {
@@ -301,7 +301,7 @@ describe('buildWanWorkflow', () => {
       const workflow = await buildWanWorkflow(baseParams)
       expect(workflow['74']).toBeUndefined()
       expect(workflow['71']).toBeUndefined()
-      expect(workflow['45']!.inputs!.image_pass).toEqual(['38', 0])
+      expect(workflow['45']!.inputs!.anything).toEqual(['38', 0])
     })
   })
 
