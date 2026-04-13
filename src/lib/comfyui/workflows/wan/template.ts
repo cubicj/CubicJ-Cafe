@@ -46,14 +46,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "class_type": "PathchSageAttentionKJ",
     "_meta": { "title": "WAN_6" }
   },
-  "9": {
-    "inputs": {
-      "enable_fp16_accumulation": true,
-      "model": ["12", 0]
-    },
-    "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "WAN_9" }
-  },
   "10": {
     "inputs": {
       "text": ""
@@ -154,14 +146,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "WanVideoNAG",
     "_meta": { "title": "WAN_20" }
-  },
-  "22": {
-    "inputs": {
-      "enable_fp16_accumulation": true,
-      "model": ["6", 0]
-    },
-    "class_type": "ModelPatchTorchSettings",
-    "_meta": { "title": "WAN_22" }
   },
   "23": {
     "inputs": {
@@ -417,7 +401,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         "strength": 1
       },
       "➕ Add Lora": "",
-      "model": ["22", 0],
+      "model": ["6", 0],
       "clip": ["13", 0]
     },
     "class_type": "Power Lora Loader (rgthree)",
@@ -434,7 +418,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
         "strength": 1
       },
       "➕ Add Lora": "",
-      "model": ["9", 0],
+      "model": ["12", 0],
       "clip": ["13", 0]
     },
     "class_type": "Power Lora Loader (rgthree)",
