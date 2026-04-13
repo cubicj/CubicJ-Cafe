@@ -92,6 +92,7 @@ interface UseI2VFormReturn {
   activeModel: VideoModel;
   setActiveModel: (model: VideoModel) => void;
   capabilities: ModelCapabilities;
+  durationOptions: number[];
   isLoadingAuth: boolean;
   hasUnavailableLoRAs: boolean;
   setHasUnavailableLoRAs: (has: boolean) => void;
@@ -149,13 +150,19 @@ export function useI2VForm(): UseI2VFormReturn {
     MODEL_REGISTRY[activeModel].defaultDuration
   );
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
+  const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
+  const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;
 
   useEffect(() => {
     const fetchCapabilities = async () => {
       try {
-        const data = await apiClient.get<{ capabilities: Record<VideoModel, ModelCapabilities> }>('/api/i2v/capabilities');
+        const data = await apiClient.get<{
+          capabilities: Record<VideoModel, ModelCapabilities>
+          durationOptions: Record<VideoModel, number[]>
+        }>('/api/i2v/capabilities');
         setCapabilitiesMap(data.capabilities);
+        setDurationOptionsMap(data.durationOptions);
       } catch {
         log.warn('Failed to fetch capabilities, using static defaults');
       }
@@ -325,7 +332,8 @@ export function useI2VForm(): UseI2VFormReturn {
     }
     setSelectedPresetIds([]);
     setCurrentPresets([]);
-    setVideoDuration(MODEL_REGISTRY[model].defaultDuration);
+    const options = durationOptionsMap?.[model] ?? MODEL_REGISTRY[model].durationOptions;
+    setVideoDuration(options[0]);
   };
 
   useEffect(() => {
@@ -397,6 +405,7 @@ export function useI2VForm(): UseI2VFormReturn {
     activeModel,
     setActiveModel,
     capabilities,
+    durationOptions,
     isFormValid,
     handleSubmit,
     handleReset,

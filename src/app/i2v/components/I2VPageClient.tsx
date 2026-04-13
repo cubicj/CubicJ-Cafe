@@ -40,6 +40,7 @@ export default function I2VPageClient() {
     activeModel,
     setActiveModel,
     capabilities,
+    durationOptions,
     hasUnavailableLoRAs,
     setHasUnavailableLoRAs,
     isFormValid,
@@ -171,7 +172,7 @@ export default function I2VPageClient() {
                 </h2>
                 <Card className="p-4">
                   <div className="flex gap-2">
-                    {MODEL_REGISTRY[activeModel].durationOptions.map(
+                    {durationOptions.map(
                       duration => (
                         <button
                           key={duration}
