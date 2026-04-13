@@ -6,10 +6,12 @@ import { createTestSession } from '../../helpers/auth'
 
 const mockGetWanSettings = vi.fn()
 const mockGetLtxSettings = vi.fn()
+const mockGetLtxWanSettings = vi.fn()
 
 vi.mock('@/lib/database/system-settings', () => ({
   getWanSettings: (...args: unknown[]) => mockGetWanSettings(...args),
   getLtxSettings: (...args: unknown[]) => mockGetLtxSettings(...args),
+  getLtxWanSettings: (...args: unknown[]) => mockGetLtxWanSettings(...args),
 }))
 
 import { GET } from '@/app/api/i2v/capabilities/route'
@@ -17,6 +19,7 @@ import { GET } from '@/app/api/i2v/capabilities/route'
 function setLoraEnabled(wan: boolean, ltx: boolean) {
   mockGetWanSettings.mockResolvedValue({ loraEnabled: wan })
   mockGetLtxSettings.mockResolvedValue({ loraEnabled: ltx })
+  mockGetLtxWanSettings.mockResolvedValue({ durationOptions: [5, 6, 7, 8] })
 }
 
 describe('GET /api/i2v/capabilities', () => {
@@ -65,6 +68,19 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(body.capabilities.wan.loraPresets).toBe(false)
     expect(body.capabilities.ltx.loraPresets).toBe(true)
+  })
+
+  it('returns durationOptions from settings for ltx-wan and registry for others', async () => {
+    setLoraEnabled(true, true)
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
+    expect(body.durationOptions.wan).toEqual([5, 6, 7])
+    expect(body.durationOptions.ltx).toEqual([5, 6, 7])
   })
 
   it('preserves other capabilities from registry', async () => {
