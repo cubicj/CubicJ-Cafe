@@ -513,6 +513,9 @@ class QueueMonitor {
     if (server) {
       server.currentJobId = undefined;
       log.debug('Server job released', { server: server.name, requestId });
+      this.processQueue().catch(error => {
+        log.error('Queue processing after release failed', { error: error instanceof Error ? error.message : String(error) });
+      });
     }
   }
 }
