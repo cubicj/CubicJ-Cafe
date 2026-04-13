@@ -1,14 +1,15 @@
 import { createRouteHandler } from '@/lib/api/route-handler'
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
-import { getWanSettings, getLtxSettings } from '@/lib/database/system-settings'
+import { getWanSettings, getLtxSettings, getLtxWanSettings } from '@/lib/database/system-settings'
 import type { VideoModel, ModelCapabilities } from '@/lib/comfyui/workflows/types'
 
 export const GET = createRouteHandler(
   { auth: 'user' },
   async () => {
-    const [wanSettings, ltxSettings] = await Promise.all([
+    const [wanSettings, ltxSettings, ltxWanSettings] = await Promise.all([
       getWanSettings(),
       getLtxSettings(),
+      getLtxWanSettings(),
     ])
 
     const loraEnabledMap: Record<VideoModel, boolean> = {
@@ -25,6 +26,12 @@ export const GET = createRouteHandler(
       }
     }
 
-    return { capabilities }
+    const durationOptions: Record<VideoModel, number[]> = {
+      wan: MODEL_REGISTRY.wan.durationOptions,
+      ltx: MODEL_REGISTRY.ltx.durationOptions,
+      'ltx-wan': ltxWanSettings.durationOptions,
+    }
+
+    return { capabilities, durationOptions }
   }
 )
