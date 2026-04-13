@@ -163,6 +163,10 @@ export function useI2VForm(): UseI2VFormReturn {
         }>('/api/i2v/capabilities');
         setCapabilitiesMap(data.capabilities);
         setDurationOptionsMap(data.durationOptions);
+        const options = data.durationOptions[activeModel];
+        if (options && !options.includes(videoDuration)) {
+          setVideoDuration(options[0]);
+        }
       } catch {
         log.warn('Failed to fetch capabilities, using static defaults');
       }
