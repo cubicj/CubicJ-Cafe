@@ -277,7 +277,7 @@ class DiscordBot {
       }
       
       const DISCORD_MODEL_NAMES: Partial<Record<VideoModel, string>> = {
-        'ltx-wan': 'LTX 2.3+WAN 2.2',
+        'ltx-wan': 'LTX 2.3 + WAN 2.2',
       }
       const modelDisplayName = DISCORD_MODEL_NAMES[params.videoModel as VideoModel]
         ?? MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName
