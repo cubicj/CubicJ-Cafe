@@ -176,6 +176,14 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.REFERENCE_AUDIO]!.inputs!.identity_guidance_scale).toBe(3)
   })
 
+  it('wires NAG cond_video and cond_audio to reference audio when audio provided', async () => {
+    const params = { ...DEFAULT_PARAMS, referenceAudio: 'fake-audio.flac' }
+    const workflow = await buildLtxWanWorkflow(params)
+
+    expect(workflow[LTX_WAN.NAG_LTX]!.inputs!.nag_cond_video).toEqual([LTX_WAN.REFERENCE_AUDIO, 2])
+    expect(workflow[LTX_WAN.NAG_LTX]!.inputs!.nag_cond_audio).toEqual([LTX_WAN.REFERENCE_AUDIO, 2])
+  })
+
   it('does not create reference audio nodes when no audio', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
