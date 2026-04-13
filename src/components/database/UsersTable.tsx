@@ -29,7 +29,7 @@ export function UsersTable({ data, sort, expandedItems, onSort, onToggleExpand }
           <SortableHeader field="createdAt" sort={sort} onSort={onSort}>가입일</SortableHeader>
         </div>
         <div className="col-span-2">
-          <SortableHeader field="lastLoginAt" sort={sort} onSort={onSort}>최근 로그인</SortableHeader>
+          <SortableHeader field="lastActiveAt" sort={sort} onSort={onSort}>최근 활동</SortableHeader>
         </div>
         <div className="col-span-2">큐/프리셋</div>
       </div>
@@ -49,7 +49,7 @@ export function UsersTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 <div className="col-span-3 font-medium">{user.nickname}</div>
                 <div className="col-span-3 text-muted-foreground">{user.discordUsername}</div>
                 <div className="col-span-2 text-xs">{formatDate(user.createdAt)}</div>
-                <div className="col-span-2 text-xs">{formatDate(user.lastLoginAt)}</div>
+                <div className="col-span-2 text-xs">{formatDate(user.lastActiveAt)}</div>
                 <div className="col-span-2 flex space-x-1">
                   {user._count && (
                     <>

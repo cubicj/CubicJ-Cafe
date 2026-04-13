@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { LoRAPresetService } from '@/lib/database/lora-presets';
-import { UserService } from '@/lib/database/users';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseBody } from '@/lib/validations/parse';
 import { updateLoraPresetSchema } from '@/lib/validations/schemas/lora-preset';
@@ -59,8 +58,6 @@ export const PUT = createRouteHandler<{ id: string }>(
       );
     }
 
-    UserService.updateLastLogin(req.user!.discordId).catch(() => {});
-
     return { preset };
   }
 );
@@ -77,8 +74,6 @@ export const DELETE = createRouteHandler<{ id: string }>(
         { status: 404 }
       );
     }
-
-    UserService.updateLastLogin(req.user!.discordId).catch(() => {});
 
     return { message: '프리셋이 삭제되었습니다.' };
   }

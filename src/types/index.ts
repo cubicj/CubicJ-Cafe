@@ -7,7 +7,7 @@ export interface User {
   nickname: string;
   avatar: string | null;
   createdAt?: string;
-  lastLoginAt?: string;
+  lastActiveAt?: string;
   updatedAt?: string;
 }
 

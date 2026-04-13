@@ -29,7 +29,7 @@ export const GET = createRouteHandler(
 
       switch (table) {
         case 'users': {
-          const userFields = ['nickname', 'discordUsername', 'createdAt', 'lastLoginAt'];
+          const userFields = ['nickname', 'discordUsername', 'createdAt', 'lastActiveAt'];
           if (orderBy && userFields.includes(orderBy)) {
             return { [orderBy]: direction };
           }

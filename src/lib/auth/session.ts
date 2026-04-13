@@ -9,7 +9,7 @@ export interface SessionUser {
   nickname: string;
   avatar?: string;
   createdAt: Date;
-  lastLoginAt: Date;
+  lastActiveAt: Date;
 }
 
 export interface SessionData {
@@ -34,7 +34,7 @@ export class SessionManager {
       throw new Error('세션 생성에 실패했습니다');
     }
 
-    const updatedUser = await UserService.updateLastLogin(user.discordId);
+    const updatedUser = await UserService.touchLastActive(user.discordId, 0);
 
     return {
       sessionId: session.id,
@@ -45,7 +45,7 @@ export class SessionManager {
         nickname: user.nickname,
         avatar: user.avatar || undefined,
         createdAt: user.createdAt,
-        lastLoginAt: updatedUser?.lastLoginAt ?? user.lastLoginAt,
+        lastActiveAt: updatedUser?.lastActiveAt ?? user.lastActiveAt,
       },
       expiresAt: session.expiresAt,
     };
@@ -57,6 +57,8 @@ export class SessionManager {
       return null;
     }
 
+    UserService.touchLastActive(sessionWithUser.user.discordId).catch(() => {});
+
     return {
       sessionId: sessionWithUser.id,
       user: {
@@ -66,7 +68,7 @@ export class SessionManager {
         nickname: sessionWithUser.user.nickname,
         avatar: sessionWithUser.user.avatar || undefined,
         createdAt: sessionWithUser.user.createdAt,
-        lastLoginAt: sessionWithUser.user.lastLoginAt,
+        lastActiveAt: sessionWithUser.user.lastActiveAt,
       },
       expiresAt: sessionWithUser.expiresAt,
     };

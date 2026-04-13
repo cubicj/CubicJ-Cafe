@@ -14,7 +14,7 @@ model User {
   nickname        String         @unique
   avatar          String?
   createdAt       DateTime       @default(now()) @map("created_at")
-  lastLoginAt     DateTime       @default(now()) @map("last_login_at")
+  lastActiveAt    DateTime       @default(now()) @map("last_active_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
   audioPresets    AudioPreset[]
   loraPresets     LoRAPreset[]
