@@ -28,12 +28,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "5": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "image_pass": ["10", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["10", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "LTX_WAN_5" }
   },
   "6": {
@@ -106,12 +105,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "15": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["12", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["12", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "LTX_WAN_15" }
   },
   "16": {
@@ -402,12 +400,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "64": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["82", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["82", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "LTX_WAN_64" }
   },
   "66": {
@@ -480,12 +477,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "78": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["67", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["67", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "LTX_WAN_78" }
   },
   "82": {
