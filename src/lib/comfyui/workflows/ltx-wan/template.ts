@@ -516,7 +516,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "batch_index": 0,
       "length": 1,
-      "image": ["5", 1]
+      "image": ["5", 0]
     },
     "class_type": "ImageFromBatch",
     "_meta": { "title": "LTX_WAN_91" }
@@ -525,14 +525,14 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "batch_index": ["31", 0],
       "length": 1,
-      "image": ["5", 1]
+      "image": ["5", 0]
     },
     "class_type": "ImageFromBatch",
     "_meta": { "title": "LTX_WAN_92" }
   },
   "93": {
     "inputs": {
-      "pixels": ["5", 1],
+      "pixels": ["5", 0],
       "vae": ["74", 0]
     },
     "class_type": "VAEEncode",
