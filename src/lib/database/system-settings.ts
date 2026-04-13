@@ -545,6 +545,7 @@ export interface LtxWanSettings {
   loraEnabledWan: boolean
   vfiEnabled: boolean
   rtxEnabled: boolean
+  durationOptions: number[]
 
   unet: string
   weightDtype: string
@@ -631,6 +632,7 @@ export const LTX_WAN_KEYS = {
   loraEnabledWan: 'ltx-wan.lora_enabled_wan',
   vfiEnabled: 'ltx-wan.vfi_enabled',
   rtxEnabled: 'ltx-wan.rtx_enabled',
+  durationOptions: 'ltx-wan.duration_options',
 
   unet: 'ltx-wan.unet',
   weightDtype: 'ltx-wan.weight_dtype',
@@ -725,6 +727,7 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     loraEnabledWan: map.get(k.loraEnabledWan)! === 'true',
     vfiEnabled: map.get(k.vfiEnabled)! === 'true',
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
+    durationOptions: map.get(k.durationOptions)!.split(',').map(Number),
 
     unet: map.get(k.unet)!,
     weightDtype: map.get(k.weightDtype)!,

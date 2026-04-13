@@ -26,6 +26,7 @@ const BASE_SETTINGS = {
   loraEnabledWan: false,
   vfiEnabled: true,
   rtxEnabled: true,
+  durationOptions: [5, 6, 7, 8],
 
   unet: 'fake-lw-unet-q8r.safetensors',
   weightDtype: 'default',
