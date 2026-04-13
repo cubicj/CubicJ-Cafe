@@ -442,7 +442,7 @@ describe('buildLtxWorkflow', () => {
       it('connects 1st pass sampling chain: Sampler → VRAM → SeparateAV_1st → Upsampler → ImgToVideo_2nd → ConcatAV_2nd', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
         expect(workflow['17']!.inputs!.guider).toEqual(['355', 0])
-        expect(workflow['373']!.inputs!.any_input).toEqual(['17', 0])
+        expect(workflow['373']!.inputs!.anything).toEqual(['17', 0])
         expect(workflow['418']!.inputs!.av_latent).toEqual(['373', 0])
         expect(workflow['422']!.inputs!.samples).toEqual(['418', 0])
         expect(workflow['417']!.inputs!.latent).toEqual(['422', 0])
@@ -455,7 +455,7 @@ describe('buildLtxWorkflow', () => {
         expect(workflow['406']!.inputs!.guider).toEqual(['407', 0])
         expect(workflow['406']!.inputs!.sigmas).toEqual(['431', 0])
         expect(workflow['406']!.inputs!.latent_image).toEqual(['419', 0])
-        expect(workflow['409']!.inputs!.any_input).toEqual(['406', 0])
+        expect(workflow['409']!.inputs!.anything).toEqual(['406', 0])
         expect(workflow['384']!.inputs!.av_latent).toEqual(['409', 0])
       })
 

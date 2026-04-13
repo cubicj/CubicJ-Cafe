@@ -95,12 +95,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "15": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["16", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["16", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "WAN_15" }
   },
   "16": {
@@ -280,12 +279,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "39": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["36", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["36", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "WAN_39" }
   },
   "40": {
@@ -305,19 +303,18 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "resize_type": "PLACEHOLDER",
       "resize_type.scale": 0,
       "quality": "PLACEHOLDER",
-      "images": ["45", 1]
+      "images": ["45", 0]
     },
     "class_type": "RTXVideoSuperResolution",
     "_meta": { "title": "WAN_42" }
   },
   "45": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "image_pass": ["71", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["71", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "WAN_45" }
   },
   "70": {
@@ -385,12 +382,11 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "63": {
     "inputs": {
-      "empty_cache": true,
-      "gc_collect": true,
-      "unload_all_models": true,
-      "any_input": ["64", 0]
+      "purge_cache": true,
+      "purge_models": true,
+      "anything": ["64", 0]
     },
-    "class_type": "VRAM_Debug",
+    "class_type": "LayerUtility: PurgeVRAM",
     "_meta": { "title": "WAN_63" }
   },
   "64": {
