@@ -169,7 +169,11 @@ function handleReferenceAudio(
     loraNode.inputs['lora_2'] = { on: true, lora: settings.idLoraName, strength: settings.idLoraStrength }
   }
 
-  setNode(workflow, LTX_WAN.NAG_LTX, { model: [LTX_WAN.REFERENCE_AUDIO, 0] })
+  setNode(workflow, LTX_WAN.NAG_LTX, {
+    model: [LTX_WAN.REFERENCE_AUDIO, 0],
+    nag_cond_video: [LTX_WAN.REFERENCE_AUDIO, 2],
+    nag_cond_audio: [LTX_WAN.REFERENCE_AUDIO, 2],
+  })
   setNode(workflow, LTX_WAN.CFG_GUIDER, {
     positive: [LTX_WAN.REFERENCE_AUDIO, 1],
     negative: [LTX_WAN.REFERENCE_AUDIO, 2],
