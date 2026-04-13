@@ -93,22 +93,29 @@ it('returns null on duplicate discordId', async () => {
     })
   })
 
-  describe('updateLastLogin', () => {
-    it('sets lastLoginAt to approximately current time', async () => {
+  describe('touchLastActive', () => {
+    it('sets lastActiveAt to approximately current time', async () => {
       const created = await UserService.create(makeUserData())
       const before = Date.now()
-      const updated = await UserService.updateLastLogin(created!.discordId)
+      const updated = await UserService.touchLastActive(created!.discordId, 0)
       const after = Date.now()
 
       expect(updated).not.toBeNull()
-      expect(updated!.lastLoginAt).not.toBeNull()
-      const loginTime = updated!.lastLoginAt!.getTime()
-      expect(loginTime).toBeGreaterThanOrEqual(before)
-      expect(loginTime).toBeLessThanOrEqual(after)
+      expect(updated!.lastActiveAt).not.toBeNull()
+      const activeTime = updated!.lastActiveAt!.getTime()
+      expect(activeTime).toBeGreaterThanOrEqual(before)
+      expect(activeTime).toBeLessThanOrEqual(after)
+    })
+
+    it('skips update within throttle window', async () => {
+      const created = await UserService.create(makeUserData())
+      const first = await UserService.touchLastActive(created!.discordId, 0)
+      const second = await UserService.touchLastActive(created!.discordId, 60_000)
+      expect(second!.lastActiveAt.getTime()).toBe(first!.lastActiveAt.getTime())
     })
 
     it('returns null for non-existent user', async () => {
-      const result = await UserService.updateLastLogin('nonexistent')
+      const result = await UserService.touchLastActive('nonexistent')
       expect(result).toBeNull()
     })
   })

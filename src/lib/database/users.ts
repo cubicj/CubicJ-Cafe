@@ -17,7 +17,7 @@ export interface UpdateUserData {
   discordUsername?: string;
   nickname?: string;
   avatar?: string;
-  lastLoginAt?: Date;
+  lastActiveAt?: Date;
 }
 
 // 사용자 서비스 클래스
@@ -91,17 +91,20 @@ export class UserService {
     }
   }
 
-  // 마지막 로그인 시간 업데이트
-  static async updateLastLogin(discordId: string): Promise<User | null> {
+  static async touchLastActive(discordId: string, throttleMs = 5 * 60 * 1000): Promise<User | null> {
     try {
+      const user = await prisma.user.findUnique({ where: { discordId } });
+      if (!user) return null;
+
+      const elapsed = Date.now() - user.lastActiveAt.getTime();
+      if (elapsed < throttleMs) return user;
+
       return await prisma.user.update({
         where: { discordId },
-        data: {
-          lastLoginAt: new Date(),
-        },
+        data: { lastActiveAt: new Date() },
       });
     } catch (error) {
-      log.error('Login time update failed', { error: error instanceof Error ? error.message : String(error) });
+      log.error('Last active update failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

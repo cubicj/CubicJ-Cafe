@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { QueueService } from '@/lib/database/queue';
-import { UserService } from '@/lib/database/users';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { randomUUID } from 'crypto';
 import { ServerType, GenerationMode } from '@prisma/client';
@@ -157,8 +156,6 @@ export const POST = createRouteHandler(
         generationMode,
         videoDuration,
       });
-
-      UserService.updateLastLogin(req.user!.discordId).catch(() => {});
 
       log.info('Request queued', { requestId, user: req.user!.nickname });
 
