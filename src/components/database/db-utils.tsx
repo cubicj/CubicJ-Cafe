@@ -16,6 +16,7 @@ export function getTableIcon(tableName: string) {
 
 export function formatDate(dateString: string) {
   return new Date(dateString).toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
     year: '2-digit',
     month: '2-digit',
     day: '2-digit',
