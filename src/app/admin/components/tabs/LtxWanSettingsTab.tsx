@@ -26,6 +26,7 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'LTX — 생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'ltx-wan.img_compression', label: 'Image Compression', type: 'number', step: 1, group: 'LTX — 생성' },
   { key: 'ltx-wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'LTX — 생성' },
+  { key: 'ltx-wan.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'LTX — 생성', monoFont: true },
 
   { key: 'ltx-wan.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTX — 스케줄러' },
   { key: 'ltx-wan.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
