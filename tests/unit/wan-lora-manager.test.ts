@@ -21,8 +21,8 @@ describe('removeLoraPlaceholder', () => {
       '13': { inputs: { clip_name: 'test' }, class_type: 'CLIPLoader' },
       '19': { inputs: { model: ['66', 0] }, class_type: 'WanVideoNAG' },
       '20': { inputs: { model: ['65', 0] }, class_type: 'WanVideoNAG' },
-      '22': { inputs: {}, class_type: 'ModelPatchTorchSettings' },
-      '9': { inputs: {}, class_type: 'ModelPatchTorchSettings' },
+      '6': { inputs: {}, class_type: 'PathchSageAttentionKJ' },
+      '12': { inputs: {}, class_type: 'PathchSageAttentionKJ' },
       '23': { inputs: { clip: ['65', 1] }, class_type: 'CLIPTextEncode' },
       '24': { inputs: { clip: ['65', 1] }, class_type: 'CLIPTextEncode' },
       '27': { inputs: { clip: ['66', 1] }, class_type: 'CLIPTextEncode' },
@@ -32,7 +32,7 @@ describe('removeLoraPlaceholder', () => {
           PowerLoraLoaderHeaderWidget: { type: 'PowerLoraLoaderHeaderWidget' },
           lora_1: { on: true, lora: 'PLACEHOLDER', strength: 1 },
           '➕ Add Lora': '',
-          model: ['22', 0],
+          model: ['6', 0],
           clip: ['13', 0]
         },
         class_type: 'Power Lora Loader (rgthree)'
@@ -42,7 +42,7 @@ describe('removeLoraPlaceholder', () => {
           PowerLoraLoaderHeaderWidget: { type: 'PowerLoraLoaderHeaderWidget' },
           lora_1: { on: true, lora: 'PLACEHOLDER', strength: 1 },
           '➕ Add Lora': '',
-          model: ['9', 0],
+          model: ['12', 0],
           clip: ['13', 0]
         },
         class_type: 'Power Lora Loader (rgthree)'
@@ -53,8 +53,8 @@ describe('removeLoraPlaceholder', () => {
 
     expect(workflow['65']).toBeUndefined()
     expect(workflow['66']).toBeUndefined()
-    expect(workflow['20'].inputs.model).toEqual(['22', 0])
-    expect(workflow['19'].inputs.model).toEqual(['9', 0])
+    expect(workflow['20'].inputs.model).toEqual(['6', 0])
+    expect(workflow['19'].inputs.model).toEqual(['12', 0])
     expect(workflow['23'].inputs.clip).toEqual(['13', 0])
     expect(workflow['24'].inputs.clip).toEqual(['13', 0])
     expect(workflow['27'].inputs.clip).toEqual(['13', 0])
@@ -72,7 +72,7 @@ describe('applyLoraPreset', () => {
           PowerLoraLoaderHeaderWidget: { type: 'PowerLoraLoaderHeaderWidget' },
           lora_1: { on: true, lora: 'PLACEHOLDER', strength: 1 },
           '➕ Add Lora': '',
-          model: ['22', 0],
+          model: ['6', 0],
           clip: ['13', 0]
         },
         class_type: 'Power Lora Loader (rgthree)'
@@ -82,7 +82,7 @@ describe('applyLoraPreset', () => {
           PowerLoraLoaderHeaderWidget: { type: 'PowerLoraLoaderHeaderWidget' },
           lora_1: { on: true, lora: 'PLACEHOLDER', strength: 1 },
           '➕ Add Lora': '',
-          model: ['9', 0],
+          model: ['12', 0],
           clip: ['13', 0]
         },
         class_type: 'Power Lora Loader (rgthree)'

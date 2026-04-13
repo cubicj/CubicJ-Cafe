@@ -54,11 +54,11 @@ export function removeLoraPlaceholder(workflow: ComfyUIWorkflow) {
 
   const nagHigh = workflow[WAN.NAG_HIGH];
   if (nagHigh?.inputs) {
-    nagHigh.inputs.model = [WAN.MODEL_HIGH_CHAIN, 0];
+    nagHigh.inputs.model = [WAN.SAGE_ATTENTION_HIGH, 0];
   }
   const nagLow = workflow[WAN.NAG_LOW];
   if (nagLow?.inputs) {
-    nagLow.inputs.model = [WAN.MODEL_SAMPLING_LOW, 0];
+    nagLow.inputs.model = [WAN.SAGE_ATTENTION_LOW, 0];
   }
   const clipPoH = workflow[WAN.CLIP_ENCODE_POS_HIGH];
   if (clipPoH?.inputs) {
