@@ -1,31 +1,24 @@
-import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createUser } from '../../helpers/fixtures'
 import { buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 import { createTestSession } from '../../helpers/auth'
-
-const mockGetWanSettings = vi.fn()
-const mockGetLtxSettings = vi.fn()
-const mockGetLtxWanSettings = vi.fn()
-
-vi.mock('@/lib/database/system-settings', () => ({
-  getWanSettings: (...args: unknown[]) => mockGetWanSettings(...args),
-  getLtxSettings: (...args: unknown[]) => mockGetLtxSettings(...args),
-  getLtxWanSettings: (...args: unknown[]) => mockGetLtxWanSettings(...args),
-}))
+import { prisma } from '@/lib/database/prisma'
 
 import { GET } from '@/app/api/i2v/capabilities/route'
 
-function setLoraEnabled(wan: boolean, ltx: boolean) {
-  mockGetWanSettings.mockResolvedValue({ loraEnabled: wan })
-  mockGetLtxSettings.mockResolvedValue({ loraEnabled: ltx })
-  mockGetLtxWanSettings.mockResolvedValue({ durationOptions: [5, 6, 7, 8] })
+async function seedSettings(settings: Record<string, string>) {
+  for (const [key, value] of Object.entries(settings)) {
+    await prisma.systemSetting.upsert({
+      where: { key },
+      create: { key, value, type: 'string', category: key.split('.')[0] },
+      update: { value },
+    })
+  }
 }
 
 describe('GET /api/i2v/capabilities', () => {
   beforeEach(async () => {
     await cleanTables()
-    vi.clearAllMocks()
   })
 
   it('returns 401 when not authenticated', async () => {
@@ -34,7 +27,7 @@ describe('GET /api/i2v/capabilities', () => {
   })
 
   it('returns loraPresets true when both enabled', async () => {
-    setLoraEnabled(true, true)
+    await seedSettings({ 'wan.lora_enabled': 'true', 'ltx.lora_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -47,7 +40,7 @@ describe('GET /api/i2v/capabilities', () => {
   })
 
   it('returns loraPresets false for LTX when disabled', async () => {
-    setLoraEnabled(true, false)
+    await seedSettings({ 'wan.lora_enabled': 'true', 'ltx.lora_enabled': 'false' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -59,7 +52,7 @@ describe('GET /api/i2v/capabilities', () => {
   })
 
   it('returns loraPresets false for WAN when disabled', async () => {
-    setLoraEnabled(false, true)
+    await seedSettings({ 'wan.lora_enabled': 'false', 'ltx.lora_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -71,7 +64,7 @@ describe('GET /api/i2v/capabilities', () => {
   })
 
   it('returns durationOptions from settings for ltx-wan and registry for others', async () => {
-    setLoraEnabled(true, true)
+    await seedSettings({ 'ltx-wan.duration_options': '5,6,7,8' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -83,8 +76,17 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.durationOptions.ltx).toEqual([5, 6, 7])
   })
 
+  it('falls back to registry durationOptions when setting missing', async () => {
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
+  })
+
   it('preserves other capabilities from registry', async () => {
-    setLoraEnabled(true, true)
     const user = await createUser()
     const session = await createTestSession(user.id)
 
