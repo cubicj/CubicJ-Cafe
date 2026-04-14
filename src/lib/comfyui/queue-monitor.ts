@@ -261,6 +261,12 @@ class QueueMonitor {
       // 병렬 처리 시작
       this.currentlyProcessing.add(claimedRequest.id);
       const promise = this.processQueueRequestWithServer(claimedRequest.id, selectedServer)
+        .catch(error => {
+          log.error('Queue request processing failed', {
+            requestId: claimedRequest.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        })
         .finally(() => {
           this.currentlyProcessing.delete(claimedRequest.id);
         });
