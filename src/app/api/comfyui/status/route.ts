@@ -20,7 +20,7 @@ interface ServerStatus {
 }
 
 export const GET = createRouteHandler(
-  { auth: 'none' },
+  { auth: 'user' },
   async () => {
     try {
       if (!isComfyUIEnabled()) {

@@ -1,5 +1,7 @@
 import { vi } from 'vitest'
-import { buildRequest, noContext } from '../../helpers/auth'
+import { cleanTables } from '../../helpers/db'
+import { createUser } from '../../helpers/fixtures'
+import { createTestSession, buildAuthenticatedRequest, noContext } from '../../helpers/auth'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => true),
@@ -16,11 +18,20 @@ vi.mock('@/lib/comfyui/client', () => {
 import { GET } from '@/app/api/comfyui/status/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 
+let sessionId: string
+
+beforeEach(async () => {
+  await cleanTables()
+  const user = await createUser()
+  const session = await createTestSession(user.id)
+  sessionId = session.id
+})
+
 describe('GET /api/comfyui/status', () => {
   it('returns disabled state when ComfyUI is off', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(false)
 
-    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
+    const res = await GET(buildAuthenticatedRequest('/api/comfyui/status', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -32,7 +43,7 @@ describe('GET /api/comfyui/status', () => {
   it('returns server status when ComfyUI is enabled', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(true)
 
-    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
+    const res = await GET(buildAuthenticatedRequest('/api/comfyui/status', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -46,7 +57,7 @@ describe('GET /api/comfyui/status', () => {
   it('includes local server in results', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(true)
 
-    const res = await GET(buildRequest('/api/comfyui/status'), noContext)
+    const res = await GET(buildAuthenticatedRequest('/api/comfyui/status', sessionId), noContext)
     const body = await res.json()
 
     const localServer = body.servers.find((s: any) => s.type === 'local')
