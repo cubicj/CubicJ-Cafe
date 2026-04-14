@@ -25,5 +25,5 @@ export function setNode(workflow: ComfyUIWorkflow, id: string, values: Record<st
 }
 
 export function dumpWorkflow(model: string, workflow: ComfyUIWorkflow) {
-  log.info(`${model.toUpperCase()} workflow dump`, { workflow: JSON.stringify(workflow) })
+  log.debug(`${model.toUpperCase()} workflow dump`, { workflow: JSON.stringify(workflow) })
 }

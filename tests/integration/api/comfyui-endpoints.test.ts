@@ -1,5 +1,7 @@
 import { vi } from 'vitest'
-import { buildRequest, noContext } from '../../helpers/auth'
+import { cleanTables } from '../../helpers/db'
+import { createUser } from '../../helpers/fixtures'
+import { createTestSession, buildAuthenticatedRequest, noContext } from '../../helpers/auth'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => true),
@@ -43,7 +45,13 @@ import { GET as getLoras } from '@/app/api/comfyui/loras/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 import { serverManager } from '@/lib/comfyui/server-manager'
 
-beforeEach(() => {
+let sessionId: string
+
+beforeEach(async () => {
+  await cleanTables()
+  const user = await createUser()
+  const session = await createTestSession(user.id)
+  sessionId = session.id
   vi.mocked(isComfyUIEnabled).mockReturnValue(true)
   mockGetSamplerList.mockReset().mockResolvedValue(['euler', 'dpmpp_2m'])
   mockGetModelList.mockReset().mockResolvedValue({
@@ -68,7 +76,7 @@ beforeEach(() => {
 
 describe('GET /api/comfyui/samplers', () => {
   it('returns samplers when enabled', async () => {
-    const res = await getSamplers(buildRequest('/api/comfyui/samplers'), noContext)
+    const res = await getSamplers(buildAuthenticatedRequest('/api/comfyui/samplers', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -78,7 +86,7 @@ describe('GET /api/comfyui/samplers', () => {
   it('returns empty with enabled:false when disabled', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(false)
 
-    const res = await getSamplers(buildRequest('/api/comfyui/samplers'), noContext)
+    const res = await getSamplers(buildAuthenticatedRequest('/api/comfyui/samplers', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -89,7 +97,7 @@ describe('GET /api/comfyui/samplers', () => {
   it('returns 503 on connection error', async () => {
     mockGetSamplerList.mockRejectedValue(new Error('Connection refused'))
 
-    const res = await getSamplers(buildRequest('/api/comfyui/samplers'), noContext)
+    const res = await getSamplers(buildAuthenticatedRequest('/api/comfyui/samplers', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(503)
@@ -100,7 +108,7 @@ describe('GET /api/comfyui/samplers', () => {
 
 describe('GET /api/comfyui/models', () => {
   it('returns models when enabled', async () => {
-    const res = await getModels(buildRequest('/api/comfyui/models'), noContext)
+    const res = await getModels(buildAuthenticatedRequest('/api/comfyui/models', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -112,7 +120,7 @@ describe('GET /api/comfyui/models', () => {
   it('returns empty models structure when disabled', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(false)
 
-    const res = await getModels(buildRequest('/api/comfyui/models'), noContext)
+    const res = await getModels(buildAuthenticatedRequest('/api/comfyui/models', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -125,7 +133,7 @@ describe('GET /api/comfyui/models', () => {
   it('returns 503 on connection error', async () => {
     mockGetModelList.mockRejectedValue(new Error('Connection refused'))
 
-    const res = await getModels(buildRequest('/api/comfyui/models'), noContext)
+    const res = await getModels(buildAuthenticatedRequest('/api/comfyui/models', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(503)
@@ -136,7 +144,7 @@ describe('GET /api/comfyui/models', () => {
 
 describe('GET /api/comfyui/loras', () => {
   it('returns loras with categorization for WAN model', async () => {
-    const res = await getLoras(buildRequest('/api/comfyui/loras?model=wan'), noContext)
+    const res = await getLoras(buildAuthenticatedRequest('/api/comfyui/loras?model=wan', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -151,7 +159,7 @@ describe('GET /api/comfyui/loras', () => {
   it('returns enabled:false response when disabled', async () => {
     vi.mocked(isComfyUIEnabled).mockReturnValue(false)
 
-    const res = await getLoras(buildRequest('/api/comfyui/loras'), noContext)
+    const res = await getLoras(buildAuthenticatedRequest('/api/comfyui/loras', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -163,7 +171,7 @@ describe('GET /api/comfyui/loras', () => {
   it('returns 503 when no server available', async () => {
     vi.mocked(serverManager.selectBestServer).mockReturnValue(null as any)
 
-    const res = await getLoras(buildRequest('/api/comfyui/loras'), noContext)
+    const res = await getLoras(buildAuthenticatedRequest('/api/comfyui/loras', sessionId), noContext)
     const body = await res.json()
 
     expect(res.status).toBe(503)
@@ -177,7 +185,7 @@ describe('GET /api/comfyui/loras', () => {
       getLoRAList: mockGetLoRAList,
     } as any)
 
-    await getLoras(buildRequest('/api/comfyui/loras?model=ltx'), noContext)
+    await getLoras(buildAuthenticatedRequest('/api/comfyui/loras?model=ltx', sessionId), noContext)
 
     expect(mockGetLoRAList).toHaveBeenCalledWith('ltx')
   })

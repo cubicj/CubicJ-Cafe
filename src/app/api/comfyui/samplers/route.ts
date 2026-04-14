@@ -7,7 +7,7 @@ import { createRouteHandler } from '@/lib/api/route-handler';
 const log = createLogger('comfyui');
 
 export const GET = createRouteHandler(
-  { auth: 'none' },
+  { auth: 'user' },
   async () => {
     if (!isComfyUIEnabled()) {
       return {
