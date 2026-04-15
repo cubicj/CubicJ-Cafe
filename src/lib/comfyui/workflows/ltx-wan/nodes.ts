@@ -40,11 +40,9 @@ export const LTX_WAN = {
   SAMPLER_LTX: '12',
 
   // === LTX Pass — Decode ===
-  VRAM_POST_SAMPLE: '15',
   SEPARATE_AV: '16',
   VAE_DECODE_LTX: '10',
   AUDIO_DECODE: '11',
-  VRAM_POST_DECODE: '5',
 
   // === WAN Pass — Models ===
   UNET_WAN: '75',
@@ -52,7 +50,6 @@ export const LTX_WAN = {
   SAGE_ATTENTION_WAN: '43',
   CLIP_WAN: '73',
   VAE_WAN: '74',
-  POWER_LORA_WAN: '72',
 
   // === WAN Pass — Conditioning & Sampling ===
   CLIP_ENCODE_POS_WAN: '51',
@@ -71,8 +68,17 @@ export const LTX_WAN = {
   SAMPLER_WAN: '67',
 
   // === WAN Pass — Decode ===
-  VRAM_POST_SAMPLE_WAN: '78',
   VAE_DECODE_WAN: '60',
+
+  // === Force Full Unload (memory release checkpoints) ===
+  FORCE_UNLOAD_CONDITIONING: '197',
+  FORCE_UNLOAD_SAMPLER_LTX: '188',
+  FORCE_UNLOAD_VAE_LTX: '187',
+  FORCE_UNLOAD_AUDIO: '194',
+  FORCE_UNLOAD_GUIDER: '195',
+  FORCE_UNLOAD_SAMPLER_WAN: '189',
+  FORCE_UNLOAD_VAE_WAN: '198',
+  FORCE_UNLOAD_OUTPUT: '190',
 
   // === Post Processing ===
   VFI_MULTIPLIER: '34',
@@ -84,5 +90,4 @@ export const LTX_WAN = {
 
   // === Output ===
   VIDEO_OUTPUT: '82',
-  VRAM_POST_OUTPUT: '64',
 } as const

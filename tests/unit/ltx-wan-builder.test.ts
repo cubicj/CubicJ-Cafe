@@ -244,4 +244,18 @@ describe('buildLtxWanWorkflow', () => {
 
     expect(workflow[LTX_WAN.RIFE_CUSTOM_CONFIG]).toBeUndefined()
   })
+
+  it('wires reference-audio positive through FORCE_UNLOAD_CONDITIONING (197)', async () => {
+    const workflow = await buildLtxWanWorkflow({
+      ...DEFAULT_PARAMS,
+      referenceAudio: 'voice.flac',
+    })
+    expect(workflow[LTX_WAN.REFERENCE_AUDIO]!.inputs!.positive).toEqual([LTX_WAN.FORCE_UNLOAD_CONDITIONING, 0])
+    expect(workflow[LTX_WAN.REFERENCE_AUDIO]!.inputs!.negative).toEqual([LTX_WAN.CONDITIONING, 1])
+  })
+
+  it('does not include the removed WAN Power Lora Loader node (72)', async () => {
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+    expect(workflow['72']).toBeUndefined()
+  })
 })

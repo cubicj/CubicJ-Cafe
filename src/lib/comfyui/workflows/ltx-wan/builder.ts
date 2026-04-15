@@ -40,7 +40,6 @@ export async function buildLtxWanWorkflow(
   configureWanModels(workflow, settings)
   configureWanGeneration(workflow, params, settings)
   configureWanScheduler(workflow, settings)
-  configureWanLora(workflow, settings)
 
   configurePostProcessing(workflow, settings)
   configureOutput(workflow, params, settings)
@@ -155,7 +154,7 @@ function handleReferenceAudio(
       start_percent: settings.identityStartPercent,
       end_percent: settings.identityEndPercent,
       model: [LTX_WAN.POWER_LORA, 0],
-      positive: [LTX_WAN.CONDITIONING, 0],
+      positive: [LTX_WAN.FORCE_UNLOAD_CONDITIONING, 0],
       negative: [LTX_WAN.CONDITIONING, 1],
       reference_audio: [LTX_WAN.LOAD_AUDIO, 0],
       audio_vae: [LTX_WAN.AUDIO_VAE, 0],
@@ -242,21 +241,6 @@ function configureWanScheduler(workflow: ComfyUIWorkflow, settings: LtxWanSettin
     start: settings.sigmasRescaleStart,
     end: settings.sigmasRescaleEnd,
   })
-}
-
-function configureWanLora(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  if (!settings.loraEnabledWan) {
-    const loraNode = workflow[LTX_WAN.POWER_LORA_WAN]
-    if (loraNode?.inputs) {
-      const keys = Object.keys(loraNode.inputs).filter(k => k.startsWith('lora_'))
-      for (const key of keys) {
-        const entry = loraNode.inputs[key]
-        if (entry && typeof entry === 'object' && 'on' in entry) {
-          entry.on = false
-        }
-      }
-    }
-  }
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {

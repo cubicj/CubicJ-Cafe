@@ -26,15 +26,6 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "Constant Number",
     "_meta": { "title": "LTX_WAN_3" }
   },
-  "5": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["10", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_WAN_5" }
-  },
   "6": {
     "inputs": {
       "image": "PLACEHOLDER"
@@ -103,18 +94,9 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "LTX_WAN_13" }
   },
-  "15": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["12", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_WAN_15" }
-  },
   "16": {
     "inputs": {
-      "av_latent": ["15", 0]
+      "av_latent": ["188", 0]
     },
     "class_type": "LTXVSeparateAVLatent",
     "_meta": { "title": "LTX_WAN_16" }
@@ -340,7 +322,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "51": {
     "inputs": {
       "text": ["55", 0],
-      "clip": ["72", 1]
+      "clip": ["73", 0]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "LTX_WAN_51" }
@@ -348,7 +330,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "52": {
     "inputs": {
       "text": ["56", 0],
-      "clip": ["72", 1]
+      "clip": ["73", 0]
     },
     "class_type": "CLIPTextEncode",
     "_meta": { "title": "LTX_WAN_52" }
@@ -392,20 +374,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "60": {
     "inputs": {
-      "samples": ["78", 0],
+      "samples": ["189", 0],
       "vae": ["74", 0]
     },
     "class_type": "VAEDecode",
     "_meta": { "title": "LTX_WAN_60" }
-  },
-  "64": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["82", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_WAN_64" }
   },
   "66": {
     "inputs": {
@@ -418,26 +391,13 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   "67": {
     "inputs": {
       "noise": ["95", 0],
-      "guider": ["66", 0],
+      "guider": ["195", 0],
       "sampler": ["166", 0],
       "sigmas": ["154", 0],
       "latent_image": ["93", 0]
     },
     "class_type": "SamplerCustomAdvanced",
     "_meta": { "title": "LTX_WAN_67" }
-  },
-  "72": {
-    "inputs": {
-      "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
-      "lora_1": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
-      "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
-      "lora_3": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
-      "➕ Add Lora": "",
-      "model": ["43", 0],
-      "clip": ["73", 0]
-    },
-    "class_type": "Power Lora Loader (rgthree)",
-    "_meta": { "title": "LTX_WAN_72" }
   },
   "73": {
     "inputs": {
@@ -469,20 +429,11 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "nag_alpha": 0,
       "nag_tau": 0,
       "input_type": "default",
-      "model": ["72", 0],
+      "model": ["43", 0],
       "conditioning": ["52", 0]
     },
     "class_type": "WanVideoNAG",
     "_meta": { "title": "LTX_WAN_77" }
-  },
-  "78": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["67", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_WAN_78" }
   },
   "82": {
     "inputs": {
@@ -497,7 +448,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "pingpong": false,
       "save_output": false,
       "images": ["84", 0],
-      "audio": ["11", 0]
+      "audio": ["194", 0]
     },
     "class_type": "VHS_VideoCombine",
     "_meta": { "title": "LTX_WAN_82" }
@@ -516,7 +467,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "batch_index": 0,
       "length": 1,
-      "image": ["5", 0]
+      "image": ["187", 0]
     },
     "class_type": "ImageFromBatch",
     "_meta": { "title": "LTX_WAN_91" }
@@ -525,14 +476,14 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "batch_index": ["31", 0],
       "length": 1,
-      "image": ["5", 0]
+      "image": ["187", 0]
     },
     "class_type": "ImageFromBatch",
     "_meta": { "title": "LTX_WAN_92" }
   },
   "93": {
     "inputs": {
-      "pixels": ["5", 0],
+      "pixels": ["187", 0],
       "vae": ["74", 0]
     },
     "class_type": "VAEEncode",
@@ -594,7 +545,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "clear_cache_after_n_frames": 0,
       "multiplier": ["34", 0],
       "keep_model_loaded": false,
-      "frames": ["60", 0],
+      "frames": ["198", 0],
       "rife_trt_model": ["169", 0]
     },
     "class_type": "AutoRifeTensorrt",
@@ -618,5 +569,85 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     "class_type": "CustomResolutionConfig",
     "_meta": { "title": "LTX_WAN_170" }
+  },
+  "187": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["10", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_187" }
+  },
+  "188": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["12", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_188" }
+  },
+  "189": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["67", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_189" }
+  },
+  "190": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["82", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_190" }
+  },
+  "194": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["11", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_194" }
+  },
+  "195": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["66", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_195" }
+  },
+  "197": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["7", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_197" }
+  },
+  "198": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["60", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "LTX_WAN_198" }
   }
 }
