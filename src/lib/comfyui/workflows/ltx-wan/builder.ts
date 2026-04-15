@@ -244,7 +244,7 @@ function configureWanScheduler(workflow: ComfyUIWorkflow, settings: LtxWanSettin
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  let lastOutput: string = LTX_WAN.VAE_DECODE_WAN
+  let lastOutput: string = LTX_WAN.FORCE_UNLOAD_VAE_WAN
 
   if (settings.vfiEnabled) {
     setNode(workflow, LTX_WAN.VFI_MULTIPLIER, { value: settings.vfiMultiplier })
