@@ -82,6 +82,16 @@ export const POST = createRouteHandler(
         : await getLtxWanSettings();
     const loraEnabled = capabilities.loraPresets && 'loraEnabled' in modelSettings && modelSettings.loraEnabled;
 
+    const allowedDurations = activeModel === 'ltx-wan'
+      ? (modelSettings as { durationOptions: number[] }).durationOptions
+      : MODEL_REGISTRY[activeModel].durationOptions;
+    if (!allowedDurations.includes(validated.videoDuration)) {
+      return NextResponse.json(
+        { error: `videoDuration must be one of ${allowedDurations.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     const endImageFile = capabilities.endImage ? validated.endImage : undefined;
     const loraPresetData = loraEnabled ? validated.loraPreset : undefined;
 
