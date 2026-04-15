@@ -218,13 +218,6 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.images).toEqual([LTX_WAN.VFI, 0])
   })
 
-  it('wires output to VAE_DECODE_WAN when both VFI and RTX disabled', async () => {
-    mockSettings.mockResolvedValueOnce(makeSettings({ vfiEnabled: false, rtxEnabled: false }))
-    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
-
-    expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.images).toEqual([LTX_WAN.VAE_DECODE_WAN, 0])
-  })
-
   it('uses VFI frame rate when VFI enabled', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
@@ -257,5 +250,19 @@ describe('buildLtxWanWorkflow', () => {
   it('does not include the removed WAN Power Lora Loader node (72)', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
     expect(workflow['72']).toBeUndefined()
+  })
+
+  it('routes post-VAE chain through FORCE_UNLOAD_VAE_WAN (198) when VFI is disabled', async () => {
+    mockSettings.mockResolvedValueOnce(makeSettings({ vfiEnabled: false, rtxEnabled: true }))
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+    expect(workflow[LTX_WAN.RTX_SUPER_RES]!.inputs!.images).toEqual([LTX_WAN.FORCE_UNLOAD_VAE_WAN, 0])
+  })
+
+  it('routes video output through FORCE_UNLOAD_VAE_WAN (198) when both VFI and RTX are disabled', async () => {
+    mockSettings.mockResolvedValueOnce(makeSettings({ vfiEnabled: false, rtxEnabled: false }))
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+    expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.images).toEqual([LTX_WAN.FORCE_UNLOAD_VAE_WAN, 0])
   })
 })
