@@ -129,4 +129,38 @@ describe('ComfyUIClient WebSocket', () => {
     const url = client.getWebSocketURL()
     expect(url).toMatch(/^ws:\/\/127\.0\.0\.1:8188\/ws\?clientId=cubicj-cafe-/)
   })
+
+  it('preserves executed callbacks across disconnect', () => {
+    const callback = vi.fn()
+    client.onExecuted('prompt-1', callback)
+
+    client.disconnectWebSocket()
+
+    const message: WsExecutedData = {
+      node: '82',
+      output: { gifs: [{ filename: 'test.mp4', subfolder: 'wan', type: 'temp' }] },
+      prompt_id: 'prompt-1',
+    }
+    client['handleWsMessage'](JSON.stringify({ type: 'executed', data: message }))
+
+    expect(callback).toHaveBeenCalledWith(message)
+  })
+
+  it('preserves error callbacks across disconnect', () => {
+    const callback = vi.fn()
+    client.onExecutionError('prompt-1', callback)
+
+    client.disconnectWebSocket()
+
+    const message: WsExecutionErrorData = {
+      prompt_id: 'prompt-1',
+      node_id: '82',
+      node_type: 'VHS_VideoCombine',
+      exception_message: 'OOM',
+      exception_type: 'RuntimeError',
+    }
+    client['handleWsMessage'](JSON.stringify({ type: 'execution_error', data: message }))
+
+    expect(callback).toHaveBeenCalledWith(message)
+  })
 })

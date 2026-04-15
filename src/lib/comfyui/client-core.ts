@@ -175,8 +175,6 @@ export class ComfyUIClient {
     }
 
     this.wsConnected = false
-    this.executedCallbacks.clear()
-    this.errorCallbacks.clear()
   }
 
   isWebSocketConnected(): boolean {
