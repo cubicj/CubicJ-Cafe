@@ -82,9 +82,9 @@ function formatAbsoluteTime(dateString: string) {
 }
 
 const MODE_CONFIG: Record<string, { label: string; className: string }> = {
-  START_ONLY: { label: '시작만', className: 'bg-gray-100 text-gray-700 border-gray-300' },
-  START_END: { label: '끝 이미지', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
-  LOOP: { label: '루프', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+  START_ONLY: { label: 'Base', className: 'bg-gray-100 text-gray-700 border-gray-300' },
+  START_END: { label: 'Base+End', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  LOOP: { label: 'Loop', className: 'bg-amber-100 text-amber-700 border-amber-300' },
 };
 
 function getModeConfig(generationMode: string) {
