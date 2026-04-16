@@ -37,17 +37,13 @@ export async function buildLtxWanWorkflow(
     handleEndImageBypass(workflow)
   }
 
-  configureWanModels(workflow, settings)
-  configureWanGeneration(workflow, params, settings)
-  configureWanScheduler(workflow, settings)
+  configureWanPipeline(workflow, params, settings)
 
   configurePostProcessing(workflow, settings)
   configureOutput(workflow, params, settings)
 
   setNode(workflow, LTX_WAN.NOISE_SEED_LTX, { noise_seed: generateSeed() })
   setNode(workflow, LTX_WAN.CLOWN_SAMPLER_LTX, { seed: generateSeed() })
-  setNode(workflow, LTX_WAN.NOISE_SEED_WAN, { noise_seed: generateSeed() })
-  setNode(workflow, LTX_WAN.CLOWN_SAMPLER_WAN, { seed: generateSeed() })
 
   log.info('LTX-WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
@@ -206,40 +202,38 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   delete workflow[LTX_WAN.PREPROCESS_END]
 }
 
-function configureWanModels(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  setNode(workflow, LTX_WAN.UNET_WAN, { unet_name: settings.unetWan, weight_dtype: 'default' })
-  setNode(workflow, LTX_WAN.CLIP_WAN, { clip_name: settings.clipWan })
-  setNode(workflow, LTX_WAN.VAE_WAN, { vae_name: settings.vaeWan })
-  setNode(workflow, LTX_WAN.MODEL_SAMPLING, { shift: settings.shift })
-}
-
-function configureWanGeneration(
+function configureWanPipeline(
   workflow: ComfyUIWorkflow,
   params: LtxWanGenerationParams,
   settings: LtxWanSettings
 ) {
-  setNode(workflow, LTX_WAN.NEGATIVE_PROMPT_WAN, { text: settings.negativePromptWan })
-  setNode(workflow, LTX_WAN.CLOWN_SAMPLER_WAN, {
-    sampler_name: settings.samplerWan,
-    eta: settings.clownEtaWan,
-    bongmath: settings.clownBongmathWan,
+  setNode(workflow, LTX_WAN.WAN_MODEL_LOADER, {
+    model: settings.unetWan,
   })
-  setNode(workflow, LTX_WAN.NAG_WAN, {
+  setNode(workflow, LTX_WAN.WAN_VAE_LOADER, {
+    model_name: settings.vaeWan,
+  })
+  setNode(workflow, LTX_WAN.WAN_T5_ENCODER, {
+    model_name: settings.clipWan,
+  })
+  setNode(workflow, LTX_WAN.NEGATIVE_PROMPT_WAN, {
+    text: settings.negativePromptWan,
+  })
+  setNode(workflow, LTX_WAN.WAN_NAG, {
     nag_scale: settings.nagScaleWan,
-    nag_alpha: settings.nagAlphaWan,
     nag_tau: settings.nagTauWan,
+    nag_alpha: settings.nagAlphaWan,
   })
-}
-
-function configureWanScheduler(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  setNode(workflow, LTX_WAN.BASIC_SCHEDULER, {
-    scheduler: settings.schedulerWan,
+  setNode(workflow, LTX_WAN.WAN_MANUAL_SIGMAS, {
+    sigmas: settings.sigmasWan,
+  })
+  setNode(workflow, LTX_WAN.WAN_SAMPLER, {
     steps: settings.stepsWan,
-    denoise: settings.denoiseWan,
-  })
-  setNode(workflow, LTX_WAN.SIGMAS_RESCALE, {
-    start: settings.sigmasRescaleStart,
-    end: settings.sigmasRescaleEnd,
+    cfg: settings.cfgWan,
+    shift: settings.shift,
+    scheduler: settings.schedulerWan,
+    denoise_strength: settings.denoiseWan,
+    seed: generateSeed(),
   })
 }
 
