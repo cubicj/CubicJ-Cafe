@@ -6,31 +6,12 @@ vi.mock('@/lib/logger', () => ({
 
 import { prisma } from '@/lib/database/prisma'
 import { loadOpsSettings, getOpsSetting, _resetOpsSettingsForTest } from '@/lib/database/ops-settings'
-
-const OPS_SEED: Array<{ key: string; value: string }> = [
-  { key: 'ops.discord_channel_cache_ms', value: '300000' },
-  { key: 'ops.generation_sweep_interval_ms', value: '300000' },
-  { key: 'ops.generation_sweep_max_age_ms', value: '1800000' },
-  { key: 'ops.job_monitor_timeout_ms', value: '1800000' },
-  { key: 'ops.queue_health_check_interval_ms', value: '60000' },
-  { key: 'ops.comfyui_http_timeout_ms', value: '30000' },
-  { key: 'ops.log_file_max_bytes', value: '20971520' },
-  { key: 'ops.log_file_retention_days', value: '14' },
-  { key: 'ops.ws_history_poll_interval_ms', value: '60000' },
-]
-
-async function seedOps() {
-  await prisma.systemSetting.deleteMany({ where: { category: 'ops' } })
-  for (const { key, value } of OPS_SEED) {
-    await prisma.systemSetting.create({
-      data: { key, value, type: 'number', category: 'ops' },
-    })
-  }
-}
+import { seedOps } from '../helpers/ops-seed'
 
 describe('ops-settings', () => {
   beforeEach(async () => {
     _resetOpsSettingsForTest()
+    await prisma.systemSetting.deleteMany()
     await seedOps()
   })
 
