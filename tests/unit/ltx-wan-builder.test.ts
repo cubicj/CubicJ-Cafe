@@ -83,6 +83,7 @@ const BASE_SETTINGS = {
   nagTauWan: 2.373,
 
   negativePromptWan: 'fake wan negative',
+  blocksToSwap: 20,
 
   vfiMethod: 'rife',
   rifeModel: 'fake_rife_model_sim',
@@ -261,6 +262,13 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.shift).toBe(5)
     expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.scheduler).toBe('beta57')
     expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.denoise_strength).toBe(1)
+  })
+
+  it('applies blocksToSwap setting to WAN_BLOCK_SWAP node', async () => {
+    mockSettings.mockResolvedValueOnce(makeSettings({ blocksToSwap: 30 }))
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+    expect(workflow[LTX_WAN.WAN_BLOCK_SWAP]!.inputs!.blocks_to_swap).toBe(30)
   })
 
   it('does not include removed old WAN nodes', async () => {
