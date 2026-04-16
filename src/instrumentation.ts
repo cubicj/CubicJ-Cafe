@@ -53,6 +53,9 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     validateEnv();
 
+    const { loadOpsSettings } = await import('./lib/database/ops-settings');
+    await loadOpsSettings();
+
     const { initFileLogging } = await import('./lib/logger-file');
     initFileLogging();
 
