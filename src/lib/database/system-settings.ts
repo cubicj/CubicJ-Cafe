@@ -590,15 +590,12 @@ export interface LtxWanSettings {
   vaeWan: string
   shift: number
 
-  samplerWan: string
-  clownEtaWan: number
-  clownBongmathWan: boolean
+  cfgWan: number
 
   schedulerWan: string
   stepsWan: number
   denoiseWan: number
-  sigmasRescaleStart: number
-  sigmasRescaleEnd: number
+  sigmasWan: string
 
   nagScaleWan: number
   nagAlphaWan: number
@@ -677,15 +674,12 @@ export const LTX_WAN_KEYS = {
   vaeWan: 'ltx-wan.vae_wan',
   shift: 'ltx-wan.shift',
 
-  samplerWan: 'ltx-wan.sampler_wan',
-  clownEtaWan: 'ltx-wan.clown_eta_wan',
-  clownBongmathWan: 'ltx-wan.clown_bongmath_wan',
+  cfgWan: 'ltx-wan.cfg_wan',
 
   schedulerWan: 'ltx-wan.scheduler_wan',
   stepsWan: 'ltx-wan.steps_wan',
   denoiseWan: 'ltx-wan.denoise_wan',
-  sigmasRescaleStart: 'ltx-wan.sigmas_rescale_start',
-  sigmasRescaleEnd: 'ltx-wan.sigmas_rescale_end',
+  sigmasWan: 'ltx-wan.sigmas_wan',
 
   nagScaleWan: 'ltx-wan.nag_scale_wan',
   nagAlphaWan: 'ltx-wan.nag_alpha_wan',
@@ -772,15 +766,12 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     vaeWan: map.get(k.vaeWan)!,
     shift: parseFloat(map.get(k.shift)!),
 
-    samplerWan: map.get(k.samplerWan)!,
-    clownEtaWan: parseFloat(map.get(k.clownEtaWan)!),
-    clownBongmathWan: map.get(k.clownBongmathWan)! === 'true',
+    cfgWan: parseFloat(map.get(k.cfgWan)!),
 
     schedulerWan: map.get(k.schedulerWan)!,
     stepsWan: parseInt(map.get(k.stepsWan)!, 10),
     denoiseWan: parseFloat(map.get(k.denoiseWan)!),
-    sigmasRescaleStart: parseFloat(map.get(k.sigmasRescaleStart)!),
-    sigmasRescaleEnd: parseFloat(map.get(k.sigmasRescaleEnd)!),
+    sigmasWan: map.get(k.sigmasWan)!,
 
     nagScaleWan: parseFloat(map.get(k.nagScaleWan)!),
     nagAlphaWan: parseFloat(map.get(k.nagAlphaWan)!),
