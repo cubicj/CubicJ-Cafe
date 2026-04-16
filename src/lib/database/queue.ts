@@ -95,43 +95,55 @@ export class QueueService {
   }
 
   static async createRequest(data: QueueRequestData): Promise<string> {
-    const activeCount = await QueueService.getUserActiveRequestCount(data.userId);
+    const id = await prisma.$transaction(
+      async (tx) => {
+        const activeCount = await tx.queueRequest.count({
+          where: {
+            userId: data.userId,
+            status: { in: [QueueStatus.PENDING, QueueStatus.PROCESSING] },
+          },
+        });
 
-    if (activeCount >= 2) {
-      throw new Error(`닉네임 "${data.nickname}"은 이미 2개의 요청을 처리 중입니다. 기존 요청이 완료된 후 다시 시도해주세요.`);
-    }
+        if (activeCount >= 2) {
+          throw new Error(`닉네임 "${data.nickname}"은 이미 2개의 요청을 처리 중입니다. 기존 요청이 완료된 후 다시 시도해주세요.`);
+        }
 
-    const nextPosition = await QueueService.getNextPosition();
+        const lastRequest = await tx.queueRequest.findFirst({
+          orderBy: { position: 'desc' },
+          select: { position: true },
+        });
+        const nextPosition = (lastRequest?.position || 0) + 1;
 
-    const requestData: Parameters<typeof prisma.queueRequest.create>[0]['data'] = {
-      userId: data.userId,
-      nickname: data.nickname,
-      prompt: data.prompt,
-      imageFile: data.imageFile,
-      imageBlob: data.imageBlob as Uint8Array<ArrayBuffer> | undefined,
-      endImageFile: data.endImageFile,
-      endImageBlob: data.endImageBlob as Uint8Array<ArrayBuffer> | undefined,
-      audioFile: data.audioFile,
-      audioBlob: data.audioBlob as Uint8Array<ArrayBuffer> | undefined,
-      audioPresetName: data.audioPresetName,
-      loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
-      isNSFW: data.isNSFW || false,
-      serverType: data.serverType,
-      serverId: data.serverId,
-      videoModel: data.videoModel || 'wan',
-      generationMode: data.generationMode || GenerationMode.START_ONLY,
-      videoDuration: data.videoDuration || 5,
-      position: nextPosition,
-      status: QueueStatus.PENDING
-    };
+        const requestData: Parameters<typeof tx.queueRequest.create>[0]['data'] = {
+          userId: data.userId,
+          nickname: data.nickname,
+          prompt: data.prompt,
+          imageFile: data.imageFile,
+          imageBlob: data.imageBlob as Uint8Array<ArrayBuffer> | undefined,
+          endImageFile: data.endImageFile,
+          endImageBlob: data.endImageBlob as Uint8Array<ArrayBuffer> | undefined,
+          audioFile: data.audioFile,
+          audioBlob: data.audioBlob as Uint8Array<ArrayBuffer> | undefined,
+          audioPresetName: data.audioPresetName,
+          loraPresetData: data.loraPreset ? JSON.stringify(data.loraPreset) : null,
+          isNSFW: data.isNSFW || false,
+          serverType: data.serverType,
+          serverId: data.serverId,
+          videoModel: data.videoModel || 'wan',
+          generationMode: data.generationMode || GenerationMode.START_ONLY,
+          videoDuration: data.videoDuration || 5,
+          position: nextPosition,
+          status: QueueStatus.PENDING,
+        };
 
-    const request = await prisma.queueRequest.create({
-      data: requestData
-    });
+        const request = await tx.queueRequest.create({ data: requestData });
+        return request.id;
+      },
+      { isolationLevel: 'Serializable' },
+    );
 
     QueueService.invalidateCache();
-
-    return request.id;
+    return id;
   }
 
   static async getNextPosition(): Promise<number> {
