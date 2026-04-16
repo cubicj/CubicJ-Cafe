@@ -234,6 +234,9 @@ function configureWanPipeline(
     denoise_strength: settings.denoiseWan,
     seed: generateSeed(),
   })
+  setNode(workflow, LTX_WAN.WAN_BLOCK_SWAP, {
+    blocks_to_swap: settings.blocksToSwap,
+  })
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
