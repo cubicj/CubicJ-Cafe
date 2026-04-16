@@ -36,9 +36,9 @@ interface QueueItemProps {
 }
 
 const MODEL_CONFIG: Record<string, { label: string; className: string }> = {
-  wan: { label: 'WAN', className: 'bg-purple-100 text-purple-700 border-purple-300' },
-  ltx: { label: 'LTX', className: 'bg-blue-100 text-blue-700 border-blue-300' },
-  ltx_wan: { label: 'L+W', className: 'bg-teal-100 text-teal-700 border-teal-300' },
+  wan: { label: 'WAN 2.2', className: 'bg-purple-100 text-purple-700 border-purple-300' },
+  ltx: { label: 'LTX 2.3', className: 'bg-blue-100 text-blue-700 border-blue-300' },
+  ltx_wan: { label: 'LTX + WAN', className: 'bg-teal-100 text-teal-700 border-teal-300' },
 };
 
 function getModelConfig(videoModel: string) {
