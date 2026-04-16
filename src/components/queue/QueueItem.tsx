@@ -81,12 +81,14 @@ function formatAbsoluteTime(dateString: string) {
   });
 }
 
-function getModeLabel(generationMode: string) {
-  switch (generationMode) {
-    case 'START_END': return '끝 이미지';
-    case 'LOOP': return '루프';
-    default: return '시작만';
-  }
+const MODE_CONFIG: Record<string, { label: string; className: string }> = {
+  START_ONLY: { label: '시작만', className: 'bg-gray-100 text-gray-700 border-gray-300' },
+  START_END: { label: '끝 이미지', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  LOOP: { label: '루프', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+};
+
+function getModeConfig(generationMode: string) {
+  return MODE_CONFIG[generationMode] ?? MODE_CONFIG.START_ONLY;
 }
 
 function DeleteButton({ isDeleting, onClick }: { isDeleting: boolean; onClick: () => void }) {
@@ -143,7 +145,9 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
             <Badge variant="outline" className={`text-xs ${modelConfig.className}`}>
               {modelConfig.label}
             </Badge>
-            <span>{getModeLabel(request.generationMode)}</span>
+            <Badge variant="outline" className={`text-xs ${getModeConfig(request.generationMode).className}`}>
+              {getModeConfig(request.generationMode).label}
+            </Badge>
             <span>{request.videoDuration}초</span>
           </div>
         </div>
