@@ -83,17 +83,6 @@ const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
 const statsCache = new ExpiringCache<QueueStatsData>(30000);
 
 export class QueueService {
-  static async getUserActiveRequestCount(userId: number): Promise<number> {
-    return await prisma.queueRequest.count({
-      where: {
-        userId,
-        status: {
-          in: [QueueStatus.PENDING, QueueStatus.PROCESSING]
-        }
-      }
-    });
-  }
-
   static async createRequest(data: QueueRequestData): Promise<string> {
     const id = await prisma.$transaction(
       async (tx) => {
@@ -144,15 +133,6 @@ export class QueueService {
 
     QueueService.invalidateCache();
     return id;
-  }
-
-  static async getNextPosition(): Promise<number> {
-    const lastRequest = await prisma.queueRequest.findFirst({
-      orderBy: { position: 'desc' },
-      select: { position: true }
-    });
-
-    return (lastRequest?.position || 0) + 1;
   }
 
   static async getQueueList() {
