@@ -62,6 +62,7 @@ const QUEUE_SELECT_BASE = {
   imageFile: true,
   endImageFile: true,
   audioFile: true,
+  audioPresetName: true,
   loraPresetData: true,
   isNSFW: true,
   jobId: true,

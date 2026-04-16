@@ -40,6 +40,27 @@ describe('GET /api/queue', () => {
       expect(body.data).toHaveLength(1)
       expect(body.data[0].prompt).toBe('test prompt')
     })
+
+    it('returns audioPresetName in queue items', async () => {
+      const user = await createUser()
+      await prisma.queueRequest.create({
+        data: {
+          userId: user.id,
+          nickname: user.nickname,
+          prompt: 'test prompt',
+          status: QueueStatus.PENDING,
+          position: 1,
+          audioPresetName: 'Dramatic Orchestral',
+        },
+      })
+
+      const req = buildRequest('/api/queue?action=list')
+      const res = await GET(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(body.data[0].audioPresetName).toBe('Dramatic Orchestral')
+    })
   })
 
   describe('action=stats', () => {
