@@ -242,7 +242,11 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           )}
         </div>
 
-        <div className="flex-1" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-muted-foreground text-ellipsis overflow-hidden whitespace-nowrap" title={request.prompt}>
+            {request.prompt}
+          </p>
+        </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-xs text-muted-foreground min-w-16">
