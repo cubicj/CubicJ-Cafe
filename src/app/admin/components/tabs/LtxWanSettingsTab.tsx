@@ -59,6 +59,7 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.scheduler_wan', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler_wan:WanVideoSampler:scheduler' },
   { key: 'ltx-wan.steps_wan', label: 'Steps', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'ltx-wan.denoise_wan', label: 'Denoise', type: 'number', step: 0.01, group: 'WAN — 샘플러' },
+  { key: 'ltx-wan.blocks_to_swap', label: 'Blocks to Swap', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'ltx-wan.sigmas_wan', label: 'Sigmas (CSV)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
   { key: 'ltx-wan.nag_scale_wan', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
