@@ -310,46 +310,6 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "RandomNoise",
     "_meta": { "title": "LTX_WAN_42" }
   },
-  "43": {
-    "inputs": {
-      "sage_attention": "auto",
-      "allow_compile": false,
-      "model": ["59", 0]
-    },
-    "class_type": "PathchSageAttentionKJ",
-    "_meta": { "title": "LTX_WAN_43" }
-  },
-  "51": {
-    "inputs": {
-      "text": ["55", 0],
-      "clip": ["73", 0]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "LTX_WAN_51" }
-  },
-  "52": {
-    "inputs": {
-      "text": ["56", 0],
-      "clip": ["73", 0]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "LTX_WAN_52" }
-  },
-  "53": {
-    "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
-      "length": ["2", 0],
-      "batch_size": 1,
-      "positive": ["51", 0],
-      "negative": ["52", 0],
-      "vae": ["74", 0],
-      "start_image": ["91", 0],
-      "end_image": ["92", 0]
-    },
-    "class_type": "WanFirstLastFrameToVideo",
-    "_meta": { "title": "LTX_WAN_53" }
-  },
   "55": {
     "inputs": {
       "text": "PLACEHOLDER"
@@ -363,77 +323,6 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     "class_type": "Text Multiline",
     "_meta": { "title": "LTX_WAN_56" }
-  },
-  "59": {
-    "inputs": {
-      "shift": 0,
-      "model": ["75", 0]
-    },
-    "class_type": "ModelSamplingSD3",
-    "_meta": { "title": "LTX_WAN_59" }
-  },
-  "60": {
-    "inputs": {
-      "samples": ["189", 0],
-      "vae": ["74", 0]
-    },
-    "class_type": "VAEDecode",
-    "_meta": { "title": "LTX_WAN_60" }
-  },
-  "66": {
-    "inputs": {
-      "model": ["77", 0],
-      "conditioning": ["53", 0]
-    },
-    "class_type": "BasicGuider",
-    "_meta": { "title": "LTX_WAN_66" }
-  },
-  "67": {
-    "inputs": {
-      "noise": ["95", 0],
-      "guider": ["195", 0],
-      "sampler": ["166", 0],
-      "sigmas": ["154", 0],
-      "latent_image": ["93", 0]
-    },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "LTX_WAN_67" }
-  },
-  "73": {
-    "inputs": {
-      "clip_name": "PLACEHOLDER",
-      "type": "wan",
-      "device": "default"
-    },
-    "class_type": "CLIPLoader",
-    "_meta": { "title": "LTX_WAN_73" }
-  },
-  "74": {
-    "inputs": {
-      "vae_name": "PLACEHOLDER"
-    },
-    "class_type": "VAELoader",
-    "_meta": { "title": "LTX_WAN_74" }
-  },
-  "75": {
-    "inputs": {
-      "unet_name": "PLACEHOLDER",
-      "weight_dtype": "PLACEHOLDER"
-    },
-    "class_type": "UNETLoader",
-    "_meta": { "title": "LTX_WAN_75" }
-  },
-  "77": {
-    "inputs": {
-      "nag_scale": 0,
-      "nag_alpha": 0,
-      "nag_tau": 0,
-      "input_type": "default",
-      "model": ["43", 0],
-      "conditioning": ["52", 0]
-    },
-    "class_type": "WanVideoNAG",
-    "_meta": { "title": "LTX_WAN_77" }
   },
   "82": {
     "inputs": {
@@ -463,48 +352,6 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "RTXVideoSuperResolution",
     "_meta": { "title": "LTX_WAN_84" }
   },
-  "91": {
-    "inputs": {
-      "batch_index": 0,
-      "length": 1,
-      "image": ["187", 0]
-    },
-    "class_type": "ImageFromBatch",
-    "_meta": { "title": "LTX_WAN_91" }
-  },
-  "92": {
-    "inputs": {
-      "batch_index": ["31", 0],
-      "length": 1,
-      "image": ["187", 0]
-    },
-    "class_type": "ImageFromBatch",
-    "_meta": { "title": "LTX_WAN_92" }
-  },
-  "93": {
-    "inputs": {
-      "pixels": ["187", 0],
-      "vae": ["74", 0]
-    },
-    "class_type": "VAEEncode",
-    "_meta": { "title": "LTX_WAN_93" }
-  },
-  "95": {
-    "inputs": {
-      "noise_seed": 0
-    },
-    "class_type": "RandomNoise",
-    "_meta": { "title": "LTX_WAN_95" }
-  },
-  "154": {
-    "inputs": {
-      "start": 0,
-      "end": 0,
-      "sigmas": ["160", 0]
-    },
-    "class_type": "Sigmas Rescale",
-    "_meta": { "title": "LTX_WAN_154" }
-  },
   "157": {
     "inputs": {
       "audio_normalization_factors": "PLACEHOLDER",
@@ -513,32 +360,12 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "LTX2AudioLatentNormalizingSampling",
     "_meta": { "title": "LTX_WAN_157" }
   },
-  "160": {
-    "inputs": {
-      "scheduler": "PLACEHOLDER",
-      "steps": 0,
-      "denoise": 0,
-      "model": ["77", 0]
-    },
-    "class_type": "BasicScheduler",
-    "_meta": { "title": "LTX_WAN_160" }
-  },
   "161": {
     "inputs": {
       "text": "PLACEHOLDER"
     },
     "class_type": "Text Multiline",
     "_meta": { "title": "LTX_WAN_161" }
-  },
-  "166": {
-    "inputs": {
-      "eta": 0,
-      "sampler_name": "PLACEHOLDER",
-      "seed": 0,
-      "bongmath": false
-    },
-    "class_type": "ClownSampler_Beta",
-    "_meta": { "title": "LTX_WAN_166" }
   },
   "168": {
     "inputs": {
@@ -595,7 +422,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "verbose": true,
       "release_pinned_ram": true,
       "aimdo_analyze": true,
-      "passthrough": ["67", 0]
+      "passthrough": ["205", 0]
     },
     "class_type": "ForceFullUnload",
     "_meta": { "title": "LTX_WAN_189" }
@@ -620,16 +447,6 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "ForceFullUnload",
     "_meta": { "title": "LTX_WAN_194" }
   },
-  "195": {
-    "inputs": {
-      "verbose": true,
-      "release_pinned_ram": true,
-      "aimdo_analyze": true,
-      "passthrough": ["66", 0]
-    },
-    "class_type": "ForceFullUnload",
-    "_meta": { "title": "LTX_WAN_195" }
-  },
   "197": {
     "inputs": {
       "verbose": true,
@@ -645,9 +462,187 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "verbose": true,
       "release_pinned_ram": true,
       "aimdo_analyze": true,
-      "passthrough": ["60", 0]
+      "passthrough": ["208", 0]
     },
     "class_type": "ForceFullUnload",
     "_meta": { "title": "LTX_WAN_198" }
+  },
+  "205": {
+    "inputs": {
+      "steps": 0,
+      "cfg": 0,
+      "shift": 0,
+      "seed": 0,
+      "force_offload": true,
+      "scheduler": "PLACEHOLDER",
+      "riflex_freq_index": 0,
+      "denoise_strength": 0,
+      "batched_cfg": false,
+      "rope_function": "comfy",
+      "start_step": 0,
+      "end_step": -1,
+      "add_noise_to_samples": true,
+      "model": ["221", 0],
+      "image_embeds": ["230", 0],
+      "text_embeds": ["213", 0],
+      "samples": ["217", 0],
+      "context_options": ["218", 0],
+      "sigmas": ["228", 0]
+    },
+    "class_type": "WanVideoSampler",
+    "_meta": { "title": "LTX_WAN_205" }
+  },
+  "206": {
+    "inputs": {
+      "model": "PLACEHOLDER",
+      "base_precision": "bf16",
+      "quantization": "fp8_e4m3fn_fast",
+      "load_device": "offload_device",
+      "attention_mode": "sageattn",
+      "rms_norm_function": "default"
+    },
+    "class_type": "WanVideoModelLoader",
+    "_meta": { "title": "LTX_WAN_206" }
+  },
+  "207": {
+    "inputs": {
+      "model_name": "PLACEHOLDER",
+      "precision": "bf16",
+      "use_cpu_cache": false,
+      "verbose": false
+    },
+    "class_type": "WanVideoVAELoader",
+    "_meta": { "title": "LTX_WAN_207" }
+  },
+  "208": {
+    "inputs": {
+      "enable_vae_tiling": false,
+      "tile_x": 272,
+      "tile_y": 272,
+      "tile_stride_x": 144,
+      "tile_stride_y": 128,
+      "normalization": "default",
+      "vae": ["207", 0],
+      "samples": ["189", 0]
+    },
+    "class_type": "WanVideoDecode",
+    "_meta": { "title": "LTX_WAN_208" }
+  },
+  "212": {
+    "inputs": {
+      "model_name": "PLACEHOLDER",
+      "precision": "bf16",
+      "load_device": "offload_device",
+      "quantization": "disabled"
+    },
+    "class_type": "LoadWanVideoT5TextEncoder",
+    "_meta": { "title": "LTX_WAN_212" }
+  },
+  "213": {
+    "inputs": {
+      "nag_scale": 0,
+      "nag_tau": 0,
+      "nag_alpha": 0,
+      "inplace": true,
+      "original_text_embeds": ["214", 0],
+      "nag_text_embeds": ["215", 0]
+    },
+    "class_type": "WanVideoApplyNAG",
+    "_meta": { "title": "LTX_WAN_213" }
+  },
+  "214": {
+    "inputs": {
+      "prompt": ["55", 0],
+      "force_offload": true,
+      "use_disk_cache": false,
+      "device": "gpu",
+      "t5": ["212", 0]
+    },
+    "class_type": "WanVideoTextEncodeSingle",
+    "_meta": { "title": "LTX_WAN_214" }
+  },
+  "215": {
+    "inputs": {
+      "prompt": ["56", 0],
+      "force_offload": true,
+      "use_disk_cache": true,
+      "device": "gpu",
+      "t5": ["212", 0]
+    },
+    "class_type": "WanVideoTextEncodeSingle",
+    "_meta": { "title": "LTX_WAN_215" }
+  },
+  "217": {
+    "inputs": {
+      "enable_vae_tiling": false,
+      "tile_x": 272,
+      "tile_y": 272,
+      "tile_stride_x": 144,
+      "tile_stride_y": 128,
+      "noise_aug_strength": 0,
+      "latent_strength": 1,
+      "vae": ["207", 0],
+      "image": ["187", 0]
+    },
+    "class_type": "WanVideoEncode",
+    "_meta": { "title": "LTX_WAN_217" }
+  },
+  "218": {
+    "inputs": {
+      "context_schedule": "uniform_standard",
+      "context_frames": 81,
+      "context_stride": 4,
+      "context_overlap": 32,
+      "freenoise": true,
+      "verbose": true,
+      "fuse_method": "pyramid"
+    },
+    "class_type": "WanVideoContextOptions",
+    "_meta": { "title": "LTX_WAN_218" }
+  },
+  "221": {
+    "inputs": {
+      "model": ["206", 0],
+      "block_swap_args": ["222", 0]
+    },
+    "class_type": "WanVideoSetBlockSwap",
+    "_meta": { "title": "LTX_WAN_221" }
+  },
+  "222": {
+    "inputs": {
+      "blocks_to_swap": 20,
+      "offload_img_emb": false,
+      "offload_txt_emb": false,
+      "use_non_blocking": true,
+      "vace_blocks_to_swap": 0,
+      "prefetch_blocks": 1,
+      "block_swap_debug": true
+    },
+    "class_type": "WanVideoBlockSwap",
+    "_meta": { "title": "LTX_WAN_222" }
+  },
+  "228": {
+    "inputs": {
+      "sigmas": "PLACEHOLDER"
+    },
+    "class_type": "ManualSigmas",
+    "_meta": { "title": "LTX_WAN_228" }
+  },
+  "230": {
+    "inputs": {
+      "width": ["25", 1],
+      "height": ["25", 2],
+      "num_frames": ["2", 0],
+      "noise_aug_strength": 0,
+      "start_latent_strength": 1,
+      "end_latent_strength": 1,
+      "force_offload": true,
+      "fun_or_fl2v_model": false,
+      "tiled_vae": false,
+      "augment_empty_frames": 0,
+      "vae": ["207", 0]
+    },
+    "class_type": "WanVideoImageToVideoEncode",
+    "_meta": { "title": "LTX_WAN_230" }
   }
 }
