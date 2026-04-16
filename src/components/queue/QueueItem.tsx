@@ -148,16 +148,18 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
             <Badge variant="outline" className={`text-xs ${getModeConfig(request.generationMode).className}`}>
               {getModeConfig(request.generationMode).label}
             </Badge>
-            <span>{request.videoDuration}초</span>
+            <Badge variant="outline" className="text-xs">
+              {request.videoDuration}초
+            </Badge>
           </div>
         </div>
 
         {(loraName || request.audioPresetName || request.isNSFW) && (
           <div>
             <div className="font-medium text-xs text-muted-foreground mb-1">옵션</div>
-            <div className="space-y-1">
+            <div className="p-2 bg-muted/50 rounded space-y-1 text-sm">
               {loraName && <div>LoRA: {loraName}</div>}
-              {request.audioPresetName && <div>오디오: {request.audioPresetName}</div>}
+              {request.audioPresetName && <div>오디오 프리셋: {request.audioPresetName}</div>}
               {request.isNSFW && <Badge variant="destructive" className="text-xs">NSFW</Badge>}
             </div>
           </div>
@@ -165,11 +167,11 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
 
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">시간</div>
-          <div className="space-y-1 text-xs">
-            <div>등록: {formatAbsoluteTime(request.createdAt)}</div>
-            {request.startedAt && <div>시작: {formatAbsoluteTime(request.startedAt)}</div>}
-            {request.completedAt && <div>완료: {formatAbsoluteTime(request.completedAt)}</div>}
-            {request.failedAt && <div>실패: {formatAbsoluteTime(request.failedAt)}</div>}
+          <div className="p-2 bg-muted/50 rounded space-y-1 text-sm">
+            <div>등록: <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.createdAt)}</Badge></div>
+            {request.startedAt && <div>시작: <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.startedAt)}</Badge></div>}
+            {request.completedAt && <div>완료: <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.completedAt)}</Badge></div>}
+            {request.failedAt && <div>실패: <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">{formatAbsoluteTime(request.failedAt)}</Badge></div>}
           </div>
         </div>
 
