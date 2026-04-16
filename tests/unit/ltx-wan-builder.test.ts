@@ -71,15 +71,12 @@ const BASE_SETTINGS = {
   vaeWan: 'fake-lw-wan-vae-m3v.safetensors',
   shift: 5,
 
-  samplerWan: 'linear/euler',
-  clownEtaWan: 0.25,
-  clownBongmathWan: true,
+  cfgWan: 1,
 
   schedulerWan: 'beta57',
   stepsWan: 4,
   denoiseWan: 1,
-  sigmasRescaleStart: 0.55,
-  sigmasRescaleEnd: 0,
+  sigmasWan: '0.55, 0',
 
   nagScaleWan: 5,
   nagAlphaWan: 0.25,
@@ -132,22 +129,22 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.AUDIO_VAE]!.inputs!.vae_name).toBe('fake-lw-avae-n4f.safetensors')
     expect(workflow[LTX_WAN.POSITIVE_PROMPT]!.inputs!.text).toBe('fake test prompt for ltx-wan workflow')
     expect(workflow[LTX_WAN.NEGATIVE_PROMPT_LTX]!.inputs!.text).toBe('fake ltx negative')
-    expect(workflow[LTX_WAN.UNET_WAN]!.inputs!.unet_name).toBe('fake-lw-wan-unet-x2w.safetensors')
+    expect(workflow[LTX_WAN.WAN_MODEL_LOADER]!.inputs!.model).toBe('fake-lw-wan-unet-x2w.safetensors')
+    expect(workflow[LTX_WAN.WAN_T5_ENCODER]!.inputs!.model_name).toBe('fake-lw-wan-clip-k9p.safetensors')
+    expect(workflow[LTX_WAN.WAN_VAE_LOADER]!.inputs!.model_name).toBe('fake-lw-wan-vae-m3v.safetensors')
     expect(workflow[LTX_WAN.NEGATIVE_PROMPT_WAN]!.inputs!.text).toBe('fake wan negative')
     expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.save_output).toBe(false)
   })
 
-  it('sets 4 independent seeds', async () => {
+  it('sets 3 independent seeds', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
     const noiseLtx = workflow[LTX_WAN.NOISE_SEED_LTX]!.inputs!.noise_seed as number
     const samplerLtx = workflow[LTX_WAN.CLOWN_SAMPLER_LTX]!.inputs!.seed as number
-    const noiseWan = workflow[LTX_WAN.NOISE_SEED_WAN]!.inputs!.noise_seed as number
-    const samplerWan = workflow[LTX_WAN.CLOWN_SAMPLER_WAN]!.inputs!.seed as number
+    const samplerWan = workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.seed as number
 
     expect(noiseLtx).toBeGreaterThan(0)
     expect(samplerLtx).toBeGreaterThan(0)
-    expect(noiseWan).toBeGreaterThan(0)
     expect(samplerWan).toBeGreaterThan(0)
   })
 
@@ -250,6 +247,29 @@ describe('buildLtxWanWorkflow', () => {
   it('does not include the removed WAN Power Lora Loader node (72)', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
     expect(workflow['72']).toBeUndefined()
+  })
+
+  it('configures WAN pipeline with admin settings', async () => {
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+    expect(workflow[LTX_WAN.WAN_NAG]!.inputs!.nag_scale).toBe(5)
+    expect(workflow[LTX_WAN.WAN_NAG]!.inputs!.nag_tau).toBe(2.373)
+    expect(workflow[LTX_WAN.WAN_NAG]!.inputs!.nag_alpha).toBe(0.25)
+    expect(workflow[LTX_WAN.WAN_MANUAL_SIGMAS]!.inputs!.sigmas).toBe('0.55, 0')
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.steps).toBe(4)
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.cfg).toBe(1)
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.shift).toBe(5)
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.scheduler).toBe('beta57')
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.denoise_strength).toBe(1)
+  })
+
+  it('does not include removed old WAN nodes', async () => {
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+    const removedIds = ['43', '51', '52', '53', '59', '60', '66', '67', '73', '74', '75', '77', '91', '92', '93', '95', '154', '160', '166', '195']
+    for (const id of removedIds) {
+      expect(workflow[id]).toBeUndefined()
+    }
   })
 
   it('routes post-VAE chain through FORCE_UNLOAD_VAE_WAN (198) when VFI is disabled', async () => {
