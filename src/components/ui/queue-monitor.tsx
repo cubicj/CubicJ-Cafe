@@ -24,6 +24,14 @@ interface QueueRequest {
   completedAt?: string;
   failedAt?: string;
   error?: string;
+  videoModel: string;
+  generationMode: string;
+  videoDuration: number;
+  endImageFile?: string;
+  audioFile?: string;
+  audioPresetName?: string;
+  loraPresetData?: string;
+  isNSFW: boolean;
   user: {
     nickname: string;
     avatar?: string;
