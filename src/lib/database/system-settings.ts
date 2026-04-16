@@ -602,6 +602,7 @@ export interface LtxWanSettings {
   nagTauWan: number
 
   negativePromptWan: string
+  blocksToSwap: number
 
   vfiMethod: string
   rifeModel: string
@@ -686,6 +687,7 @@ export const LTX_WAN_KEYS = {
   nagTauWan: 'ltx-wan.nag_tau_wan',
 
   negativePromptWan: 'ltx-wan.negative_prompt_wan',
+  blocksToSwap: 'ltx-wan.blocks_to_swap',
 
   vfiMethod: 'ltx-wan.vfi_method',
   rifeModel: 'ltx-wan.rife_model',
@@ -778,6 +780,7 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     nagTauWan: parseFloat(map.get(k.nagTauWan)!),
 
     negativePromptWan: map.get(k.negativePromptWan)!,
+    blocksToSwap: parseInt(map.get(k.blocksToSwap)!, 10),
 
     vfiMethod: map.get(k.vfiMethod)!,
     rifeModel: map.get(k.rifeModel)!,
