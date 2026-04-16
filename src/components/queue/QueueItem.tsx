@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2, Eye, ImagePlus, Repeat, Volume2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 
 interface QueueRequest {
@@ -89,14 +89,14 @@ function getModeLabel(generationMode: string) {
   }
 }
 
-function DeleteButton({ isDeleting, onClick, className }: { isDeleting: boolean; onClick: () => void; className?: string }) {
+function DeleteButton({ isDeleting, onClick }: { isDeleting: boolean; onClick: () => void }) {
   return (
     <Button
       variant="outline"
       size="sm"
       onClick={onClick}
       disabled={isDeleting}
-      className={`h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0 ${className ?? ''}`}
+      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0"
     >
       {isDeleting ? (
         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
@@ -128,6 +128,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
             <Badge variant="secondary" className="text-xs">내 요청</Badge>
           )}
         </DialogTitle>
+        <DialogDescription className="sr-only">Queue request detail</DialogDescription>
       </DialogHeader>
 
       <div className="space-y-4 text-sm">
