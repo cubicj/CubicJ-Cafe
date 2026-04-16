@@ -13,7 +13,18 @@ interface QueueRequest {
   prompt: string;
   position: number;
   createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  failedAt?: string;
   error?: string;
+  videoModel: string;
+  generationMode: string;
+  videoDuration: number;
+  endImageFile?: string;
+  audioFile?: string;
+  audioPresetName?: string;
+  loraPresetData?: string;
+  isNSFW: boolean;
 }
 
 interface QueueItemProps {
