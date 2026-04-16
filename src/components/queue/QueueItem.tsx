@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, Eye, ImagePlus, Repeat, Volume2 } from 'lucide-react';
+import { Trash2, Eye, ImagePlus, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 
@@ -235,8 +235,10 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           {request.generationMode === 'LOOP' && (
             <Repeat className="h-4 w-4 text-muted-foreground" />
           )}
-          {request.audioFile && (
+          {request.audioFile ? (
             <Volume2 className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <VolumeX className="h-4 w-4 text-muted-foreground/40" />
           )}
         </div>
 
