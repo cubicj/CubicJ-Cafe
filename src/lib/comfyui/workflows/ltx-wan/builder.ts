@@ -37,7 +37,7 @@ export async function buildLtxWanWorkflow(
     handleEndImageBypass(workflow)
   }
 
-  configureWanPipeline(workflow, params, settings)
+  configureWanPipeline(workflow, settings)
 
   configurePostProcessing(workflow, settings)
   configureOutput(workflow, params, settings)
@@ -204,7 +204,6 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
 
 function configureWanPipeline(
   workflow: ComfyUIWorkflow,
-  params: LtxWanGenerationParams,
   settings: LtxWanSettings
 ) {
   setNode(workflow, LTX_WAN.WAN_MODEL_LOADER, {

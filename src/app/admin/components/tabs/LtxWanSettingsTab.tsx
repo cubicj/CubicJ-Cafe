@@ -50,20 +50,16 @@ const LTX_WAN_FIELDS: SettingsField[] = [
 
   { key: 'ltx-wan.negative_prompt_ltx', label: 'LTX 네거티브', type: 'textarea', group: 'LTX — 프롬프트' },
 
-  { key: 'ltx-wan.unet_wan', label: 'WAN UNet', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
-  { key: 'ltx-wan.clip_wan', label: 'WAN CLIP', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
+  { key: 'ltx-wan.unet_wan', label: 'WAN Model', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'ltx-wan.clip_wan', label: 'WAN T5 Encoder', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
   { key: 'ltx-wan.vae_wan', label: 'WAN VAE', type: 'model', group: 'WAN — 모델', modelCategory: 'vaes' as ModelCategory },
   { key: 'ltx-wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: 'WAN — 모델' },
 
-  { key: 'ltx-wan.sampler_wan', label: '샘플러', type: 'nodeOption', group: 'WAN — 생성', nodeQuery: 'sampler_wan:ClownSampler_Beta:sampler_name' },
-  { key: 'ltx-wan.clown_eta_wan', label: 'Eta', type: 'number', step: 0.01, group: 'WAN — 생성' },
-  { key: 'ltx-wan.clown_bongmath_wan', label: 'Bongmath', type: 'boolean', group: 'WAN — 생성' },
-
-  { key: 'ltx-wan.scheduler_wan', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 스케줄러', nodeQuery: 'scheduler_wan:BasicScheduler:scheduler' },
-  { key: 'ltx-wan.steps_wan', label: 'Steps', type: 'number', step: 1, group: 'WAN — 스케줄러' },
-  { key: 'ltx-wan.denoise_wan', label: 'Denoise', type: 'number', step: 0.01, group: 'WAN — 스케줄러' },
-  { key: 'ltx-wan.sigmas_rescale_start', label: 'Sigmas Start', type: 'number', step: 0.01, group: 'WAN — 스케줄러' },
-  { key: 'ltx-wan.sigmas_rescale_end', label: 'Sigmas End', type: 'number', step: 0.01, group: 'WAN — 스케줄러' },
+  { key: 'ltx-wan.cfg_wan', label: 'CFG', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
+  { key: 'ltx-wan.scheduler_wan', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler_wan:WanVideoSampler:scheduler' },
+  { key: 'ltx-wan.steps_wan', label: 'Steps', type: 'number', step: 1, group: 'WAN — 샘플러' },
+  { key: 'ltx-wan.denoise_wan', label: 'Denoise', type: 'number', step: 0.01, group: 'WAN — 샘플러' },
+  { key: 'ltx-wan.sigmas_wan', label: 'Sigmas (CSV)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
   { key: 'ltx-wan.nag_scale_wan', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
   { key: 'ltx-wan.nag_alpha_wan', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
