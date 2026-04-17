@@ -108,7 +108,7 @@ describe('PUT /api/admin/settings', () => {
       body: JSON.stringify({
         settings: [
           { key: 'wan.shift', value: '5' },
-          { key: 'wan.sampler', value: 'euler' },
+          { key: 'wan.scheduler', value: 'simple' },
         ],
       }),
     })
