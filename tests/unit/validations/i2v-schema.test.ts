@@ -41,4 +41,22 @@ describe('i2vSchema image validation', () => {
     const result = i2vSchema.safeParse(Object.fromEntries(makeFormData(file).entries()))
     expect(result.success).toBe(false)
   })
+
+  it('accepts videoDuration above the old max when schema is relaxed', () => {
+    const file = new File(['fake content'], 'photo.jpg', { type: 'image/jpeg' })
+    const fd = makeFormData(file)
+    fd.set('videoDuration', '120')
+    fd.set('model', 'wan')
+    const result = i2vSchema.safeParse(Object.fromEntries(fd.entries()))
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects non-positive videoDuration', () => {
+    const file = new File(['fake content'], 'photo.jpg', { type: 'image/jpeg' })
+    const fd = makeFormData(file)
+    fd.set('videoDuration', '0')
+    fd.set('model', 'wan')
+    const result = i2vSchema.safeParse(Object.fromEntries(fd.entries()))
+    expect(result.success).toBe(false)
+  })
 })
