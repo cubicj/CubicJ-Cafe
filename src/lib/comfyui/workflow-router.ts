@@ -11,7 +11,7 @@ export async function buildWorkflow(
 ): Promise<ComfyUIWorkflow> {
   switch (params.model) {
     case 'wan':
-      return buildWanWorkflow(params, server)
+      return buildWanWorkflow(params)
     case 'ltx':
       return buildLtxWorkflow(params)
     case 'ltx-wan':

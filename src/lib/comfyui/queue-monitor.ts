@@ -371,7 +371,6 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
-          loraPreset: loraPreset || undefined,
           endImage: uploadedEndImageName || undefined,
         };
       } else if (videoModel === 'ltx-wan') {

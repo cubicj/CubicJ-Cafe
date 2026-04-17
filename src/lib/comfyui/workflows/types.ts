@@ -1,5 +1,3 @@
-import type { LoRAPresetData } from '@/types/lora'
-
 export type VideoModel = 'wan' | 'ltx' | 'ltx-wan'
 
 export interface ModelCapabilities {
@@ -25,7 +23,6 @@ export interface BaseGenerationParams {
 
 export interface WanGenerationParams extends BaseGenerationParams {
   model: 'wan'
-  loraPreset?: LoRAPresetData
   endImage?: string
 }
 
