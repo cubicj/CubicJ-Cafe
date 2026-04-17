@@ -218,8 +218,10 @@ function applyUserLoras(
 function clearUnusedLoraSlots(workflow: ComfyUIWorkflow) {
   for (const nodeId of [LTX.POWER_LORA_1ST, LTX.POWER_LORA_2ND]) {
     const node = workflow[nodeId]
-    if (node?.inputs?.['lora_2']) {
-      node.inputs['lora_2'] = { on: false, lora: '', strength: 0 }
+    if (!node?.inputs) continue
+    const slot = node.inputs['lora_2'] as { on?: boolean; lora?: string; strength?: number } | undefined
+    if (slot && slot.on === false && slot.lora === 'PLACEHOLDER') {
+      node.inputs['lora_2'] = { on: false, lora: '', strength: slot.strength ?? 0 }
     }
   }
 }
