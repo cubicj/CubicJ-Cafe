@@ -214,6 +214,7 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSetting
 
 function configureOutput(workflow: ComfyUIWorkflow, params: LtxGenerationParams, settings: LtxSettings) {
   setNode(workflow, LTX.VIDEO_COMBINE, {
+    frame_rate: Math.round(settings.frameRate),
     crf: settings.videoCrf,
     format: settings.videoFormat,
     pix_fmt: settings.videoPixFmt,
