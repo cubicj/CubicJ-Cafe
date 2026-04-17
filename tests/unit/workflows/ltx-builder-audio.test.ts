@@ -14,10 +14,23 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import type { LtxGenerationParams } from '@/lib/comfyui/workflows/types'
-import { buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
+import { buildLtxWorkflow as _buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
 import { getLtxSettings } from '@/lib/database/system-settings'
+import type { ComfyUIWorkflow } from '@/types'
+import { assertNoPlaceholders } from '../../helpers/workflow-assertions'
 
 const mockGetLtxSettings = vi.mocked(getLtxSettings)
+
+let lastBuilt: ComfyUIWorkflow | null = null
+
+beforeEach(() => { lastBuilt = null })
+afterEach(() => { if (lastBuilt) assertNoPlaceholders(lastBuilt) })
+
+async function buildLtxWorkflow(...args: Parameters<typeof _buildLtxWorkflow>): Promise<ComfyUIWorkflow> {
+  const workflow = await _buildLtxWorkflow(...args)
+  lastBuilt = workflow
+  return workflow
+}
 
 const SHARED_SETTINGS = {
   clipGguf: 'fake-clip-r2d.gguf',
@@ -256,8 +269,8 @@ describe('LTX builder — reference audio handling', () => {
 
       it('Power LoRA lora_2 remains off (template default)', async () => {
         const workflow = await buildLtxWorkflow(baseParams)
-        expect(workflow['448']!.inputs!['lora_2']).toEqual({ on: false, lora: 'PLACEHOLDER', strength: 0 })
-        expect(workflow['452']!.inputs!['lora_2']).toEqual({ on: false, lora: 'PLACEHOLDER', strength: 0 })
+        expect(workflow['448']!.inputs!['lora_2']).toEqual({ on: false, lora: '', strength: 0 })
+        expect(workflow['452']!.inputs!['lora_2']).toEqual({ on: false, lora: '', strength: 0 })
       })
     })
   })
