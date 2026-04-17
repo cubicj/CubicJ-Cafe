@@ -2,6 +2,7 @@ import { prisma } from '@/lib/database/prisma'
 import { QueueService } from '@/lib/database/queue'
 import { seedLtx } from './ltx-seed'
 import { seedOps } from './ops-seed'
+import { seedWan } from './wan-seed'
 
 export async function cleanTables() {
   await prisma.loRAPresetItem.deleteMany()
@@ -15,6 +16,7 @@ export async function cleanTables() {
 
   await seedOps()
   await seedLtx()
+  await seedWan()
 
   QueueService.invalidateCache()
 }

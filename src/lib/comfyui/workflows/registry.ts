@@ -4,7 +4,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   wan: {
     displayName: 'WAN 2.2',
     capabilities: {
-      loraPresets: true,
+      loraPresets: false,
       endImage: true,
       videoDuration: true,
       audio: false,
