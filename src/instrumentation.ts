@@ -56,6 +56,9 @@ export async function register() {
     const { loadOpsSettings } = await import('./lib/database/ops-settings');
     await loadOpsSettings();
 
+    const { generationStore } = await import('./lib/generation-store');
+    generationStore.startSweep();
+
     const { initFileLogging } = await import('./lib/logger-file');
     initFileLogging();
 

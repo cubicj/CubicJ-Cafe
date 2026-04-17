@@ -1,25 +1,24 @@
 import { GenerationJob } from '@/types'
 import { createLogger } from '@/lib/logger'
+import { getOpsSetting } from './database/ops-settings'
 
 const log = createLogger('store')
 
-const SWEEP_INTERVAL = 5 * 60 * 1000
-const SWEEP_TTL = 30 * 60 * 1000
-
 export class GenerationStore {
   private jobs = new Map<string, GenerationJob>()
+  private sweepHandle: NodeJS.Timeout | null = null
 
-  constructor() {
-    this.startSweep()
-  }
-
-  private startSweep(): void {
-    const interval = setInterval(() => this.sweep(), SWEEP_INTERVAL)
-    interval.unref()
+  startSweep(): void {
+    if (this.sweepHandle) return
+    this.sweepHandle = setInterval(
+      () => this.sweep(),
+      getOpsSetting('ops.generation_sweep_interval_ms')
+    )
+    this.sweepHandle.unref()
   }
 
   sweep(): void {
-    const cutoff = Date.now() - SWEEP_TTL
+    const cutoff = Date.now() - getOpsSetting('ops.generation_sweep_max_age_ms')
     let swept = 0
     for (const [key, job] of this.jobs) {
       if (
