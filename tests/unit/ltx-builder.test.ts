@@ -15,10 +15,23 @@ vi.mock('@/lib/logger', () => ({
 
 import type { LtxGenerationParams } from '@/lib/comfyui/workflows/types'
 import type { LoRAPresetData } from '@/types/lora'
-import { buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
+import { buildLtxWorkflow as _buildLtxWorkflow } from '@/lib/comfyui/workflows/ltx/builder'
 import { getLtxSettings } from '@/lib/database/system-settings'
+import type { ComfyUIWorkflow } from '@/types'
+import { assertNoPlaceholders } from '../helpers/workflow-assertions'
 
 const mockGetLtxSettings = vi.mocked(getLtxSettings)
+
+let lastBuilt: ComfyUIWorkflow | null = null
+
+beforeEach(() => { lastBuilt = null })
+afterEach(() => { if (lastBuilt) assertNoPlaceholders(lastBuilt) })
+
+async function buildLtxWorkflow(...args: Parameters<typeof _buildLtxWorkflow>): Promise<ComfyUIWorkflow> {
+  const workflow = await _buildLtxWorkflow(...args)
+  lastBuilt = workflow
+  return workflow
+}
 
 const SHARED_SETTINGS = {
   clipGguf: 'fake-clip-r2d.gguf',

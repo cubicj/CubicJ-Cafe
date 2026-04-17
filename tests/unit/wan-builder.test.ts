@@ -58,6 +58,8 @@ vi.mock('@/lib/logger', () => ({
 
 import type { WanGenerationParams } from '@/lib/comfyui/workflows/types'
 import { buildWanWorkflow } from '@/lib/comfyui/workflows/wan/builder'
+import type { ComfyUIWorkflow } from '@/types'
+import { assertNoPlaceholders } from '../helpers/workflow-assertions'
 
 const baseParams: WanGenerationParams = {
   model: 'wan',
@@ -66,9 +68,15 @@ const baseParams: WanGenerationParams = {
   videoDuration: 5,
 }
 
+let lastBuilt: ComfyUIWorkflow | null = null
+
+beforeEach(() => { lastBuilt = null })
+afterEach(() => { if (lastBuilt) assertNoPlaceholders(lastBuilt) })
+
 describe('buildWanWorkflow', () => {
   it('produces a valid workflow object', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow).toBeDefined()
     expect(workflow).not.toBeNull()
     expect(typeof workflow).toBe('object')
@@ -77,6 +85,7 @@ describe('buildWanWorkflow', () => {
   it('sets random seed in node 3', async () => {
     const w1 = await buildWanWorkflow(baseParams)
     const w2 = await buildWanWorkflow(baseParams)
+    lastBuilt = w2
 
     expect(typeof w1['3']!.inputs!.noise_seed).toBe('number')
     expect(w1['3']!.inputs!.noise_seed).not.toBe(w2['3']!.inputs!.noise_seed)
@@ -84,28 +93,33 @@ describe('buildWanWorkflow', () => {
 
   it('sets filename prefix with WAN/ prefix based on inputImage', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow['64']!.inputs!.filename_prefix).toBe('WAN/dragon-input')
   })
 
   it('strips image extension from filename prefix', async () => {
     const params: WanGenerationParams = { ...baseParams, inputImage: 'photo.jpeg' }
     const workflow = await buildWanWorkflow(params)
+    lastBuilt = workflow
     expect(workflow['64']!.inputs!.filename_prefix).toBe('WAN/photo')
   })
 
   it('sets prompt in node 10', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow['10']!.inputs!.text).toBe('a dragon flying through clouds')
   })
 
   it('sets start image in node 5', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow['5']!.inputs!.image).toBe('dragon-input.png')
   })
 
   it('uses computed frame length in WanFirstLastFrameToVideo nodes when endImage provided', async () => {
     const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
     const workflow = await buildWanWorkflow(params)
+    lastBuilt = workflow
     expect(workflow['31']!.inputs!.length).toBe(81)
     expect(workflow['30']!.inputs!.length).toBe(81)
   })
@@ -113,17 +127,20 @@ describe('buildWanWorkflow', () => {
   it('sets end image when provided', async () => {
     const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
     const workflow = await buildWanWorkflow(params)
+    lastBuilt = workflow
     expect(workflow['11']!.inputs!.image).toBe('end.png')
   })
 
   it('removes end image nodes when no end image', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow['11']).toBeUndefined()
     expect(workflow['18']).toBeUndefined()
   })
 
   it('removes end_image from WanFirstLastFrameToVideo when no end image', async () => {
     const workflow = await buildWanWorkflow(baseParams)
+    lastBuilt = workflow
     expect(workflow['30']!.inputs!.end_image).toBeUndefined()
     expect(workflow['31']!.inputs!.end_image).toBeUndefined()
   })
@@ -131,28 +148,33 @@ describe('buildWanWorkflow', () => {
   describe('settings injection', () => {
     it('injects negative prompt into node 41', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['41']!.inputs!.text).toBe('test negative prompt')
     })
 
     it('injects NAG settings into both pass nodes', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['20']!.inputs!.nag_scale).toBe(5)
       expect(workflow['19']!.inputs!.nag_scale).toBe(5)
     })
 
     it('injects megapixels into resize node', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['25']!.inputs!.megapixels).toBe(0.5)
     })
 
     it('injects shift into both ModelSamplingSD3 nodes', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['32']!.inputs!.shift).toBe(5)
       expect(workflow['33']!.inputs!.shift).toBe(5)
     })
 
     it('injects settings into WanMoEScheduler node', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['70']!.inputs!.scheduler).toBe('beta')
       expect(workflow['70']!.inputs!.steps_high).toBe(3)
       expect(workflow['70']!.inputs!.steps_low).toBe(3)
@@ -163,12 +185,14 @@ describe('buildWanWorkflow', () => {
 
     it('injects sampler into node 14', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['14']!.inputs!.sampler_name).toBe('euler')
     })
 
     it('injects frame length into WanFirstLastFrameToVideo nodes', async () => {
       const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
       const workflow = await buildWanWorkflow(params)
+      lastBuilt = workflow
       expect(workflow['31']!.inputs!.length).toBe(81)
       expect(workflow['30']!.inputs!.length).toBe(81)
     })
@@ -177,6 +201,7 @@ describe('buildWanWorkflow', () => {
   describe('post-processing', () => {
     it('includes ColorMatch node when enabled', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['74']).toBeDefined()
       expect(workflow['74']!.inputs!.method).toBe('mkl')
       expect(workflow['74']!.inputs!.strength).toBe(0.1)
@@ -190,11 +215,13 @@ describe('buildWanWorkflow', () => {
         colorMatchEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['74']).toBeUndefined()
     })
 
     it('uses RIFE nodes when vfiMethod is rife', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['71']).toBeDefined()
       expect(workflow['72']).toBeDefined()
       expect(workflow['75']).toBeUndefined()
@@ -207,6 +234,7 @@ describe('buildWanWorkflow', () => {
         vfiMethod: 'gmfss',
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['75']).toBeDefined()
       expect(workflow['75']!.inputs!.ckpt_name).toBe('test-gmfss-model.pth')
       expect(workflow['71']).toBeUndefined()
@@ -221,6 +249,7 @@ describe('buildWanWorkflow', () => {
         vfiEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['71']).toBeUndefined()
       expect(workflow['72']).toBeUndefined()
       expect(workflow['73']).toBeUndefined()
@@ -229,6 +258,7 @@ describe('buildWanWorkflow', () => {
 
     it('includes CustomResolutionConfig when profile is custom', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['73']).toBeDefined()
       expect(workflow['73']!.inputs!.min_dim).toBe(704)
       expect(workflow['73']!.inputs!.opt_dim).toBe(960)
@@ -243,11 +273,13 @@ describe('buildWanWorkflow', () => {
         rifeResolutionProfile: '720p',
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['73']).toBeUndefined()
     })
 
     it('includes RTX node when enabled', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['42']).toBeDefined()
       expect(workflow['42']!.inputs!.quality).toBe('ULTRA')
     })
@@ -259,11 +291,13 @@ describe('buildWanWorkflow', () => {
         rtxEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['42']).toBeUndefined()
     })
 
     it('wires full chain: ColorMatch → RIFE → VRAM_DEBUG → RTX', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['74']!.inputs!.image_target).toEqual(['38', 0])
       expect(workflow['71']!.inputs!.frames).toEqual(['74', 0])
       expect(workflow['45']!.inputs!.anything).toEqual(['71', 0])
@@ -277,6 +311,7 @@ describe('buildWanWorkflow', () => {
         vfiMethod: 'gmfss',
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['75']!.inputs!.frames).toEqual(['74', 0])
       expect(workflow['45']!.inputs!.anything).toEqual(['75', 0])
     })
@@ -288,6 +323,7 @@ describe('buildWanWorkflow', () => {
         rtxEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['64']!.inputs!.images).toEqual(['45', 0])
     })
 
@@ -299,6 +335,7 @@ describe('buildWanWorkflow', () => {
         vfiEnabled: false,
       })
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       expect(workflow['74']).toBeUndefined()
       expect(workflow['71']).toBeUndefined()
       expect(workflow['45']!.inputs!.anything).toEqual(['38', 0])
@@ -308,6 +345,7 @@ describe('buildWanWorkflow', () => {
   describe('structural integrity', () => {
     it('preserves all critical nodes in start-only mode', async () => {
       const workflow = await buildWanWorkflow(baseParams)
+      lastBuilt = workflow
       const criticalNodes = ['1', '2', '3', '5', '10', '13', '14', '20', '25', '26', '30', '31', '32', '33', '41', '42', '64', '70']
       for (const nodeId of criticalNodes) {
         expect(workflow[nodeId], `node ${nodeId} should exist`).toBeDefined()
@@ -317,6 +355,7 @@ describe('buildWanWorkflow', () => {
     it('preserves end image nodes in start+end mode', async () => {
       const params: WanGenerationParams = { ...baseParams, endImage: 'end.png' }
       const workflow = await buildWanWorkflow(params)
+      lastBuilt = workflow
       expect(workflow['11']).toBeDefined()
       expect(workflow['18']).toBeDefined()
     })
