@@ -61,41 +61,35 @@ export async function setSystemSetting(
 }
 
 export interface WanSettings {
-  unetHigh: string;
-  unetLow: string;
-  clip: string;
-  vae: string;
-  vfiEnabled: boolean;
-  rifeModel: string;
-  rifePrecision: string;
-  rifeResolutionProfile: string;
-  rifeCustomMinDim: number;
-  rifeCustomOptDim: number;
-  rifeCustomMaxDim: number;
-  vfiMethod: string;
-  gmfssModel: string;
-  colorMatchEnabled: boolean;
-  colorMatchMethod: string;
-  colorMatchStrength: number;
-  rtxEnabled: boolean;
-  loraEnabled: boolean;
-  megapixels: number;
+  wanvideoModelHigh: string;
+  wanvideoModelLow: string;
+  t5Encoder: string;
+  wanvideoVae: string;
+  clipVisionModel: string;
+  basePrecision: string;
+  quantization: string;
+  attentionMode: string;
+  blocksToSwap: number;
+  offloadImgEmb: boolean;
+  offloadTxtEmb: boolean;
+  vaceBlocksToSwap: number;
+  prefetchBlocks: number;
+  contextFrames: number;
+  contextStride: number;
+  contextOverlap: number;
+  fuseMethod: string;
+  samplerSteps: number;
   shift: number;
+  scheduler: string;
+  sigmasHigh: string;
+  sigmasLow: string;
+  megapixels: number;
+  resizeMultipleOf: number;
+  resizeUpscaleMethod: string;
   nagScale: number;
   nagAlpha: number;
   nagTau: number;
-  stepsHigh: number;
-  stepsLow: number;
-  moeScheduler: string;
-  moeBoundary: number;
-  moeInterval: number;
-  moeDenoise: number;
-  sampler: string;
-  negativePrompt: string;
-  resizeMultipleOf: number;
-  resizeUpscaleMethod: string;
-  vfiClearCache: number;
-  vfiMultiplier: number;
+  rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
@@ -103,6 +97,8 @@ export interface WanSettings {
   videoCrf: number;
   videoFormat: string;
   videoPixFmt: string;
+  negativePrompt: string;
+  durationOptions: number[];
 }
 
 export interface LtxSettings {
@@ -150,41 +146,35 @@ export interface LtxSettings {
 }
 
 export const WAN_KEYS = {
-  unetHigh: 'wan.unet_high',
-  unetLow: 'wan.unet_low',
-  clip: 'wan.clip',
-  vae: 'wan.vae',
-  vfiEnabled: 'wan.vfi_enabled',
-  rifeModel: 'wan.rife_model',
-  rifePrecision: 'wan.rife_precision',
-  rifeResolutionProfile: 'wan.rife_resolution_profile',
-  rifeCustomMinDim: 'wan.rife_custom_min_dim',
-  rifeCustomOptDim: 'wan.rife_custom_opt_dim',
-  rifeCustomMaxDim: 'wan.rife_custom_max_dim',
-  vfiMethod: 'wan.vfi_method',
-  gmfssModel: 'wan.gmfss_model',
-  colorMatchEnabled: 'wan.color_match_enabled',
-  colorMatchMethod: 'wan.color_match_method',
-  colorMatchStrength: 'wan.color_match_strength',
-  rtxEnabled: 'wan.rtx_enabled',
-  loraEnabled: 'wan.lora_enabled',
-  megapixels: 'wan.megapixels',
+  wanvideoModelHigh: 'wan.wanvideo_model_high',
+  wanvideoModelLow: 'wan.wanvideo_model_low',
+  t5Encoder: 'wan.t5_encoder',
+  wanvideoVae: 'wan.wanvideo_vae',
+  clipVisionModel: 'wan.clip_vision_model',
+  basePrecision: 'wan.base_precision',
+  quantization: 'wan.quantization',
+  attentionMode: 'wan.attention_mode',
+  blocksToSwap: 'wan.blocks_to_swap',
+  offloadImgEmb: 'wan.offload_img_emb',
+  offloadTxtEmb: 'wan.offload_txt_emb',
+  vaceBlocksToSwap: 'wan.vace_blocks_to_swap',
+  prefetchBlocks: 'wan.prefetch_blocks',
+  contextFrames: 'wan.context_frames',
+  contextStride: 'wan.context_stride',
+  contextOverlap: 'wan.context_overlap',
+  fuseMethod: 'wan.fuse_method',
+  samplerSteps: 'wan.sampler_steps',
   shift: 'wan.shift',
+  scheduler: 'wan.scheduler',
+  sigmasHigh: 'wan.sigmas_high',
+  sigmasLow: 'wan.sigmas_low',
+  megapixels: 'wan.megapixels',
+  resizeMultipleOf: 'wan.resize_multiple_of',
+  resizeUpscaleMethod: 'wan.resize_upscale_method',
   nagScale: 'wan.nag_scale',
   nagAlpha: 'wan.nag_alpha',
   nagTau: 'wan.nag_tau',
-  stepsHigh: 'wan.steps_high',
-  stepsLow: 'wan.steps_low',
-  moeScheduler: 'wan.moe_scheduler',
-  moeBoundary: 'wan.moe_boundary',
-  moeInterval: 'wan.moe_interval',
-  moeDenoise: 'wan.moe_denoise',
-  sampler: 'wan.sampler',
-  negativePrompt: 'wan.negative_prompt',
-  resizeMultipleOf: 'wan.resize_multiple_of',
-  resizeUpscaleMethod: 'wan.resize_upscale_method',
-  vfiClearCache: 'wan.vfi_clear_cache',
-  vfiMultiplier: 'wan.vfi_multiplier',
+  rtxEnabled: 'wan.rtx_enabled',
   rtxResizeType: 'wan.rtx_resize_type',
   rtxScale: 'wan.rtx_scale',
   rtxQuality: 'wan.rtx_quality',
@@ -192,6 +182,8 @@ export const WAN_KEYS = {
   videoCrf: 'wan.video_crf',
   videoFormat: 'wan.video_format',
   videoPixFmt: 'wan.video_pix_fmt',
+  negativePrompt: 'wan.negative_prompt',
+  durationOptions: 'wan.duration_options',
 } as const;
 
 export const LTX_KEYS = {
@@ -256,54 +248,48 @@ function buildSettingsMap(
 
 export async function getWanSettings(): Promise<WanSettings> {
   const keys = Object.values(WAN_KEYS);
-  const settings = await prisma.systemSetting.findMany({
-    where: { key: { in: keys } },
-  });
+  const settings = await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
   const map = buildSettingsMap(settings, WAN_KEYS);
-
+  const k = WAN_KEYS;
   return {
-    unetHigh: map.get(WAN_KEYS.unetHigh)!,
-    unetLow: map.get(WAN_KEYS.unetLow)!,
-    clip: map.get(WAN_KEYS.clip)!,
-    vae: map.get(WAN_KEYS.vae)!,
-    vfiEnabled: map.get(WAN_KEYS.vfiEnabled)! === 'true',
-    rifeModel: map.get(WAN_KEYS.rifeModel)!,
-    rifePrecision: map.get(WAN_KEYS.rifePrecision)!,
-    rifeResolutionProfile: map.get(WAN_KEYS.rifeResolutionProfile)!,
-    rifeCustomMinDim: parseInt(map.get(WAN_KEYS.rifeCustomMinDim)!, 10),
-    rifeCustomOptDim: parseInt(map.get(WAN_KEYS.rifeCustomOptDim)!, 10),
-    rifeCustomMaxDim: parseInt(map.get(WAN_KEYS.rifeCustomMaxDim)!, 10),
-    vfiMethod: map.get(WAN_KEYS.vfiMethod)!,
-    gmfssModel: map.get(WAN_KEYS.gmfssModel)!,
-    colorMatchEnabled: map.get(WAN_KEYS.colorMatchEnabled)! === 'true',
-    colorMatchMethod: map.get(WAN_KEYS.colorMatchMethod)!,
-    colorMatchStrength: parseFloat(map.get(WAN_KEYS.colorMatchStrength)!),
-    rtxEnabled: map.get(WAN_KEYS.rtxEnabled)! === 'true',
-    loraEnabled: map.get(WAN_KEYS.loraEnabled)! === 'true',
-    megapixels: parseFloat(map.get(WAN_KEYS.megapixels)!),
-    shift: parseFloat(map.get(WAN_KEYS.shift)!),
-    nagScale: parseFloat(map.get(WAN_KEYS.nagScale)!),
-    nagAlpha: parseFloat(map.get(WAN_KEYS.nagAlpha)!),
-    nagTau: parseFloat(map.get(WAN_KEYS.nagTau)!),
-    stepsHigh: parseInt(map.get(WAN_KEYS.stepsHigh)!, 10),
-    stepsLow: parseInt(map.get(WAN_KEYS.stepsLow)!, 10),
-    moeScheduler: map.get(WAN_KEYS.moeScheduler)!,
-    moeBoundary: parseFloat(map.get(WAN_KEYS.moeBoundary)!),
-    moeInterval: parseFloat(map.get(WAN_KEYS.moeInterval)!),
-    moeDenoise: parseFloat(map.get(WAN_KEYS.moeDenoise)!),
-    sampler: map.get(WAN_KEYS.sampler)!,
-    negativePrompt: map.get(WAN_KEYS.negativePrompt)!,
-    resizeMultipleOf: parseInt(map.get(WAN_KEYS.resizeMultipleOf)!, 10),
-    resizeUpscaleMethod: map.get(WAN_KEYS.resizeUpscaleMethod)!,
-    vfiClearCache: parseInt(map.get(WAN_KEYS.vfiClearCache)!, 10),
-    vfiMultiplier: parseInt(map.get(WAN_KEYS.vfiMultiplier)!, 10),
-    rtxResizeType: map.get(WAN_KEYS.rtxResizeType)!,
-    rtxScale: parseFloat(map.get(WAN_KEYS.rtxScale)!),
-    rtxQuality: map.get(WAN_KEYS.rtxQuality)!,
-    frameRate: parseInt(map.get(WAN_KEYS.frameRate)!, 10),
-    videoCrf: parseInt(map.get(WAN_KEYS.videoCrf)!, 10),
-    videoFormat: map.get(WAN_KEYS.videoFormat)!,
-    videoPixFmt: map.get(WAN_KEYS.videoPixFmt)!,
+    wanvideoModelHigh: map.get(k.wanvideoModelHigh)!,
+    wanvideoModelLow: map.get(k.wanvideoModelLow)!,
+    t5Encoder: map.get(k.t5Encoder)!,
+    wanvideoVae: map.get(k.wanvideoVae)!,
+    clipVisionModel: map.get(k.clipVisionModel)!,
+    basePrecision: map.get(k.basePrecision)!,
+    quantization: map.get(k.quantization)!,
+    attentionMode: map.get(k.attentionMode)!,
+    blocksToSwap: parseInt(map.get(k.blocksToSwap)!, 10),
+    offloadImgEmb: map.get(k.offloadImgEmb)! === 'true',
+    offloadTxtEmb: map.get(k.offloadTxtEmb)! === 'true',
+    vaceBlocksToSwap: parseInt(map.get(k.vaceBlocksToSwap)!, 10),
+    prefetchBlocks: parseInt(map.get(k.prefetchBlocks)!, 10),
+    contextFrames: parseInt(map.get(k.contextFrames)!, 10),
+    contextStride: parseInt(map.get(k.contextStride)!, 10),
+    contextOverlap: parseInt(map.get(k.contextOverlap)!, 10),
+    fuseMethod: map.get(k.fuseMethod)!,
+    samplerSteps: parseInt(map.get(k.samplerSteps)!, 10),
+    shift: parseFloat(map.get(k.shift)!),
+    scheduler: map.get(k.scheduler)!,
+    sigmasHigh: map.get(k.sigmasHigh)!,
+    sigmasLow: map.get(k.sigmasLow)!,
+    megapixels: parseFloat(map.get(k.megapixels)!),
+    resizeMultipleOf: parseInt(map.get(k.resizeMultipleOf)!, 10),
+    resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
+    nagScale: parseFloat(map.get(k.nagScale)!),
+    nagAlpha: parseFloat(map.get(k.nagAlpha)!),
+    nagTau: parseFloat(map.get(k.nagTau)!),
+    rtxEnabled: map.get(k.rtxEnabled)! === 'true',
+    rtxResizeType: map.get(k.rtxResizeType)!,
+    rtxScale: parseFloat(map.get(k.rtxScale)!),
+    rtxQuality: map.get(k.rtxQuality)!,
+    frameRate: parseFloat(map.get(k.frameRate)!),
+    videoCrf: parseInt(map.get(k.videoCrf)!, 10),
+    videoFormat: map.get(k.videoFormat)!,
+    videoPixFmt: map.get(k.videoPixFmt)!,
+    negativePrompt: map.get(k.negativePrompt)!,
+    durationOptions: map.get(k.durationOptions)!.split(',').map(Number),
   };
 }
 
