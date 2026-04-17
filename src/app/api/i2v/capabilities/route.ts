@@ -9,7 +9,7 @@ export const GET = createRouteHandler(
     const rows = await prisma.systemSetting.findMany({
       where: {
         key: {
-          in: ['wan.lora_enabled', 'ltx.lora_enabled', 'ltx-wan.duration_options'],
+          in: ['wan.lora_enabled', 'ltx-wan.duration_options'],
         },
       },
     })
