@@ -13,7 +13,7 @@ vi.mock('@/lib/logger', () => ({
   }),
 }))
 
-import { buildLtxWanWorkflow } from '@/lib/comfyui/workflows/ltx-wan/builder'
+import { buildLtxWanWorkflow as _buildLtxWanWorkflow } from '@/lib/comfyui/workflows/ltx-wan/builder'
 import { getLtxWanSettings } from '@/lib/database/system-settings'
 import { LTX_WAN } from '@/lib/comfyui/workflows/ltx-wan/nodes'
 import type { LtxWanGenerationParams } from '@/lib/comfyui/workflows/types'
@@ -122,6 +122,12 @@ let lastBuilt: ComfyUIWorkflow | null = null
 
 beforeEach(() => { lastBuilt = null })
 afterEach(() => { if (lastBuilt) assertNoPlaceholders(lastBuilt) })
+
+async function buildLtxWanWorkflow(...args: Parameters<typeof _buildLtxWanWorkflow>): Promise<ComfyUIWorkflow> {
+  const workflow = await _buildLtxWanWorkflow(...args)
+  lastBuilt = workflow
+  return workflow
+}
 
 describe('buildLtxWanWorkflow', () => {
   beforeEach(() => {
