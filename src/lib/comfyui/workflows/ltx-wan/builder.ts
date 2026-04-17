@@ -228,6 +228,9 @@ function configureWanPipeline(
   setNode(workflow, LTX_WAN.WAN_T5_ENCODER, {
     model_name: settings.clipWan,
   })
+  setNode(workflow, LTX_WAN.CLIP_VISION_LOADER, {
+    model_name: settings.clipVisionModel,
+  })
   setNode(workflow, LTX_WAN.NEGATIVE_PROMPT_WAN, {
     text: settings.negativePromptWan,
   })
