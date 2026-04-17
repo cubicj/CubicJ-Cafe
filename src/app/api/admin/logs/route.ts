@@ -51,8 +51,8 @@ export const GET = createRouteHandler(
       try {
         entry = JSON.parse(line) as LogEntry;
       } catch (e) {
-        log.error('log file read failed', { error: e instanceof Error ? e.message : String(e) });
-        throw e;
+        log.warn('skipping unparseable log line', { error: e instanceof Error ? e.message : String(e) });
+        continue;
       }
 
       if (level && entry.level?.toLowerCase() !== level) continue;
