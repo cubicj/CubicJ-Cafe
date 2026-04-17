@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits, TextChannel, AttachmentBuilder } from 'disco
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
 import type { VideoModel } from './comfyui/workflows/types';
 import { createLogger } from '@/lib/logger';
+import { getOpsSetting } from './database/ops-settings';
 
 const log = createLogger('discord');
 
@@ -12,7 +13,9 @@ class DiscordBot {
   private cachedChannel: TextChannel | null = null;
   private cachedNsfwChannel: TextChannel | null = null;
   private cachedChannelTimestamp = 0;
-  private channelCacheTTL = 300000; // 5분
+  private get channelCacheTTL(): number {
+    return getOpsSetting('ops.discord_channel_cache_ms');
+  }
 
   constructor() {
     this.client = new Client({
