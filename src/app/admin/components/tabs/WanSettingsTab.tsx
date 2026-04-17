@@ -12,14 +12,13 @@ import { Layers } from 'lucide-react';
 import { LoRABundleManager } from '@/components/ui/lora-bundle-manager';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
-type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'clipVisions';
+type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes';
 
 const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.wanvideo_model_high', label: 'WanVideo Model (High)', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'wan.wanvideo_model_low', label: 'WanVideo Model (Low)', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'wan.t5_encoder', label: 'T5 Encoder', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
   { key: 'wan.wanvideo_vae', label: 'WanVideo VAE', type: 'model', group: 'WAN — 모델', modelCategory: 'vaes' as ModelCategory },
-  { key: 'wan.clip_vision_model', label: 'CLIP Vision Model', type: 'model', group: 'WAN — 모델', modelCategory: 'clipVisions' as ModelCategory },
   { key: 'wan.base_precision', label: 'Base Precision', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'base_precision:WanVideoModelLoader:base_precision' },
   { key: 'wan.quantization', label: 'Quantization', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'quantization:WanVideoModelLoader:quantization' },
   { key: 'wan.attention_mode', label: 'Attention Mode', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'attention_mode:WanVideoModelLoader:attention_mode' },

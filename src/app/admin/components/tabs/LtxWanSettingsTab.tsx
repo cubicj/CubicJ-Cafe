@@ -2,7 +2,7 @@
 
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
-type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'rifeModels' | 'clipVisions';
+type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'rifeModels';
 
 const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.audio_norm_enabled', label: 'Audio Norm', type: 'boolean', group: '활성화' },
@@ -53,7 +53,6 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.unet_wan', label: 'WAN Model', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'ltx-wan.clip_wan', label: 'WAN T5 Encoder', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
   { key: 'ltx-wan.vae_wan', label: 'WAN VAE', type: 'model', group: 'WAN — 모델', modelCategory: 'vaes' as ModelCategory },
-  { key: 'ltx-wan.clip_vision_model', label: 'WAN CLIP Vision', type: 'model', group: 'WAN — 모델', modelCategory: 'clipVisions' as ModelCategory },
   { key: 'ltx-wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: 'WAN — 모델' },
 
   { key: 'ltx-wan.cfg_wan', label: 'CFG', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
