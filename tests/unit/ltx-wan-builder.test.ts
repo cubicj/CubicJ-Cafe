@@ -71,6 +71,7 @@ const BASE_SETTINGS = {
   unetWan: 'fake-lw-wan-unet-x2w.safetensors',
   clipWan: 'fake-lw-wan-clip-k9p.safetensors',
   vaeWan: 'fake-lw-wan-vae-m3v.safetensors',
+  clipVisionModel: 'test-clip-vision.safetensors',
   shift: 5,
 
   cfgWan: 1,
@@ -298,6 +299,14 @@ describe('buildLtxWanWorkflow', () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
     expect(workflow[LTX_WAN.RTX_SUPER_RES]!.inputs!.images).toEqual([LTX_WAN.FORCE_UNLOAD_VAE_WAN, 0])
+  })
+
+  it('injects clip vision model and wires clip_embeds on WanVideoImageToVideoEncode', async () => {
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+    expect(workflow[LTX_WAN.CLIP_VISION_LOADER]!.inputs!.model_name).toBe('test-clip-vision.safetensors')
+    expect(workflow[LTX_WAN.CLIP_VISION_ENCODE]!.inputs!.clip_vision).toEqual([LTX_WAN.CLIP_VISION_LOADER, 0])
+    expect(workflow[LTX_WAN.CLIP_VISION_ENCODE]!.inputs!.image_1).toEqual([LTX_WAN.CLIP_VISION_IMAGE_FROM_BATCH, 0])
+    expect(workflow['230']!.inputs!.clip_embeds).toEqual([LTX_WAN.CLIP_VISION_ENCODE, 0])
   })
 
   it('routes video output through FORCE_UNLOAD_VAE_WAN (198) when both VFI and RTX are disabled', async () => {
