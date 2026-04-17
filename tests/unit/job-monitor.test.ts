@@ -1,6 +1,10 @@
 import type { GenerationJob } from '@/types'
 import type { WsExecutedData, WsExecutionErrorData } from '@/lib/comfyui/client-types'
 
+vi.mock('@/lib/database/ops-settings', () => ({
+  getOpsSetting: () => 1800000,
+}))
+
 vi.mock('@/lib/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
