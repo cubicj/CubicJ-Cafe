@@ -1,6 +1,6 @@
 import { GenerationJob } from '@/types'
 import { createLogger } from '@/lib/logger'
-import { getOpsSetting } from './database/ops-settings'
+import { getOpsSetting } from '@/lib/database/ops-settings'
 
 const log = createLogger('store')
 

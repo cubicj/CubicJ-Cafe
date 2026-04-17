@@ -1,2 +1,2 @@
 export * from './client-types'
-export { ComfyUIClient, comfyUIClient } from './client-core'
+export { ComfyUIClient, getComfyUIClient } from './client-core'

@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits, TextChannel, AttachmentBuilder } from 'disco
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
 import type { VideoModel } from './comfyui/workflows/types';
 import { createLogger } from '@/lib/logger';
-import { getOpsSetting } from './database/ops-settings';
+import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('discord');
 

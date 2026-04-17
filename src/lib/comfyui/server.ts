@@ -1,5 +1,4 @@
-import { comfyUIClient } from './client';
-import { ComfyUIClient } from './client';
+import { getComfyUIClient, ComfyUIClient } from './client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('comfyui');
@@ -20,9 +19,10 @@ export async function getComfyUIServerStatus() {
     
     // 로컬 서버 체크
     try {
+      const comfyUIClient = getComfyUIClient()
       const isHealthy = await comfyUIClient.checkServerHealth()
       let queueInfo = null
-      
+
       if (isHealthy) {
         queueInfo = await comfyUIClient.getQueueStatus()
       }

@@ -1,5 +1,5 @@
 import { createRouteHandler, type AuthenticatedRequest } from '@/lib/api/route-handler';
-import { comfyUIClient } from '@/lib/comfyui/client';
+import { getComfyUIClient } from '@/lib/comfyui/client';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { parseQuery } from '@/lib/validations/parse';
 import { z } from 'zod/v4';
@@ -33,7 +33,7 @@ export const GET = createRouteHandler(
     });
 
     try {
-      const options = await comfyUIClient.getNodeOptions(requests);
+      const options = await getComfyUIClient().getNodeOptions(requests);
       return { options };
     } catch {
       return { options: {} };

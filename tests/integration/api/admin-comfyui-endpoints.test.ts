@@ -11,11 +11,11 @@ vi.mock('@/lib/comfyui/comfyui-state', () => ({
 }))
 
 vi.mock('@/lib/comfyui/client', () => ({
-  comfyUIClient: {
+  getComfyUIClient: () => ({
     getSamplerList: vi.fn(() => Promise.resolve(['euler', 'euler_ancestral', 'dpmpp_2m'])),
     getModelList: vi.fn(() => Promise.resolve({ diffusionModels: ['model1.safetensors'], textEncoders: [], vaes: [] })),
     getNodeOptions: vi.fn(() => Promise.resolve({ '10': { sampler_name: ['euler', 'dpmpp'] } })),
-  },
+  }),
 }))
 
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'

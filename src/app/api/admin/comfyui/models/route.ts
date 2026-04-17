@@ -1,5 +1,5 @@
 import { createRouteHandler } from '@/lib/api/route-handler';
-import { comfyUIClient } from '@/lib/comfyui/client';
+import { getComfyUIClient } from '@/lib/comfyui/client';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 
 export const GET = createRouteHandler(
@@ -10,7 +10,7 @@ export const GET = createRouteHandler(
     }
 
     try {
-      const models = await comfyUIClient.getModelList();
+      const models = await getComfyUIClient().getModelList();
       return { models };
     } catch {
       return { models: {} };
