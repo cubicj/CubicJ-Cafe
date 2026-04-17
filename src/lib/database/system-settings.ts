@@ -324,7 +324,7 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     clownBongmath: map.get(k.clownBongmath)! === 'true',
     imgCompression: parseInt(map.get(k.imgCompression)!, 10),
     negativePrompt: map.get(k.negativePrompt)!,
-    frameRate: parseInt(map.get(k.frameRate)!, 10),
+    frameRate: parseFloat(map.get(k.frameRate)!),
     megapixels: parseFloat(map.get(k.megapixels)!),
     resizeMultipleOf: parseInt(map.get(k.resizeMultipleOf)!, 10),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
