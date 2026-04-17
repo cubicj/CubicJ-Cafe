@@ -72,10 +72,12 @@ class ComfyUIJobMonitor {
     const pollInterval = setInterval(() => this.pollHistory(job, client), this.pollingIntervalMs)
     this.pollingTimers.set(job.promptId, pollInterval)
 
+    const timeoutMs = this.maxMonitoringTime
     const timer = setTimeout(async () => {
-      log.warn('Monitoring timeout', { minutes: 30, promptId: job.promptId })
-      await this.failJob(job, '모니터링 시간 초과 (30분)', client)
-    }, this.maxMonitoringTime)
+      const minutes = Math.round(timeoutMs / 60000)
+      log.warn('Monitoring timeout', { minutes, promptId: job.promptId })
+      await this.failJob(job, `모니터링 시간 초과 (${minutes}분)`, client)
+    }, timeoutMs)
 
     this.timeoutTimers.set(job.promptId, timer)
   }
