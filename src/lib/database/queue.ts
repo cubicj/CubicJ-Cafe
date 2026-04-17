@@ -128,7 +128,7 @@ export class QueueService {
         const request = await tx.queueRequest.create({ data: requestData });
         return request.id;
       },
-      { isolationLevel: 'Serializable' },
+      { isolationLevel: 'Serializable', timeout: 15000 },
     );
 
     QueueService.invalidateCache();
