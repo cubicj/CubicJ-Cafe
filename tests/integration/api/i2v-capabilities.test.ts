@@ -36,7 +36,7 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(res.status).toBe(200)
     expect(body.capabilities.wan.loraPresets).toBe(true)
-    expect(body.capabilities.ltx.loraPresets).toBe(true)
+    expect(body.capabilities.ltx.loraPresets).toBe(false)
   })
 
   it('returns loraPresets false for LTX when disabled', async () => {
@@ -60,7 +60,7 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.capabilities.wan.loraPresets).toBe(false)
-    expect(body.capabilities.ltx.loraPresets).toBe(true)
+    expect(body.capabilities.ltx.loraPresets).toBe(false)
   })
 
   it('returns durationOptions from settings for ltx-wan and registry for others', async () => {
