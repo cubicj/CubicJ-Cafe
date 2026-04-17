@@ -1,190 +1,158 @@
 import type { ComfyUIWorkflow } from '@/types'
-import type { ComfyUIServer } from '../../server-manager'
 import type { WanGenerationParams } from '../types'
+import type { WanSettings } from '@/lib/database/system-settings'
 import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
-import { getWanSettings, type WanSettings } from '@/lib/database/system-settings'
+import { getWanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
-import { applyLoraPreset, removeLoraPlaceholder } from './lora-manager'
 
 const log = createLogger('comfyui')
 
-export async function buildWanWorkflow(params: WanGenerationParams, _server?: ComfyUIServer): Promise<ComfyUIWorkflow> {
+export async function buildWanWorkflow(params: WanGenerationParams): Promise<ComfyUIWorkflow> {
   const settings = await getWanSettings()
-  const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE))
+  const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE)) as ComfyUIWorkflow
 
-  setNode(workflow, WAN.UNET_HIGH, { unet_name: settings.unetHigh })
-  setNode(workflow, WAN.UNET_LOW, { unet_name: settings.unetLow })
-  setNode(workflow, WAN.CLIP, { clip_name: settings.clip })
-  setNode(workflow, WAN.VAE, { vae_name: settings.vae })
-  setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
-  setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
-
-  setNode(workflow, WAN.MODEL_SAMPLING_HIGH, { shift: settings.shift })
-  setNode(workflow, WAN.MODEL_SAMPLING_LOW_SHIFT, { shift: settings.shift })
-
-  const resizeParams = {
-    megapixels: settings.megapixels,
-    multiple_of: settings.resizeMultipleOf,
-    upscale_method: settings.resizeUpscaleMethod,
-  }
-  setNode(workflow, WAN.RESIZE_START_IMAGE, resizeParams)
-  setNode(workflow, WAN.RESIZE_END_IMAGE, resizeParams)
-
-  const nagParams = {
-    nag_scale: settings.nagScale,
-    nag_alpha: settings.nagAlpha,
-    nag_tau: settings.nagTau,
-  }
-  setNode(workflow, WAN.NAG_HIGH, nagParams)
-  setNode(workflow, WAN.NAG_LOW, nagParams)
-
-  setNode(workflow, WAN.MOE_SCHEDULER, {
-    scheduler: settings.moeScheduler,
-    steps_high: settings.stepsHigh,
-    steps_low: settings.stepsLow,
-    boundary: settings.moeBoundary,
-    interval: settings.moeInterval,
-    denoise: settings.moeDenoise,
-  })
-
-  const frameCount = 16 * params.videoDuration + 1
-  setNode(workflow, WAN.FIRST_LAST_FRAME_HIGH, { length: frameCount })
-  setNode(workflow, WAN.FIRST_LAST_FRAME_LOW, { length: frameCount })
-
-  setNode(workflow, WAN.SAMPLER, { sampler_name: settings.sampler })
-
-  setNode(workflow, WAN.VIDEO_COMBINE, {
-    frame_rate: settings.frameRate,
-    crf: settings.videoCrf,
-    format: settings.videoFormat,
-    pix_fmt: settings.videoPixFmt,
-  })
-
-  configurePostProcessing(workflow, settings)
+  configureModels(workflow, settings)
+  configureBlockSwap(workflow, settings)
+  configureContextOptions(workflow, settings)
+  configureSamplers(workflow, settings)
+  configureSigmas(workflow, settings)
+  configureNag(workflow, settings)
+  configureResize(workflow, settings)
+  configureDuration(workflow, params, settings)
+  configurePrompts(workflow, params, settings)
+  configureRtx(workflow, settings)
+  configureOutput(workflow, params, settings)
 
   setNode(workflow, WAN.LOAD_IMAGE_START, { image: params.inputImage })
-
   if (params.endImage) {
     setNode(workflow, WAN.LOAD_IMAGE_END, { image: params.endImage })
   } else {
     handleEndImageBypass(workflow)
   }
 
-  setNode(workflow, WAN.NOISE_SEED, { noise_seed: generateSeed() })
-
-  if (workflow[WAN.VIDEO_COMBINE] && params.inputImage) {
-    setNode(workflow, WAN.VIDEO_COMBINE, {
-      filename_prefix: `WAN/${extractBaseImageName(params.inputImage)}`,
-    })
-  }
-
-  if (settings.loraEnabled && params.loraPreset && params.loraPreset.loraItems?.length > 0) {
-    await applyLoraPreset(workflow, params.loraPreset, _server)
-  } else {
-    removeLoraPlaceholder(workflow)
-  }
-
   log.info('WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
     videoDuration: params.videoDuration,
-    loraEnabled: settings.loraEnabled,
-    hasLoraPreset: !!(params.loraPreset && params.loraPreset.loraItems?.length),
   })
 
   dumpWorkflow('wan', workflow)
-
   return workflow
 }
 
-function configurePostProcessing(workflow: ComfyUIWorkflow, settings: WanSettings) {
-  let lastOutput: string = WAN.VAE_DECODE
-
-  if (settings.colorMatchEnabled) {
-    setNode(workflow, WAN.COLOR_MATCH, {
-      method: settings.colorMatchMethod,
-      strength: settings.colorMatchStrength,
-      image_target: [lastOutput, 0],
-    })
-    lastOutput = WAN.COLOR_MATCH
-  } else {
-    delete workflow[WAN.COLOR_MATCH]
+function configureModels(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  const commonLoader = {
+    base_precision: settings.basePrecision,
+    quantization: settings.quantization,
+    attention_mode: settings.attentionMode,
   }
+  setNode(workflow, WAN.MODEL_LOADER_HIGH, { ...commonLoader, model: settings.wanvideoModelHigh })
+  setNode(workflow, WAN.MODEL_LOADER_LOW, { ...commonLoader, model: settings.wanvideoModelLow })
+  setNode(workflow, WAN.VAE_LOADER, { model_name: settings.wanvideoVae })
+  setNode(workflow, WAN.T5_LOADER, { model_name: settings.t5Encoder })
+  setNode(workflow, WAN.CLIP_VISION_LOADER, { model_name: settings.clipVisionModel })
+}
 
-  if (settings.vfiEnabled) {
-    if (settings.vfiMethod === 'rife') {
-      setNode(workflow, WAN.VFI, {
-        clear_cache_after_n_frames: settings.vfiClearCache,
-        multiplier: settings.vfiMultiplier,
-        frames: [lastOutput, 0],
-      })
-      setNode(workflow, WAN.RIFE_MODEL_LOADER, {
-        model: settings.rifeModel,
-        precision: settings.rifePrecision,
-        resolution_profile: settings.rifeResolutionProfile,
-      })
-      if (settings.rifeResolutionProfile === 'custom') {
-        setNode(workflow, WAN.RIFE_CUSTOM_CONFIG, {
-          min_dim: settings.rifeCustomMinDim,
-          opt_dim: settings.rifeCustomOptDim,
-          max_dim: settings.rifeCustomMaxDim,
-        })
-        setNode(workflow, WAN.RIFE_MODEL_LOADER, {
-          custom_config: [WAN.RIFE_CUSTOM_CONFIG, 0],
-        })
-      } else {
-        delete workflow[WAN.RIFE_CUSTOM_CONFIG]
-      }
-      lastOutput = WAN.VFI
-      delete workflow[WAN.GMFSS_VFI]
-    } else {
-      setNode(workflow, WAN.GMFSS_VFI, {
-        ckpt_name: settings.gmfssModel,
-        clear_cache_after_n_frames: settings.vfiClearCache,
-        multiplier: settings.vfiMultiplier,
-        frames: [lastOutput, 0],
-      })
-      lastOutput = WAN.GMFSS_VFI
-      delete workflow[WAN.VFI]
-      delete workflow[WAN.RIFE_MODEL_LOADER]
-      delete workflow[WAN.RIFE_CUSTOM_CONFIG]
-    }
-  } else {
-    delete workflow[WAN.VFI]
-    delete workflow[WAN.RIFE_MODEL_LOADER]
-    delete workflow[WAN.RIFE_CUSTOM_CONFIG]
-    delete workflow[WAN.GMFSS_VFI]
+function configureBlockSwap(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  setNode(workflow, WAN.BLOCK_SWAP, {
+    blocks_to_swap: settings.blocksToSwap,
+    offload_img_emb: settings.offloadImgEmb,
+    offload_txt_emb: settings.offloadTxtEmb,
+    vace_blocks_to_swap: settings.vaceBlocksToSwap,
+    prefetch_blocks: settings.prefetchBlocks,
+  })
+}
+
+function configureContextOptions(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  setNode(workflow, WAN.CONTEXT_OPTIONS, {
+    context_frames: settings.contextFrames,
+    context_stride: settings.contextStride,
+    context_overlap: settings.contextOverlap,
+    fuse_method: settings.fuseMethod,
+  })
+}
+
+function configureSamplers(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  const shared = {
+    steps: settings.samplerSteps,
+    shift: settings.shift,
+    scheduler: settings.scheduler,
+    end_step: settings.samplerSteps,
   }
+  setNode(workflow, WAN.SAMPLER_HIGH, { ...shared, seed: generateSeed() })
+  setNode(workflow, WAN.SAMPLER_LOW, { ...shared, seed: generateSeed() })
+  setNode(workflow, WAN.OVERALL_STEPS, { number: settings.samplerSteps * 2 })
+  setNode(workflow, WAN.SPLIT_STEPS, { number: settings.samplerSteps })
+}
 
-  setNode(workflow, WAN.VRAM_DEBUG_VFI, { anything: [lastOutput, 0] })
+function configureSigmas(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  setNode(workflow, WAN.SIGMAS_HIGH, { sigmas: settings.sigmasHigh })
+  setNode(workflow, WAN.SIGMAS_LOW, { sigmas: settings.sigmasLow })
+}
 
+function configureNag(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  setNode(workflow, WAN.APPLY_NAG, {
+    nag_scale: settings.nagScale,
+    nag_alpha: settings.nagAlpha,
+    nag_tau: settings.nagTau,
+  })
+}
+
+function configureResize(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  const resize = {
+    megapixels: settings.megapixels,
+    multiple_of: settings.resizeMultipleOf,
+    upscale_method: settings.resizeUpscaleMethod,
+  }
+  setNode(workflow, WAN.RESIZE_START_IMAGE, resize)
+  setNode(workflow, WAN.RESIZE_END_IMAGE, resize)
+}
+
+function configureDuration(workflow: ComfyUIWorkflow, params: WanGenerationParams, settings: WanSettings) {
+  setNode(workflow, WAN.FPS, { number: settings.frameRate })
+  setNode(workflow, WAN.SECONDS, { number: params.videoDuration })
+  setNode(workflow, WAN.MULTIPLIER, { number: 1 })
+}
+
+function configurePrompts(workflow: ComfyUIWorkflow, params: WanGenerationParams, settings: WanSettings) {
+  setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
+  setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
+}
+
+function configureRtx(workflow: ComfyUIWorkflow, settings: WanSettings) {
   if (settings.rtxEnabled) {
     setNode(workflow, WAN.RTX_SUPER_RES, {
       resize_type: settings.rtxResizeType,
       'resize_type.scale': settings.rtxScale,
       quality: settings.rtxQuality,
-      images: [WAN.VRAM_DEBUG_VFI, 0],
     })
-  } else {
-    delete workflow[WAN.RTX_SUPER_RES]
-    setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.VRAM_DEBUG_VFI, 0] })
+    setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.RTX_SUPER_RES, 0] })
+    return
+  }
+  delete workflow[WAN.RTX_SUPER_RES]
+  setNode(workflow, WAN.VIDEO_COMBINE, { images: [WAN.VRAM_POST_DECODE, 0] })
+}
+
+function configureOutput(workflow: ComfyUIWorkflow, params: WanGenerationParams, settings: WanSettings) {
+  setNode(workflow, WAN.VIDEO_COMBINE, {
+    crf: settings.videoCrf,
+    format: settings.videoFormat,
+    pix_fmt: settings.videoPixFmt,
+  })
+  if (params.inputImage) {
+    setNode(workflow, WAN.VIDEO_COMBINE, {
+      filename_prefix: `WAN/${extractBaseImageName(params.inputImage)}`,
+    })
   }
 }
 
 function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   delete workflow[WAN.LOAD_IMAGE_END]
   delete workflow[WAN.RESIZE_END_IMAGE]
-
-  const frameLow = workflow[WAN.FIRST_LAST_FRAME_LOW]
-  if (frameLow?.inputs) {
-    delete frameLow.inputs.end_image
+  const encode = workflow[WAN.IMG_TO_VIDEO_ENCODE]
+  if (encode?.inputs) {
+    delete encode.inputs.end_image
   }
-  const frameHigh = workflow[WAN.FIRST_LAST_FRAME_HIGH]
-  if (frameHigh?.inputs) {
-    delete frameHigh.inputs.end_image
-  }
-
-  log.info('End image bypass applied — removed end_image from WanFirstLastFrameToVideo')
 }
