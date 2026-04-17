@@ -7,13 +7,16 @@ import { queueMonitor } from './queue-monitor'
 import { sendVideoToDiscord } from './video-result-sender'
 import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from './client-types'
 import { createLogger } from '@/lib/logger'
+import { getOpsSetting } from '@/lib/database/ops-settings'
 
 const log = createLogger('comfyui')
 
 class ComfyUIJobMonitor {
   private monitoringJobs = new Set<string>()
   private timeoutTimers = new Map<string, NodeJS.Timeout>()
-  private maxMonitoringTime = 30 * 60 * 1000
+  private get maxMonitoringTime(): number {
+    return getOpsSetting('ops.job_monitor_timeout_ms')
+  }
 
   async startMonitoring(job: GenerationJob): Promise<void> {
     if (!job.promptId) {
