@@ -1,0 +1,37 @@
+DELETE FROM system_settings WHERE key IN (
+  'wan.unet_high', 'wan.unet_low', 'wan.clip', 'wan.vae',
+  'wan.shift', 'wan.steps_high', 'wan.steps_low',
+  'wan.moe_scheduler', 'wan.moe_boundary', 'wan.moe_interval', 'wan.moe_denoise',
+  'wan.sampler',
+  'wan.vfi_enabled', 'wan.vfi_method', 'wan.vfi_clear_cache', 'wan.vfi_multiplier',
+  'wan.rife_model', 'wan.rife_precision', 'wan.rife_resolution_profile',
+  'wan.rife_custom_min_dim', 'wan.rife_custom_opt_dim', 'wan.rife_custom_max_dim',
+  'wan.gmfss_model',
+  'wan.color_match_enabled', 'wan.color_match_method', 'wan.color_match_strength',
+  'wan.lora_enabled'
+);
+
+INSERT INTO system_settings (id, key, value, type, category, created_at, updated_at) VALUES
+  ('wan_wanvideo_model_high', 'wan.wanvideo_model_high', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_wanvideo_model_low', 'wan.wanvideo_model_low', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_t5_encoder', 'wan.t5_encoder', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_wanvideo_vae', 'wan.wanvideo_vae', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_clip_vision_model', 'wan.clip_vision_model', 'CONFIGURE_IN_ADMIN', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_base_precision', 'wan.base_precision', 'bf16', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_quantization', 'wan.quantization', 'fp8_e4m3fn_fast', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_attention_mode', 'wan.attention_mode', 'sageattn', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_blocks_to_swap', 'wan.blocks_to_swap', '20', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_offload_img_emb', 'wan.offload_img_emb', 'false', 'boolean', 'wan', datetime('now'), datetime('now')),
+  ('wan_offload_txt_emb', 'wan.offload_txt_emb', 'false', 'boolean', 'wan', datetime('now'), datetime('now')),
+  ('wan_vace_blocks_to_swap', 'wan.vace_blocks_to_swap', '0', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_prefetch_blocks', 'wan.prefetch_blocks', '1', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_context_frames', 'wan.context_frames', '81', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_context_stride', 'wan.context_stride', '4', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_context_overlap', 'wan.context_overlap', '32', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_fuse_method', 'wan.fuse_method', 'pyramid', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_sampler_steps', 'wan.sampler_steps', '2', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_shift', 'wan.shift', '5', 'number', 'wan', datetime('now'), datetime('now')),
+  ('wan_scheduler', 'wan.scheduler', 'euler', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_sigmas_high', 'wan.sigmas_high', '1.0, 0.9375, 0.875', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_sigmas_low', 'wan.sigmas_low', '0.875, 0.4375, 0.0', 'string', 'wan', datetime('now'), datetime('now')),
+  ('wan_duration_options', 'wan.duration_options', '5,6,7', 'string', 'wan', datetime('now'), datetime('now'));
