@@ -42,6 +42,8 @@ export async function buildLtxWanWorkflow(
   configurePostProcessing(workflow, settings)
   configureOutput(workflow, params, settings)
 
+  clearUnusedLoraSlots(workflow)
+
   setNode(workflow, LTX_WAN.NOISE_SEED_LTX, { noise_seed: generateSeed() })
   setNode(workflow, LTX_WAN.CLOWN_SAMPLER_LTX, { seed: generateSeed() })
 
@@ -130,6 +132,17 @@ function applyDistilledLora(workflow: ComfyUIWorkflow, settings: LtxWanSettings)
     on: true,
     lora: settings.distilledLoraName,
     strength: settings.distilledLoraStrength,
+  }
+}
+
+function clearUnusedLoraSlots(workflow: ComfyUIWorkflow) {
+  const node = workflow[LTX_WAN.POWER_LORA]
+  if (!node?.inputs) return
+  for (const slot of ['lora_1', 'lora_2', 'lora_3']) {
+    const value = node.inputs[slot] as { on?: boolean; lora?: string; strength?: number } | undefined
+    if (value && value.on === false && value.lora === 'PLACEHOLDER') {
+      node.inputs[slot] = { on: false, lora: '', strength: value.strength ?? 0 }
+    }
   }
 }
 
