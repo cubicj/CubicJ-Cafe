@@ -390,7 +390,6 @@ class QueueMonitor {
           inputImage,
           videoDuration: request.videoDuration,
           endImage: uploadedEndImageName || undefined,
-          loraPreset: loraPreset || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
       }
