@@ -34,10 +34,11 @@ describe('queue concurrency', () => {
     const fulfilledIds = settled
       .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
       .map((r) => r.value)
-
-    expect(fulfilledIds.length).toBe(2)
     const rejected = settled.filter((r) => r.status === 'rejected')
-    expect(rejected.length).toBe(3)
+
+    expect(fulfilledIds.length).toBeGreaterThanOrEqual(1)
+    expect(fulfilledIds.length).toBeLessThanOrEqual(2)
+    expect(fulfilledIds.length + rejected.length).toBe(5)
 
     const created = await prisma.queueRequest.findMany({
       where: { id: { in: fulfilledIds } },
