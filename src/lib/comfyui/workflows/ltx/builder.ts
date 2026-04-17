@@ -41,6 +41,8 @@ export async function buildLtxWorkflow(
 
   if (params.referenceAudio) {
     handleReferenceAudio(workflow, params.referenceAudio, settings)
+  } else {
+    clearUnusedLoraSlots(workflow)
   }
 
   if (params.endImage) {
@@ -211,6 +213,15 @@ function applyUserLoras(
     count: deduplicated.length,
     loras: deduplicated.map(l => ({ filename: l.loraFilename, strength: l.strength })),
   })
+}
+
+function clearUnusedLoraSlots(workflow: ComfyUIWorkflow) {
+  for (const nodeId of [LTX.POWER_LORA_1ST, LTX.POWER_LORA_2ND]) {
+    const node = workflow[nodeId]
+    if (node?.inputs?.['lora_2']) {
+      node.inputs['lora_2'] = { on: false, lora: '', strength: 0 }
+    }
+  }
 }
 
 function handleReferenceAudio(
