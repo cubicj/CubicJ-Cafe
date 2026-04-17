@@ -640,9 +640,43 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "fun_or_fl2v_model": false,
       "tiled_vae": false,
       "augment_empty_frames": 0,
-      "vae": ["207", 0]
+      "vae": ["207", 0],
+      "clip_embeds": ["231", 0]
     },
     "class_type": "WanVideoImageToVideoEncode",
     "_meta": { "title": "LTX_WAN_230" }
+  },
+  "231": {
+    "inputs": {
+      "strength_1": 1,
+      "strength_2": 1,
+      "crop": "center",
+      "combine_embeds": "average",
+      "force_offload": true,
+      "tiles": 0,
+      "ratio": 0.5,
+      "clip_vision": ["233", 0],
+      "image_1": ["232", 0]
+    },
+    "class_type": "WanVideoClipVisionEncode",
+    "_meta": { "title": "LTX_WAN_231" }
+  },
+  "232": {
+    "inputs": {
+      "batch_index": 0,
+      "length": 1,
+      "image": ["187", 0]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": { "title": "LTX_WAN_232" }
+  },
+  "233": {
+    "inputs": {
+      "model_name": "PLACEHOLDER",
+      "precision": "fp32",
+      "load_device": "offload_device"
+    },
+    "class_type": "LoadWanVideoClipTextEncoder",
+    "_meta": { "title": "LTX_WAN_233" }
   }
 }
