@@ -12,60 +12,55 @@ import { Layers } from 'lucide-react';
 import { LoRABundleManager } from '@/components/ui/lora-bundle-manager';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
-type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes' | 'rifeModels';
+type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes';
 
 const WAN_FIELDS: SettingsField[] = [
-  { key: 'wan.lora_enabled', label: 'LoRA 프리셋', type: 'boolean', group: '활성화' },
-  { key: 'wan.color_match_enabled', label: 'Color Match', type: 'boolean', group: '활성화' },
-  { key: 'wan.vfi_enabled', label: 'VFI', type: 'boolean', group: '활성화' },
-  { key: 'wan.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: '활성화' },
+  { key: 'wan.wanvideo_model_high', label: 'WanVideo Model (High)', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'wan.wanvideo_model_low', label: 'WanVideo Model (Low)', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
+  { key: 'wan.t5_encoder', label: 'T5 Encoder', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
+  { key: 'wan.wanvideo_vae', label: 'WanVideo VAE', type: 'model', group: 'WAN — 모델', modelCategory: 'vaes' as ModelCategory },
+  { key: 'wan.clip_vision_model', label: 'CLIP Vision Model', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
+  { key: 'wan.base_precision', label: 'Base Precision', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'base_precision:WanVideoModelLoader:base_precision' },
+  { key: 'wan.quantization', label: 'Quantization', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'quantization:WanVideoModelLoader:quantization' },
+  { key: 'wan.attention_mode', label: 'Attention Mode', type: 'nodeOption', group: 'WAN — 모델', nodeQuery: 'attention_mode:WanVideoModelLoader:attention_mode' },
 
-  { key: 'wan.unet_high', label: 'UNet HIGH 모델', type: 'model', group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
-  { key: 'wan.unet_low', label: 'UNet LOW 모델', type: 'model', group: '모델', modelCategory: 'diffusionModels' as ModelCategory },
-  { key: 'wan.clip', label: 'CLIP 모델', type: 'model', group: '모델', modelCategory: 'textEncoders' as ModelCategory },
-  { key: 'wan.vae', label: 'VAE 모델', type: 'model', group: '모델', modelCategory: 'vaes' as ModelCategory },
+  { key: 'wan.blocks_to_swap', label: 'Blocks to Swap', type: 'number', step: 1, group: 'WAN — Block Swap' },
+  { key: 'wan.offload_img_emb', label: 'Offload Img Embed', type: 'boolean', group: 'WAN — Block Swap' },
+  { key: 'wan.offload_txt_emb', label: 'Offload Txt Embed', type: 'boolean', group: 'WAN — Block Swap' },
+  { key: 'wan.vace_blocks_to_swap', label: 'VACE Blocks to Swap', type: 'number', step: 1, group: 'WAN — Block Swap' },
+  { key: 'wan.prefetch_blocks', label: 'Prefetch Blocks', type: 'number', step: 1, group: 'WAN — Block Swap' },
 
-  { key: 'wan.sampler', label: '샘플러', type: 'sampler', group: '생성' },
-  { key: 'wan.megapixels', label: '이미지 해상도 (MP)', type: 'number', step: 0.01, group: '생성' },
-  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: '생성' },
-  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: '생성', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
-  { key: 'wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: '생성' },
+  { key: 'wan.context_frames', label: 'Context Frames', type: 'number', step: 1, group: 'WAN — Context' },
+  { key: 'wan.context_stride', label: 'Context Stride', type: 'number', step: 1, group: 'WAN — Context' },
+  { key: 'wan.context_overlap', label: 'Context Overlap', type: 'number', step: 1, group: 'WAN — Context' },
+  { key: 'wan.fuse_method', label: 'Fuse Method', type: 'nodeOption', group: 'WAN — Context', nodeQuery: 'fuse_method:WanVideoContextOptions:fuse_method' },
 
-  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'NAG' },
-  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'NAG' },
-  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'NAG' },
+  { key: 'wan.sampler_steps', label: 'Steps', type: 'number', step: 1, group: 'WAN — 샘플러' },
+  { key: 'wan.shift', label: 'Shift', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
+  { key: 'wan.scheduler', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler:WanVideoSampler:scheduler' },
+  { key: 'wan.sigmas_high', label: 'Sigmas (High)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
+  { key: 'wan.sigmas_low', label: 'Sigmas (Low)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
-  { key: 'wan.moe_scheduler', label: 'Scheduler', type: 'nodeOption', group: 'MoE Scheduler', nodeQuery: 'moe_scheduler:WanMoEScheduler:scheduler' },
-  { key: 'wan.steps_high', label: 'Steps HIGH', type: 'number', step: 1, group: 'MoE Scheduler' },
-  { key: 'wan.steps_low', label: 'Steps LOW', type: 'number', step: 1, group: 'MoE Scheduler' },
-  { key: 'wan.moe_boundary', label: 'Boundary', type: 'number', step: 0.01, group: 'MoE Scheduler' },
-  { key: 'wan.moe_interval', label: 'Interval', type: 'number', step: 0.001, group: 'MoE Scheduler' },
-  { key: 'wan.moe_denoise', label: 'Denoise', type: 'number', step: 0.01, group: 'MoE Scheduler' },
+  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
+  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
+  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
 
-  { key: 'wan.color_match_method', label: 'Method', type: 'string', group: '후처리 — Color Match' },
-  { key: 'wan.color_match_strength', label: 'Strength', type: 'number', step: 0.01, group: '후처리 — Color Match' },
+  { key: 'wan.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'WAN — 이미지' },
+  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'WAN — 이미지' },
+  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'WAN — 이미지', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
 
-  { key: 'wan.vfi_method', label: 'VFI 방식', type: 'select', group: '후처리 — VFI', options: [{ label: 'RIFE (TensorRT)', value: 'rife' }, { label: 'GMFSS Fortuna', value: 'gmfss' }] },
-  { key: 'wan.vfi_multiplier', label: 'Multiplier', type: 'number', step: 1, group: '후처리 — VFI' },
-  { key: 'wan.vfi_clear_cache', label: 'Clear Cache (frames)', type: 'number', step: 1, group: '후처리 — VFI' },
-  { key: 'wan.rife_model', label: 'RIFE Model', type: 'model', group: '후처리 — VFI', modelCategory: 'rifeModels' as ModelCategory },
-  { key: 'wan.rife_precision', label: 'RIFE Precision', type: 'nodeOption', group: '후처리 — VFI', nodeQuery: 'rife_precision:AutoLoadRifeTensorrtModel:precision' },
-  { key: 'wan.rife_resolution_profile', label: 'RIFE Resolution Profile', type: 'nodeOption', group: '후처리 — VFI', nodeQuery: 'rife_resolution_profile:AutoLoadRifeTensorrtModel:resolution_profile' },
-  { key: 'wan.rife_custom_min_dim', label: 'RIFE Custom Min Dim', type: 'number', step: 1, group: '후처리 — VFI' },
-  { key: 'wan.rife_custom_opt_dim', label: 'RIFE Custom Opt Dim', type: 'number', step: 1, group: '후처리 — VFI' },
-  { key: 'wan.rife_custom_max_dim', label: 'RIFE Custom Max Dim', type: 'number', step: 1, group: '후처리 — VFI' },
-  { key: 'wan.gmfss_model', label: 'GMFSS Model', type: 'string', group: '후처리 — VFI' },
+  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'WAN — 생성' },
+  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: 'WAN — 생성', monoFont: true },
+  { key: 'wan.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'WAN — 생성', monoFont: true },
 
-  { key: 'wan.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
-  { key: 'wan.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: '후처리 — Upscale' },
-  { key: 'wan.rtx_quality', label: 'Quality', type: 'nodeOption', group: '후처리 — Upscale', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
+  { key: 'wan.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'WAN — RTX 후처리' },
+  { key: 'wan.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'WAN — RTX 후처리', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
+  { key: 'wan.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'WAN — RTX 후처리' },
+  { key: 'wan.rtx_quality', label: 'Quality', type: 'nodeOption', group: 'WAN — RTX 후처리', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
 
-  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: '비디오' },
-  { key: 'wan.video_crf', label: 'CRF', type: 'number', step: 1, group: '비디오' },
-  { key: 'wan.video_format', label: 'Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_format:VHS_VideoCombine:format' },
-  { key: 'wan.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: '비디오', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
-
-  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: '프롬프트' },
+  { key: 'wan.video_crf', label: 'CRF', type: 'number', step: 1, group: 'WAN — 영상 출력' },
+  { key: 'wan.video_format', label: 'Format', type: 'nodeOption', group: 'WAN — 영상 출력', nodeQuery: 'video_format:VHS_VideoCombine:format' },
+  { key: 'wan.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: 'WAN — 영상 출력', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
 ];
 
 const loraBundleButton = (
