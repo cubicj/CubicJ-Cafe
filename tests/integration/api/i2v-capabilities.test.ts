@@ -5,6 +5,7 @@ import { createTestSession } from '../../helpers/auth'
 import { prisma } from '@/lib/database/prisma'
 
 import { GET } from '@/app/api/i2v/capabilities/route'
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
 
 async function seedSettings(settings: Record<string, string>) {
   for (const [key, value] of Object.entries(settings)) {
@@ -84,6 +85,37 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
+  })
+
+  it('returns durationOptions for all three models from settings', async () => {
+    await seedSettings({
+      'wan.duration_options': '3,5,7,9',
+      'ltx.duration_options': '4,8,12',
+      'ltx-wan.duration_options': '5,6,7,8',
+    })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(body.durationOptions.wan).toEqual([3, 5, 7, 9])
+    expect(body.durationOptions.ltx).toEqual([4, 8, 12])
+    expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
+  })
+
+  it('falls back to registry durations when a model setting is missing', async () => {
+    await prisma.systemSetting.deleteMany({
+      where: { key: { in: ['wan.duration_options', 'ltx.duration_options'] } },
+    })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(body.durationOptions.wan).toEqual(MODEL_REGISTRY.wan.durationOptions)
+    expect(body.durationOptions.ltx).toEqual(MODEL_REGISTRY.ltx.durationOptions)
   })
 
   it('preserves other capabilities from registry', async () => {
