@@ -16,7 +16,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   ltx: {
     displayName: 'LTX 2.3',
     capabilities: {
-      loraPresets: true,
+      loraPresets: false,
       endImage: true,
       videoDuration: true,
       audio: true,
