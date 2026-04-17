@@ -1,10 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { logBuffer } from './log-buffer';
+import { getOpsSetting } from './database/ops-settings';
 
 const LOG_DIR = process.env.LOG_DIR || './logs';
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
-const MAX_FILES_DAYS = 14;
 
 const logDir = path.resolve(LOG_DIR);
 if (!fs.existsSync(logDir)) {
@@ -21,7 +20,7 @@ function getLogFilePath(prefix: string): string {
 
 function rotateIfNeeded(filePath: string): void {
   try {
-    if (fs.existsSync(filePath) && fs.statSync(filePath).size > MAX_FILE_SIZE) {
+    if (fs.existsSync(filePath) && fs.statSync(filePath).size > getOpsSetting('ops.log_file_max_bytes')) {
       const rotated = filePath.replace('.log', `-${Date.now()}.log`);
       fs.renameSync(filePath, rotated);
     }
@@ -72,7 +71,7 @@ export function cleanOldFiles(): void {
       .map((f: string) => ({ name: f, fullPath: path.join(logDir, f), mtime: fs.statSync(path.join(logDir, f)).mtimeMs }))
       .sort((a: { mtime: number }, b: { mtime: number }) => b.mtime - a.mtime);
 
-    const cutoff = Date.now() - MAX_FILES_DAYS * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - getOpsSetting('ops.log_file_retention_days') * 24 * 60 * 60 * 1000;
     for (const file of files) {
       if (file.mtime < cutoff) {
         fs.unlinkSync(file.fullPath);
