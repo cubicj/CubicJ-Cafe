@@ -8,6 +8,7 @@ import type { ComfyUIPromptRequest, ComfyUIQueueResponse, ComfyUIQueueStatus, Co
 import { ComfyUIServerManager } from './client-server-manager'
 import { ComfyUIModelManager } from './client-model-manager'
 import { ComfyUIMediaManager } from './client-media-manager'
+import { getOpsSetting } from '@/lib/database/ops-settings'
 
 export class ComfyUIClient {
   private baseURL: string
@@ -43,7 +44,7 @@ export class ComfyUIClient {
                          this.baseURL.includes('runpod.net') || 
                          (!this.baseURL.includes('192.168.') && !this.baseURL.includes('localhost') && !this.baseURL.includes('127.0.0.1'))
     this.clientId = this.generateClientId()
-    this.timeout = options.timeout || 10000
+    this.timeout = options.timeout || getOpsSetting('ops.comfyui_http_timeout_ms')
     this.maxRetries = options.maxRetries || 3
 
     this.serverManager = new ComfyUIServerManager(this.baseURL, this.timeout)
@@ -296,4 +297,12 @@ export class ComfyUIClient {
   }
 }
 
-export const comfyUIClient = new ComfyUIClient()
+let _comfyUIClient: ComfyUIClient | null = null
+export const comfyUIClient = new Proxy({} as ComfyUIClient, {
+  get(_target, prop) {
+    if (!_comfyUIClient) {
+      _comfyUIClient = new ComfyUIClient()
+    }
+    return Reflect.get(_comfyUIClient, prop, _comfyUIClient)
+  },
+})
