@@ -26,7 +26,7 @@ describe('GET /api/i2v/capabilities', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns loraPresets true when both enabled', async () => {
+  it('returns loraPresets false for both models (registry-disabled)', async () => {
     await seedSettings({ 'wan.lora_enabled': 'true', 'ltx.lora_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -35,7 +35,7 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.capabilities.wan.loraPresets).toBe(true)
+    expect(body.capabilities.wan.loraPresets).toBe(false)
     expect(body.capabilities.ltx.loraPresets).toBe(false)
   })
 
@@ -47,7 +47,7 @@ describe('GET /api/i2v/capabilities', () => {
     const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
     const body = await res.json()
 
-    expect(body.capabilities.wan.loraPresets).toBe(true)
+    expect(body.capabilities.wan.loraPresets).toBe(false)
     expect(body.capabilities.ltx.loraPresets).toBe(false)
   })
 
