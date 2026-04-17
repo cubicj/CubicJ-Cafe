@@ -398,8 +398,8 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       nag_tau: 0,
       inplace: true,
       model: ['448', 0],
-      nag_cond_video: ['348', 2],
-      nag_cond_audio: ['348', 2],
+      nag_cond_video: ['23', 1],
+      nag_cond_audio: ['23', 1],
     },
     class_type: 'LTX2_NAG',
     _meta: {
