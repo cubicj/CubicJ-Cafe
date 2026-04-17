@@ -14,8 +14,12 @@ const log = createLogger('comfyui')
 class ComfyUIJobMonitor {
   private monitoringJobs = new Set<string>()
   private timeoutTimers = new Map<string, NodeJS.Timeout>()
+  private pollingTimers = new Map<string, NodeJS.Timeout>()
   private get maxMonitoringTime(): number {
     return getOpsSetting('ops.job_monitor_timeout_ms')
+  }
+  private get pollingIntervalMs(): number {
+    return getOpsSetting('ops.ws_history_poll_interval_ms')
   }
 
   async startMonitoring(job: GenerationJob): Promise<void> {
@@ -63,6 +67,48 @@ class ComfyUIJobMonitor {
       const errorMessage = `Node ${data.node_id} (${data.node_type}): ${data.exception_message}`
       await this.failJob(job, errorMessage, client)
     })
+
+    const pollInterval = setInterval(async () => {
+      if (client.isWebSocketConnected()) return
+
+      try {
+        const history = await client.getHistory(job.promptId!)
+        const entry = history[job.promptId!]
+        if (!entry) return
+
+        const errorMsg = entry.status?.messages?.find((m) => m[0] === 'execution_error')
+        if (errorMsg) {
+          const errPayload = errorMsg[1] as { node_id?: string; node_type?: string; exception_message?: string }
+          await this.failJob(
+            job,
+            `Node ${errPayload.node_id} (${errPayload.node_type}): ${errPayload.exception_message}`,
+            client,
+          )
+          return
+        }
+
+        const gifsList: Array<{ filename: string; subfolder: string; type: string }> = []
+        for (const nodeOutput of Object.values(entry.outputs ?? {})) {
+          if (nodeOutput.gifs) gifsList.push(...nodeOutput.gifs)
+        }
+
+        if (gifsList.length > 0) {
+          const videoFile = gifsList[0]
+          await this.handleCompletion(
+            job,
+            { filename: videoFile.filename, subfolder: videoFile.subfolder, type: videoFile.type },
+            client,
+          )
+        }
+      } catch (e) {
+        log.warn('History poll failed (will retry next interval)', {
+          promptId: job.promptId,
+          error: e instanceof Error ? e.message : String(e),
+        })
+      }
+    }, this.pollingIntervalMs)
+
+    this.pollingTimers.set(job.promptId, pollInterval)
 
     const timer = setTimeout(async () => {
       log.warn('Monitoring timeout', { minutes: 30, promptId: job.promptId })
@@ -166,6 +212,11 @@ class ComfyUIJobMonitor {
     if (timer) {
       clearTimeout(timer)
       this.timeoutTimers.delete(promptId)
+    }
+    const poll = this.pollingTimers.get(promptId)
+    if (poll) {
+      clearInterval(poll)
+      this.pollingTimers.delete(promptId)
     }
     client?.removeCallbacks(promptId)
   }

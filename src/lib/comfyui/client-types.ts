@@ -33,6 +33,11 @@ export interface ComfyUIHistoryResponse {
         }>
       }
     }
+    status?: {
+      status_str?: string
+      completed?: boolean
+      messages?: Array<[string, unknown]>
+    }
   }
 }
 
