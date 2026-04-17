@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
+import { createLogger } from '@/lib/logger';
 import { parseQuery } from '@/lib/validations/parse';
 import { logsQuerySchema } from '@/lib/validations/schemas/admin';
 import fs from 'fs/promises';
 import path from 'path';
+
+const log = createLogger('admin');
 
 interface LogEntry {
   timestamp: string;
@@ -36,8 +38,9 @@ export const GET = createRouteHandler(
     let raw: string;
     try {
       raw = await fs.readFile(logPath, 'utf8');
-    } catch {
-      return NextResponse.json({ entries: [], total: 0, page, totalPages: 0 } satisfies LogsResponse);
+    } catch (e) {
+      log.error('log file read failed', { error: e instanceof Error ? e.message : String(e) });
+      throw e;
     }
 
     const lines = raw.split('\n').filter(line => line.trim());
@@ -47,8 +50,9 @@ export const GET = createRouteHandler(
       let entry: LogEntry;
       try {
         entry = JSON.parse(line) as LogEntry;
-      } catch {
-        continue;
+      } catch (e) {
+        log.error('log file read failed', { error: e instanceof Error ? e.message : String(e) });
+        throw e;
       }
 
       if (level && entry.level?.toLowerCase() !== level) continue;

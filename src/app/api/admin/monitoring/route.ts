@@ -222,12 +222,9 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
         try {
           const logEntry = JSON.parse(line) as LogEntry;
           recent.push(logEntry);
-        } catch {
-          recent.push({
-            timestamp: new Date().toISOString(),
-            level: 'info',
-            message: line,
-          });
+        } catch (e) {
+          log.error('monitoring metric failed', { error: e instanceof Error ? e.message : String(e) });
+          throw e;
         }
       }
 
@@ -245,12 +242,9 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
         try {
           const logEntry = JSON.parse(line) as LogEntry;
           errors.push(logEntry);
-        } catch {
-          errors.push({
-            timestamp: new Date().toISOString(),
-            level: 'error',
-            message: line,
-          });
+        } catch (e) {
+          log.error('monitoring metric failed', { error: e instanceof Error ? e.message : String(e) });
+          throw e;
         }
       }
 
