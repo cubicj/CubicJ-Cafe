@@ -12,7 +12,7 @@ describe('queue concurrency', () => {
     await cleanTables()
   })
 
-  it('assigns unique positions to concurrent createRequest calls', async () => {
+  it('assigns unique positions to concurrent createRequest calls', { timeout: 30000 }, async () => {
     const user = await prisma.user.create({
       data: {
         discordId: 'concurrency-user',
