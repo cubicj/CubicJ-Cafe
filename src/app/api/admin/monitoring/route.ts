@@ -223,8 +223,8 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
           const logEntry = JSON.parse(line) as LogEntry;
           recent.push(logEntry);
         } catch (e) {
-          log.error('monitoring metric failed', { error: e instanceof Error ? e.message : String(e) });
-          throw e;
+          log.warn('skipping unparseable log line', { error: e instanceof Error ? e.message : String(e) });
+          continue;
         }
       }
 
@@ -243,8 +243,8 @@ async function getRecentLogs(): Promise<{ recent: LogEntry[]; errors: LogEntry[]
           const logEntry = JSON.parse(line) as LogEntry;
           errors.push(logEntry);
         } catch (e) {
-          log.error('monitoring metric failed', { error: e instanceof Error ? e.message : String(e) });
-          throw e;
+          log.warn('skipping unparseable log line', { error: e instanceof Error ? e.message : String(e) });
+          continue;
         }
       }
 
