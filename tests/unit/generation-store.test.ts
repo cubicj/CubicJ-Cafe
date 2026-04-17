@@ -1,5 +1,12 @@
 import { GenerationStore } from '@/lib/generation-store'
 import { GenerationJob } from '@/types'
+import { loadOpsSettings } from '@/lib/database/ops-settings'
+import { cleanTables } from '../helpers/db'
+
+beforeAll(async () => {
+  await cleanTables()
+  await loadOpsSettings()
+})
 
 beforeEach(() => {
   vi.useFakeTimers()
