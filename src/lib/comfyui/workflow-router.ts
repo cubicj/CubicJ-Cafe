@@ -13,7 +13,7 @@ export async function buildWorkflow(
     case 'wan':
       return buildWanWorkflow(params, server)
     case 'ltx':
-      return buildLtxWorkflow(params, server)
+      return buildLtxWorkflow(params)
     case 'ltx-wan':
       return buildLtxWanWorkflow(params, server)
     default:
