@@ -6,6 +6,7 @@ import { serverManager } from './server-manager'
 import { queueMonitor } from './queue-monitor'
 import { sendVideoToDiscord } from './video-result-sender'
 import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from './client-types'
+import type { ComfyUIClient } from './client-core'
 import { createLogger } from '@/lib/logger'
 import { getOpsSetting } from '@/lib/database/ops-settings'
 
@@ -68,46 +69,7 @@ class ComfyUIJobMonitor {
       await this.failJob(job, errorMessage, client)
     })
 
-    const pollInterval = setInterval(async () => {
-      if (client.isWebSocketConnected()) return
-
-      try {
-        const history = await client.getHistory(job.promptId!)
-        const entry = history[job.promptId!]
-        if (!entry) return
-
-        const errorMsg = entry.status?.messages?.find((m) => m[0] === 'execution_error')
-        if (errorMsg) {
-          const errPayload = errorMsg[1] as { node_id?: string; node_type?: string; exception_message?: string }
-          await this.failJob(
-            job,
-            `Node ${errPayload.node_id} (${errPayload.node_type}): ${errPayload.exception_message}`,
-            client,
-          )
-          return
-        }
-
-        const gifsList: Array<{ filename: string; subfolder: string; type: string }> = []
-        for (const nodeOutput of Object.values(entry.outputs ?? {})) {
-          if (nodeOutput.gifs) gifsList.push(...nodeOutput.gifs)
-        }
-
-        if (gifsList.length > 0) {
-          const videoFile = gifsList[0]
-          await this.handleCompletion(
-            job,
-            { filename: videoFile.filename, subfolder: videoFile.subfolder, type: videoFile.type },
-            client,
-          )
-        }
-      } catch (e) {
-        log.warn('History poll failed (will retry next interval)', {
-          promptId: job.promptId,
-          error: e instanceof Error ? e.message : String(e),
-        })
-      }
-    }, this.pollingIntervalMs)
-
+    const pollInterval = setInterval(() => this.pollHistory(job, client), this.pollingIntervalMs)
     this.pollingTimers.set(job.promptId, pollInterval)
 
     const timer = setTimeout(async () => {
@@ -131,11 +93,57 @@ class ComfyUIJobMonitor {
     return this.monitoringJobs.size
   }
 
+  private async pollHistory(
+    job: GenerationJob,
+    client: ComfyUIClient,
+  ): Promise<void> {
+    if (client.isWebSocketConnected()) return
+
+    try {
+      const history = await client.getHistory(job.promptId!)
+      const entry = history[job.promptId!]
+      if (!entry) return
+
+      const errorMsg = entry.status?.messages?.find((m) => m[0] === 'execution_error')
+      if (errorMsg) {
+        const errPayload = errorMsg[1] as { node_id?: string; node_type?: string; exception_message?: string }
+        await this.failJob(
+          job,
+          `Node ${errPayload.node_id} (${errPayload.node_type}): ${errPayload.exception_message}`,
+          client,
+        )
+        return
+      }
+
+      const gifsList: Array<{ filename: string; subfolder: string; type: string }> = []
+      for (const nodeOutput of Object.values(entry.outputs ?? {})) {
+        if (nodeOutput.gifs) gifsList.push(...nodeOutput.gifs)
+      }
+
+      if (gifsList.length > 0) {
+        const videoFile = gifsList[0]
+        await this.handleCompletion(
+          job,
+          { filename: videoFile.filename, subfolder: videoFile.subfolder, type: videoFile.type },
+          client,
+        )
+      }
+    } catch (e) {
+      log.warn('History poll failed (will retry next interval)', {
+        promptId: job.promptId,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
+
   private async handleCompletion(
     job: GenerationJob,
     videoInfo: VideoFileInfo,
     client: { removeCallbacks: (promptId: string) => void }
   ): Promise<void> {
+    if (!this.monitoringJobs.has(job.promptId!)) return
+    this.monitoringJobs.delete(job.promptId!)
+
     const queueRequest = await QueueService.getRequestById(job.id)
     if (queueRequest?.status === 'CANCELLED') {
       log.info('Cancelled job monitoring stopped', { jobId: job.id })
@@ -190,6 +198,9 @@ class ComfyUIJobMonitor {
     errorMessage: string,
     client: { removeCallbacks: (promptId: string) => void }
   ): Promise<void> {
+    if (!this.monitoringJobs.has(job.promptId!)) return
+    this.monitoringJobs.delete(job.promptId!)
+
     await QueueService.updateRequest(job.id, {
       status: QueueStatus.FAILED,
       failedAt: new Date(),
