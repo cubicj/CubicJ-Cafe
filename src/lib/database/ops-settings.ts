@@ -14,8 +14,12 @@ export const OPS_KEYS = [
 
 export type OpsSettingKey = (typeof OPS_KEYS)[number]
 
-const cache = new Map<OpsSettingKey, number>()
-let loaded = false
+type OpsState = { cache: Map<OpsSettingKey, number>; loaded: boolean }
+
+const globalForOps = globalThis as unknown as { __opsSettings?: OpsState }
+
+const state: OpsState =
+  globalForOps.__opsSettings ?? (globalForOps.__opsSettings = { cache: new Map(), loaded: false })
 
 export async function loadOpsSettings(): Promise<void> {
   const rows = await prisma.systemSetting.findMany({ where: { category: 'ops' } })
@@ -30,16 +34,16 @@ export async function loadOpsSettings(): Promise<void> {
     if (!Number.isFinite(parsed)) {
       throw new Error(`Ops setting failed to parse as number: ${key} = "${raw}"`)
     }
-    cache.set(key, parsed)
+    state.cache.set(key, parsed)
   }
-  loaded = true
+  state.loaded = true
 }
 
 export function getOpsSetting(key: OpsSettingKey): number {
-  if (!loaded) {
+  if (!state.loaded) {
     throw new Error('Ops settings not loaded - call loadOpsSettings() at boot')
   }
-  const value = cache.get(key)
+  const value = state.cache.get(key)
   if (value === undefined) {
     throw new Error(`Ops setting missing from cache: ${key}`)
   }
@@ -47,6 +51,6 @@ export function getOpsSetting(key: OpsSettingKey): number {
 }
 
 export function _resetOpsSettingsForTest(): void {
-  cache.clear()
-  loaded = false
+  state.cache.clear()
+  state.loaded = false
 }
