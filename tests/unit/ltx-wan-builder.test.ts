@@ -17,6 +17,8 @@ import { buildLtxWanWorkflow } from '@/lib/comfyui/workflows/ltx-wan/builder'
 import { getLtxWanSettings } from '@/lib/database/system-settings'
 import { LTX_WAN } from '@/lib/comfyui/workflows/ltx-wan/nodes'
 import type { LtxWanGenerationParams } from '@/lib/comfyui/workflows/types'
+import type { ComfyUIWorkflow } from '@/types'
+import { assertNoPlaceholders } from '../helpers/workflow-assertions'
 
 const mockSettings = vi.mocked(getLtxWanSettings)
 
@@ -115,6 +117,11 @@ const DEFAULT_PARAMS: LtxWanGenerationParams = {
   inputImage: 'fake-test-image.png',
   videoDuration: 5,
 }
+
+let lastBuilt: ComfyUIWorkflow | null = null
+
+beforeEach(() => { lastBuilt = null })
+afterEach(() => { if (lastBuilt) assertNoPlaceholders(lastBuilt) })
 
 describe('buildLtxWanWorkflow', () => {
   beforeEach(() => {
