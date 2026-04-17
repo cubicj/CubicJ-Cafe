@@ -17,11 +17,12 @@ export async function buildLtxWorkflow(params: LtxGenerationParams): Promise<Com
   configureGeneration(workflow, params, settings)
   configureScheduler(workflow, settings)
   configureNag(workflow, settings)
-  applyLtxLoras(workflow, settings)
 
   if (params.referenceAudio) {
     handleReferenceAudio(workflow, params.referenceAudio, settings)
   }
+
+  applyLtxLoras(workflow, settings)
 
   if (params.endImage) {
     handleEndImage(workflow, params.endImage, settings)
@@ -97,7 +98,10 @@ function applyLtxLoras(workflow: ComfyUIWorkflow, settings: LtxSettings) {
   node.inputs['lora_1'] = settings.distilledLoraEnabled
     ? { on: true, lora: settings.distilledLoraName, strength: settings.distilledLoraStrength }
     : { on: false, lora: '', strength: 0 }
-  node.inputs['lora_2'] = { on: false, lora: '', strength: 0 }
+  const slot2 = node.inputs['lora_2'] as { on?: boolean } | undefined
+  if (!slot2?.on) {
+    node.inputs['lora_2'] = { on: false, lora: '', strength: 0 }
+  }
   node.inputs['lora_3'] = { on: false, lora: '', strength: 0 }
   node.inputs['lora_4'] = { on: false, lora: '', strength: 0 }
 }
@@ -201,6 +205,7 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxSetting
       'resize_type.scale': settings.rtxScale,
       quality: settings.rtxQuality,
     })
+    setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.RTX_SUPER_RES, 0] })
     return
   }
   delete workflow[LTX.RTX_SUPER_RES]
