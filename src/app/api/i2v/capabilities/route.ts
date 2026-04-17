@@ -9,12 +9,21 @@ export const GET = createRouteHandler(
     const rows = await prisma.systemSetting.findMany({
       where: {
         key: {
-          in: ['ltx-wan.duration_options'],
+          in: [
+            'wan.lora_enabled',
+            'ltx.lora_enabled',
+            'wan.duration_options',
+            'ltx.duration_options',
+            'ltx-wan.duration_options',
+          ],
         },
       },
     })
 
     const settingsMap = new Map(rows.map(r => [r.key, r.value]))
+
+    const parseCsv = (v: string | undefined): number[] | null =>
+      v ? v.split(',').map(n => parseInt(n.trim(), 10)).filter(n => Number.isFinite(n)) : null
 
     const loraEnabledMap: Record<VideoModel, boolean> = {
       wan: settingsMap.get('wan.lora_enabled') === 'true',
@@ -30,11 +39,10 @@ export const GET = createRouteHandler(
       }
     }
 
-    const ltxWanDuration = settingsMap.get('ltx-wan.duration_options')
     const durationOptions: Record<VideoModel, number[]> = {
-      wan: MODEL_REGISTRY.wan.durationOptions,
-      ltx: MODEL_REGISTRY.ltx.durationOptions,
-      'ltx-wan': ltxWanDuration ? ltxWanDuration.split(',').map(Number) : MODEL_REGISTRY['ltx-wan'].durationOptions,
+      wan: parseCsv(settingsMap.get('wan.duration_options')) ?? MODEL_REGISTRY.wan.durationOptions,
+      ltx: parseCsv(settingsMap.get('ltx.duration_options')) ?? MODEL_REGISTRY.ltx.durationOptions,
+      'ltx-wan': parseCsv(settingsMap.get('ltx-wan.duration_options')) ?? MODEL_REGISTRY['ltx-wan'].durationOptions,
     }
 
     return { capabilities, durationOptions }
