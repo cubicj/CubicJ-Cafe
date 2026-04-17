@@ -1,342 +1,491 @@
 import type { ComfyUIWorkflow } from '@/types'
 
 export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
-  "1": {
-    "inputs": { "vae_name": "PLACEHOLDER", "device": "main_device", "weight_dtype": "bf16" },
-    "class_type": "VAELoaderKJ",
-    "_meta": { "title": "LTX_01" }
-  },
-  "2": {
-    "inputs": { "vae_name": "PLACEHOLDER", "device": "main_device", "weight_dtype": "bf16" },
-    "class_type": "VAELoaderKJ",
-    "_meta": { "title": "LTX_02" }
-  },
-  "5": {
-    "inputs": { "text": "PLACEHOLDER", "clip": ["390", 0] },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "LTX_05" }
-  },
-  "6": {
-    "inputs": { "text": "PLACEHOLDER", "clip": ["390", 0] },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "LTX_06" }
-  },
-  "13": {
-    "inputs": { "frames_number": ["101", 0], "frame_rate": ["416", 2], "batch_size": 1, "audio_vae": ["1", 0] },
-    "class_type": "LTXVEmptyLatentAudio",
-    "_meta": { "title": "LTX_13" }
-  },
-  "15": {
-    "inputs": { "video_latent": ["265", 0], "audio_latent": ["13", 0] },
-    "class_type": "LTXVConcatAVLatent",
-    "_meta": { "title": "LTX_15" }
-  },
-  "16": {
-    "inputs": { "noise_seed": 0 },
-    "class_type": "RandomNoise",
-    "_meta": { "title": "LTX_16" }
-  },
-  "17": {
-    "inputs": {
-      "noise": ["16", 0],
-      "guider": ["355", 0],
-      "sampler": ["463", 0],
-      "sigmas": ["403", 0],
-      "latent_image": ["15", 0]
+  '1': {
+    inputs: {
+      vae_name: 'PLACEHOLDER',
+      device: 'main_device',
+      weight_dtype: 'bf16',
     },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "LTX_17" }
-  },
-  "23": {
-    "inputs": { "frame_rate": ["416", 1], "positive": ["5", 0], "negative": ["6", 0] },
-    "class_type": "LTXVConditioning",
-    "_meta": { "title": "LTX_23" }
-  },
-  "72": {
-    "inputs": {
-      "nag_scale": 0, "nag_alpha": 0, "nag_tau": 0, "inplace": true,
-      "model": ["448", 0],
-      "nag_cond_video": ["23", 1],
-      "nag_cond_audio": ["23", 1]
+    class_type: 'VAELoaderKJ',
+    _meta: {
+      title: 'VAELoader KJ',
     },
-    "class_type": "LTX2_NAG",
-    "_meta": { "title": "LTX_72" }
   },
-  "86": {
-    "inputs": { "megapixels": 0, "multiple_of": 0, "upscale_method": "PLACEHOLDER", "image": ["87", 0] },
-    "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "LTX_86" }
-  },
-  "87": {
-    "inputs": { "image": "PLACEHOLDER" },
-    "class_type": "LoadImage",
-    "_meta": { "title": "LTX_87" }
-  },
-  "90": {
-    "inputs": { "width": ["86", 1], "height": ["86", 2], "length": ["101", 0], "batch_size": 1 },
-    "class_type": "EmptyLTXVLatentVideo",
-    "_meta": { "title": "LTX_90" }
-  },
-  "101": {
-    "inputs": { "expression": "a * b + 1", "a": ["416", 2], "b": ["103", 0] },
-    "class_type": "MathExpression|pysssss",
-    "_meta": { "title": "LTX_101" }
-  },
-  "103": {
-    "inputs": { "value": 0 },
-    "class_type": "PrimitiveInt",
-    "_meta": { "title": "LTX_103" }
-  },
-  "265": {
-    "inputs": {
-      "num_images": "2",
-      "num_images.strength_1": 1, "num_images.strength_2": 1,
-      "num_images.index_1": 0, "num_images.index_2": ["261", 0],
-      "vae": ["2", 0], "latent": ["90", 0],
-      "num_images.image_1": ["466", 0], "num_images.image_2": ["469", 0]
+  '2': {
+    inputs: {
+      vae_name: 'PLACEHOLDER',
+      device: 'main_device',
+      weight_dtype: 'bf16',
     },
-    "class_type": "LTXVImgToVideoInplaceKJ",
-    "_meta": { "title": "LTX_265" }
-  },
-  "297": {
-    "inputs": { "unet_name": "PLACEHOLDER", "weight_dtype": "PLACEHOLDER" },
-    "class_type": "UNETLoader",
-    "_meta": { "title": "LTX_297" }
-  },
-  "298": {
-    "inputs": { "triton_kernels": true, "model": ["297", 0] },
-    "class_type": "LTX2MemoryEfficientSageAttentionPatch",
-    "_meta": { "title": "LTX_298" }
-  },
-  "321": {
-    "inputs": { "samples": ["384", 1], "audio_vae": ["1", 0] },
-    "class_type": "LTXVAudioVAEDecode",
-    "_meta": { "title": "LTX_321" }
-  },
-  "322": {
-    "inputs": { "resize_type": "PLACEHOLDER", "resize_type.scale": 0, "quality": "PLACEHOLDER", "images": ["444", 0] },
-    "class_type": "RTXVideoSuperResolution",
-    "_meta": { "title": "LTX_322" }
-  },
-  "325": {
-    "inputs": { "purge_cache": true, "purge_models": true, "anything": ["345", 0] },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_325" }
-  },
-  "333": {
-    "inputs": { "samples": ["384", 0], "vae": ["2", 0] },
-    "class_type": "VAEDecode",
-    "_meta": { "title": "LTX_333" }
-  },
-  "339": {
-    "inputs": { "value": 0 },
-    "class_type": "PrimitiveInt",
-    "_meta": { "title": "LTX_339" }
-  },
-  "340": {
-    "inputs": { "expression": "a * b", "a": ["416", 2], "b": ["339", 0] },
-    "class_type": "MathExpression|pysssss",
-    "_meta": { "title": "LTX_340" }
-  },
-  "345": {
-    "inputs": {
-      "frame_rate": ["340", 1], "loop_count": 0,
-      "filename_prefix": "PLACEHOLDER", "format": "PLACEHOLDER",
-      "pix_fmt": "PLACEHOLDER", "crf": 0,
-      "save_metadata": false, "trim_to_audio": false,
-      "pingpong": false, "save_output": false,
-      "images": ["322", 0], "audio": ["321", 0]
+    class_type: 'VAELoaderKJ',
+    _meta: {
+      title: 'VAELoader KJ',
     },
-    "class_type": "VHS_VideoCombine",
-    "_meta": { "title": "LTX_345" }
   },
-  "355": {
-    "inputs": { "cfg": 1, "model": ["457", 0], "positive": ["23", 0], "negative": ["23", 1] },
-    "class_type": "CFGGuider",
-    "_meta": { "title": "LTX_355" }
-  },
-  "373": {
-    "inputs": { "purge_cache": true, "purge_models": true, "anything": ["17", 0] },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_373" }
-  },
-  "384": {
-    "inputs": { "av_latent": ["409", 0] },
-    "class_type": "LTXVSeparateAVLatent",
-    "_meta": { "title": "LTX_384" }
-  },
-  "390": {
-    "inputs": { "clip_name1": "PLACEHOLDER", "clip_name2": "PLACEHOLDER", "type": "ltxv", "device": "default" },
-    "class_type": "DualCLIPLoader",
-    "_meta": { "title": "LTX_390" }
-  },
-  "403": {
-    "inputs": {
-      "steps": 0, "max_shift": 0, "base_shift": 0,
-      "stretch": true, "terminal": 0, "latent": ["15", 0]
+  '5': {
+    inputs: {
+      text: 'PLACEHOLDER',
+      clip: ['390', 0],
     },
-    "class_type": "LTXVScheduler",
-    "_meta": { "title": "LTX_403" }
-  },
-  "406": {
-    "inputs": {
-      "noise": ["16", 0], "guider": ["407", 0],
-      "sampler": ["463", 0], "sigmas": ["431", 0],
-      "latent_image": ["419", 0]
+    class_type: 'CLIPTextEncode',
+    _meta: {
+      title: 'CLIP Text Encode (Prompt)',
     },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "LTX_406" }
   },
-  "407": {
-    "inputs": { "cfg": 1, "model": ["458", 0], "positive": ["23", 0], "negative": ["23", 1] },
-    "class_type": "CFGGuider",
-    "_meta": { "title": "LTX_407" }
-  },
-  "409": {
-    "inputs": { "purge_cache": true, "purge_models": true, "anything": ["406", 0] },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "LTX_409" }
-  },
-  "416": {
-    "inputs": { "number_type": "integer", "number": 0 },
-    "class_type": "Constant Number",
-    "_meta": { "title": "LTX_416" }
-  },
-  "417": {
-    "inputs": {
-      "num_images": "2",
-      "num_images.strength_1": 1, "num_images.strength_2": 1,
-      "num_images.index_1": 0, "num_images.index_2": ["261", 0],
-      "vae": ["2", 0], "latent": ["422", 0],
-      "num_images.image_1": ["86", 0], "num_images.image_2": ["264", 0]
+  '6': {
+    inputs: {
+      text: 'PLACEHOLDER',
+      clip: ['390', 0],
     },
-    "class_type": "LTXVImgToVideoInplaceKJ",
-    "_meta": { "title": "LTX_417" }
-  },
-  "418": {
-    "inputs": { "av_latent": ["373", 0] },
-    "class_type": "LTXVSeparateAVLatent",
-    "_meta": { "title": "LTX_418" }
-  },
-  "419": {
-    "inputs": { "video_latent": ["417", 0], "audio_latent": ["418", 1] },
-    "class_type": "LTXVConcatAVLatent",
-    "_meta": { "title": "LTX_419" }
-  },
-  "421": {
-    "inputs": { "model_name": "PLACEHOLDER" },
-    "class_type": "LatentUpscaleModelLoader",
-    "_meta": { "title": "LTX_421" }
-  },
-  "422": {
-    "inputs": { "samples": ["418", 0], "upscale_model": ["421", 0], "vae": ["2", 0] },
-    "class_type": "LTXVLatentUpsampler",
-    "_meta": { "title": "LTX_422" }
-  },
-  "431": {
-    "inputs": { "sigmas": "PLACEHOLDER" },
-    "class_type": "ManualSigmas",
-    "_meta": { "title": "LTX_431" }
-  },
-  "437": {
-    "inputs": {
-      "method": "PLACEHOLDER", "strength": 0, "multithread": true,
-      "image_target": ["333", 0], "image_ref": ["87", 0]
+    class_type: 'CLIPTextEncode',
+    _meta: {
+      title: 'CLIP Text Encode (Prompt)',
     },
-    "class_type": "ColorMatchV2",
-    "_meta": { "title": "LTX_437" }
   },
-  "443": {
-    "inputs": { "model": "PLACEHOLDER", "precision": "PLACEHOLDER", "resolution_profile": "PLACEHOLDER" },
-    "class_type": "AutoLoadRifeTensorrtModel",
-    "_meta": { "title": "LTX_443" }
-  },
-  "444": {
-    "inputs": {
-      "clear_cache_after_n_frames": 0, "multiplier": ["339", 0],
-      "keep_model_loaded": false, "frames": ["437", 0], "rife_trt_model": ["443", 0]
+  '13': {
+    inputs: {
+      frames_number: ['101', 0],
+      frame_rate: ['416', 2],
+      batch_size: 1,
+      audio_vae: ['1', 0],
     },
-    "class_type": "AutoRifeTensorrt",
-    "_meta": { "title": "LTX_444" }
-  },
-  "448": {
-    "inputs": {
-      "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
-      "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
-      "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
-      "\u2795 Add Lora": "",
-      "model": ["298", 0]
+    class_type: 'LTXVEmptyLatentAudio',
+    _meta: {
+      title: 'LTXV Empty Latent Audio',
     },
-    "class_type": "Power Lora Loader (rgthree)",
-    "_meta": { "title": "LTX_448" }
   },
-  "449": {
-    "inputs": { "triton_kernels": true, "model": ["450", 0] },
-    "class_type": "LTX2MemoryEfficientSageAttentionPatch",
-    "_meta": { "title": "LTX_449" }
-  },
-  "450": {
-    "inputs": { "unet_name": "PLACEHOLDER", "weight_dtype": "PLACEHOLDER" },
-    "class_type": "UNETLoader",
-    "_meta": { "title": "LTX_450" }
-  },
-  "452": {
-    "inputs": {
-      "PowerLoraLoaderHeaderWidget": { "type": "PowerLoraLoaderHeaderWidget" },
-      "lora_1": { "on": false, "lora": "LTX\\placeholder.safetensors", "strength": 1 },
-      "lora_2": { "on": false, "lora": "PLACEHOLDER", "strength": 0 },
-      "\u2795 Add Lora": "",
-      "model": ["449", 0]
+  '15': {
+    inputs: {
+      video_latent: ['265', 0],
+      audio_latent: ['13', 0],
     },
-    "class_type": "Power Lora Loader (rgthree)",
-    "_meta": { "title": "LTX_452" }
-  },
-  "453": {
-    "inputs": {
-      "nag_scale": 0, "nag_alpha": 0, "nag_tau": 0, "inplace": true,
-      "model": ["452", 0],
-      "nag_cond_video": ["23", 1],
-      "nag_cond_audio": ["23", 1]
+    class_type: 'LTXVConcatAVLatent',
+    _meta: {
+      title: 'LTXVConcatAVLatent',
     },
-    "class_type": "LTX2_NAG",
-    "_meta": { "title": "LTX_453" }
   },
-  "456": {
-    "inputs": {
-      "ckpt_name": "PLACEHOLDER", "clear_cache_after_n_frames": 0,
-      "multiplier": ["339", 0], "frames": ["437", 0]
+  '16': {
+    inputs: {
+      noise_seed: 0,
     },
-    "class_type": "GMFSS Fortuna VFI",
-    "_meta": { "title": "LTX_456" }
+    class_type: 'RandomNoise',
+    _meta: {
+      title: 'RandomNoise',
+    },
   },
-  "457": {
-    "inputs": { "audio_normalization_factors": "PLACEHOLDER", "model": ["72", 0] },
-    "class_type": "LTX2AudioLatentNormalizingSampling",
-    "_meta": { "title": "LTX_457" }
+  '17': {
+    inputs: {
+      noise: ['16', 0],
+      guider: ['482', 0],
+      sampler: ['463', 0],
+      sigmas: ['403', 0],
+      latent_image: ['15', 0],
+    },
+    class_type: 'SamplerCustomAdvanced',
+    _meta: {
+      title: 'SamplerCustomAdvanced',
+    },
   },
-  "458": {
-    "inputs": { "audio_normalization_factors": "PLACEHOLDER", "model": ["453", 0] },
-    "class_type": "LTX2AudioLatentNormalizingSampling",
-    "_meta": { "title": "LTX_458" }
+  '23': {
+    inputs: {
+      frame_rate: ['416', 1],
+      positive: ['5', 0],
+      negative: ['6', 0],
+    },
+    class_type: 'LTXVConditioning',
+    _meta: {
+      title: 'LTXVConditioning',
+    },
   },
-  "459": {
-    "inputs": { "min_dim": 0, "opt_dim": 0, "max_dim": 0 },
-    "class_type": "CustomResolutionConfig",
-    "_meta": { "title": "LTX_459" }
+  '86': {
+    inputs: {
+      megapixels: 0,
+      multiple_of: 0,
+      upscale_method: 'PLACEHOLDER',
+      image: ['87', 0],
+    },
+    class_type: 'ResizeImageToMegapixels',
+    _meta: {
+      title: 'Resize Image (Megapixels + Alignment)',
+    },
   },
-  "463": {
-    "inputs": { "eta": 0, "sampler_name": "PLACEHOLDER", "seed": 0, "bongmath": false },
-    "class_type": "ClownSampler_Beta",
-    "_meta": { "title": "LTX_463" }
+  '87': {
+    inputs: {
+      image: 'PLACEHOLDER',
+    },
+    class_type: 'LoadImage',
+    _meta: {
+      title: 'Start Image',
+    },
   },
-  "466": {
-    "inputs": { "img_compression": 0, "image": ["86", 0] },
-    "class_type": "LTXVPreprocess",
-    "_meta": { "title": "LTX_466" }
+  '90': {
+    inputs: {
+      width: ['86', 1],
+      height: ['86', 2],
+      length: ['101', 0],
+      batch_size: 1,
+    },
+    class_type: 'EmptyLTXVLatentVideo',
+    _meta: {
+      title: 'EmptyLTXVLatentVideo',
+    },
   },
-  "469": {
-    "inputs": { "img_compression": 0, "image": ["264", 0] },
-    "class_type": "LTXVPreprocess",
-    "_meta": { "title": "LTX_469" }
-  }
+  '101': {
+    inputs: {
+      expression: 'a * b + 1',
+      a: ['416', 2],
+      b: ['103', 0],
+    },
+    class_type: 'MathExpression|pysssss',
+    _meta: {
+      title: 'Generate Frame',
+    },
+  },
+  '103': {
+    inputs: {
+      value: 0,
+    },
+    class_type: 'PrimitiveInt',
+    _meta: {
+      title: 'Second',
+    },
+  },
+  '260': {
+    inputs: {
+      image: 'PLACEHOLDER',
+    },
+    class_type: 'LoadImage',
+    _meta: {
+      title: 'End Image',
+    },
+  },
+  '261': {
+    inputs: {
+      expression: 'a - 1',
+      a: ['101', 0],
+    },
+    class_type: 'MathExpression|pysssss',
+    _meta: {
+      title: 'Last Index',
+    },
+  },
+  '264': {
+    inputs: {
+      megapixels: 0,
+      multiple_of: 0,
+      upscale_method: 'PLACEHOLDER',
+      image: ['260', 0],
+    },
+    class_type: 'ResizeImageToMegapixels',
+    _meta: {
+      title: 'Resize Image (Megapixels + Alignment)',
+    },
+  },
+  '265': {
+    inputs: {
+      num_images: '2',
+      'num_images.strength_1': 1,
+      'num_images.strength_2': 1,
+      'num_images.index_1': 0,
+      'num_images.index_2': ['261', 0],
+      vae: ['2', 0],
+      latent: ['90', 0],
+      'num_images.image_1': ['466', 0],
+      'num_images.image_2': ['469', 0],
+    },
+    class_type: 'LTXVImgToVideoInplaceKJ',
+    _meta: {
+      title: 'LTXVImgToVideoInplaceKJ',
+    },
+  },
+  '297': {
+    inputs: {
+      unet_name: 'PLACEHOLDER',
+      weight_dtype: 'default',
+    },
+    class_type: 'UNETLoader',
+    _meta: {
+      title: '1 Pass Model',
+    },
+  },
+  '321': {
+    inputs: {
+      samples: ['384', 1],
+      audio_vae: ['1', 0],
+    },
+    class_type: 'LTXVAudioVAEDecode',
+    _meta: {
+      title: 'LTXV Audio VAE Decode',
+    },
+  },
+  '322': {
+    inputs: {
+      resize_type: 'PLACEHOLDER',
+      'resize_type.scale': 0,
+      quality: 'PLACEHOLDER',
+      images: ['489', 0],
+    },
+    class_type: 'RTXVideoSuperResolution',
+    _meta: {
+      title: 'RTX Video Super Resolution',
+    },
+  },
+  '333': {
+    inputs: {
+      samples: ['384', 0],
+      vae: ['2', 0],
+    },
+    class_type: 'VAEDecode',
+    _meta: {
+      title: 'VAE Decode',
+    },
+  },
+  '339': {
+    inputs: {
+      value: 0,
+    },
+    class_type: 'PrimitiveInt',
+    _meta: {
+      title: 'multiplier',
+    },
+  },
+  '340': {
+    inputs: {
+      expression: 'a * b',
+      a: ['416', 2],
+      b: ['339', 0],
+    },
+    class_type: 'MathExpression|pysssss',
+    _meta: {
+      title: 'Final FPS',
+    },
+  },
+  '345': {
+    inputs: {
+      frame_rate: 0,
+      loop_count: 0,
+      filename_prefix: 'PLACEHOLDER',
+      format: 'PLACEHOLDER',
+      pix_fmt: 'PLACEHOLDER',
+      crf: 0,
+      save_metadata: false,
+      trim_to_audio: false,
+      pingpong: false,
+      save_output: false,
+      images: ['322', 0],
+      audio: ['488', 0],
+    },
+    class_type: 'VHS_VideoCombine',
+    _meta: {
+      title: 'Video Combine 🎥🅥🅗🅢',
+    },
+  },
+  '384': {
+    inputs: {
+      av_latent: ['486', 0],
+    },
+    class_type: 'LTXVSeparateAVLatent',
+    _meta: {
+      title: 'LTXVSeparateAVLatent',
+    },
+  },
+  '390': {
+    inputs: {
+      clip_name1: 'PLACEHOLDER',
+      clip_name2: 'PLACEHOLDER',
+      type: 'ltxv',
+      device: 'default',
+    },
+    class_type: 'DualCLIPLoader',
+    _meta: {
+      title: 'DualCLIPLoader',
+    },
+  },
+  '403': {
+    inputs: {
+      steps: 0,
+      max_shift: 0,
+      base_shift: 0,
+      stretch: true,
+      terminal: 0,
+      latent: ['15', 0],
+    },
+    class_type: 'LTXVScheduler',
+    _meta: {
+      title: 'LTXVScheduler',
+    },
+  },
+  '416': {
+    inputs: {
+      number_type: 'integer',
+      number: 0,
+    },
+    class_type: 'Constant Number',
+    _meta: {
+      title: 'FPS',
+    },
+  },
+  '448': {
+    inputs: {
+      PowerLoraLoaderHeaderWidget: {
+        type: 'PowerLoraLoaderHeaderWidget',
+      },
+      lora_1: {
+        on: false,
+        lora: '',
+        strength: 0,
+      },
+      lora_2: {
+        on: false,
+        lora: '',
+        strength: 0,
+      },
+      lora_3: {
+        on: false,
+        lora: '',
+        strength: 0,
+      },
+      lora_4: {
+        on: false,
+        lora: '',
+        strength: 0,
+      },
+      '➕ Add Lora': '',
+      model: ['481', 0],
+    },
+    class_type: 'Power Lora Loader (rgthree)',
+    _meta: {
+      title: '1 Pass LoRA',
+    },
+  },
+  '463': {
+    inputs: {
+      eta: 0,
+      sampler_name: 'PLACEHOLDER',
+      seed: 0,
+      bongmath: true,
+    },
+    class_type: 'ClownSampler_Beta',
+    _meta: {
+      title: 'ClownSampler',
+    },
+  },
+  '466': {
+    inputs: {
+      img_compression: 0,
+      image: ['86', 0],
+    },
+    class_type: 'LTXVPreprocess',
+    _meta: {
+      title: 'LTXVPreprocess',
+    },
+  },
+  '469': {
+    inputs: {
+      img_compression: 0,
+      image: ['264', 0],
+    },
+    class_type: 'LTXVPreprocess',
+    _meta: {
+      title: 'LTXVPreprocess',
+    },
+  },
+  '476': {
+    inputs: {
+      nag_scale: 0,
+      nag_alpha: 0,
+      nag_tau: 0,
+      inplace: true,
+      model: ['448', 0],
+      nag_cond_video: ['348', 2],
+      nag_cond_audio: ['348', 2],
+    },
+    class_type: 'LTX2_NAG',
+    _meta: {
+      title: 'LTX2 NAG',
+    },
+  },
+  '481': {
+    inputs: {
+      triton_kernels: true,
+      model: ['297', 0],
+    },
+    class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    _meta: {
+      title: 'LTX2 Mem Eff Sage Attention Patch',
+    },
+  },
+  '482': {
+    inputs: {
+      cfg: 1,
+      model: ['476', 0],
+      positive: ['490', 0],
+      negative: ['23', 1],
+    },
+    class_type: 'CFGGuider',
+    _meta: {
+      title: 'CFGGuider',
+    },
+  },
+  '486': {
+    inputs: {
+      verbose: true,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['17', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '487': {
+    inputs: {
+      verbose: true,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['345', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '488': {
+    inputs: {
+      verbose: true,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['321', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '489': {
+    inputs: {
+      verbose: true,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['333', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '490': {
+    inputs: {
+      verbose: true,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['23', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
 }
