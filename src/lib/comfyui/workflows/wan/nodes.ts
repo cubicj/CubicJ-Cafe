@@ -36,6 +36,4 @@ export const WAN = {
   SPLIT_STEPS: '136',
   SIGMAS_HIGH: '140',
   SIGMAS_LOW: '141',
-  CLIP_VISION_ENCODE: '143',
-  CLIP_VISION_LOADER: '144',
 } as const;

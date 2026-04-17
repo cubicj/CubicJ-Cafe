@@ -60,9 +60,6 @@ export const LTX_WAN = {
   WAN_BLOCK_SWAP: '222',
   WAN_MANUAL_SIGMAS: '228',
   WAN_I2V_ENCODE: '230',
-  CLIP_VISION_ENCODE: '231',
-  CLIP_VISION_IMAGE_FROM_BATCH: '232',
-  CLIP_VISION_LOADER: '233',
 
   // === Force Full Unload (memory release checkpoints) ===
   FORCE_UNLOAD_CONDITIONING: '197',

@@ -7,7 +7,6 @@ export const WAN_SEED: Array<{ key: string; value: string; type: SeedType }> = [
   { key: 'wan.wanvideo_model_low', value: 'test-wan-low.safetensors', type: 'string' },
   { key: 'wan.t5_encoder', value: 'test-t5.safetensors', type: 'string' },
   { key: 'wan.wanvideo_vae', value: 'test-wan-vae.safetensors', type: 'string' },
-  { key: 'wan.clip_vision_model', value: 'test-clip-vision.safetensors', type: 'string' },
   { key: 'wan.base_precision', value: 'bf16', type: 'string' },
   { key: 'wan.quantization', value: 'fp8_e4m3fn_fast', type: 'string' },
   { key: 'wan.attention_mode', value: 'sageattn', type: 'string' },

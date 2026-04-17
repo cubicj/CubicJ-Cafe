@@ -52,7 +52,6 @@ function configureModels(workflow: ComfyUIWorkflow, settings: WanSettings) {
   setNode(workflow, WAN.MODEL_LOADER_LOW, { ...commonLoader, model: settings.wanvideoModelLow })
   setNode(workflow, WAN.VAE_LOADER, { model_name: settings.wanvideoVae })
   setNode(workflow, WAN.T5_LOADER, { model_name: settings.t5Encoder })
-  setNode(workflow, WAN.CLIP_VISION_LOADER, { model_name: settings.clipVisionModel })
 }
 
 function configureBlockSwap(workflow: ComfyUIWorkflow, settings: WanSettings) {

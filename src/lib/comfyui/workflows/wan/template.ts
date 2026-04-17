@@ -30,7 +30,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "tiled_vae": false,
       "augment_empty_frames": 0,
       "vae": ["93", 0],
-      "clip_embeds": ["143", 0],
       "start_image": ["119", 0],
       "end_image": ["127", 0]
     },
@@ -398,29 +397,5 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "ManualSigmas",
     "_meta": { "title": "ManualSigmas" }
-  },
-  "143": {
-    "inputs": {
-      "strength_1": 1,
-      "strength_2": 1,
-      "crop": "center",
-      "combine_embeds": "average",
-      "force_offload": true,
-      "tiles": 0,
-      "ratio": 0.5,
-      "clip_vision": ["144", 0],
-      "image_1": ["119", 0]
-    },
-    "class_type": "WanVideoClipVisionEncode",
-    "_meta": { "title": "WanVideo ClipVision Encode" }
-  },
-  "144": {
-    "inputs": {
-      "model_name": "PLACEHOLDER",
-      "precision": "fp32",
-      "load_device": "offload_device"
-    },
-    "class_type": "LoadWanVideoClipTextEncoder",
-    "_meta": { "title": "WanVideo CLIP Text Encoder Loader" }
   }
 } as const

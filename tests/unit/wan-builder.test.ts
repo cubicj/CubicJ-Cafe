@@ -82,10 +82,11 @@ describe('buildWanWorkflow', () => {
     expect(wf[WAN.VIDEO_COMBINE]!.inputs!.images).toEqual([WAN.VRAM_POST_DECODE, 0])
   })
 
-  it('writes clip vision model to loader and wires clip_embeds on encode', async () => {
+  it('omits clip vision nodes and clip_embeds wiring on encode', async () => {
     const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 5 })
-    expect(wf[WAN.CLIP_VISION_LOADER]!.inputs!.model_name).toBe('test-clip-vision.safetensors')
-    expect(wf[WAN.IMG_TO_VIDEO_ENCODE]!.inputs!.clip_embeds).toEqual([WAN.CLIP_VISION_ENCODE, 0])
+    expect(wf['143']).toBeUndefined()
+    expect(wf['144']).toBeUndefined()
+    expect(wf[WAN.IMG_TO_VIDEO_ENCODE]!.inputs!.clip_embeds).toBeUndefined()
   })
 
   it('writes duration to SECONDS node', async () => {

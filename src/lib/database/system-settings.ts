@@ -65,7 +65,6 @@ export interface WanSettings {
   wanvideoModelLow: string;
   t5Encoder: string;
   wanvideoVae: string;
-  clipVisionModel: string;
   basePrecision: string;
   quantization: string;
   attentionMode: string;
@@ -150,7 +149,6 @@ export const WAN_KEYS = {
   wanvideoModelLow: 'wan.wanvideo_model_low',
   t5Encoder: 'wan.t5_encoder',
   wanvideoVae: 'wan.wanvideo_vae',
-  clipVisionModel: 'wan.clip_vision_model',
   basePrecision: 'wan.base_precision',
   quantization: 'wan.quantization',
   attentionMode: 'wan.attention_mode',
@@ -256,7 +254,6 @@ export async function getWanSettings(): Promise<WanSettings> {
     wanvideoModelLow: map.get(k.wanvideoModelLow)!,
     t5Encoder: map.get(k.t5Encoder)!,
     wanvideoVae: map.get(k.wanvideoVae)!,
-    clipVisionModel: map.get(k.clipVisionModel)!,
     basePrecision: map.get(k.basePrecision)!,
     quantization: map.get(k.quantization)!,
     attentionMode: map.get(k.attentionMode)!,
@@ -392,7 +389,6 @@ export interface LtxWanSettings {
   unetWan: string
   clipWan: string
   vaeWan: string
-  clipVisionModel: string
   shift: number
 
   cfgWan: number
@@ -478,7 +474,6 @@ export const LTX_WAN_KEYS = {
   unetWan: 'ltx-wan.unet_wan',
   clipWan: 'ltx-wan.clip_wan',
   vaeWan: 'ltx-wan.vae_wan',
-  clipVisionModel: 'ltx-wan.clip_vision_model',
   shift: 'ltx-wan.shift',
 
   cfgWan: 'ltx-wan.cfg_wan',
@@ -572,7 +567,6 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     unetWan: map.get(k.unetWan)!,
     clipWan: map.get(k.clipWan)!,
     vaeWan: map.get(k.vaeWan)!,
-    clipVisionModel: map.get(k.clipVisionModel)!,
     shift: parseFloat(map.get(k.shift)!),
 
     cfgWan: parseFloat(map.get(k.cfgWan)!),
