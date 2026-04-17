@@ -298,11 +298,8 @@ export class ComfyUIClient {
 }
 
 let _comfyUIClient: ComfyUIClient | null = null
-export const comfyUIClient = new Proxy({} as ComfyUIClient, {
-  get(_target, prop) {
-    if (!_comfyUIClient) {
-      _comfyUIClient = new ComfyUIClient()
-    }
-    return Reflect.get(_comfyUIClient, prop, _comfyUIClient)
-  },
-})
+
+export function getComfyUIClient(): ComfyUIClient {
+  if (!_comfyUIClient) _comfyUIClient = new ComfyUIClient()
+  return _comfyUIClient
+}

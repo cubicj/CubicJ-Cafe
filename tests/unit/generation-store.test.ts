@@ -1,12 +1,10 @@
 import { GenerationStore } from '@/lib/generation-store'
 import { GenerationJob } from '@/types'
-import { loadOpsSettings } from '@/lib/database/ops-settings'
-import { cleanTables } from '../helpers/db'
 
-beforeAll(async () => {
-  await cleanTables()
-  await loadOpsSettings()
-})
+vi.mock('@/lib/database/ops-settings', () => ({
+  getOpsSetting: (k: string) =>
+    k === 'ops.generation_sweep_interval_ms' ? 300000 : 1800000,
+}))
 
 beforeEach(() => {
   vi.useFakeTimers()
