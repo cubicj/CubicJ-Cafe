@@ -1,381 +1,203 @@
 export const WAN_WORKFLOW_TEMPLATE = {
-  "1": {
+  "82": {
     "inputs": {
-      "unet_name": "PLACEHOLDER",
-      "weight_dtype": "default"
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["89", 0]
     },
-    "class_type": "UNETLoader",
-    "_meta": { "title": "WAN_1" }
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "Force Full Unload (VRAM+Pinned)" }
   },
-  "2": {
+  "83": {
     "inputs": {
-      "unet_name": "PLACEHOLDER",
-      "weight_dtype": "default"
+      "model": ["92", 0],
+      "block_swap_args": ["91", 0]
     },
-    "class_type": "UNETLoader",
-    "_meta": { "title": "WAN_2" }
+    "class_type": "WanVideoSetBlockSwap",
+    "_meta": { "title": "WanVideo Set BlockSwap" }
   },
-  "3": {
+  "84": {
     "inputs": {
-      "noise_seed": 0
+      "width": ["119", 1],
+      "height": ["119", 2],
+      "num_frames": ["131", 0],
+      "noise_aug_strength": 0,
+      "start_latent_strength": 1,
+      "end_latent_strength": 1,
+      "force_offload": true,
+      "fun_or_fl2v_model": false,
+      "tiled_vae": false,
+      "augment_empty_frames": 0,
+      "vae": ["93", 0],
+      "clip_embeds": ["143", 0],
+      "start_image": ["119", 0],
+      "end_image": ["127", 0]
     },
-    "class_type": "RandomNoise",
-    "_meta": { "title": "WAN_3" }
+    "class_type": "WanVideoImageToVideoEncode",
+    "_meta": { "title": "WanVideo ImageToVideo Encode" }
   },
-  "4": {
+  "85": {
     "inputs": {
-      "model": ["20", 0],
-      "conditioning": ["31", 0]
+      "prompt": ["102", 0],
+      "force_offload": true,
+      "use_disk_cache": false,
+      "device": "gpu",
+      "t5": ["94", 0]
     },
-    "class_type": "BasicGuider",
-    "_meta": { "title": "WAN_4" }
+    "class_type": "WanVideoTextEncodeSingle",
+    "_meta": { "title": "WanVideo TextEncodeSingle" }
   },
-  "5": {
+  "86": {
     "inputs": {
-      "image": "PLACEHOLDER"
+      "context_schedule": "uniform_standard",
+      "context_frames": 0,
+      "context_stride": 0,
+      "context_overlap": 0,
+      "freenoise": true,
+      "verbose": true,
+      "fuse_method": "PLACEHOLDER"
     },
-    "class_type": "LoadImage",
-    "_meta": { "title": "WAN_5" }
+    "class_type": "WanVideoContextOptions",
+    "_meta": { "title": "WanVideo Context Options" }
   },
-  "6": {
-    "inputs": {
-      "sage_attention": "auto",
-      "allow_compile": false,
-      "model": ["32", 0]
-    },
-    "class_type": "PathchSageAttentionKJ",
-    "_meta": { "title": "WAN_6" }
-  },
-  "10": {
-    "inputs": {
-      "text": ""
-    },
-    "class_type": "Text Multiline",
-    "_meta": { "title": "WAN_10" }
-  },
-  "11": {
-    "inputs": {
-      "image": "PLACEHOLDER"
-    },
-    "class_type": "LoadImage",
-    "_meta": { "title": "WAN_11" }
-  },
-  "12": {
-    "inputs": {
-      "sage_attention": "auto",
-      "allow_compile": false,
-      "model": ["33", 0]
-    },
-    "class_type": "PathchSageAttentionKJ",
-    "_meta": { "title": "WAN_12" }
-  },
-  "13": {
-    "inputs": {
-      "clip_name": "PLACEHOLDER",
-      "type": "wan",
-      "device": "default"
-    },
-    "class_type": "CLIPLoader",
-    "_meta": { "title": "WAN_13" }
-  },
-  "14": {
-    "inputs": {
-      "sampler_name": "PLACEHOLDER"
-    },
-    "class_type": "KSamplerSelect",
-    "_meta": { "title": "WAN_14" }
-  },
-  "15": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["16", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "WAN_15" }
-  },
-  "16": {
-    "inputs": {
-      "noise": ["3", 0],
-      "guider": ["4", 0],
-      "sampler": ["14", 0],
-      "sigmas": ["70", 5],
-      "latent_image": ["31", 2]
-    },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "WAN_16" }
-  },
-  "17": {
-    "inputs": {
-      "model": ["19", 0],
-      "conditioning": ["30", 0]
-    },
-    "class_type": "BasicGuider",
-    "_meta": { "title": "WAN_17" }
-  },
-  "18": {
-    "inputs": {
-      "megapixels": 0,
-      "multiple_of": 0,
-      "upscale_method": "PLACEHOLDER",
-      "image": ["11", 0]
-    },
-    "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "WAN_18" }
-  },
-  "19": {
+  "88": {
     "inputs": {
       "nag_scale": 0,
-      "nag_alpha": 0,
       "nag_tau": 0,
-      "input_type": "default",
-      "model": ["66", 0],
-      "conditioning": ["28", 0]
-    },
-    "class_type": "WanVideoNAG",
-    "_meta": { "title": "WAN_19" }
-  },
-  "20": {
-    "inputs": {
-      "nag_scale": 0,
       "nag_alpha": 0,
-      "nag_tau": 0,
-      "input_type": "default",
-      "model": ["65", 0],
-      "conditioning": ["24", 0]
+      "inplace": true,
+      "original_text_embeds": ["85", 0],
+      "nag_text_embeds": ["90", 0]
     },
-    "class_type": "WanVideoNAG",
-    "_meta": { "title": "WAN_20" }
+    "class_type": "WanVideoApplyNAG",
+    "_meta": { "title": "WanVideo Apply NAG" }
   },
-  "23": {
+  "89": {
     "inputs": {
-      "text": ["10", 0],
-      "clip": ["65", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "WAN_23" }
-  },
-  "24": {
-    "inputs": {
-      "text": ["41", 0],
-      "clip": ["65", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "WAN_24" }
-  },
-  "25": {
-    "inputs": {
-      "megapixels": 0,
-      "multiple_of": 0,
-      "upscale_method": "PLACEHOLDER",
-      "image": ["5", 0]
-    },
-    "class_type": "ResizeImageToMegapixels",
-    "_meta": { "title": "WAN_25" }
-  },
-  "26": {
-    "inputs": {
-      "vae_name": "PLACEHOLDER"
-    },
-    "class_type": "VAELoader",
-    "_meta": { "title": "WAN_26" }
-  },
-  "27": {
-    "inputs": {
-      "text": ["10", 0],
-      "clip": ["66", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "WAN_27" }
-  },
-  "28": {
-    "inputs": {
-      "text": ["41", 0],
-      "clip": ["66", 1]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": { "title": "WAN_28" }
-  },
-  "30": {
-    "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
-      "length": 0,
-      "batch_size": 1,
-      "positive": ["27", 0],
-      "negative": ["28", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0],
-      "end_image": ["18", 0]
-    },
-    "class_type": "WanFirstLastFrameToVideo",
-    "_meta": { "title": "WAN_30" }
-  },
-  "31": {
-    "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
-      "length": 0,
-      "batch_size": 1,
-      "positive": ["23", 0],
-      "negative": ["24", 0],
-      "vae": ["26", 0],
-      "start_image": ["25", 0],
-      "end_image": ["18", 0]
-    },
-    "class_type": "WanFirstLastFrameToVideo",
-    "_meta": { "title": "WAN_31" }
-  },
-  "32": {
-    "inputs": {
+      "steps": 0,
+      "cfg": 1,
       "shift": 0,
-      "model": ["1", 0]
+      "seed": 0,
+      "force_offload": true,
+      "scheduler": "PLACEHOLDER",
+      "riflex_freq_index": 0,
+      "denoise_strength": 1,
+      "batched_cfg": false,
+      "rope_function": "comfy",
+      "start_step": 0,
+      "end_step": 0,
+      "add_noise_to_samples": false,
+      "model": ["83", 0],
+      "image_embeds": ["84", 0],
+      "text_embeds": ["88", 0],
+      "samples": ["123", 0],
+      "context_options": ["86", 0],
+      "sigmas": ["141", 0]
     },
-    "class_type": "ModelSamplingSD3",
-    "_meta": { "title": "WAN_32" }
+    "class_type": "WanVideoSampler",
+    "_meta": { "title": "WanVideo Sampler" }
   },
-  "33": {
+  "90": {
     "inputs": {
-      "shift": 0,
-      "model": ["2", 0]
+      "prompt": ["95", 0],
+      "force_offload": true,
+      "use_disk_cache": true,
+      "device": "gpu",
+      "t5": ["94", 0]
     },
-    "class_type": "ModelSamplingSD3",
-    "_meta": { "title": "WAN_33" }
+    "class_type": "WanVideoTextEncodeSingle",
+    "_meta": { "title": "WanVideo TextEncodeSingle" }
   },
-  "36": {
+  "91": {
     "inputs": {
-      "noise": ["40", 0],
-      "guider": ["17", 0],
-      "sampler": ["14", 0],
-      "sigmas": ["70", 6],
-      "latent_image": ["15", 0]
+      "blocks_to_swap": 0,
+      "offload_img_emb": false,
+      "offload_txt_emb": false,
+      "use_non_blocking": true,
+      "vace_blocks_to_swap": 0,
+      "prefetch_blocks": 0,
+      "block_swap_debug": true
     },
-    "class_type": "SamplerCustomAdvanced",
-    "_meta": { "title": "WAN_36" }
+    "class_type": "WanVideoBlockSwap",
+    "_meta": { "title": "WanVideo Block Swap" }
   },
-  "38": {
+  "92": {
     "inputs": {
-      "samples": ["39", 0],
-      "vae": ["26", 0]
+      "model": "PLACEHOLDER",
+      "base_precision": "PLACEHOLDER",
+      "quantization": "PLACEHOLDER",
+      "load_device": "offload_device",
+      "attention_mode": "PLACEHOLDER",
+      "rms_norm_function": "default"
     },
-    "class_type": "VAEDecode",
-    "_meta": { "title": "WAN_38" }
+    "class_type": "WanVideoModelLoader",
+    "_meta": { "title": "WanVideo Model Loader" }
   },
-  "39": {
+  "93": {
     "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["36", 0]
+      "model_name": "PLACEHOLDER",
+      "precision": "bf16",
+      "use_cpu_cache": false,
+      "verbose": true
     },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "WAN_39" }
+    "class_type": "WanVideoVAELoader",
+    "_meta": { "title": "WanVideo VAE Loader" }
   },
-  "40": {
-    "inputs": {},
-    "class_type": "DisableNoise",
-    "_meta": { "title": "WAN_40" }
-  },
-  "41": {
+  "94": {
     "inputs": {
-      "text": ""
+      "model_name": "PLACEHOLDER",
+      "precision": "bf16",
+      "load_device": "offload_device",
+      "quantization": "disabled"
+    },
+    "class_type": "LoadWanVideoT5TextEncoder",
+    "_meta": { "title": "WanVideo T5 Text Encoder Loader" }
+  },
+  "95": {
+    "inputs": {
+      "text": "PLACEHOLDER"
     },
     "class_type": "Text Multiline",
-    "_meta": { "title": "WAN_41" }
+    "_meta": { "title": "Negative WAN" }
   },
-  "42": {
+  "98": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["103", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "Force Full Unload (VRAM+Pinned)" }
+  },
+  "100": {
     "inputs": {
       "resize_type": "PLACEHOLDER",
       "resize_type.scale": 0,
       "quality": "PLACEHOLDER",
-      "images": ["45", 0]
+      "images": ["105", 0]
     },
     "class_type": "RTXVideoSuperResolution",
-    "_meta": { "title": "WAN_42" }
+    "_meta": { "title": "RTX Video Super Resolution" }
   },
-  "45": {
+  "101": {
     "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["71", 0]
+      "image": "PLACEHOLDER"
     },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "WAN_45" }
+    "class_type": "LoadImage",
+    "_meta": { "title": "Start Image" }
   },
-  "70": {
+  "102": {
     "inputs": {
-      "scheduler": "PLACEHOLDER",
-      "steps_high": 0,
-      "steps_low": 0,
-      "boundary": 0,
-      "interval": 0,
-      "denoise": 0,
-      "model": ["20", 0]
+      "text": "PLACEHOLDER"
     },
-    "class_type": "WanMoEScheduler",
-    "_meta": { "title": "WAN_70" }
+    "class_type": "Text Multiline",
+    "_meta": { "title": "Positive" }
   },
-  "71": {
+  "103": {
     "inputs": {
-      "clear_cache_after_n_frames": 0,
-      "multiplier": 0,
-      "keep_model_loaded": false,
-      "frames": ["74", 0],
-      "rife_trt_model": ["72", 0]
-    },
-    "class_type": "AutoRifeTensorrt",
-    "_meta": { "title": "WAN_71" }
-  },
-  "72": {
-    "inputs": {
-      "model": "PLACEHOLDER",
-      "precision": "PLACEHOLDER",
-      "resolution_profile": "PLACEHOLDER"
-    },
-    "class_type": "AutoLoadRifeTensorrtModel",
-    "_meta": { "title": "WAN_72" }
-  },
-  "73": {
-    "inputs": {
-      "min_dim": 0,
-      "opt_dim": 0,
-      "max_dim": 0
-    },
-    "class_type": "CustomResolutionConfig",
-    "_meta": { "title": "WAN_73" }
-  },
-  "74": {
-    "inputs": {
-      "method": "PLACEHOLDER",
-      "strength": 0,
-      "multithread": true,
-      "image_target": ["38", 0],
-      "image_ref": ["5", 0]
-    },
-    "class_type": "ColorMatchV2",
-    "_meta": { "title": "WAN_74" }
-  },
-  "75": {
-    "inputs": {
-      "ckpt_name": "PLACEHOLDER",
-      "clear_cache_after_n_frames": 0,
-      "multiplier": 0,
-      "frames": ["74", 0]
-    },
-    "class_type": "GMFSS Fortuna VFI",
-    "_meta": { "title": "WAN_75" }
-  },
-  "63": {
-    "inputs": {
-      "purge_cache": true,
-      "purge_models": true,
-      "anything": ["64", 0]
-    },
-    "class_type": "LayerUtility: PurgeVRAM",
-    "_meta": { "title": "WAN_63" }
-  },
-  "64": {
-    "inputs": {
-      "frame_rate": 0,
+      "frame_rate": ["133", 1],
       "loop_count": 0,
       "filename_prefix": "PLACEHOLDER",
       "format": "PLACEHOLDER",
@@ -385,43 +207,220 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "trim_to_audio": false,
       "pingpong": false,
       "save_output": false,
-      "images": ["42", 0]
+      "images": ["100", 0]
     },
     "class_type": "VHS_VideoCombine",
-    "_meta": { "title": "WAN_64" }
+    "_meta": { "title": "Video Combine 🎥🅥🅗🅢" }
   },
-  "65": {
+  "104": {
     "inputs": {
-      "PowerLoraLoaderHeaderWidget": {
-        "type": "PowerLoraLoaderHeaderWidget"
-      },
-      "lora_1": {
-        "on": true,
-        "lora": "PLACEHOLDER",
-        "strength": 1
-      },
-      "➕ Add Lora": "",
-      "model": ["6", 0],
-      "clip": ["13", 0]
+      "enable_vae_tiling": false,
+      "tile_x": 272,
+      "tile_y": 272,
+      "tile_stride_x": 144,
+      "tile_stride_y": 128,
+      "normalization": "default",
+      "vae": ["93", 0],
+      "samples": ["82", 0]
     },
-    "class_type": "Power Lora Loader (rgthree)",
-    "_meta": { "title": "WAN_65" }
+    "class_type": "WanVideoDecode",
+    "_meta": { "title": "WanVideo Decode" }
   },
-  "66": {
+  "105": {
     "inputs": {
-      "PowerLoraLoaderHeaderWidget": {
-        "type": "PowerLoraLoaderHeaderWidget"
-      },
-      "lora_1": {
-        "on": true,
-        "lora": "PLACEHOLDER",
-        "strength": 1
-      },
-      "➕ Add Lora": "",
-      "model": ["12", 0],
-      "clip": ["13", 0]
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["104", 0]
     },
-    "class_type": "Power Lora Loader (rgthree)",
-    "_meta": { "title": "WAN_66" }
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "Force Full Unload (VRAM+Pinned)" }
+  },
+  "106": {
+    "inputs": {
+      "model": "PLACEHOLDER",
+      "base_precision": "PLACEHOLDER",
+      "quantization": "PLACEHOLDER",
+      "load_device": "offload_device",
+      "attention_mode": "PLACEHOLDER",
+      "rms_norm_function": "default"
+    },
+    "class_type": "WanVideoModelLoader",
+    "_meta": { "title": "WanVideo Model Loader" }
+  },
+  "119": {
+    "inputs": {
+      "megapixels": 0,
+      "multiple_of": 0,
+      "upscale_method": "PLACEHOLDER",
+      "image": ["101", 0]
+    },
+    "class_type": "ResizeImageToMegapixels",
+    "_meta": { "title": "Resize Image (Megapixels + Alignment)" }
+  },
+  "120": {
+    "inputs": {
+      "steps": 0,
+      "cfg": 1,
+      "shift": 0,
+      "seed": 0,
+      "force_offload": true,
+      "scheduler": "PLACEHOLDER",
+      "riflex_freq_index": 0,
+      "denoise_strength": 1,
+      "batched_cfg": false,
+      "rope_function": "comfy",
+      "start_step": 0,
+      "end_step": 0,
+      "add_noise_to_samples": true,
+      "model": ["121", 0],
+      "image_embeds": ["84", 0],
+      "text_embeds": ["125", 0],
+      "context_options": ["86", 0],
+      "sigmas": ["140", 0]
+    },
+    "class_type": "WanVideoSampler",
+    "_meta": { "title": "WanVideo Sampler" }
+  },
+  "121": {
+    "inputs": {
+      "model": ["106", 0],
+      "block_swap_args": ["91", 0]
+    },
+    "class_type": "WanVideoSetBlockSwap",
+    "_meta": { "title": "WanVideo Set BlockSwap" }
+  },
+  "123": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["120", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "Force Full Unload (VRAM+Pinned)" }
+  },
+  "125": {
+    "inputs": {
+      "verbose": true,
+      "release_pinned_ram": true,
+      "aimdo_analyze": true,
+      "passthrough": ["88", 0]
+    },
+    "class_type": "ForceFullUnload",
+    "_meta": { "title": "Force Full Unload (VRAM+Pinned)" }
+  },
+  "126": {
+    "inputs": {
+      "image": "PLACEHOLDER"
+    },
+    "class_type": "LoadImage",
+    "_meta": { "title": "End Image" }
+  },
+  "127": {
+    "inputs": {
+      "megapixels": 0,
+      "multiple_of": 0,
+      "upscale_method": "PLACEHOLDER",
+      "image": ["126", 0]
+    },
+    "class_type": "ResizeImageToMegapixels",
+    "_meta": { "title": "Resize Image (Megapixels + Alignment)" }
+  },
+  "129": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 0
+    },
+    "class_type": "Constant Number",
+    "_meta": { "title": "FPS" }
+  },
+  "130": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 0
+    },
+    "class_type": "Constant Number",
+    "_meta": { "title": "Seconds" }
+  },
+  "131": {
+    "inputs": {
+      "expression": "a * b + 1",
+      "a": ["129", 2],
+      "b": ["130", 2]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": { "title": "Generate Frame" }
+  },
+  "132": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 0
+    },
+    "class_type": "Constant Number",
+    "_meta": { "title": "Multiplier" }
+  },
+  "133": {
+    "inputs": {
+      "expression": "a * b",
+      "a": ["132", 2],
+      "b": ["129", 2]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": { "title": "Final FPS" }
+  },
+  "135": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 0
+    },
+    "class_type": "Constant Number",
+    "_meta": { "title": "Overall Steps" }
+  },
+  "136": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 0
+    },
+    "class_type": "Constant Number",
+    "_meta": { "title": "Split Steps" }
+  },
+  "140": {
+    "inputs": {
+      "sigmas": "PLACEHOLDER"
+    },
+    "class_type": "ManualSigmas",
+    "_meta": { "title": "ManualSigmas" }
+  },
+  "141": {
+    "inputs": {
+      "sigmas": "PLACEHOLDER"
+    },
+    "class_type": "ManualSigmas",
+    "_meta": { "title": "ManualSigmas" }
+  },
+  "143": {
+    "inputs": {
+      "strength_1": 1,
+      "strength_2": 1,
+      "crop": "center",
+      "combine_embeds": "average",
+      "force_offload": true,
+      "tiles": 0,
+      "ratio": 0.5,
+      "clip_vision": ["144", 0],
+      "image_1": ["119", 0]
+    },
+    "class_type": "WanVideoClipVisionEncode",
+    "_meta": { "title": "WanVideo ClipVision Encode" }
+  },
+  "144": {
+    "inputs": {
+      "model_name": "PLACEHOLDER",
+      "precision": "fp32",
+      "load_device": "offload_device"
+    },
+    "class_type": "LoadWanVideoClipTextEncoder",
+    "_meta": { "title": "WanVideo CLIP Text Encoder Loader" }
   }
-}
+} as const
