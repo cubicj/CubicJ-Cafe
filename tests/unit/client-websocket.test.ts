@@ -1,6 +1,10 @@
 import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from '@/lib/comfyui/client-types'
 import { ComfyUIClient } from '@/lib/comfyui/client-core'
 
+vi.mock('@/lib/database/ops-settings', () => ({
+  getOpsSetting: () => 30000,
+}))
+
 vi.mock('@/lib/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
