@@ -29,9 +29,9 @@ describe('buildLtxWorkflow', () => {
       inputImage: 'img.png',
       videoDuration: 5,
     })
-    expect(wf[LTX.POSITIVE_PROMPT].inputs.text).toBe('a test scene')
-    expect(wf[LTX.DURATION].inputs.value).toBe(5)
-    expect(wf[LTX.LOAD_IMAGE_START].inputs.image).toBe('img.png')
+    expect(wf[LTX.POSITIVE_PROMPT]!.inputs!.text).toBe('a test scene')
+    expect(wf[LTX.DURATION]!.inputs!.value).toBe(5)
+    expect(wf[LTX.LOAD_IMAGE_START]!.inputs!.image).toBe('img.png')
     expect(wf[LTX.LOAD_IMAGE_END]).toBeUndefined()
     expect(wf[LTX.LOAD_AUDIO]).toBeUndefined()
     expect(wf[LTX.REFERENCE_AUDIO]).toBeUndefined()
@@ -46,10 +46,10 @@ describe('buildLtxWorkflow', () => {
       videoDuration: 5,
       endImage: 'end.png',
     })
-    expect(wf[LTX.LOAD_IMAGE_END].inputs.image).toBe('end.png')
+    expect(wf[LTX.LOAD_IMAGE_END]!.inputs!.image).toBe('end.png')
     expect(wf[LTX.RESIZE_END_IMAGE]).toBeDefined()
     expect(wf[LTX.PREPROCESS_END]).toBeDefined()
-    expect(wf[LTX.IMG_TO_VIDEO].inputs['num_images']).toBe('2')
+    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
   })
 
   it('collapses IMG_TO_VIDEO to single image when endImage absent', async () => {
@@ -59,8 +59,8 @@ describe('buildLtxWorkflow', () => {
       inputImage: 'img.png',
       videoDuration: 5,
     })
-    expect(wf[LTX.IMG_TO_VIDEO].inputs['num_images']).toBe('1')
-    expect(wf[LTX.IMG_TO_VIDEO].inputs['num_images.image_2']).toBeUndefined()
+    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
+    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
   })
 
   it('applies distilled LoRA to slot 1 when enabled in settings', async () => {
@@ -74,7 +74,7 @@ describe('buildLtxWorkflow', () => {
       inputImage: 'img.png',
       videoDuration: 5,
     })
-    const lora = wf[LTX.POWER_LORA].inputs['lora_1'] as { on: boolean; lora: string; strength: number }
+    const lora = wf[LTX.POWER_LORA]!.inputs!['lora_1'] as { on: boolean; lora: string; strength: number }
     expect(lora.on).toBe(true)
     expect(lora.lora).toBe('test-distilled.safetensors')
     expect(lora.strength).toBe(0.5)
@@ -88,7 +88,7 @@ describe('buildLtxWorkflow', () => {
       videoDuration: 5,
     })
     for (const slot of ['lora_1', 'lora_2', 'lora_3', 'lora_4']) {
-      expect((wf[LTX.POWER_LORA].inputs[slot] as { on: boolean }).on).toBe(false)
+      expect((wf[LTX.POWER_LORA]!.inputs![slot] as { on: boolean }).on).toBe(false)
     }
   })
 
@@ -104,6 +104,6 @@ describe('buildLtxWorkflow', () => {
       videoDuration: 5,
     })
     expect(wf[LTX.RTX_SUPER_RES]).toBeUndefined()
-    expect(wf[LTX.VIDEO_COMBINE].inputs.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
   })
 })

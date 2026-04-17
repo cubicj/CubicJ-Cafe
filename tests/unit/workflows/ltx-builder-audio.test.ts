@@ -45,7 +45,7 @@ describe('buildLtxWorkflow reference audio', () => {
       videoDuration: 5,
       referenceAudio: 'v.flac',
     })
-    const slot = wf[LTX.POWER_LORA].inputs['lora_2'] as { on: boolean; lora: string; strength: number }
+    const slot = wf[LTX.POWER_LORA]!.inputs!['lora_2'] as { on: boolean; lora: string; strength: number }
     expect(slot.on).toBe(true)
     expect(slot.lora).toBe('test-id-lora.safetensors')
     expect(slot.strength).toBe(0.68)
@@ -59,8 +59,8 @@ describe('buildLtxWorkflow reference audio', () => {
       videoDuration: 5,
       referenceAudio: 'v.flac',
     })
-    expect(wf[LTX.CFG_GUIDER].inputs.positive).toEqual([LTX.REFERENCE_AUDIO, 1])
-    expect(wf[LTX.CFG_GUIDER].inputs.negative).toEqual([LTX.REFERENCE_AUDIO, 2])
+    expect(wf[LTX.CFG_GUIDER]!.inputs!.positive).toEqual([LTX.REFERENCE_AUDIO, 1])
+    expect(wf[LTX.CFG_GUIDER]!.inputs!.negative).toEqual([LTX.REFERENCE_AUDIO, 2])
   })
 
   it('writes audio_normalization_factors from settings into AudioNorm', async () => {
@@ -71,6 +71,6 @@ describe('buildLtxWorkflow reference audio', () => {
       videoDuration: 5,
       referenceAudio: 'v.flac',
     })
-    expect(wf[LTX.AUDIO_NORM].inputs.audio_normalization_factors).toBe('1,1,0.7,1,1,0.7,1,1,1,1')
+    expect(wf[LTX.AUDIO_NORM]!.inputs!.audio_normalization_factors).toBe('1,1,0.7,1,1,0.7,1,1,1,1')
   })
 })
