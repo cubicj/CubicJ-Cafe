@@ -11,6 +11,7 @@ import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from './comfyui-state';
 import { getQueuePauseAfterPosition } from './queue-pause-state';
 import { serverManager } from './server-manager';
+import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('queue');
 
@@ -27,7 +28,9 @@ class QueueMonitor {
 
   // 활성 서버 목록 업데이트 (캐시 추가)
   private lastServerUpdateTime = 0;
-  private serverUpdateInterval = 60000; // 1분마다만 서버 상태 확인
+  private get serverUpdateInterval(): number {
+    return getOpsSetting('ops.queue_health_check_interval_ms');
+  }
   
   private async updateActiveServers(): Promise<void> {
     const now = Date.now();
