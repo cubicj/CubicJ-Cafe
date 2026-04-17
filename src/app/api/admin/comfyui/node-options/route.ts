@@ -1,8 +1,11 @@
 import { createRouteHandler, type AuthenticatedRequest } from '@/lib/api/route-handler';
 import { getComfyUIClient } from '@/lib/comfyui/client';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
+import { createLogger } from '@/lib/logger';
 import { parseQuery } from '@/lib/validations/parse';
 import { z } from 'zod/v4';
+
+const log = createLogger('admin');
 
 const querySchema = z.object({
   q: z.string(),
@@ -35,7 +38,8 @@ export const GET = createRouteHandler(
     try {
       const options = await getComfyUIClient().getNodeOptions(requests);
       return { options };
-    } catch {
+    } catch (e) {
+      log.error('comfyui node options fetch failed', { error: e instanceof Error ? e.message : String(e) });
       return { options: {} };
     }
   }
