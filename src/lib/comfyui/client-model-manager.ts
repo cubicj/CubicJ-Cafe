@@ -13,7 +13,44 @@ function extractOptions(data: unknown[]): string[] {
   } else {
     raw = data
   }
-  return raw.filter((item): item is string => typeof item === 'string')
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return item
+      if (item && typeof item === 'object' && 'key' in item) {
+        const key = (item as { key: unknown }).key
+        return typeof key === 'string' ? key : null
+      }
+      return null
+    })
+    .filter((s): s is string => s !== null)
+}
+
+function extractNestedFormatOptions(
+  node: { input?: { required?: Record<string, unknown>; optional?: Record<string, unknown> } } | undefined,
+  fieldName: string,
+): string[] | null {
+  const fields = { ...node?.input?.required, ...node?.input?.optional }
+  for (const outer of Object.values(fields)) {
+    if (!Array.isArray(outer) || outer.length < 2) continue
+    const meta = outer[1]
+    if (!meta || typeof meta !== 'object' || !('formats' in meta)) continue
+    const formats = (meta as { formats: unknown }).formats
+    if (!formats || typeof formats !== 'object') continue
+    const collected = new Set<string>()
+    for (const entries of Object.values(formats as Record<string, unknown>)) {
+      if (!Array.isArray(entries)) continue
+      for (const entry of entries) {
+        if (!Array.isArray(entry) || entry[0] !== fieldName) continue
+        const opts = entry[1]
+        if (!Array.isArray(opts)) continue
+        for (const v of opts) {
+          if (typeof v === 'string') collected.add(v)
+        }
+      }
+    }
+    if (collected.size > 0) return Array.from(collected).sort()
+  }
+  return null
 }
 
 const LORA_NODE_NAMES = [
@@ -46,6 +83,8 @@ function findNodeOptions(
     if (fieldData) {
       return extractOptions(fieldData)
     }
+    const nested = extractNestedFormatOptions(node, fieldName)
+    if (nested) return nested
   }
   return null
 }
