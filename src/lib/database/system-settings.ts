@@ -392,6 +392,7 @@ export interface LtxWanSettings {
   unetWan: string
   clipWan: string
   vaeWan: string
+  clipVisionModel: string
   shift: number
 
   cfgWan: number
@@ -477,6 +478,7 @@ export const LTX_WAN_KEYS = {
   unetWan: 'ltx-wan.unet_wan',
   clipWan: 'ltx-wan.clip_wan',
   vaeWan: 'ltx-wan.vae_wan',
+  clipVisionModel: 'ltx-wan.clip_vision_model',
   shift: 'ltx-wan.shift',
 
   cfgWan: 'ltx-wan.cfg_wan',
@@ -570,6 +572,7 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     unetWan: map.get(k.unetWan)!,
     clipWan: map.get(k.clipWan)!,
     vaeWan: map.get(k.vaeWan)!,
+    clipVisionModel: map.get(k.clipVisionModel)!,
     shift: parseFloat(map.get(k.shift)!),
 
     cfgWan: parseFloat(map.get(k.cfgWan)!),
