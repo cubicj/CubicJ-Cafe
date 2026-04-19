@@ -483,7 +483,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "end_step": -1,
       "add_noise_to_samples": true,
       "model": ["221", 0],
-      "image_embeds": ["230", 0],
+      "image_embeds": ["234", 0],
       "text_embeds": ["213", 0],
       "samples": ["217", 0],
       "context_options": ["218", 0],
@@ -509,7 +509,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "model_name": "PLACEHOLDER",
       "precision": "bf16",
       "use_cpu_cache": false,
-      "verbose": false
+      "verbose": true
     },
     "class_type": "WanVideoVAELoader",
     "_meta": { "title": "LTX_WAN_207" }
@@ -589,7 +589,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "218": {
     "inputs": {
-      "context_schedule": "uniform_standard",
+      "context_schedule": "static_standard",
       "context_frames": 81,
       "context_stride": 4,
       "context_overlap": 32,
@@ -615,7 +615,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       "offload_txt_emb": false,
       "use_non_blocking": true,
       "vace_blocks_to_swap": 0,
-      "prefetch_blocks": 1,
+      "prefetch_blocks": 0,
       "block_swap_debug": true
     },
     "class_type": "WanVideoBlockSwap",
@@ -628,21 +628,23 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "class_type": "ManualSigmas",
     "_meta": { "title": "LTX_WAN_228" }
   },
-  "230": {
+  "234": {
     "inputs": {
-      "width": ["25", 1],
-      "height": ["25", 2],
-      "num_frames": ["2", 0],
-      "noise_aug_strength": 0,
-      "start_latent_strength": 1,
-      "end_latent_strength": 1,
-      "force_offload": true,
-      "fun_or_fl2v_model": false,
-      "tiled_vae": false,
-      "augment_empty_frames": 0,
-      "vae": ["207", 0]
+      "disable_window_reinject": true,
+      "propagate_x0": false,
+      "propagate_x0_strength": 0.5,
+      "image_embeds": ["241", 0]
     },
-    "class_type": "WanVideoImageToVideoEncode",
-    "_meta": { "title": "LTX_WAN_230" }
+    "class_type": "WanVideoContextRefineMode",
+    "_meta": { "title": "LTX_WAN_234" }
+  },
+  "241": {
+    "inputs": {
+      "num_frames": ["2", 0],
+      "start_latent_strength": 1,
+      "latent_samples": ["217", 0]
+    },
+    "class_type": "WanVideoRefineImageEmbeds",
+    "_meta": { "title": "LTX_WAN_241" }
   }
 }
