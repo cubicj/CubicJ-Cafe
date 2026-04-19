@@ -314,4 +314,23 @@ describe('buildLtxWanWorkflow', () => {
 
     expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.images).toEqual([LTX_WAN.FORCE_UNLOAD_VAE_WAN, 0])
   })
+
+  it('strips WAN_CONTEXT_OPTIONS at 5s (81 frames, nLat=21)', async () => {
+    const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+    expect(workflow[LTX_WAN.WAN_CONTEXT_OPTIONS]).toBeUndefined()
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.context_options).toBeUndefined()
+  })
+
+  it('wires computed WAN_CONTEXT_OPTIONS at 6s (97 frames, nLat=25)', async () => {
+    const workflow = await buildLtxWanWorkflow({ ...DEFAULT_PARAMS, videoDuration: 6 })
+    expect(workflow[LTX_WAN.WAN_CONTEXT_OPTIONS]!.inputs).toMatchObject({
+      context_schedule: 'static_standard',
+      context_frames: 81,
+      context_stride: 4,
+      context_overlap: 68,
+      freenoise: true,
+      fuse_method: 'pyramid',
+    })
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.context_options).toEqual([LTX_WAN.WAN_CONTEXT_OPTIONS, 0])
+  })
 })
