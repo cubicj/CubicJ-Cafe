@@ -7,6 +7,7 @@ import { LTX_WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getLtxWanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
+import { computeWanContextOptions } from '../wan/context-options'
 
 const log = createLogger('comfyui')
 
@@ -38,6 +39,7 @@ export async function buildLtxWanWorkflow(
   }
 
   configureWanPipeline(workflow, settings)
+  configureWanContextOptions(workflow, params, settings)
 
   configurePostProcessing(workflow, settings)
   configureOutput(workflow, params, settings)
@@ -250,6 +252,23 @@ function configureWanPipeline(
   setNode(workflow, LTX_WAN.WAN_BLOCK_SWAP, {
     blocks_to_swap: settings.blocksToSwap,
   })
+}
+
+function configureWanContextOptions(
+  workflow: ComfyUIWorkflow,
+  params: LtxWanGenerationParams,
+  settings: LtxWanSettings
+) {
+  const numFrames = params.videoDuration * settings.frameRate + 1
+  const options = computeWanContextOptions(numFrames)
+
+  if (!options) {
+    delete workflow[LTX_WAN.WAN_CONTEXT_OPTIONS]
+    delete workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.context_options
+    return
+  }
+
+  setNode(workflow, LTX_WAN.WAN_CONTEXT_OPTIONS, options)
 }
 
 function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
