@@ -93,4 +93,25 @@ describe('buildWanWorkflow', () => {
     const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 7 })
     expect(wf[WAN.SECONDS]!.inputs!.number).toBe(7)
   })
+
+  it('strips context_options at 5s (81 frames, nLat=21)', async () => {
+    const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 5 })
+    expect(wf[WAN.CONTEXT_OPTIONS]).toBeUndefined()
+    expect(wf[WAN.SAMPLER_HIGH]!.inputs!.context_options).toBeUndefined()
+    expect(wf[WAN.SAMPLER_LOW]!.inputs!.context_options).toBeUndefined()
+  })
+
+  it('wires computed context_options at 6s (97 frames, nLat=25)', async () => {
+    const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 6 })
+    expect(wf[WAN.CONTEXT_OPTIONS]!.inputs).toMatchObject({
+      context_schedule: 'static_standard',
+      context_frames: 81,
+      context_stride: 4,
+      context_overlap: 68,
+      freenoise: true,
+      fuse_method: 'pyramid',
+    })
+    expect(wf[WAN.SAMPLER_HIGH]!.inputs!.context_options).toEqual([WAN.CONTEXT_OPTIONS, 0])
+    expect(wf[WAN.SAMPLER_LOW]!.inputs!.context_options).toEqual([WAN.CONTEXT_OPTIONS, 0])
+  })
 })
