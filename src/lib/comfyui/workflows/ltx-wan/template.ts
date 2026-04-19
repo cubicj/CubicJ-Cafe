@@ -632,7 +632,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     "inputs": {
       "disable_window_reinject": true,
       "propagate_x0": false,
-      "propagate_x0_strength": 0.5,
+      "propagate_x0_strength": 0,
       "image_embeds": ["241", 0]
     },
     "class_type": "WanVideoContextRefineMode",
