@@ -86,6 +86,7 @@ const BASE_SETTINGS = {
 
   negativePromptWan: 'fake wan negative',
   blocksToSwap: 20,
+  prefetchBlocks: 0,
   propagateX0: false,
   propagateX0Strength: 0.5,
 
