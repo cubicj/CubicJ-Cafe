@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoRAPresetManager } from '@/components/ui/lora-preset-manager';
 import { QueueMonitor } from '@/components/ui/queue-monitor';
-import { Sparkles, Bot, CheckCircle, XCircle, Film } from 'lucide-react';
+import { Sparkles, Bot, XCircle, Film } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { ServerStatusSection } from './sections/ServerStatusSection';
@@ -41,7 +41,6 @@ export default function I2VPageClient() {
     setActiveModel,
     capabilities,
     durationOptions,
-    hasUnavailableLoRAs,
     setHasUnavailableLoRAs,
     isFormValid,
     handleSubmit,
@@ -241,38 +240,16 @@ export default function I2VPageClient() {
             </Card>
           )}
 
-          {submitMessage && !isGenerating && (
-            <Card
-              className={`p-6 text-center ${submitMessage.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}
-            >
+          {submitMessage && submitMessage.type === 'error' && !isGenerating && (
+            <Card className="p-6 text-center border-red-200 bg-red-50">
               <div className="space-y-4">
-                <div
-                  className={`flex items-center justify-center gap-2 ${submitMessage.type === 'error' ? 'text-red-600' : 'text-green-600'}`}
-                >
-                  {submitMessage.type === 'error' ? (
-                    <XCircle className="h-6 w-6" />
-                  ) : (
-                    <CheckCircle className="h-6 w-6" />
-                  )}
-                  <h3 className="text-lg font-semibold">
-                    {submitMessage.type === 'error' ? '요청 실패' : '요청 성공'}
-                  </h3>
+                <div className="flex items-center justify-center gap-2 text-red-600">
+                  <XCircle className="h-6 w-6" />
+                  <h3 className="text-lg font-semibold">요청 실패</h3>
                 </div>
-
-                <p
-                  className={`${submitMessage.type === 'error' ? 'text-red-700' : 'text-green-700'}`}
-                >
-                  {submitMessage.message}
-                </p>
-
-                {submitMessage.requestId && (
-                  <p className="text-sm text-muted-foreground">
-                    요청 ID: {submitMessage.requestId}
-                  </p>
-                )}
-
+                <p className="text-red-700">{submitMessage.message}</p>
                 <Button onClick={handleReset} variant="outline">
-                  새 요청 작성
+                  닫기
                 </Button>
               </div>
             </Card>

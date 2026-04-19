@@ -276,13 +276,7 @@ export function useI2VForm(): UseI2VFormReturn {
         }
       }
 
-      const result = await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
-
-      setSubmitMessage({
-        type: 'success',
-        message: '요청이 큐에 추가되었습니다! 위쪽 실행 큐에서 진행 상황을 확인하세요.',
-        requestId: result.requestId
-      });
+      await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
 
       clearForm();
 
