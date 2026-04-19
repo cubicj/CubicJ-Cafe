@@ -251,6 +251,7 @@ function configureWanPipeline(
   })
   setNode(workflow, LTX_WAN.WAN_BLOCK_SWAP, {
     blocks_to_swap: settings.blocksToSwap,
+    prefetch_blocks: settings.prefetchBlocks,
   })
   setNode(workflow, LTX_WAN.WAN_CONTEXT_REFINE, {
     propagate_x0: settings.propagateX0,
