@@ -73,10 +73,6 @@ export interface WanSettings {
   offloadTxtEmb: boolean;
   vaceBlocksToSwap: number;
   prefetchBlocks: number;
-  contextFrames: number;
-  contextStride: number;
-  contextOverlap: number;
-  fuseMethod: string;
   samplerSteps: number;
   shift: number;
   scheduler: string;
@@ -157,10 +153,6 @@ export const WAN_KEYS = {
   offloadTxtEmb: 'wan.offload_txt_emb',
   vaceBlocksToSwap: 'wan.vace_blocks_to_swap',
   prefetchBlocks: 'wan.prefetch_blocks',
-  contextFrames: 'wan.context_frames',
-  contextStride: 'wan.context_stride',
-  contextOverlap: 'wan.context_overlap',
-  fuseMethod: 'wan.fuse_method',
   samplerSteps: 'wan.sampler_steps',
   shift: 'wan.shift',
   scheduler: 'wan.scheduler',
@@ -262,10 +254,6 @@ export async function getWanSettings(): Promise<WanSettings> {
     offloadTxtEmb: map.get(k.offloadTxtEmb)! === 'true',
     vaceBlocksToSwap: parseInt(map.get(k.vaceBlocksToSwap)!, 10),
     prefetchBlocks: parseInt(map.get(k.prefetchBlocks)!, 10),
-    contextFrames: parseInt(map.get(k.contextFrames)!, 10),
-    contextStride: parseInt(map.get(k.contextStride)!, 10),
-    contextOverlap: parseInt(map.get(k.contextOverlap)!, 10),
-    fuseMethod: map.get(k.fuseMethod)!,
     samplerSteps: parseInt(map.get(k.samplerSteps)!, 10),
     shift: parseFloat(map.get(k.shift)!),
     scheduler: map.get(k.scheduler)!,

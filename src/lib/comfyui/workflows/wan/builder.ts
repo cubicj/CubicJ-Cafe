@@ -6,6 +6,7 @@ import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
+import { computeWanContextOptions } from './context-options'
 
 const log = createLogger('comfyui')
 
@@ -15,7 +16,7 @@ export async function buildWanWorkflow(params: WanGenerationParams): Promise<Com
 
   configureModels(workflow, settings)
   configureBlockSwap(workflow, settings)
-  configureContextOptions(workflow, settings)
+  configureContextOptions(workflow, params, settings)
   configureSamplers(workflow, settings)
   configureSigmas(workflow, settings)
   configureNag(workflow, settings)
@@ -64,13 +65,18 @@ function configureBlockSwap(workflow: ComfyUIWorkflow, settings: WanSettings) {
   })
 }
 
-function configureContextOptions(workflow: ComfyUIWorkflow, settings: WanSettings) {
-  setNode(workflow, WAN.CONTEXT_OPTIONS, {
-    context_frames: settings.contextFrames,
-    context_stride: settings.contextStride,
-    context_overlap: settings.contextOverlap,
-    fuse_method: settings.fuseMethod,
-  })
+function configureContextOptions(workflow: ComfyUIWorkflow, params: WanGenerationParams, settings: WanSettings) {
+  const numFrames = params.videoDuration * settings.frameRate + 1
+  const options = computeWanContextOptions(numFrames)
+
+  if (!options) {
+    delete workflow[WAN.CONTEXT_OPTIONS]
+    delete workflow[WAN.SAMPLER_HIGH]!.inputs!.context_options
+    delete workflow[WAN.SAMPLER_LOW]!.inputs!.context_options
+    return
+  }
+
+  setNode(workflow, WAN.CONTEXT_OPTIONS, options)
 }
 
 function configureSamplers(workflow: ComfyUIWorkflow, settings: WanSettings) {

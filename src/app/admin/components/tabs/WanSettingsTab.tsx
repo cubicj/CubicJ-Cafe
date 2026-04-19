@@ -29,11 +29,6 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.vace_blocks_to_swap', label: 'VACE Blocks to Swap', type: 'number', step: 1, group: 'WAN — Block Swap' },
   { key: 'wan.prefetch_blocks', label: 'Prefetch Blocks', type: 'number', step: 1, group: 'WAN — Block Swap' },
 
-  { key: 'wan.context_frames', label: 'Context Frames', type: 'number', step: 1, group: 'WAN — Context' },
-  { key: 'wan.context_stride', label: 'Context Stride', type: 'number', step: 1, group: 'WAN — Context' },
-  { key: 'wan.context_overlap', label: 'Context Overlap', type: 'number', step: 1, group: 'WAN — Context' },
-  { key: 'wan.fuse_method', label: 'Fuse Method', type: 'nodeOption', group: 'WAN — Context', nodeQuery: 'fuse_method:WanVideoContextOptions:fuse_method' },
-
   { key: 'wan.sampler_steps', label: 'Steps', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'wan.shift', label: 'Shift', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
   { key: 'wan.scheduler', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler:WanVideoSampler:scheduler' },
