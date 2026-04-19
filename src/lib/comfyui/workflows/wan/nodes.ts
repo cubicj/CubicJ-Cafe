@@ -34,4 +34,6 @@ export const WAN = {
   FINAL_FPS: '133',
   SIGMAS_HIGH: '140',
   SIGMAS_LOW: '141',
+  CONTEXT_REFINE_LOW: '144',
+  CONTEXT_REFINE_HIGH: '145',
 } as const;

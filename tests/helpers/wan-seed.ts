@@ -36,6 +36,10 @@ export const WAN_SEED: Array<{ key: string; value: string; type: SeedType }> = [
   { key: 'wan.video_pix_fmt', value: 'yuv420p', type: 'string' },
   { key: 'wan.negative_prompt', value: 'test negative', type: 'string' },
   { key: 'wan.duration_options', value: '5,6,7', type: 'string' },
+  { key: 'wan.propagate_x0_high', value: 'true', type: 'boolean' },
+  { key: 'wan.propagate_x0_strength_high', value: '0.98', type: 'number' },
+  { key: 'wan.propagate_x0_low', value: 'false', type: 'boolean' },
+  { key: 'wan.propagate_x0_strength_low', value: '0.5', type: 'number' },
 ]
 
 export async function seedWan(): Promise<void> {

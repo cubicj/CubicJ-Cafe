@@ -49,7 +49,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
   },
   "86": {
     "inputs": {
-      "context_schedule": "uniform_standard",
+      "context_schedule": "static_standard",
       "context_frames": 0,
       "context_stride": 0,
       "context_overlap": 0,
@@ -88,7 +88,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "end_step": 0,
       "add_noise_to_samples": false,
       "model": ["83", 0],
-      "image_embeds": ["84", 0],
+      "image_embeds": ["144", 0],
       "text_embeds": ["88", 0],
       "samples": ["123", 0],
       "context_options": ["86", 0],
@@ -273,7 +273,7 @@ export const WAN_WORKFLOW_TEMPLATE = {
       "end_step": 0,
       "add_noise_to_samples": true,
       "model": ["121", 0],
-      "image_embeds": ["84", 0],
+      "image_embeds": ["145", 0],
       "text_embeds": ["125", 0],
       "context_options": ["86", 0],
       "sigmas": ["140", 0]
@@ -381,5 +381,25 @@ export const WAN_WORKFLOW_TEMPLATE = {
     },
     "class_type": "ManualSigmas",
     "_meta": { "title": "ManualSigmas" }
+  },
+  "144": {
+    "inputs": {
+      "disable_window_reinject": true,
+      "propagate_x0": false,
+      "propagate_x0_strength": 0,
+      "image_embeds": ["84", 0]
+    },
+    "class_type": "WanVideoContextRefineMode",
+    "_meta": { "title": "WAN_144" }
+  },
+  "145": {
+    "inputs": {
+      "disable_window_reinject": true,
+      "propagate_x0": false,
+      "propagate_x0_strength": 0,
+      "image_embeds": ["84", 0]
+    },
+    "class_type": "WanVideoContextRefineMode",
+    "_meta": { "title": "WAN_145" }
   }
 } as const
