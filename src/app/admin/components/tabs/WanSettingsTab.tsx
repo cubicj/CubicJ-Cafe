@@ -35,6 +35,11 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.sigmas_high', label: 'Sigmas (High)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
   { key: 'wan.sigmas_low', label: 'Sigmas (Low)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
+  { key: 'wan.propagate_x0_high', label: 'Propagate x0 (High)', type: 'boolean', group: 'WAN — Context Refine' },
+  { key: 'wan.propagate_x0_strength_high', label: 'Propagate x0 Strength (High)', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
+  { key: 'wan.propagate_x0_low', label: 'Propagate x0 (Low)', type: 'boolean', group: 'WAN — Context Refine' },
+  { key: 'wan.propagate_x0_strength_low', label: 'Propagate x0 Strength (Low)', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
+
   { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
   { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
   { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },

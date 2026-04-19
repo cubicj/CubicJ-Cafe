@@ -62,6 +62,9 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.blocks_to_swap', label: 'Blocks to Swap', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'ltx-wan.sigmas_wan', label: 'Sigmas (CSV)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
+  { key: 'ltx-wan.propagate_x0', label: 'Propagate x0', type: 'boolean', group: 'WAN — Context Refine' },
+  { key: 'ltx-wan.propagate_x0_strength', label: 'Propagate x0 Strength', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
+
   { key: 'ltx-wan.nag_scale_wan', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
   { key: 'ltx-wan.nag_alpha_wan', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
   { key: 'ltx-wan.nag_tau_wan', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
