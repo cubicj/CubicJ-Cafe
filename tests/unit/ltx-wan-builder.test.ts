@@ -300,12 +300,25 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow[LTX_WAN.RTX_SUPER_RES]!.inputs!.images).toEqual([LTX_WAN.FORCE_UNLOAD_VAE_WAN, 0])
   })
 
-  it('omits clip vision nodes and clip_embeds wiring on WanVideoImageToVideoEncode', async () => {
+  it('uses WanVideoContextRefineMode + WanVideoRefineImageEmbeds instead of WanVideoImageToVideoEncode', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
-    expect(workflow['231']).toBeUndefined()
-    expect(workflow['232']).toBeUndefined()
-    expect(workflow['233']).toBeUndefined()
-    expect(workflow['230']!.inputs!.clip_embeds).toBeUndefined()
+
+    expect(workflow['230']).toBeUndefined()
+
+    expect(workflow['234']).toBeDefined()
+    expect(workflow['234']!.class_type).toBe('WanVideoContextRefineMode')
+    expect(workflow['234']!.inputs!.disable_window_reinject).toBe(true)
+    expect(workflow['234']!.inputs!.propagate_x0).toBe(false)
+    expect(workflow['234']!.inputs!.propagate_x0_strength).toBe(0.5)
+    expect(workflow['234']!.inputs!.image_embeds).toEqual(['241', 0])
+
+    expect(workflow['241']).toBeDefined()
+    expect(workflow['241']!.class_type).toBe('WanVideoRefineImageEmbeds')
+    expect(workflow['241']!.inputs!.num_frames).toEqual(['2', 0])
+    expect(workflow['241']!.inputs!.start_latent_strength).toBe(1)
+    expect(workflow['241']!.inputs!.latent_samples).toEqual([LTX_WAN.WAN_VAE_ENCODE, 0])
+
+    expect(workflow[LTX_WAN.WAN_SAMPLER]!.inputs!.image_embeds).toEqual(['234', 0])
   })
 
   it('routes video output through FORCE_UNLOAD_VAE_WAN (198) when both VFI and RTX are disabled', async () => {

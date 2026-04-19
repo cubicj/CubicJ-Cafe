@@ -59,7 +59,8 @@ export const LTX_WAN = {
   WAN_BLOCK_SWAP_SET: '221',
   WAN_BLOCK_SWAP: '222',
   WAN_MANUAL_SIGMAS: '228',
-  WAN_I2V_ENCODE: '230',
+  WAN_CONTEXT_REFINE: '234',
+  WAN_REFINE_IMAGE_EMBEDS: '241',
 
   // === Force Full Unload (memory release checkpoints) ===
   FORCE_UNLOAD_CONDITIONING: '197',
