@@ -86,6 +86,8 @@ const BASE_SETTINGS = {
 
   negativePromptWan: 'fake wan negative',
   blocksToSwap: 20,
+  propagateX0: false,
+  propagateX0Strength: 0.5,
 
   vfiMethod: 'rife',
   rifeModel: 'fake_rife_model_sim',
@@ -308,8 +310,8 @@ describe('buildLtxWanWorkflow', () => {
     expect(workflow['234']).toBeDefined()
     expect(workflow['234']!.class_type).toBe('WanVideoContextRefineMode')
     expect(workflow['234']!.inputs!.disable_window_reinject).toBe(true)
-    expect(workflow['234']!.inputs!.propagate_x0).toBe(false)
-    expect(workflow['234']!.inputs!.propagate_x0_strength).toBe(0.5)
+    expect(workflow['234']!.inputs!.propagate_x0).toBe(BASE_SETTINGS.propagateX0)
+    expect(workflow['234']!.inputs!.propagate_x0_strength).toBe(BASE_SETTINGS.propagateX0Strength)
     expect(workflow['234']!.inputs!.image_embeds).toEqual(['241', 0])
 
     expect(workflow['241']).toBeDefined()
