@@ -94,6 +94,10 @@ export interface WanSettings {
   videoPixFmt: string;
   negativePrompt: string;
   durationOptions: number[];
+  propagateX0High: boolean;
+  propagateX0StrengthHigh: number;
+  propagateX0Low: boolean;
+  propagateX0StrengthLow: number;
 }
 
 export interface LtxSettings {
@@ -174,6 +178,10 @@ export const WAN_KEYS = {
   videoPixFmt: 'wan.video_pix_fmt',
   negativePrompt: 'wan.negative_prompt',
   durationOptions: 'wan.duration_options',
+  propagateX0High: 'wan.propagate_x0_high',
+  propagateX0StrengthHigh: 'wan.propagate_x0_strength_high',
+  propagateX0Low: 'wan.propagate_x0_low',
+  propagateX0StrengthLow: 'wan.propagate_x0_strength_low',
 } as const;
 
 export const LTX_KEYS = {
@@ -275,6 +283,10 @@ export async function getWanSettings(): Promise<WanSettings> {
     videoPixFmt: map.get(k.videoPixFmt)!,
     negativePrompt: map.get(k.negativePrompt)!,
     durationOptions: map.get(k.durationOptions)!.split(',').map(Number),
+    propagateX0High: map.get(k.propagateX0High)! === 'true',
+    propagateX0StrengthHigh: parseFloat(map.get(k.propagateX0StrengthHigh)!),
+    propagateX0Low: map.get(k.propagateX0Low)! === 'true',
+    propagateX0StrengthLow: parseFloat(map.get(k.propagateX0StrengthLow)!),
   };
 }
 

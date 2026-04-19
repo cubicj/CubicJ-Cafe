@@ -23,6 +23,7 @@ export async function buildWanWorkflow(params: WanGenerationParams): Promise<Com
   configureResize(workflow, settings)
   configureDuration(workflow, params, settings)
   configurePrompts(workflow, params, settings)
+  configureContextRefine(workflow, settings)
   configureRtx(workflow, settings)
   configureOutput(workflow, params, settings)
 
@@ -122,6 +123,17 @@ function configureDuration(workflow: ComfyUIWorkflow, params: WanGenerationParam
 function configurePrompts(workflow: ComfyUIWorkflow, params: WanGenerationParams, settings: WanSettings) {
   setNode(workflow, WAN.POSITIVE_PROMPT, { text: params.prompt })
   setNode(workflow, WAN.NEGATIVE_PROMPT, { text: settings.negativePrompt })
+}
+
+function configureContextRefine(workflow: ComfyUIWorkflow, settings: WanSettings) {
+  setNode(workflow, WAN.CONTEXT_REFINE_HIGH, {
+    propagate_x0: settings.propagateX0High,
+    propagate_x0_strength: settings.propagateX0StrengthHigh,
+  })
+  setNode(workflow, WAN.CONTEXT_REFINE_LOW, {
+    propagate_x0: settings.propagateX0Low,
+    propagate_x0_strength: settings.propagateX0StrengthLow,
+  })
 }
 
 function configureRtx(workflow: ComfyUIWorkflow, settings: WanSettings) {

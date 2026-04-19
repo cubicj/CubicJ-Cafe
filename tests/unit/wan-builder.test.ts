@@ -85,8 +85,26 @@ describe('buildWanWorkflow', () => {
   it('omits clip vision nodes and clip_embeds wiring on encode', async () => {
     const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 5 })
     expect(wf['143']).toBeUndefined()
-    expect(wf['144']).toBeUndefined()
     expect(wf[WAN.IMG_TO_VIDEO_ENCODE]!.inputs!.clip_embeds).toBeUndefined()
+  })
+
+  it('wires WanVideoContextRefineMode for both HIGH and LOW samplers', async () => {
+    const wf = await buildWanWorkflow({ model: 'wan', prompt: 'p', inputImage: 'img.png', videoDuration: 5 })
+
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]).toBeDefined()
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]!.class_type).toBe('WanVideoContextRefineMode')
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.propagate_x0).toBe(true)
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.propagate_x0_strength).toBe(0.98)
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.image_embeds).toEqual([WAN.IMG_TO_VIDEO_ENCODE, 0])
+
+    expect(wf[WAN.CONTEXT_REFINE_LOW]).toBeDefined()
+    expect(wf[WAN.CONTEXT_REFINE_LOW]!.class_type).toBe('WanVideoContextRefineMode')
+    expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.propagate_x0).toBe(false)
+    expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.propagate_x0_strength).toBe(0.5)
+    expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.image_embeds).toEqual([WAN.IMG_TO_VIDEO_ENCODE, 0])
+
+    expect(wf[WAN.SAMPLER_HIGH]!.inputs!.image_embeds).toEqual([WAN.CONTEXT_REFINE_HIGH, 0])
+    expect(wf[WAN.SAMPLER_LOW]!.inputs!.image_embeds).toEqual([WAN.CONTEXT_REFINE_LOW, 0])
   })
 
   it('writes duration to SECONDS node', async () => {
