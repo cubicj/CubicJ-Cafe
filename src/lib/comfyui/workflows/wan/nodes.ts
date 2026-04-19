@@ -32,8 +32,6 @@ export const WAN = {
   FRAME_COUNT_MATH: '131',
   MULTIPLIER: '132',
   FINAL_FPS: '133',
-  OVERALL_STEPS: '135',
-  SPLIT_STEPS: '136',
   SIGMAS_HIGH: '140',
   SIGMAS_LOW: '141',
 } as const;

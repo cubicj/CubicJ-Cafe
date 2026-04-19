@@ -82,8 +82,6 @@ function configureSamplers(workflow: ComfyUIWorkflow, settings: WanSettings) {
   }
   setNode(workflow, WAN.SAMPLER_HIGH, { ...shared, seed: generateSeed() })
   setNode(workflow, WAN.SAMPLER_LOW, { ...shared, seed: generateSeed() })
-  setNode(workflow, WAN.OVERALL_STEPS, { number: settings.samplerSteps * 2 })
-  setNode(workflow, WAN.SPLIT_STEPS, { number: settings.samplerSteps })
 }
 
 function configureSigmas(workflow: ComfyUIWorkflow, settings: WanSettings) {

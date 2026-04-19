@@ -368,22 +368,6 @@ export const WAN_WORKFLOW_TEMPLATE = {
     "class_type": "MathExpression|pysssss",
     "_meta": { "title": "Final FPS" }
   },
-  "135": {
-    "inputs": {
-      "number_type": "integer",
-      "number": 0
-    },
-    "class_type": "Constant Number",
-    "_meta": { "title": "Overall Steps" }
-  },
-  "136": {
-    "inputs": {
-      "number_type": "integer",
-      "number": 0
-    },
-    "class_type": "Constant Number",
-    "_meta": { "title": "Split Steps" }
-  },
   "140": {
     "inputs": {
       "sigmas": "PLACEHOLDER"
