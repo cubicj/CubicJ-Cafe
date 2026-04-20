@@ -260,7 +260,8 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "36": {
     "inputs": {
-      "value": 0
+      "value": 0,
+      "control_after_generate": "fixed"
     },
     "class_type": "PrimitiveInt",
     "_meta": { "title": "LTX_WAN_36" }
@@ -326,7 +327,7 @@ export const LTX_WAN_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   "82": {
     "inputs": {
-      "frame_rate": ["35", 1],
+      "frame_rate": ["3", 1],
       "loop_count": 0,
       "filename_prefix": "PLACEHOLDER",
       "format": "PLACEHOLDER",

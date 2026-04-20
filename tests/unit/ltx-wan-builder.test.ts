@@ -242,7 +242,7 @@ describe('buildLtxWanWorkflow', () => {
     mockSettings.mockResolvedValueOnce(makeSettings({ vfiEnabled: false }))
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
-    expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.frame_rate).toEqual([LTX_WAN.FRAME_RATE, 2])
+    expect(workflow[LTX_WAN.VIDEO_OUTPUT]!.inputs!.frame_rate).toEqual([LTX_WAN.FRAME_RATE, 1])
   })
 
   it('removes RIFE custom config when profile is not custom', async () => {

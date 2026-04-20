@@ -329,7 +329,7 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSett
   if (settings.vfiEnabled) {
     setNode(workflow, LTX_WAN.VIDEO_OUTPUT, { frame_rate: [LTX_WAN.VFI_FRAME_RATE, 1] })
   } else {
-    setNode(workflow, LTX_WAN.VIDEO_OUTPUT, { frame_rate: [LTX_WAN.FRAME_RATE, 2] })
+    setNode(workflow, LTX_WAN.VIDEO_OUTPUT, { frame_rate: [LTX_WAN.FRAME_RATE, 1] })
   }
 }
 
