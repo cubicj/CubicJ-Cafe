@@ -98,6 +98,8 @@ export interface WanSettings {
   propagateX0StrengthHigh: number;
   propagateX0Low: boolean;
   propagateX0StrengthLow: number;
+  disableWindowReinjectHigh: boolean;
+  disableWindowReinjectLow: boolean;
 }
 
 export interface LtxSettings {
@@ -178,6 +180,8 @@ export const WAN_KEYS = {
   videoPixFmt: 'wan.video_pix_fmt',
   negativePrompt: 'wan.negative_prompt',
   durationOptions: 'wan.duration_options',
+  disableWindowReinjectHigh: 'wan.disable_window_reinject_high',
+  disableWindowReinjectLow: 'wan.disable_window_reinject_low',
   propagateX0High: 'wan.propagate_x0_high',
   propagateX0StrengthHigh: 'wan.propagate_x0_strength_high',
   propagateX0Low: 'wan.propagate_x0_low',
@@ -283,6 +287,8 @@ export async function getWanSettings(): Promise<WanSettings> {
     videoPixFmt: map.get(k.videoPixFmt)!,
     negativePrompt: map.get(k.negativePrompt)!,
     durationOptions: map.get(k.durationOptions)!.split(',').map(Number),
+    disableWindowReinjectHigh: map.get(k.disableWindowReinjectHigh)! === 'true',
+    disableWindowReinjectLow: map.get(k.disableWindowReinjectLow)! === 'true',
     propagateX0High: map.get(k.propagateX0High)! === 'true',
     propagateX0StrengthHigh: parseFloat(map.get(k.propagateX0StrengthHigh)!),
     propagateX0Low: map.get(k.propagateX0Low)! === 'true',
@@ -407,6 +413,7 @@ export interface LtxWanSettings {
   prefetchBlocks: number
   propagateX0: boolean
   propagateX0Strength: number
+  disableWindowReinject: boolean
 
   vfiMethod: string
   rifeModel: string
@@ -493,6 +500,7 @@ export const LTX_WAN_KEYS = {
   negativePromptWan: 'ltx-wan.negative_prompt_wan',
   blocksToSwap: 'ltx-wan.blocks_to_swap',
   prefetchBlocks: 'ltx-wan.prefetch_blocks',
+  disableWindowReinject: 'ltx-wan.disable_window_reinject',
   propagateX0: 'ltx-wan.propagate_x0',
   propagateX0Strength: 'ltx-wan.propagate_x0_strength',
 
@@ -589,6 +597,7 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     negativePromptWan: map.get(k.negativePromptWan)!,
     blocksToSwap: parseInt(map.get(k.blocksToSwap)!, 10),
     prefetchBlocks: parseInt(map.get(k.prefetchBlocks)!, 10),
+    disableWindowReinject: map.get(k.disableWindowReinject)! === 'true',
     propagateX0: map.get(k.propagateX0)! === 'true',
     propagateX0Strength: parseFloat(map.get(k.propagateX0Strength)!),
 
