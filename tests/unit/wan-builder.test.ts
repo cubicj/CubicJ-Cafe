@@ -93,12 +93,14 @@ describe('buildWanWorkflow', () => {
 
     expect(wf[WAN.CONTEXT_REFINE_HIGH]).toBeDefined()
     expect(wf[WAN.CONTEXT_REFINE_HIGH]!.class_type).toBe('WanVideoContextRefineMode')
+    expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.disable_window_reinject).toBe(true)
     expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.propagate_x0).toBe(true)
     expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.propagate_x0_strength).toBe(0.98)
     expect(wf[WAN.CONTEXT_REFINE_HIGH]!.inputs!.image_embeds).toEqual([WAN.IMG_TO_VIDEO_ENCODE, 0])
 
     expect(wf[WAN.CONTEXT_REFINE_LOW]).toBeDefined()
     expect(wf[WAN.CONTEXT_REFINE_LOW]!.class_type).toBe('WanVideoContextRefineMode')
+    expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.disable_window_reinject).toBe(true)
     expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.propagate_x0).toBe(false)
     expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.propagate_x0_strength).toBe(0.5)
     expect(wf[WAN.CONTEXT_REFINE_LOW]!.inputs!.image_embeds).toEqual([WAN.IMG_TO_VIDEO_ENCODE, 0])

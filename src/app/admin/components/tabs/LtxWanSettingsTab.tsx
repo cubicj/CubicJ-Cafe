@@ -63,6 +63,7 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.prefetch_blocks', label: 'Prefetch Blocks', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'ltx-wan.sigmas_wan', label: 'Sigmas (CSV)', type: 'string', group: 'WAN — 샘플러', monoFont: true },
 
+  { key: 'ltx-wan.disable_window_reinject', label: 'Disable Window Reinject', type: 'boolean', group: 'WAN — Context Refine' },
   { key: 'ltx-wan.propagate_x0', label: 'Propagate x0', type: 'boolean', group: 'WAN — Context Refine' },
   { key: 'ltx-wan.propagate_x0_strength', label: 'Propagate x0 Strength', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
 

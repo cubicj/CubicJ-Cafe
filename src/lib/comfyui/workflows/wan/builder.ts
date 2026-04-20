@@ -127,10 +127,12 @@ function configurePrompts(workflow: ComfyUIWorkflow, params: WanGenerationParams
 
 function configureContextRefine(workflow: ComfyUIWorkflow, settings: WanSettings) {
   setNode(workflow, WAN.CONTEXT_REFINE_HIGH, {
+    disable_window_reinject: settings.disableWindowReinjectHigh,
     propagate_x0: settings.propagateX0High,
     propagate_x0_strength: settings.propagateX0StrengthHigh,
   })
   setNode(workflow, WAN.CONTEXT_REFINE_LOW, {
+    disable_window_reinject: settings.disableWindowReinjectLow,
     propagate_x0: settings.propagateX0Low,
     propagate_x0_strength: settings.propagateX0StrengthLow,
   })

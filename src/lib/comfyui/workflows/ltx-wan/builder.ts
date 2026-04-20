@@ -254,6 +254,7 @@ function configureWanPipeline(
     prefetch_blocks: settings.prefetchBlocks,
   })
   setNode(workflow, LTX_WAN.WAN_CONTEXT_REFINE, {
+    disable_window_reinject: settings.disableWindowReinject,
     propagate_x0: settings.propagateX0,
     propagate_x0_strength: settings.propagateX0Strength,
   })
