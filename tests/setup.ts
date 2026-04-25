@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const TEST_DB_PATH = path.resolve(__dirname, '.test.db')
 
 export function setup() {
+  fs.closeSync(fs.openSync(TEST_DB_PATH, 'a'))
+
   execFileSync('npx', ['prisma', 'db', 'push', '--skip-generate', '--accept-data-loss'], {
     env: { ...process.env, DATABASE_URL: `file:${TEST_DB_PATH}` },
     stdio: 'pipe',

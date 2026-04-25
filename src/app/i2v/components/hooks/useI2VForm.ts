@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createLogger } from '@/lib/logger';
 import { apiClient, ApiError } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
@@ -149,6 +149,8 @@ export function useI2VForm(): UseI2VFormReturn {
   const [videoDuration, setVideoDuration] = useState<number>(
     MODEL_REGISTRY[activeModel].defaultDuration
   );
+  const initialModelRef = useRef(activeModel);
+  const initialDurationRef = useRef(videoDuration);
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
@@ -163,8 +165,8 @@ export function useI2VForm(): UseI2VFormReturn {
         }>('/api/i2v/capabilities');
         setCapabilitiesMap(data.capabilities);
         setDurationOptionsMap(data.durationOptions);
-        const options = data.durationOptions[activeModel];
-        if (options && !options.includes(videoDuration)) {
+        const options = data.durationOptions[initialModelRef.current];
+        if (options && !options.includes(initialDurationRef.current)) {
           setVideoDuration(options[0]);
         }
       } catch {
@@ -180,8 +182,7 @@ export function useI2VForm(): UseI2VFormReturn {
     } else if (!isLoopEnabled) {
       setEndImageFile(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- setEndImageFile is a React setState, always stable
-  }, [isLoopEnabled, selectedFile]);
+  }, [isLoopEnabled, selectedFile, setEndImageFile]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

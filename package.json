@@ -20,7 +20,7 @@
     "build:production": "cross-env NODE_ENV=production npm run build",
     "build:standalone": "npm run build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
     "size-check": "npx size-limit",
-    "perf-check": "npm run build && npm run start &amp; sleep 5 && npx lighthouse http://localhost:3000 --only-categories=performance --chrome-flags=\"--headless\" --output=html --output-path=./lighthouse-report.html && pkill -f 'npm run start'",
+    "perf-check": "npm run build && npm run start & sleep 5 && npx lighthouse http://localhost:3000 --only-categories=performance --chrome-flags=\"--headless\" --output=html --output-path=./lighthouse-report.html && pkill -f 'npm run start'",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
@@ -56,6 +56,9 @@
     "tailwind-merge": "^3.3.1",
     "ws": "^8.20.0",
     "zod": "^4.3.6"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

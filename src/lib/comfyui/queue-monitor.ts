@@ -338,15 +338,6 @@ class QueueMonitor {
       }
 
       const actualServerId = this.resolveServerId(server);
-      const serverInfo = {
-        id: actualServerId,
-        type: server.type === 'runpod' ? 'RUNPOD' as const : 'LOCAL' as const,
-        url: server.url,
-        isActive: true,
-        activeJobs: 0,
-        maxJobs: 1,
-        priority: server.type === 'runpod' ? 1 : 2
-      }
 
       let uploadedEndImageName = null;
       if (request.endImageBlob && request.endImageFile) {
@@ -393,7 +384,7 @@ class QueueMonitor {
         };
       }
 
-      const workflow = await buildWorkflow(params, serverInfo);
+      const workflow = await buildWorkflow(params);
 
       log.debug('Workflow built', {
         server: server.name,
