@@ -3,6 +3,7 @@ import { createAdminUser, createUser } from '../../helpers/fixtures'
 import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 
 import { POST } from '@/app/api/admin/logs/ingest/route'
+import { logBuffer } from '@/lib/log-buffer'
 
 beforeEach(async () => {
   await cleanTables()
@@ -76,7 +77,7 @@ describe('POST /api/admin/logs/ingest', () => {
     expect(body.accepted).toBe(2)
   })
 
-  it('skips entries with missing required fields', async () => {
+  it('returns 400 for entries with missing required fields', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/logs/ingest', session.id, {
@@ -91,10 +92,42 @@ describe('POST /api/admin/logs/ingest', () => {
       headers: { 'content-type': 'application/json' },
     })
     const res = await POST(req)
+
+    expect(res.status).toBe(400)
+  })
+
+  it('redacts sensitive client log fields', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/logs/ingest', session.id, {
+      method: 'POST',
+      body: JSON.stringify({
+        entries: [
+          {
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            category: 'console',
+            message: 'request failed token=abc123',
+            meta: {
+              prompt: 'a very private prompt that should not be fully written to the log file because it may contain user intent and sensitive details',
+              discordId: '1234567890',
+              authorization: 'Bearer secret-token',
+            },
+          },
+        ],
+      }),
+      headers: { 'content-type': 'application/json' },
+    })
+    const res = await POST(req)
     const body = await res.json()
+    const [last] = logBuffer.getRecent(1)
 
     expect(res.status).toBe(200)
     expect(body.accepted).toBe(1)
+    expect(last.message).toBe('request failed token=[REDACTED]')
+    expect(last.meta?.discordId).toBe('[REDACTED]')
+    expect(last.meta?.authorization).toBe('[REDACTED]')
+    expect(String(last.meta?.prompt)).toContain('[TRUNCATED]')
   })
 
   it('returns 400 when entries exceed max limit', async () => {

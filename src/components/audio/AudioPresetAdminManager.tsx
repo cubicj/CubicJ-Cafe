@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -35,7 +35,7 @@ export default function AudioPresetAdminManager() {
   const [isLoading, setIsLoading] = useState(true)
   const [filterUserId, setFilterUserId] = useState<string>('all')
 
-  const fetchPresets = async () => {
+  const fetchPresets = useCallback(async () => {
     setIsLoading(true)
     try {
       const query = filterUserId !== 'all' ? `?userId=${filterUserId}` : ''
@@ -46,11 +46,11 @@ export default function AudioPresetAdminManager() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [filterUserId])
 
   useEffect(() => {
     fetchPresets()
-  }, [filterUserId])
+  }, [fetchPresets])
 
   const handleDelete = async (presetId: string) => {
     try {

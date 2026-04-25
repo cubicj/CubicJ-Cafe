@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { logBuffer } from '@/lib/log-buffer';
+import { redactLogEntry } from '@/lib/logger';
 import { parseBody } from '@/lib/validations/parse';
 import { logIngestSchema } from '@/lib/validations/schemas/admin';
-
-interface IngestEntry {
-  timestamp: string;
-  level: string;
-  category: string;
-  message: string;
-  meta?: Record<string, unknown>;
-}
 
 export const POST = createRouteHandler(
   { auth: 'admin', category: 'admin' },
@@ -27,15 +20,14 @@ export const POST = createRouteHandler(
 
     let accepted = 0;
 
-    for (const raw of parsed.data.entries) {
-      const entry = raw as Partial<IngestEntry>;
-      if (!entry.timestamp || !entry.level || !entry.category || !entry.message) continue;
+    for (const entry of parsed.data.entries) {
+      const redacted = redactLogEntry(entry);
       logBuffer.push({
-        timestamp: entry.timestamp,
-        level: entry.level,
-        category: entry.category,
-        message: entry.message,
-        meta: entry.meta,
+        timestamp: redacted.timestamp,
+        level: redacted.level,
+        category: redacted.category,
+        message: redacted.message,
+        meta: redacted.meta,
         source: 'client',
       });
       accepted++;

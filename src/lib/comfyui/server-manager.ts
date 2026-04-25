@@ -91,15 +91,7 @@ export class ComfyUIServerManager {
     const availableServers = this.getAvailableServers()
     
     if (availableServers.length === 0) {
-      log.warn('No available servers, attempting local server fallback')
-
-      const localServer = this.servers.find(s => s.type === 'LOCAL')
-      if (localServer) {
-        log.debug('Fallback to local server', { url: localServer.url })
-        return localServer
-      }
-
-      log.error('All servers unavailable')
+      log.warn('No available servers')
       return null
     }
 

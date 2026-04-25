@@ -1,6 +1,5 @@
 import type { LtxWanGenerationParams } from '../types'
 import type { ComfyUIWorkflow } from '@/types'
-import type { ComfyUIServer } from '../../server-manager'
 import type { LtxWanSettings } from '@/lib/database/system-settings'
 import { LTX_WAN_WORKFLOW_TEMPLATE } from './template'
 import { LTX_WAN } from './nodes'
@@ -12,8 +11,7 @@ import { computeWanContextOptions } from '../wan/context-options'
 const log = createLogger('comfyui')
 
 export async function buildLtxWanWorkflow(
-  params: LtxWanGenerationParams,
-  _server?: ComfyUIServer
+  params: LtxWanGenerationParams
 ): Promise<ComfyUIWorkflow> {
   const settings = await getLtxWanSettings()
   const workflow: ComfyUIWorkflow = JSON.parse(JSON.stringify(LTX_WAN_WORKFLOW_TEMPLATE))

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,6 +61,7 @@ const dropdownCaches = new Map<string, { samplers: string[]; models: Record<stri
 
 export default function ModelSettingsTab({ title, category, fields, headerExtra, onValuesLoaded, onValueChange }: ModelSettingsTabProps) {
   const cache = dropdownCaches.get(category);
+  const onValuesLoadedRef = useRef(onValuesLoaded);
   const [values, setValues] = useState<Record<string, string>>({});
   const [samplers, setSamplers] = useState<string[]>(cache?.samplers ?? []);
   const [models, setModels] = useState<Record<string, string[]>>(cache?.models ?? {});
@@ -69,6 +70,10 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    onValuesLoadedRef.current = onValuesLoaded;
+  }, [onValuesLoaded]);
 
   const fetchAllDropdowns = async () => {
     setRefreshing(true);
@@ -109,7 +114,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
           initial[key] = entry?.value ?? '';
         }
         setValues(initial);
-        onValuesLoaded?.(initial);
+        onValuesLoadedRef.current?.(initial);
       } catch {
         setMessage({ type: 'error', text: '설정을 불러오는데 실패했습니다.' });
       } finally {

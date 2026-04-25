@@ -47,8 +47,16 @@ export const logsQuerySchema = paginationSchema.extend({
   search: z.string().optional(),
 })
 
+const logEntrySchema = z.object({
+  timestamp: z.string().max(64),
+  level: z.enum(['debug', 'info', 'warn', 'error']),
+  category: z.string().min(1).max(64),
+  message: z.string().min(1).max(2000),
+  meta: z.record(z.string(), z.unknown()).optional(),
+})
+
 export const logIngestSchema = z.object({
-  entries: z.array(z.unknown()).max(100),
+  entries: z.array(logEntrySchema).max(100),
 })
 
 export const loraBundleCreateSchema = z
