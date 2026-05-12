@@ -166,19 +166,22 @@ function configureLoras(workflow: ComfyUIWorkflow, settings: LtxSettings): NodeO
   let model: NodeOutput = [LTX.SAGE_ATTN_PATCH, 0]
 
   for (const { node, slot } of chain) {
+    if (!slot.enabled) {
+      delete workflow[node]
+      continue
+    }
+
     setNode(workflow, node, {
       lora_name: slot.name,
-      strength_model: slot.enabled ? slot.strength : 0,
-      video: slot.enabled ? slot.video : 0,
-      video_to_audio: slot.enabled ? slot.videoToAudio : 0,
-      audio: slot.enabled ? slot.audio : 0,
-      audio_to_video: slot.enabled ? slot.audioToVideo : 0,
-      other: slot.enabled ? slot.other : 0,
+      strength_model: slot.strength,
+      video: slot.video,
+      video_to_audio: slot.videoToAudio,
+      audio: slot.audio,
+      audio_to_video: slot.audioToVideo,
+      other: slot.other,
       model,
     })
-    if (slot.enabled) {
-      model = [node, 0]
-    }
+    model = [node, 0]
   }
 
   return model
