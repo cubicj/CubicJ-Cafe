@@ -28,7 +28,8 @@ export async function buildLtxWorkflow(params: LtxGenerationParams): Promise<Com
   configureGuide(workflow, settings)
   configureAnchor(workflow, settings)
   configureScheduledCfg(workflow, settings)
-  const modelOutput = configureLoras(workflow, settings)
+  const generalModelOutput = configureLoras(workflow, settings)
+  const modelOutput = configureIdLora(workflow, settings, generalModelOutput, !!params.referenceAudio)
 
   if (params.referenceAudio) {
     handleReferenceAudio(workflow, params.referenceAudio, settings, modelOutput)
@@ -185,6 +186,36 @@ function configureLoras(workflow: ComfyUIWorkflow, settings: LtxSettings): NodeO
   }
 
   return model
+}
+
+function configureIdLora(
+  workflow: ComfyUIWorkflow,
+  settings: LtxSettings,
+  modelOutput: NodeOutput,
+  hasReferenceAudio: boolean
+): NodeOutput {
+  const slot = settings.idLora
+  if (!hasReferenceAudio || !slot.enabled || slot.name === 'CONFIGURE_IN_ADMIN') {
+    delete workflow[LTX.ID_LORA]
+    return modelOutput
+  }
+
+  workflow[LTX.ID_LORA] = {
+    inputs: {
+      lora_name: slot.name,
+      strength_model: slot.strength,
+      video: slot.video,
+      video_to_audio: slot.videoToAudio,
+      audio: slot.audio,
+      audio_to_video: slot.audioToVideo,
+      other: slot.other,
+      model: modelOutput,
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: { title: 'ID LoRA' },
+  }
+
+  return [LTX.ID_LORA, 0]
 }
 
 function handleReferenceAudio(
