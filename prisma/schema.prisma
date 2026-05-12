@@ -63,6 +63,7 @@ model QueueRequest {
   videoModel      String         @default("wan") @map("video_model")
   generationMode  GenerationMode @default(START_ONLY) @map("generation_mode")
   videoDuration   Int            @default(5) @map("video_duration")
+  videoDurationSeconds Float?    @map("video_duration_seconds")
   workflowJson    String?        @map("workflow_json")
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 

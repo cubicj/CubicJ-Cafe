@@ -39,6 +39,7 @@ export interface QueueRequestData {
   videoModel?: string;
   generationMode?: GenerationMode;
   videoDuration?: number;
+  videoDurationSeconds?: number;
 }
 
 export interface QueueRequestUpdate {
@@ -77,6 +78,7 @@ const QUEUE_SELECT_BASE = {
   videoModel: true,
   generationMode: true,
   videoDuration: true,
+  videoDurationSeconds: true,
 } as const;
 
 const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
@@ -121,6 +123,7 @@ export class QueueService {
           videoModel: data.videoModel || 'wan',
           generationMode: data.generationMode || GenerationMode.START_ONLY,
           videoDuration: data.videoDuration || 5,
+          videoDurationSeconds: data.videoDurationSeconds,
           position: nextPosition,
           status: QueueStatus.PENDING,
         };
