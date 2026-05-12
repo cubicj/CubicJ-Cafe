@@ -21,56 +21,58 @@ afterEach(() => {
 })
 
 describe('buildLtxWorkflow reference audio', () => {
-  it('injects LoadAudio, LTXVReferenceAudio, LTX2AudioLatentNormalizingSampling when referenceAudio provided', async () => {
+  it('injects LoadAudio and reference audio identity settings when referenceAudio provided', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
-      inputImage: 'img.png',
-      videoDuration: 5,
-      referenceAudio: 'voice.flac',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+      referenceAudio: 'fake-voice.flac',
     })
+
     expect(wf[LTX.LOAD_AUDIO]).toMatchObject({
-      inputs: { audio: 'voice.flac' },
+      inputs: { audio: 'fake-voice.flac' },
       class_type: 'LoadAudio',
     })
-    expect(wf[LTX.REFERENCE_AUDIO].class_type).toBe('LTXVReferenceAudio')
-    expect(wf[LTX.AUDIO_NORM].class_type).toBe('LTX2AudioLatentNormalizingSampling')
+    expect(wf[LTX.REFERENCE_AUDIO]).toMatchObject({
+      class_type: 'LTXVReferenceAudio',
+      inputs: {
+        identity_guidance_scale: 2.7,
+        start_percent: 0.12,
+        end_percent: 0.86,
+        model: [LTX.LORA_1, 0],
+        positive: [LTX.VRAM_POST_CONDITIONING, 0],
+        negative: [LTX.CONDITIONING, 1],
+      },
+    })
   })
 
-  it('flips LoRA slot 2 on with ID LoRA settings when audio provided', async () => {
+  it('routes NAG and ADD_GUIDE through reference audio outputs when audio provided', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
-      inputImage: 'img.png',
-      videoDuration: 5,
-      referenceAudio: 'v.flac',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+      referenceAudio: 'fake-voice.flac',
     })
-    const slot = wf[LTX.POWER_LORA]!.inputs!['lora_2'] as { on: boolean; lora: string; strength: number }
-    expect(slot.on).toBe(true)
-    expect(slot.lora).toBe('test-id-lora.safetensors')
-    expect(slot.strength).toBe(0.68)
+
+    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.REFERENCE_AUDIO, 0])
+    expect(wf[LTX.ADD_GUIDE]!.inputs!.positive).toEqual([LTX.REFERENCE_AUDIO, 1])
+    expect(wf[LTX.ADD_GUIDE]!.inputs!.negative).toEqual([LTX.REFERENCE_AUDIO, 2])
   })
 
-  it('rewires CFGGuider to read from REFERENCE_AUDIO outputs', async () => {
+  it('removes reference audio nodes and rewires ADD_GUIDE to conditioning outputs when audio absent', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
-      inputImage: 'img.png',
-      videoDuration: 5,
-      referenceAudio: 'v.flac',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
     })
-    expect(wf[LTX.CFG_GUIDER]!.inputs!.positive).toEqual([LTX.REFERENCE_AUDIO, 1])
-    expect(wf[LTX.CFG_GUIDER]!.inputs!.negative).toEqual([LTX.REFERENCE_AUDIO, 2])
-  })
 
-  it('writes audio_normalization_factors from settings into AudioNorm', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
-      prompt: 'p',
-      inputImage: 'img.png',
-      videoDuration: 5,
-      referenceAudio: 'v.flac',
-    })
-    expect(wf[LTX.AUDIO_NORM]!.inputs!.audio_normalization_factors).toBe('1,1,0.7,1,1,0.7,1,1,1,1')
+    expect(wf[LTX.LOAD_AUDIO]).toBeUndefined()
+    expect(wf[LTX.REFERENCE_AUDIO]).toBeUndefined()
+    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
+    expect(wf[LTX.ADD_GUIDE]!.inputs!.positive).toEqual([LTX.VRAM_POST_CONDITIONING, 0])
+    expect(wf[LTX.ADD_GUIDE]!.inputs!.negative).toEqual([LTX.CONDITIONING, 1])
   })
 })

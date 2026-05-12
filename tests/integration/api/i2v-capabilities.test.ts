@@ -66,6 +66,9 @@ describe('GET /api/i2v/capabilities', () => {
 
   it('returns durationOptions from settings for ltx-wan and registry for others', async () => {
     await seedSettings({ 'ltx-wan.duration_options': '5,6,7,8' })
+    await prisma.systemSetting.deleteMany({
+      where: { key: { in: ['wan.duration_options', 'ltx.duration_options'] } },
+    })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
