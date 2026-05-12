@@ -43,4 +43,5 @@ export const LTX = {
   AUDIO_CONDITIONING_PROMPT: '513',
   SCHEDULED_CFG: '526',
   SCHEDULER: '527',
+  ID_LORA: '528',
 } as const;
