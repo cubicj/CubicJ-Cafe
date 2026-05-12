@@ -309,7 +309,7 @@ describe('buildLtxWorkflow', () => {
     })
 
     expect(wf[LTX.VIDEO_COMBINE]!.inputs).toMatchObject({
-      frame_rate: 18,
+      frame_rate: [LTX.FRAME_RATE, 1],
       crf: 29,
       format: 'fake-video-format',
       pix_fmt: 'fake-pix-fmt',
