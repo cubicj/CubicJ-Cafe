@@ -77,6 +77,38 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.durationOptions.ltx).toEqual([5, 6, 7])
   })
 
+  it('returns only enabled models', async () => {
+    await seedSettings({
+      'wan.enabled': 'true',
+      'ltx.enabled': 'false',
+      'ltx-wan.enabled': 'true',
+    })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.enabledModels).toEqual(['wan', 'ltx-wan'])
+  })
+
+  it('allows all models to be disabled', async () => {
+    await seedSettings({
+      'wan.enabled': 'false',
+      'ltx.enabled': 'false',
+      'ltx-wan.enabled': 'false',
+    })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.enabledModels).toEqual([])
+  })
+
   it('falls back to registry durationOptions when setting missing', async () => {
     const user = await createUser()
     const session = await createTestSession(user.id)

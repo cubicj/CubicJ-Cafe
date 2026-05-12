@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database/prisma'
 type SeedType = 'string' | 'number' | 'boolean'
 
 export const LTX_SEED: Array<{ key: string; value: string; type: SeedType }> = [
+  { key: 'ltx.enabled', value: 'true', type: 'boolean' },
   { key: 'ltx.unet', value: 'test-ltx-unet.safetensors', type: 'string' },
   { key: 'ltx.weight_dtype', value: 'default', type: 'string' },
   { key: 'ltx.audio_vae', value: 'test-ltx-audio-vae.safetensors', type: 'string' },

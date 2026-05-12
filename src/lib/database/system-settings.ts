@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import { createLogger } from '@/lib/logger';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
 
 const log = createLogger('database');
 
@@ -145,6 +146,12 @@ export interface LtxSettings {
   videoPixFmt: string;
   durationOptions: number[];
 }
+
+export const MODEL_ENABLED_KEYS = {
+  wan: 'wan.enabled',
+  ltx: 'ltx.enabled',
+  'ltx-wan': 'ltx-wan.enabled',
+} as const
 
 export const WAN_KEYS = {
   wanvideoModelHigh: 'wan.wanvideo_model_high',
@@ -620,4 +627,23 @@ export async function getLtxWanSettings(): Promise<LtxWanSettings> {
     videoFormat: map.get(k.videoFormat)!,
     videoPixFmt: map.get(k.videoPixFmt)!,
   }
+}
+
+export async function getEnabledModels(): Promise<VideoModel[]> {
+  const rows = await prisma.systemSetting.findMany({
+    where: {
+      key: {
+        in: Object.values(MODEL_ENABLED_KEYS),
+      },
+    },
+  })
+  const values = new Map(rows.map(row => [row.key, row.value]))
+
+  return ([
+    ['wan', MODEL_ENABLED_KEYS.wan],
+    ['ltx', MODEL_ENABLED_KEYS.ltx],
+    ['ltx-wan', MODEL_ENABLED_KEYS['ltx-wan']],
+  ] as const)
+    .filter(([, key]) => values.get(key) !== 'false')
+    .map(([model]) => model)
 }

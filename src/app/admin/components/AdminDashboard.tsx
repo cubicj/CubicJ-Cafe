@@ -22,6 +22,23 @@ import LtxWanSettingsTab from './tabs/LtxWanSettingsTab';
 
 const log = createLogger('admin');
 
+type AdminSettingEntry = {
+  value: string;
+  type: string;
+};
+
+type ModelEnabledKey = 'wan.enabled' | 'ltx.enabled' | 'ltx-wan.enabled';
+
+const MODEL_ENABLE_TOGGLES: Array<{
+  key: ModelEnabledKey;
+  label: string;
+  category: string;
+}> = [
+  { key: 'wan.enabled', label: 'WAN 2.2', category: 'wan' },
+  { key: 'ltx.enabled', label: 'LTX 2.3', category: 'ltx' },
+  { key: 'ltx-wan.enabled', label: 'L+W', category: 'ltx-wan' },
+];
+
 const ADMIN_TABS = [
   { value: 'database', label: '데이터베이스', icon: Database },
   { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
@@ -41,6 +58,13 @@ export default function AdminDashboard() {
   const [comfyuiEnabled, setComfyuiEnabled] = useState(false);
   const [comfyuiLoading, setComfyuiLoading] = useState(true);
   const [comfyuiMessage, setComfyuiMessage] = useState('');
+  const [modelEnabled, setModelEnabled] = useState<Record<ModelEnabledKey, boolean>>({
+    'wan.enabled': true,
+    'ltx.enabled': true,
+    'ltx-wan.enabled': true,
+  });
+  const [modelEnabledLoading, setModelEnabledLoading] = useState(false);
+  const [modelEnabledMessage, setModelEnabledMessage] = useState('');
   const [pausePosition, setPausePosition] = useState('');
   const [currentPause, setCurrentPause] = useState<number | null>(null);
   const [pauseLoading, setPauseLoading] = useState(false);
@@ -69,6 +93,48 @@ export default function AdminDashboard() {
     } catch {
     } finally {
       setComfyuiLoading(false);
+    }
+  };
+
+  const fetchModelEnabledState = async () => {
+    setModelEnabledLoading(true);
+    try {
+      const data = await apiClient.get<Record<string, Record<string, AdminSettingEntry>>>('/api/admin/settings');
+      setModelEnabled({
+        'wan.enabled': data.wan?.['wan.enabled']?.value !== 'false',
+        'ltx.enabled': data.ltx?.['ltx.enabled']?.value !== 'false',
+        'ltx-wan.enabled': data['ltx-wan']?.['ltx-wan.enabled']?.value !== 'false',
+      });
+    } catch {
+      setModelEnabledMessage('모델 활성화 설정을 불러오지 못했습니다.');
+      setTimeout(() => setModelEnabledMessage(''), 3000);
+    } finally {
+      setModelEnabledLoading(false);
+    }
+  };
+
+  const toggleModelEnabled = async (key: ModelEnabledKey, enabled: boolean) => {
+    const item = MODEL_ENABLE_TOGGLES.find((toggle) => toggle.key === key);
+    if (!item) return;
+
+    const previous = modelEnabled[key];
+    setModelEnabled((prev) => ({ ...prev, [key]: enabled }));
+    setModelEnabledLoading(true);
+    try {
+      await apiClient.put('/api/admin/settings', {
+        key,
+        value: String(enabled),
+        type: 'boolean',
+        category: item.category,
+      });
+      setModelEnabledMessage(`${item.label} ${enabled ? '활성화' : '비활성화'}됨`);
+      setTimeout(() => setModelEnabledMessage(''), 3000);
+    } catch {
+      setModelEnabled((prev) => ({ ...prev, [key]: previous }));
+      setModelEnabledMessage('모델 활성화 설정 저장에 실패했습니다.');
+      setTimeout(() => setModelEnabledMessage(''), 3000);
+    } finally {
+      setModelEnabledLoading(false);
     }
   };
 
@@ -126,6 +192,7 @@ export default function AdminDashboard() {
     const initializeAdminSettings = async () => {
       try {
         await fetchComfyUIState();
+        await fetchModelEnabledState();
         fetchPauseState();
       } catch (error) {
         log.error('Admin settings initialization failed', { error: error instanceof Error ? error.message : String(error) });
@@ -207,6 +274,12 @@ export default function AdminDashboard() {
         </Alert>
       )}
 
+      {modelEnabledMessage && (
+        <Alert>
+          <AlertDescription>{modelEnabledMessage}</AlertDescription>
+        </Alert>
+      )}
+
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -223,6 +296,29 @@ export default function AdminDashboard() {
             onCheckedChange={toggleComfyUI}
             disabled={comfyuiLoading}
           />
+        </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-semibold">모델 활성화</h3>
+            <p className="text-sm text-muted-foreground">
+              활성화된 모델만 I2V 모델 선택에 표시됩니다
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {MODEL_ENABLE_TOGGLES.map((item) => (
+              <div key={item.key} className="flex items-center justify-between rounded-md border px-3 py-2">
+                <span className="text-sm font-medium">{item.label}</span>
+                <Switch
+                  checked={modelEnabled[item.key]}
+                  onCheckedChange={(enabled) => toggleModelEnabled(item.key, enabled)}
+                  disabled={modelEnabledLoading}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
 
