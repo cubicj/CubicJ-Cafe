@@ -30,15 +30,19 @@ vi.mock('fs', () => ({
 vi.mock('@/lib/database/system-settings', () => ({
   getWanSettings: vi.fn(() => ({ loraEnabled: true })),
   getLtxSettings: vi.fn(() => ({ loraEnabled: false })),
+  getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false })),
+  getEnabledModels: vi.fn(() => ['wan', 'ltx', 'ltx-wan']),
 }))
 
 import { POST } from '@/app/api/i2v/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 import { serverManager } from '@/lib/comfyui/server-manager'
+import { getEnabledModels } from '@/lib/database/system-settings'
 
 beforeEach(async () => {
   await cleanTables()
   vi.mocked(isComfyUIEnabled).mockReturnValue(true)
+  vi.mocked(getEnabledModels).mockResolvedValue(['wan', 'ltx', 'ltx-wan'])
   vi.mocked(serverManager.selectBestServer).mockReturnValue({
     id: 'local',
     type: 'LOCAL',
@@ -192,6 +196,22 @@ describe('POST /api/i2v', () => {
     const nextReq = new NextRequest(req)
     const res = await POST(nextReq)
     expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when selected model is disabled', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(['ltx', 'ltx-wan'])
+
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ model: 'wan' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const nextReq = new NextRequest(req)
+    const res = await POST(nextReq)
+    const body = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(body.error).toContain('비활성')
   })
 
   it('stores videoDuration in queue request', async () => {

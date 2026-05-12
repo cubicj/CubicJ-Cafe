@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database/prisma'
 type SeedType = 'string' | 'number' | 'boolean'
 
 export const WAN_SEED: Array<{ key: string; value: string; type: SeedType }> = [
+  { key: 'wan.enabled', value: 'true', type: 'boolean' },
   { key: 'wan.wanvideo_model_high', value: 'test-wan-high.safetensors', type: 'string' },
   { key: 'wan.wanvideo_model_low', value: 'test-wan-low.safetensors', type: 'string' },
   { key: 'wan.t5_encoder', value: 'test-t5.safetensors', type: 'string' },

@@ -118,4 +118,24 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.settings).toHaveLength(2)
   })
+
+  it('updates model enabled settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx-wan.enabled',
+        value: 'false',
+        type: 'boolean',
+        category: 'ltx-wan',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx-wan.enabled')
+    expect(body.setting.value).toBe('false')
+  })
 })

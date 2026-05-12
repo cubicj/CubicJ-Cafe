@@ -7,7 +7,7 @@ import { ServerType, GenerationMode } from '@prisma/client';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { getWanSettings, getLtxSettings, getLtxWanSettings } from '@/lib/database/system-settings';
+import { getEnabledModels, getWanSettings, getLtxSettings, getLtxWanSettings } from '@/lib/database/system-settings';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
 import { AudioPresetService } from '@/lib/database/audio-presets';
@@ -73,6 +73,14 @@ export const POST = createRouteHandler(
     const validated = formResult.data;
 
     const activeModel = validated.model as VideoModel;
+    const enabledModels = await getEnabledModels();
+    if (!enabledModels.includes(activeModel)) {
+      return NextResponse.json(
+        { error: '선택한 모델은 현재 비활성화되어 있습니다.' },
+        { status: 400 }
+      );
+    }
+
     const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
     const modelSettings = activeModel === 'wan'

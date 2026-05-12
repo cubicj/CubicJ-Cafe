@@ -91,6 +91,7 @@ interface UseI2VFormReturn {
   setIsLoadingServerStatus: (loading: boolean) => void;
   activeModel: VideoModel;
   setActiveModel: (model: VideoModel) => void;
+  enabledModels: VideoModel[];
   capabilities: ModelCapabilities;
   durationOptions: number[];
   isLoadingAuth: boolean;
@@ -153,6 +154,7 @@ export function useI2VForm(): UseI2VFormReturn {
   const initialDurationRef = useRef(videoDuration);
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
+  const [enabledModels, setEnabledModels] = useState<VideoModel[]>((Object.keys(MODEL_REGISTRY) as VideoModel[]));
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
   const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;
 
@@ -162,10 +164,19 @@ export function useI2VForm(): UseI2VFormReturn {
         const data = await apiClient.get<{
           capabilities: Record<VideoModel, ModelCapabilities>
           durationOptions: Record<VideoModel, number[]>
+          enabledModels: VideoModel[]
         }>('/api/i2v/capabilities');
         setCapabilitiesMap(data.capabilities);
         setDurationOptionsMap(data.durationOptions);
-        const options = data.durationOptions[initialModelRef.current];
+        setEnabledModels(data.enabledModels);
+        const initialEnabledModel = data.enabledModels.includes(initialModelRef.current)
+          ? initialModelRef.current
+          : data.enabledModels[0];
+        if (initialEnabledModel && initialEnabledModel !== initialModelRef.current) {
+          setActiveModelState(initialEnabledModel);
+          localStorage.setItem('activeModel', initialEnabledModel);
+        }
+        const options = initialEnabledModel ? data.durationOptions[initialEnabledModel] : data.durationOptions[initialModelRef.current];
         if (options && !options.includes(initialDurationRef.current)) {
           setVideoDuration(options[0]);
         }
@@ -217,6 +228,11 @@ export function useI2VForm(): UseI2VFormReturn {
   };
 
   const handleSubmit = async () => {
+    if (!enabledModels.includes(activeModel)) {
+      setSubmitMessage({ type: 'error', message: '선택 가능한 모델이 없습니다.' });
+      return;
+    }
+
     if (!selectedFile) {
       setSubmitMessage({ type: 'error', message: '이미지를 업로드해주세요.' });
       return;
@@ -325,6 +341,7 @@ export function useI2VForm(): UseI2VFormReturn {
   };
 
   const setActiveModel = (model: VideoModel) => {
+    if (!enabledModels.includes(model)) return;
     setActiveModelState(model);
     if (typeof window !== 'undefined') {
       localStorage.setItem('activeModel', model);
@@ -365,7 +382,7 @@ export function useI2VForm(): UseI2VFormReturn {
     }
   }, [presets, selectedPresetIds]);
 
-  const isFormValid = !!selectedFile && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
+  const isFormValid = enabledModels.includes(activeModel) && !!selectedFile && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
 
   return {
     selectedFile,
@@ -403,6 +420,7 @@ export function useI2VForm(): UseI2VFormReturn {
     setIsLoadingServerStatus,
     activeModel,
     setActiveModel,
+    enabledModels,
     capabilities,
     durationOptions,
     isFormValid,

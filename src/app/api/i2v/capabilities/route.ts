@@ -1,24 +1,28 @@
 import { createRouteHandler } from '@/lib/api/route-handler'
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
 import { prisma } from '@/lib/database/prisma'
+import { getEnabledModels } from '@/lib/database/system-settings'
 import type { VideoModel, ModelCapabilities } from '@/lib/comfyui/workflows/types'
 
 export const GET = createRouteHandler(
   { auth: 'user' },
   async () => {
-    const rows = await prisma.systemSetting.findMany({
-      where: {
-        key: {
-          in: [
-            'wan.lora_enabled',
-            'ltx.lora_enabled',
-            'wan.duration_options',
-            'ltx.duration_options',
-            'ltx-wan.duration_options',
-          ],
+    const [rows, enabledModels] = await Promise.all([
+      prisma.systemSetting.findMany({
+        where: {
+          key: {
+            in: [
+              'wan.lora_enabled',
+              'ltx.lora_enabled',
+              'wan.duration_options',
+              'ltx.duration_options',
+              'ltx-wan.duration_options',
+            ],
+          },
         },
-      },
-    })
+      }),
+      getEnabledModels(),
+    ])
 
     const settingsMap = new Map(rows.map(r => [r.key, r.value]))
 
@@ -45,6 +49,6 @@ export const GET = createRouteHandler(
       'ltx-wan': parseCsv(settingsMap.get('ltx-wan.duration_options')) ?? MODEL_REGISTRY['ltx-wan'].durationOptions,
     }
 
-    return { capabilities, durationOptions }
+    return { capabilities, durationOptions, enabledModels }
   }
 )
