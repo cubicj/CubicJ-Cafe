@@ -16,6 +16,15 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
 
+function getVideoDurationSeconds(model: VideoModel, videoDuration: number, modelSettings: unknown): number {
+  if (model !== 'ltx') return videoDuration;
+
+  const settings = modelSettings as { frameBase?: number; frameRate?: number };
+  if (!settings.frameBase || !settings.frameRate) return videoDuration;
+
+  return Number((((settings.frameBase * videoDuration) + 1) / settings.frameRate).toFixed(1));
+}
+
 async function selectBestServer() {
   await serverManager.checkServerHealth();
   const bestServer = serverManager.selectBestServer();
@@ -103,6 +112,7 @@ export const POST = createRouteHandler(
     const loraPresetData = loraEnabled ? validated.loraPreset : undefined;
 
     const { prompt, isNSFW, isLoop, videoDuration } = validated;
+    const videoDurationSeconds = getVideoDurationSeconds(activeModel, videoDuration, modelSettings);
     const imageFile = validated.image;
 
     const generationMode = isLoop
@@ -172,6 +182,7 @@ export const POST = createRouteHandler(
         videoModel: activeModel,
         generationMode,
         videoDuration,
+        videoDurationSeconds,
       });
 
       log.info('Request queued', { requestId, user: req.user!.nickname });

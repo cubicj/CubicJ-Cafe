@@ -37,7 +37,7 @@ vi.mock('@/lib/database/system-settings', () => ({
 import { POST } from '@/app/api/i2v/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 import { serverManager } from '@/lib/comfyui/server-manager'
-import { getEnabledModels } from '@/lib/database/system-settings'
+import { getEnabledModels, getLtxSettings } from '@/lib/database/system-settings'
 
 beforeEach(async () => {
   await cleanTables()
@@ -231,5 +231,35 @@ describe('POST /api/i2v', () => {
       select: { videoDuration: true },
     })
     expect(queueRequest?.videoDuration).toBe(7)
+  })
+
+  it('stores LTX N and requested actual seconds in queue request', async () => {
+    vi.mocked(getLtxSettings).mockResolvedValue({
+      loraEnabled: false,
+      durationOptions: [24],
+      frameBase: 8,
+      frameRate: 25,
+    } as unknown as Awaited<ReturnType<typeof getLtxSettings>>)
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ model: 'ltx', videoDuration: '24' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const nextReq = new NextRequest(req)
+    const res = await POST(nextReq)
+    const body = await res.json()
+    expect(res.status).toBe(200)
+
+    const { prisma } = await import('@/lib/database/prisma')
+    const rows = await prisma.$queryRaw<Array<{ video_duration: number; video_duration_seconds: number }>>`
+      SELECT video_duration, video_duration_seconds
+      FROM queue_requests
+      WHERE id = ${body.requestId}
+    `
+
+    expect(rows[0]).toEqual({
+      video_duration: 24,
+      video_duration_seconds: 7.7,
+    })
   })
 })

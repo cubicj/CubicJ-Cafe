@@ -57,7 +57,14 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   </Badge>
                 </div>
                 <div className="col-span-1 text-xs">
-                  {request.videoDuration && `${request.videoDuration}초`}
+                  {request.videoDuration && (
+                    <div className="space-y-0.5">
+                      <div>{request.videoDurationSeconds ? `${request.videoDurationSeconds.toFixed(1)}초` : `${request.videoDuration}초`}</div>
+                      {request.videoDurationSeconds && request.videoDurationSeconds !== request.videoDuration && (
+                        <div className="text-muted-foreground">N {request.videoDuration}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2 flex items-center gap-1">
                   {request.videoModel && (
@@ -109,6 +116,16 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <div>
                       <span className="font-medium">모델:</span>
                       <span className="ml-2">{MODEL_REGISTRY[request.videoModel as VideoModel]?.displayName ?? request.videoModel}</span>
+                    </div>
+                  )}
+
+                  {request.videoDuration && (
+                    <div>
+                      <span className="font-medium">영상 길이:</span>
+                      <span className="ml-2">
+                        {request.videoDurationSeconds ? `${request.videoDurationSeconds.toFixed(1)}초` : `${request.videoDuration}초`}
+                        {request.videoDurationSeconds && request.videoDurationSeconds !== request.videoDuration ? ` (N ${request.videoDuration})` : ''}
+                      </span>
                     </div>
                   )}
 
