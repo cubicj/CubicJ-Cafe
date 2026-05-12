@@ -94,6 +94,7 @@ interface UseI2VFormReturn {
   enabledModels: VideoModel[];
   capabilities: ModelCapabilities;
   durationOptions: number[];
+  durationLabels: Record<number, string>;
   isLoadingAuth: boolean;
   hasUnavailableLoRAs: boolean;
   setHasUnavailableLoRAs: (has: boolean) => void;
@@ -154,9 +155,11 @@ export function useI2VForm(): UseI2VFormReturn {
   const initialDurationRef = useRef(videoDuration);
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
+  const [durationLabelsMap, setDurationLabelsMap] = useState<Record<VideoModel, Record<number, string>> | null>(null);
   const [enabledModels, setEnabledModels] = useState<VideoModel[]>((Object.keys(MODEL_REGISTRY) as VideoModel[]));
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
   const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;
+  const durationLabels: Record<number, string> = durationLabelsMap?.[activeModel] ?? Object.fromEntries(durationOptions.map(duration => [duration, `${duration}초`]));
 
   useEffect(() => {
     const fetchCapabilities = async () => {
@@ -164,10 +167,12 @@ export function useI2VForm(): UseI2VFormReturn {
         const data = await apiClient.get<{
           capabilities: Record<VideoModel, ModelCapabilities>
           durationOptions: Record<VideoModel, number[]>
+          durationLabels: Record<VideoModel, Record<number, string>>
           enabledModels: VideoModel[]
         }>('/api/i2v/capabilities');
         setCapabilitiesMap(data.capabilities);
         setDurationOptionsMap(data.durationOptions);
+        setDurationLabelsMap(data.durationLabels);
         setEnabledModels(data.enabledModels);
         const initialEnabledModel = data.enabledModels.includes(initialModelRef.current)
           ? initialModelRef.current
@@ -423,6 +428,7 @@ export function useI2VForm(): UseI2VFormReturn {
     enabledModels,
     capabilities,
     durationOptions,
+    durationLabels,
     isFormValid,
     handleSubmit,
     handleReset,

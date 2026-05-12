@@ -23,7 +23,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.audio_conditioning_prompt', label: 'Audio Conditioning Prompt', type: 'textarea', group: 'LTX - Prompts', monoFont: true },
 
   { key: 'ltx.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'LTX - Generation' },
-  { key: 'ltx.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'LTX - Generation', monoFont: true },
+  { key: 'ltx.duration_options', label: 'N Options (CSV)', type: 'string', group: 'LTX - Generation', monoFont: true },
   { key: 'ltx.frame_base', label: 'Frame Base', type: 'number', step: 1, group: 'LTX - Generation' },
   { key: 'ltx.megapixels', label: 'Resolution (MP)', type: 'number', step: 0.01, group: 'LTX - Generation' },
   { key: 'ltx.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'LTX - Generation' },
