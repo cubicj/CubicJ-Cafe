@@ -108,6 +108,15 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.lora_4_audio_to_video', label: 'Audio To Video', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
   { key: 'ltx.lora_4_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
 
+  { key: 'ltx.id_lora_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTX - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.id_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_audio', label: 'Audio', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_audio_to_video', label: 'Audio To Video', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+  { key: 'ltx.id_lora_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
+
   { key: 'ltx.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTX - RTX' },
   { key: 'ltx.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTX - RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltx.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTX - RTX' },

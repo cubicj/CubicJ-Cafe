@@ -164,6 +164,7 @@ export interface LtxSettings {
   scheduledCfgStartPercent: number;
   scheduledCfgEndPercent: number;
   loras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
+  idLora: LtxLoraSlotSettings;
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
@@ -302,6 +303,14 @@ export const LTX_KEYS = {
   lora4Audio: 'ltx.lora_4_audio',
   lora4AudioToVideo: 'ltx.lora_4_audio_to_video',
   lora4Other: 'ltx.lora_4_other',
+  idLoraEnabled: 'ltx.id_lora_enabled',
+  idLoraName: 'ltx.id_lora_name',
+  idLoraStrength: 'ltx.id_lora_strength',
+  idLoraVideo: 'ltx.id_lora_video',
+  idLoraVideoToAudio: 'ltx.id_lora_video_to_audio',
+  idLoraAudio: 'ltx.id_lora_audio',
+  idLoraAudioToVideo: 'ltx.id_lora_audio_to_video',
+  idLoraOther: 'ltx.id_lora_other',
   rtxEnabled: 'ltx.rtx_enabled',
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
@@ -532,6 +541,16 @@ export async function getLtxSettings(): Promise<LtxSettings> {
         other: k.lora4Other,
       }),
     ],
+    idLora: parseLtxLoraSlot(map, {
+      enabled: k.idLoraEnabled,
+      name: k.idLoraName,
+      strength: k.idLoraStrength,
+      video: k.idLoraVideo,
+      videoToAudio: k.idLoraVideoToAudio,
+      audio: k.idLoraAudio,
+      audioToVideo: k.idLoraAudioToVideo,
+      other: k.idLoraOther,
+    }),
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),
