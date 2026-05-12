@@ -42,10 +42,10 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.identity_guidance_scale', label: 'ID Guidance Scale', type: 'number', step: 0.1, group: 'LTX — 오디오' },
   { key: 'ltx-wan.identity_start_percent', label: 'ID Start %', type: 'number', step: 0.01, group: 'LTX — 오디오' },
   { key: 'ltx-wan.identity_end_percent', label: 'ID End %', type: 'number', step: 0.01, group: 'LTX — 오디오' },
-  { key: 'ltx-wan.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'LTX — 오디오', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx-wan.id_lora_name', label: 'ID LoRA', type: 'nodeOption', group: 'LTX — 오디오', nodeQuery: 'id_lora_name:LoraLoaderModelOnly:lora_name:LTX/' },
   { key: 'ltx-wan.id_lora_strength', label: 'ID LoRA Strength', type: 'number', step: 0.01, group: 'LTX — 오디오' },
 
-  { key: 'ltx-wan.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: 'LTX — Distilled LoRA', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx-wan.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: 'LTX — Distilled LoRA', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/' },
   { key: 'ltx-wan.distilled_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX — Distilled LoRA' },
 
   { key: 'ltx-wan.negative_prompt_ltx', label: 'LTX 네거티브', type: 'textarea', group: 'LTX — 프롬프트' },
