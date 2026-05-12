@@ -30,6 +30,16 @@ describe('GET /api/admin/settings', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(typeof body).toBe('object')
+    expect(Object.keys(body.ltx)).toEqual(expect.arrayContaining([
+      'ltx.id_lora_enabled',
+      'ltx.id_lora_name',
+      'ltx.id_lora_strength',
+      'ltx.id_lora_video',
+      'ltx.id_lora_video_to_audio',
+      'ltx.id_lora_audio',
+      'ltx.id_lora_audio_to_video',
+      'ltx.id_lora_other',
+    ]))
   })
 })
 
@@ -137,5 +147,25 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.setting.key).toBe('ltx-wan.enabled')
     expect(body.setting.value).toBe('false')
+  })
+
+  it('updates LTX ID LoRA settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx.id_lora_enabled',
+        value: 'true',
+        type: 'boolean',
+        category: 'ltx',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx.id_lora_enabled')
+    expect(body.setting.value).toBe('true')
   })
 })
