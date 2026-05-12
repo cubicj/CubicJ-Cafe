@@ -1,32 +1,10 @@
-import type { ComfyUIWorkflow } from '@/types'
+import type { ComfyUIWorkflow } from '@/types';
 
 export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
-  '1': {
-    inputs: {
-      vae_name: 'PLACEHOLDER',
-      device: 'main_device',
-      weight_dtype: 'bf16',
-    },
-    class_type: 'VAELoaderKJ',
-    _meta: {
-      title: 'VAELoader KJ',
-    },
-  },
-  '2': {
-    inputs: {
-      vae_name: 'PLACEHOLDER',
-      device: 'main_device',
-      weight_dtype: 'bf16',
-    },
-    class_type: 'VAELoaderKJ',
-    _meta: {
-      title: 'VAELoader KJ',
-    },
-  },
   '5': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['390', 0],
+      clip: ['506', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -36,7 +14,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   '6': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['390', 0],
+      clip: ['506', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -45,10 +23,10 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '13': {
     inputs: {
-      frames_number: ['101', 0],
+      frames_number: ['498', 0],
       frame_rate: ['416', 2],
       batch_size: 1,
-      audio_vae: ['1', 0],
+      audio_vae: ['505', 0],
     },
     class_type: 'LTXVEmptyLatentAudio',
     _meta: {
@@ -57,7 +35,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '15': {
     inputs: {
-      video_latent: ['265', 0],
+      video_latent: ['508', 2],
       audio_latent: ['13', 0],
     },
     class_type: 'LTXVConcatAVLatent',
@@ -77,9 +55,9 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   '17': {
     inputs: {
       noise: ['16', 0],
-      guider: ['482', 0],
+      guider: ['526', 0],
       sampler: ['463', 0],
-      sigmas: ['403', 0],
+      sigmas: ['527', 0],
       latent_image: ['15', 0],
     },
     class_type: 'SamplerCustomAdvanced',
@@ -123,23 +101,12 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     inputs: {
       width: ['86', 1],
       height: ['86', 2],
-      length: ['101', 0],
+      length: ['498', 0],
       batch_size: 1,
     },
     class_type: 'EmptyLTXVLatentVideo',
     _meta: {
       title: 'EmptyLTXVLatentVideo',
-    },
-  },
-  '101': {
-    inputs: {
-      expression: 'a * b + 1',
-      a: ['416', 2],
-      b: ['103', 0],
-    },
-    class_type: 'MathExpression|pysssss',
-    _meta: {
-      title: 'Generate Frame',
     },
   },
   '103': {
@@ -148,71 +115,27 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     },
     class_type: 'PrimitiveInt',
     _meta: {
-      title: 'Second',
-    },
-  },
-  '260': {
-    inputs: {
-      image: 'PLACEHOLDER',
-    },
-    class_type: 'LoadImage',
-    _meta: {
-      title: 'End Image',
-    },
-  },
-  '261': {
-    inputs: {
-      expression: 'a - 1',
-      a: ['101', 0],
-    },
-    class_type: 'MathExpression|pysssss',
-    _meta: {
-      title: 'Last Index',
-    },
-  },
-  '264': {
-    inputs: {
-      megapixels: 0,
-      multiple_of: 0,
-      upscale_method: 'PLACEHOLDER',
-      image: ['260', 0],
-    },
-    class_type: 'ResizeImageToMegapixels',
-    _meta: {
-      title: 'Resize Image (Megapixels + Alignment)',
+      title: 'N',
     },
   },
   '265': {
     inputs: {
-      num_images: '2',
+      num_images: '1',
       'num_images.strength_1': 1,
-      'num_images.strength_2': 1,
       'num_images.index_1': 0,
-      'num_images.index_2': ['261', 0],
-      vae: ['2', 0],
+      vae: ['504', 2],
       latent: ['90', 0],
-      'num_images.image_1': ['466', 0],
-      'num_images.image_2': ['469', 0],
+      'num_images.image_1': ['86', 0],
     },
     class_type: 'LTXVImgToVideoInplaceKJ',
     _meta: {
       title: 'LTXVImgToVideoInplaceKJ',
     },
   },
-  '297': {
-    inputs: {
-      unet_name: 'PLACEHOLDER',
-      weight_dtype: 'default',
-    },
-    class_type: 'UNETLoader',
-    _meta: {
-      title: '1 Pass Model',
-    },
-  },
   '321': {
     inputs: {
       samples: ['384', 1],
-      audio_vae: ['1', 0],
+      audio_vae: ['505', 0],
     },
     class_type: 'LTXVAudioVAEDecode',
     _meta: {
@@ -233,37 +156,17 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '333': {
     inputs: {
-      samples: ['384', 0],
-      vae: ['2', 0],
+      samples: ['510', 2],
+      vae: ['504', 2],
     },
     class_type: 'VAEDecode',
     _meta: {
       title: 'VAE Decode',
     },
   },
-  '339': {
-    inputs: {
-      value: 0,
-    },
-    class_type: 'PrimitiveInt',
-    _meta: {
-      title: 'multiplier',
-    },
-  },
-  '340': {
-    inputs: {
-      expression: 'a * b',
-      a: ['416', 2],
-      b: ['339', 0],
-    },
-    class_type: 'MathExpression|pysssss',
-    _meta: {
-      title: 'Final FPS',
-    },
-  },
   '345': {
     inputs: {
-      frame_rate: 0,
+      frame_rate: ['416', 1],
       loop_count: 0,
       filename_prefix: 'PLACEHOLDER',
       format: 'PLACEHOLDER',
@@ -272,13 +175,39 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       save_metadata: false,
       trim_to_audio: false,
       pingpong: false,
-      save_output: false,
+      save_output: true,
       images: ['322', 0],
       audio: ['488', 0],
     },
     class_type: 'VHS_VideoCombine',
     _meta: {
       title: 'Video Combine 🎥🅥🅗🅢',
+    },
+  },
+  '348': {
+    inputs: {
+      identity_guidance_scale: 0,
+      start_percent: 0,
+      end_percent: 0,
+      model: ['491', 0],
+      positive: ['490', 0],
+      negative: ['23', 1],
+      reference_audio: ['350', 0],
+      audio_vae: ['505', 0],
+    },
+    class_type: 'LTXVReferenceAudio',
+    _meta: {
+      title: 'LTXV Reference Audio (ID-LoRA)',
+    },
+  },
+  '350': {
+    inputs: {
+      audio: 'PLACEHOLDER',
+      audioUI: '',
+    },
+    class_type: 'LoadAudio',
+    _meta: {
+      title: 'Load Audio',
     },
   },
   '384': {
@@ -288,32 +217,6 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
     class_type: 'LTXVSeparateAVLatent',
     _meta: {
       title: 'LTXVSeparateAVLatent',
-    },
-  },
-  '390': {
-    inputs: {
-      clip_name1: 'PLACEHOLDER',
-      clip_name2: 'PLACEHOLDER',
-      type: 'ltxv',
-      device: 'default',
-    },
-    class_type: 'DualCLIPLoader',
-    _meta: {
-      title: 'DualCLIPLoader',
-    },
-  },
-  '403': {
-    inputs: {
-      steps: 0,
-      max_shift: 0,
-      base_shift: 0,
-      stretch: true,
-      terminal: 0,
-      latent: ['15', 0],
-    },
-    class_type: 'LTXVScheduler',
-    _meta: {
-      title: 'LTXVScheduler',
     },
   },
   '416': {
@@ -326,69 +229,16 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'FPS',
     },
   },
-  '448': {
-    inputs: {
-      PowerLoraLoaderHeaderWidget: {
-        type: 'PowerLoraLoaderHeaderWidget',
-      },
-      lora_1: {
-        on: false,
-        lora: '',
-        strength: 0,
-      },
-      lora_2: {
-        on: false,
-        lora: '',
-        strength: 0,
-      },
-      lora_3: {
-        on: false,
-        lora: '',
-        strength: 0,
-      },
-      lora_4: {
-        on: false,
-        lora: '',
-        strength: 0,
-      },
-      '➕ Add Lora': '',
-      model: ['481', 0],
-    },
-    class_type: 'Power Lora Loader (rgthree)',
-    _meta: {
-      title: '1 Pass LoRA',
-    },
-  },
   '463': {
     inputs: {
       eta: 0,
       sampler_name: 'PLACEHOLDER',
       seed: 0,
-      bongmath: true,
+      bongmath: false,
     },
     class_type: 'ClownSampler_Beta',
     _meta: {
       title: 'ClownSampler',
-    },
-  },
-  '466': {
-    inputs: {
-      img_compression: 0,
-      image: ['86', 0],
-    },
-    class_type: 'LTXVPreprocess',
-    _meta: {
-      title: 'LTXVPreprocess',
-    },
-  },
-  '469': {
-    inputs: {
-      img_compression: 0,
-      image: ['264', 0],
-    },
-    class_type: 'LTXVPreprocess',
-    _meta: {
-      title: 'LTXVPreprocess',
     },
   },
   '476': {
@@ -397,9 +247,9 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       nag_alpha: 0,
       nag_tau: 0,
       inplace: true,
-      model: ['448', 0],
-      nag_cond_video: ['23', 1],
-      nag_cond_audio: ['23', 1],
+      model: ['348', 0],
+      nag_cond_video: ['512', 0],
+      nag_cond_audio: ['513', 0],
     },
     class_type: 'LTX2_NAG',
     _meta: {
@@ -409,23 +259,11 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   '481': {
     inputs: {
       triton_kernels: true,
-      model: ['297', 0],
+      model: ['504', 0],
     },
     class_type: 'LTX2MemoryEfficientSageAttentionPatch',
     _meta: {
       title: 'LTX2 Mem Eff Sage Attention Patch',
-    },
-  },
-  '482': {
-    inputs: {
-      cfg: 1,
-      model: ['476', 0],
-      positive: ['490', 0],
-      negative: ['23', 1],
-    },
-    class_type: 'CFGGuider',
-    _meta: {
-      title: 'CFGGuider',
     },
   },
   '486': {
@@ -488,4 +326,222 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'Force Full Unload (VRAM+Pinned)',
     },
   },
-}
+  '491': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 0,
+      video_to_audio: 0,
+      audio: 0,
+      audio_to_video: 0,
+      other: 0,
+      model: ['507', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: 'LTX2 LoRA Loader Advanced',
+    },
+  },
+  '492': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 0,
+      video_to_audio: 0,
+      audio: 0,
+      audio_to_video: 0,
+      other: 0,
+      model: ['496', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: 'LTX2 LoRA Loader Advanced',
+    },
+  },
+  '496': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 0,
+      video_to_audio: 0,
+      audio: 0,
+      audio_to_video: 0,
+      other: 0,
+      model: ['481', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: 'LTX2 LoRA Loader Advanced',
+    },
+  },
+  '498': {
+    inputs: {
+      expression: 'a * b + 1',
+      a: ['499', 0],
+      b: ['103', 0],
+    },
+    class_type: 'MathExpression|pysssss',
+    _meta: {
+      title: 'Generate Frame',
+    },
+  },
+  '499': {
+    inputs: {
+      value: 0,
+    },
+    class_type: 'PrimitiveInt',
+    _meta: {
+      title: 'Base',
+    },
+  },
+  '504': {
+    inputs: {
+      ckpt_name: 'PLACEHOLDER',
+    },
+    class_type: 'CheckpointLoaderSimple',
+    _meta: {
+      title: 'Load Checkpoint',
+    },
+  },
+  '505': {
+    inputs: {
+      ckpt_name: 'PLACEHOLDER',
+    },
+    class_type: 'LTXVAudioVAELoader',
+    _meta: {
+      title: 'LTXV Audio VAE Loader',
+    },
+  },
+  '506': {
+    inputs: {
+      text_encoder: 'PLACEHOLDER',
+      ckpt_name: 'PLACEHOLDER',
+      device: 'default',
+    },
+    class_type: 'LTXAVTextEncoderLoader',
+    _meta: {
+      title: 'LTXV Audio Text Encoder Loader',
+    },
+  },
+  '507': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 0,
+      video_to_audio: 0,
+      audio: 0,
+      audio_to_video: 0,
+      other: 0,
+      model: ['492', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: 'LTX2 LoRA Loader Advanced',
+    },
+  },
+  '508': {
+    inputs: {
+      frame_idx: 0,
+      strength: 0,
+      crf: 0,
+      blur_radius: 0,
+      interpolation: 'PLACEHOLDER',
+      crop: 'PLACEHOLDER',
+      positive: ['348', 1],
+      negative: ['348', 2],
+      vae: ['504', 2],
+      latent: ['265', 0],
+      image: ['86', 0],
+    },
+    class_type: 'LTXVAddGuideAdvanced',
+    _meta: {
+      title: '🅛🅣🅧 LTXV Add Guide Advanced',
+    },
+  },
+  '510': {
+    inputs: {
+      positive: ['508', 0],
+      negative: ['508', 1],
+      latent: ['384', 0],
+    },
+    class_type: 'LTXVCropGuides',
+    _meta: {
+      title: 'LTXVCropGuides',
+    },
+  },
+  '511': {
+    inputs: {
+      strength: 0,
+      cache_at_step: 0,
+      similarity_threshold: 0,
+      decay_with_distance: 0,
+      energy_threshold: 0,
+      bypass: false,
+      debug: false,
+      advanced_mode: false,
+      cache_mode: 'PLACEHOLDER',
+      forwards_per_step: 0,
+      cache_warmup: 0,
+      anchor_frame: 0,
+      depth_curve: 'PLACEHOLDER',
+      block_index_filter: 'PLACEHOLDER',
+      model: ['476', 0],
+      reference_image: ['86', 0],
+      vae: ['504', 2],
+      energy_latent: ['508', 2],
+      sigmas: ['527', 0],
+    },
+    class_type: 'LTXLatentAnchorAware',
+    _meta: {
+      title: '🎯 LTX Latent Anchor Aware',
+    },
+  },
+  '512': {
+    inputs: {
+      text: 'PLACEHOLDER',
+      clip: ['506', 0],
+    },
+    class_type: 'CLIPTextEncode',
+    _meta: {
+      title: 'video',
+    },
+  },
+  '513': {
+    inputs: {
+      text: 'PLACEHOLDER',
+      clip: ['506', 0],
+    },
+    class_type: 'CLIPTextEncode',
+    _meta: {
+      title: 'audio',
+    },
+  },
+  '526': {
+    inputs: {
+      cfg: 0,
+      start_percent: 0,
+      end_percent: 0,
+      model: ['511', 0],
+      positive: ['508', 0],
+      negative: ['508', 1],
+    },
+    class_type: 'ScheduledCFGGuidance',
+    _meta: {
+      title: 'Scheduled CFG Guidance',
+    },
+  },
+  '527': {
+    inputs: {
+      steps: 0,
+      max_shift: 0,
+      base_shift: 0,
+      stretch: true,
+      terminal: 0,
+      latent: ['508', 2],
+    },
+    class_type: 'LTXVScheduler',
+    _meta: {
+      title: 'LTXVScheduler',
+    },
+  },
+};
