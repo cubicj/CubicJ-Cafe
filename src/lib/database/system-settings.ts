@@ -103,22 +103,32 @@ export interface WanSettings {
   disableWindowReinjectLow: boolean;
 }
 
+export interface LtxLoraSlotSettings {
+  enabled: boolean;
+  name: string;
+  strength: number;
+  video: number;
+  videoToAudio: number;
+  audio: number;
+  audioToVideo: number;
+  other: number;
+}
+
 export interface LtxSettings {
-  unet: string;
-  weightDtype: string;
-  audioVae: string;
-  videoVae: string;
-  clipGguf: string;
-  clipEmbeddings: string;
-  sampler: string;
-  clownEta: number;
-  clownBongmath: boolean;
-  imgCompression: number;
+  checkpoint: string;
+  textEncoder: string;
   negativePrompt: string;
+  videoConditioningPrompt: string;
+  audioConditioningPrompt: string;
   frameRate: number;
+  durationOptions: number[];
+  frameBase: number;
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
+  sampler: string;
+  clownEta: number;
+  clownBongmath: boolean;
   schedulerSteps: number;
   schedulerMaxShift: number;
   schedulerBaseShift: number;
@@ -127,16 +137,33 @@ export interface LtxSettings {
   nagScale: number;
   nagAlpha: number;
   nagTau: number;
-  audioNormEnabled: boolean;
-  audioNorm: string;
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
-  distilledLoraEnabled: boolean;
-  distilledLoraName: string;
-  distilledLoraStrength: number;
-  idLoraName: string;
-  idLoraStrength: number;
+  guideFrameIndex: number;
+  guideStrength: number;
+  guideCrf: number;
+  guideBlurRadius: number;
+  guideInterpolation: string;
+  guideCrop: string;
+  anchorStrength: number;
+  anchorCacheAtStep: number;
+  anchorSimilarityThreshold: number;
+  anchorDecayWithDistance: number;
+  anchorEnergyThreshold: number;
+  anchorBypass: boolean;
+  anchorDebug: boolean;
+  anchorAdvancedMode: boolean;
+  anchorCacheMode: string;
+  anchorForwardsPerStep: number;
+  anchorCacheWarmup: number;
+  anchorFrame: number;
+  anchorDepthCurve: string;
+  anchorBlockIndexFilter: string;
+  scheduledCfg: number;
+  scheduledCfgStartPercent: number;
+  scheduledCfgEndPercent: number;
+  loras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
@@ -144,7 +171,6 @@ export interface LtxSettings {
   videoCrf: number;
   videoFormat: string;
   videoPixFmt: string;
-  durationOptions: number[];
 }
 
 export const MODEL_ENABLED_KEYS = {
@@ -196,21 +222,20 @@ export const WAN_KEYS = {
 } as const;
 
 export const LTX_KEYS = {
-  unet: 'ltx.unet',
-  weightDtype: 'ltx.weight_dtype',
-  audioVae: 'ltx.audio_vae',
-  videoVae: 'ltx.video_vae',
-  clipGguf: 'ltx.clip_gguf',
-  clipEmbeddings: 'ltx.clip_embeddings',
-  sampler: 'ltx.sampler',
-  clownEta: 'ltx.clown_eta',
-  clownBongmath: 'ltx.clown_bongmath',
-  imgCompression: 'ltx.img_compression',
+  checkpoint: 'ltx.checkpoint',
+  textEncoder: 'ltx.text_encoder',
   negativePrompt: 'ltx.negative_prompt',
+  videoConditioningPrompt: 'ltx.video_conditioning_prompt',
+  audioConditioningPrompt: 'ltx.audio_conditioning_prompt',
   frameRate: 'ltx.frame_rate',
+  durationOptions: 'ltx.duration_options',
+  frameBase: 'ltx.frame_base',
   megapixels: 'ltx.megapixels',
   resizeMultipleOf: 'ltx.resize_multiple_of',
   resizeUpscaleMethod: 'ltx.resize_upscale_method',
+  sampler: 'ltx.sampler',
+  clownEta: 'ltx.clown_eta',
+  clownBongmath: 'ltx.clown_bongmath',
   schedulerSteps: 'ltx.scheduler_steps',
   schedulerMaxShift: 'ltx.scheduler_max_shift',
   schedulerBaseShift: 'ltx.scheduler_base_shift',
@@ -219,16 +244,64 @@ export const LTX_KEYS = {
   nagScale: 'ltx.nag_scale',
   nagAlpha: 'ltx.nag_alpha',
   nagTau: 'ltx.nag_tau',
-  audioNormEnabled: 'ltx.audio_norm_enabled',
-  audioNorm: 'ltx.audio_norm',
   identityGuidanceScale: 'ltx.identity_guidance_scale',
   identityStartPercent: 'ltx.identity_start_percent',
   identityEndPercent: 'ltx.identity_end_percent',
-  distilledLoraEnabled: 'ltx.distilled_lora_enabled',
-  distilledLoraName: 'ltx.distilled_lora_name',
-  distilledLoraStrength: 'ltx.distilled_lora_strength',
-  idLoraName: 'ltx.id_lora_name',
-  idLoraStrength: 'ltx.id_lora_strength',
+  guideFrameIndex: 'ltx.guide_frame_index',
+  guideStrength: 'ltx.guide_strength',
+  guideCrf: 'ltx.guide_crf',
+  guideBlurRadius: 'ltx.guide_blur_radius',
+  guideInterpolation: 'ltx.guide_interpolation',
+  guideCrop: 'ltx.guide_crop',
+  anchorStrength: 'ltx.anchor_strength',
+  anchorCacheAtStep: 'ltx.anchor_cache_at_step',
+  anchorSimilarityThreshold: 'ltx.anchor_similarity_threshold',
+  anchorDecayWithDistance: 'ltx.anchor_decay_with_distance',
+  anchorEnergyThreshold: 'ltx.anchor_energy_threshold',
+  anchorBypass: 'ltx.anchor_bypass',
+  anchorDebug: 'ltx.anchor_debug',
+  anchorAdvancedMode: 'ltx.anchor_advanced_mode',
+  anchorCacheMode: 'ltx.anchor_cache_mode',
+  anchorForwardsPerStep: 'ltx.anchor_forwards_per_step',
+  anchorCacheWarmup: 'ltx.anchor_cache_warmup',
+  anchorFrame: 'ltx.anchor_frame',
+  anchorDepthCurve: 'ltx.anchor_depth_curve',
+  anchorBlockIndexFilter: 'ltx.anchor_block_index_filter',
+  scheduledCfg: 'ltx.scheduled_cfg',
+  scheduledCfgStartPercent: 'ltx.scheduled_cfg_start_percent',
+  scheduledCfgEndPercent: 'ltx.scheduled_cfg_end_percent',
+  lora1Enabled: 'ltx.lora_1_enabled',
+  lora1Name: 'ltx.lora_1_name',
+  lora1Strength: 'ltx.lora_1_strength',
+  lora1Video: 'ltx.lora_1_video',
+  lora1VideoToAudio: 'ltx.lora_1_video_to_audio',
+  lora1Audio: 'ltx.lora_1_audio',
+  lora1AudioToVideo: 'ltx.lora_1_audio_to_video',
+  lora1Other: 'ltx.lora_1_other',
+  lora2Enabled: 'ltx.lora_2_enabled',
+  lora2Name: 'ltx.lora_2_name',
+  lora2Strength: 'ltx.lora_2_strength',
+  lora2Video: 'ltx.lora_2_video',
+  lora2VideoToAudio: 'ltx.lora_2_video_to_audio',
+  lora2Audio: 'ltx.lora_2_audio',
+  lora2AudioToVideo: 'ltx.lora_2_audio_to_video',
+  lora2Other: 'ltx.lora_2_other',
+  lora3Enabled: 'ltx.lora_3_enabled',
+  lora3Name: 'ltx.lora_3_name',
+  lora3Strength: 'ltx.lora_3_strength',
+  lora3Video: 'ltx.lora_3_video',
+  lora3VideoToAudio: 'ltx.lora_3_video_to_audio',
+  lora3Audio: 'ltx.lora_3_audio',
+  lora3AudioToVideo: 'ltx.lora_3_audio_to_video',
+  lora3Other: 'ltx.lora_3_other',
+  lora4Enabled: 'ltx.lora_4_enabled',
+  lora4Name: 'ltx.lora_4_name',
+  lora4Strength: 'ltx.lora_4_strength',
+  lora4Video: 'ltx.lora_4_video',
+  lora4VideoToAudio: 'ltx.lora_4_video_to_audio',
+  lora4Audio: 'ltx.lora_4_audio',
+  lora4AudioToVideo: 'ltx.lora_4_audio_to_video',
+  lora4Other: 'ltx.lora_4_other',
   rtxEnabled: 'ltx.rtx_enabled',
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
@@ -236,7 +309,6 @@ export const LTX_KEYS = {
   videoCrf: 'ltx.video_crf',
   videoFormat: 'ltx.video_format',
   videoPixFmt: 'ltx.video_pix_fmt',
-  durationOptions: 'ltx.duration_options',
 } as const;
 
 function buildSettingsMap(
@@ -303,53 +375,170 @@ export async function getWanSettings(): Promise<WanSettings> {
   };
 }
 
+function parseLtxLoraSlot(
+  map: Map<string, string>,
+  keys: {
+    enabled: string;
+    name: string;
+    strength: string;
+    video: string;
+    videoToAudio: string;
+    audio: string;
+    audioToVideo: string;
+    other: string;
+  }
+): LtxLoraSlotSettings {
+  return {
+    enabled: map.get(keys.enabled)! === 'true',
+    name: map.get(keys.name)!,
+    strength: parseLtxNumber(map, keys.strength),
+    video: parseLtxNumber(map, keys.video),
+    videoToAudio: parseLtxNumber(map, keys.videoToAudio),
+    audio: parseLtxNumber(map, keys.audio),
+    audioToVideo: parseLtxNumber(map, keys.audioToVideo),
+    other: parseLtxNumber(map, keys.other),
+  };
+}
+
+function parseLtxNumber(map: Map<string, string>, key: string): number {
+  const value = map.get(key)!;
+  if (value.trim() === '') {
+    throw new Error(`Invalid numeric setting: ${key} = "${value}"`);
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`Invalid numeric setting: ${key} = "${value}"`);
+  }
+  return parsed;
+}
+
+function parseLtxInteger(map: Map<string, string>, key: string): number {
+  const parsed = parseLtxNumber(map, key);
+  if (!Number.isInteger(parsed)) {
+    throw new Error(`Invalid integer setting: ${key} = "${map.get(key)!}"`);
+  }
+  return parsed;
+}
+
+function parseLtxNumberList(map: Map<string, string>, key: string): number[] {
+  const value = map.get(key)!;
+  if (value.trim() === '') {
+    throw new Error(`Invalid numeric setting: ${key} = "${value}"`);
+  }
+  const parts = value.split(',').map(part => part.trim());
+  const parsed = parts.map(Number);
+  if (parts.some(part => part === '')) {
+    throw new Error(`Invalid numeric setting: ${key} = "${value}"`);
+  }
+  if (parsed.length === 0 || parsed.some(item => !Number.isFinite(item))) {
+    throw new Error(`Invalid numeric setting: ${key} = "${value}"`);
+  }
+  return parsed;
+}
+
 export async function getLtxSettings(): Promise<LtxSettings> {
   const keys = Object.values(LTX_KEYS);
   const settings = await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
   const map = buildSettingsMap(settings, LTX_KEYS);
   const k = LTX_KEYS;
   return {
-    unet: map.get(k.unet)!,
-    weightDtype: map.get(k.weightDtype)!,
-    audioVae: map.get(k.audioVae)!,
-    videoVae: map.get(k.videoVae)!,
-    clipGguf: map.get(k.clipGguf)!,
-    clipEmbeddings: map.get(k.clipEmbeddings)!,
-    sampler: map.get(k.sampler)!,
-    clownEta: parseFloat(map.get(k.clownEta)!),
-    clownBongmath: map.get(k.clownBongmath)! === 'true',
-    imgCompression: parseInt(map.get(k.imgCompression)!, 10),
+    checkpoint: map.get(k.checkpoint)!,
+    textEncoder: map.get(k.textEncoder)!,
     negativePrompt: map.get(k.negativePrompt)!,
-    frameRate: parseFloat(map.get(k.frameRate)!),
-    megapixels: parseFloat(map.get(k.megapixels)!),
-    resizeMultipleOf: parseInt(map.get(k.resizeMultipleOf)!, 10),
+    videoConditioningPrompt: map.get(k.videoConditioningPrompt)!,
+    audioConditioningPrompt: map.get(k.audioConditioningPrompt)!,
+    frameRate: parseLtxNumber(map, k.frameRate),
+    durationOptions: parseLtxNumberList(map, k.durationOptions),
+    frameBase: parseLtxInteger(map, k.frameBase),
+    megapixels: parseLtxNumber(map, k.megapixels),
+    resizeMultipleOf: parseLtxInteger(map, k.resizeMultipleOf),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
-    schedulerSteps: parseInt(map.get(k.schedulerSteps)!, 10),
-    schedulerMaxShift: parseFloat(map.get(k.schedulerMaxShift)!),
-    schedulerBaseShift: parseFloat(map.get(k.schedulerBaseShift)!),
+    sampler: map.get(k.sampler)!,
+    clownEta: parseLtxNumber(map, k.clownEta),
+    clownBongmath: map.get(k.clownBongmath)! === 'true',
+    schedulerSteps: parseLtxInteger(map, k.schedulerSteps),
+    schedulerMaxShift: parseLtxNumber(map, k.schedulerMaxShift),
+    schedulerBaseShift: parseLtxNumber(map, k.schedulerBaseShift),
     schedulerStretch: map.get(k.schedulerStretch)! === 'true',
-    schedulerTerminal: parseFloat(map.get(k.schedulerTerminal)!),
-    nagScale: parseFloat(map.get(k.nagScale)!),
-    nagAlpha: parseFloat(map.get(k.nagAlpha)!),
-    nagTau: parseFloat(map.get(k.nagTau)!),
-    audioNormEnabled: map.get(k.audioNormEnabled)! === 'true',
-    audioNorm: map.get(k.audioNorm)!,
-    identityGuidanceScale: parseFloat(map.get(k.identityGuidanceScale)!),
-    identityStartPercent: parseFloat(map.get(k.identityStartPercent)!),
-    identityEndPercent: parseFloat(map.get(k.identityEndPercent)!),
-    distilledLoraEnabled: map.get(k.distilledLoraEnabled)! === 'true',
-    distilledLoraName: map.get(k.distilledLoraName)!,
-    distilledLoraStrength: parseFloat(map.get(k.distilledLoraStrength)!),
-    idLoraName: map.get(k.idLoraName)!,
-    idLoraStrength: parseFloat(map.get(k.idLoraStrength)!),
+    schedulerTerminal: parseLtxNumber(map, k.schedulerTerminal),
+    nagScale: parseLtxNumber(map, k.nagScale),
+    nagAlpha: parseLtxNumber(map, k.nagAlpha),
+    nagTau: parseLtxNumber(map, k.nagTau),
+    identityGuidanceScale: parseLtxNumber(map, k.identityGuidanceScale),
+    identityStartPercent: parseLtxNumber(map, k.identityStartPercent),
+    identityEndPercent: parseLtxNumber(map, k.identityEndPercent),
+    guideFrameIndex: parseLtxInteger(map, k.guideFrameIndex),
+    guideStrength: parseLtxNumber(map, k.guideStrength),
+    guideCrf: parseLtxInteger(map, k.guideCrf),
+    guideBlurRadius: parseLtxInteger(map, k.guideBlurRadius),
+    guideInterpolation: map.get(k.guideInterpolation)!,
+    guideCrop: map.get(k.guideCrop)!,
+    anchorStrength: parseLtxNumber(map, k.anchorStrength),
+    anchorCacheAtStep: parseLtxInteger(map, k.anchorCacheAtStep),
+    anchorSimilarityThreshold: parseLtxNumber(map, k.anchorSimilarityThreshold),
+    anchorDecayWithDistance: parseLtxNumber(map, k.anchorDecayWithDistance),
+    anchorEnergyThreshold: parseLtxNumber(map, k.anchorEnergyThreshold),
+    anchorBypass: map.get(k.anchorBypass)! === 'true',
+    anchorDebug: map.get(k.anchorDebug)! === 'true',
+    anchorAdvancedMode: map.get(k.anchorAdvancedMode)! === 'true',
+    anchorCacheMode: map.get(k.anchorCacheMode)!,
+    anchorForwardsPerStep: parseLtxInteger(map, k.anchorForwardsPerStep),
+    anchorCacheWarmup: parseLtxInteger(map, k.anchorCacheWarmup),
+    anchorFrame: parseLtxInteger(map, k.anchorFrame),
+    anchorDepthCurve: map.get(k.anchorDepthCurve)!,
+    anchorBlockIndexFilter: map.get(k.anchorBlockIndexFilter)!,
+    scheduledCfg: parseLtxNumber(map, k.scheduledCfg),
+    scheduledCfgStartPercent: parseLtxNumber(map, k.scheduledCfgStartPercent),
+    scheduledCfgEndPercent: parseLtxNumber(map, k.scheduledCfgEndPercent),
+    loras: [
+      parseLtxLoraSlot(map, {
+        enabled: k.lora1Enabled,
+        name: k.lora1Name,
+        strength: k.lora1Strength,
+        video: k.lora1Video,
+        videoToAudio: k.lora1VideoToAudio,
+        audio: k.lora1Audio,
+        audioToVideo: k.lora1AudioToVideo,
+        other: k.lora1Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.lora2Enabled,
+        name: k.lora2Name,
+        strength: k.lora2Strength,
+        video: k.lora2Video,
+        videoToAudio: k.lora2VideoToAudio,
+        audio: k.lora2Audio,
+        audioToVideo: k.lora2AudioToVideo,
+        other: k.lora2Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.lora3Enabled,
+        name: k.lora3Name,
+        strength: k.lora3Strength,
+        video: k.lora3Video,
+        videoToAudio: k.lora3VideoToAudio,
+        audio: k.lora3Audio,
+        audioToVideo: k.lora3AudioToVideo,
+        other: k.lora3Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.lora4Enabled,
+        name: k.lora4Name,
+        strength: k.lora4Strength,
+        video: k.lora4Video,
+        videoToAudio: k.lora4VideoToAudio,
+        audio: k.lora4Audio,
+        audioToVideo: k.lora4AudioToVideo,
+        other: k.lora4Other,
+      }),
+    ],
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
-    rtxScale: parseFloat(map.get(k.rtxScale)!),
+    rtxScale: parseLtxNumber(map, k.rtxScale),
     rtxQuality: map.get(k.rtxQuality)!,
-    videoCrf: parseInt(map.get(k.videoCrf)!, 10),
+    videoCrf: parseLtxInteger(map, k.videoCrf),
     videoFormat: map.get(k.videoFormat)!,
     videoPixFmt: map.get(k.videoPixFmt)!,
-    durationOptions: map.get(k.durationOptions)!.split(',').map(Number),
   };
 }
 
