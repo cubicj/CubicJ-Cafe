@@ -73,7 +73,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.scheduled_cfg_end_percent', label: 'End Percent', type: 'number', step: 0.01, group: 'LTX - Scheduled CFG' },
 
   { key: 'ltx.lora_1_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - LoRA 1' },
-  { key: 'ltx.lora_1_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 1', nodeQuery: 'lora_1_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.lora_1_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 1', nodeQuery: 'lora_1_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.lora_1_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - LoRA 1' },
   { key: 'ltx.lora_1_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - LoRA 1' },
   { key: 'ltx.lora_1_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - LoRA 1' },
@@ -82,7 +82,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.lora_1_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - LoRA 1' },
 
   { key: 'ltx.lora_2_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - LoRA 2' },
-  { key: 'ltx.lora_2_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 2', nodeQuery: 'lora_2_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.lora_2_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 2', nodeQuery: 'lora_2_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.lora_2_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - LoRA 2' },
   { key: 'ltx.lora_2_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - LoRA 2' },
   { key: 'ltx.lora_2_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - LoRA 2' },
@@ -91,7 +91,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.lora_2_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - LoRA 2' },
 
   { key: 'ltx.lora_3_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - LoRA 3' },
-  { key: 'ltx.lora_3_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 3', nodeQuery: 'lora_3_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.lora_3_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 3', nodeQuery: 'lora_3_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.lora_3_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - LoRA 3' },
   { key: 'ltx.lora_3_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - LoRA 3' },
   { key: 'ltx.lora_3_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - LoRA 3' },
@@ -100,7 +100,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.lora_3_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - LoRA 3' },
 
   { key: 'ltx.lora_4_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - LoRA 4' },
-  { key: 'ltx.lora_4_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 4', nodeQuery: 'lora_4_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.lora_4_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 4', nodeQuery: 'lora_4_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.lora_4_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
   { key: 'ltx.lora_4_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
   { key: 'ltx.lora_4_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
@@ -109,7 +109,7 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.lora_4_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - LoRA 4' },
 
   { key: 'ltx.id_lora_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - ID LoRA' },
-  { key: 'ltx.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTX - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/:excludeSubdirs' },
+  { key: 'ltx.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTX - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.id_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
   { key: 'ltx.id_lora_video', label: 'Video', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
   { key: 'ltx.id_lora_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
