@@ -191,16 +191,7 @@ describe('buildLtxWorkflow', () => {
       strength_model: 0.73,
       model: [LTX.SAGE_ATTN_PATCH, 0],
     })
-    expect(wf[LTX.LORA_2]!.inputs).toMatchObject({
-      lora_name: 'fake-ltx-lora-slot2-b2w.safetensors',
-      strength_model: 0,
-      video: 0,
-      video_to_audio: 0,
-      audio: 0,
-      audio_to_video: 0,
-      other: 0,
-      model: [LTX.LORA_3, 0],
-    })
+    expect(wf[LTX.LORA_2]).toBeUndefined()
     expect(wf[LTX.LORA_4]!.inputs).toMatchObject({
       strength_model: 0.84,
       model: [LTX.LORA_3, 0],
@@ -212,7 +203,7 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
   })
 
-  it('keeps disabled LoRA nodes but zeroes strength and routing while bypassing the chain', async () => {
+  it('removes disabled LoRA nodes while bypassing the chain', async () => {
     await updateSettings({
       'ltx.lora_1_enabled': 'false',
       'ltx.lora_2_enabled': 'false',
@@ -228,16 +219,7 @@ describe('buildLtxWorkflow', () => {
     })
 
     for (const id of [LTX.LORA_1, LTX.LORA_2, LTX.LORA_3, LTX.LORA_4]) {
-      expect(wf[id]).toBeDefined()
-      expect(wf[id]!.inputs).toMatchObject({
-        strength_model: 0,
-        video: 0,
-        video_to_audio: 0,
-        audio: 0,
-        audio_to_video: 0,
-        other: 0,
-        model: [LTX.SAGE_ATTN_PATCH, 0],
-      })
+      expect(wf[id]).toBeUndefined()
     }
     expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.SAGE_ATTN_PATCH, 0])
   })
