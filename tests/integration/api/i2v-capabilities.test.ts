@@ -139,6 +139,23 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
   })
 
+  it('returns LTX duration labels as actual seconds from frame settings', async () => {
+    await seedSettings({
+      'ltx.duration_options': '24',
+      'ltx.frame_base': '8',
+      'ltx.frame_rate': '25',
+    })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(body.durationOptions.ltx).toEqual([24])
+    expect(body.durationLabels.ltx['24']).toBe('7.7초')
+    expect(body.durationLabels.wan['5']).toBe('5초')
+  })
+
   it('falls back to registry durations when a model setting is missing', async () => {
     await prisma.systemSetting.deleteMany({
       where: { key: { in: ['wan.duration_options', 'ltx.duration_options'] } },

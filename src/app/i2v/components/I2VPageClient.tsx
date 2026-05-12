@@ -42,6 +42,7 @@ export default function I2VPageClient() {
     enabledModels,
     capabilities,
     durationOptions,
+    durationLabels,
     setHasUnavailableLoRAs,
     isFormValid,
     handleSubmit,
@@ -187,7 +188,7 @@ export default function I2VPageClient() {
                               : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
                           }`}
                         >
-                          {duration}초
+                          {durationLabels[duration] ?? `${duration}초`}
                         </button>
                       )
                     )}
