@@ -59,7 +59,7 @@ describe('buildLtxWorkflow reference audio', () => {
     })
   })
 
-  it('routes NAG and ADD_GUIDE through reference audio outputs when audio provided', async () => {
+  it('routes reference audio through Add Guide and ANCHOR when audio provided', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
@@ -68,9 +68,9 @@ describe('buildLtxWorkflow reference audio', () => {
       referenceAudio: 'fake-voice.flac',
     })
 
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.REFERENCE_AUDIO, 0])
     expect(wf[LTX.ADD_GUIDE]!.inputs!.positive).toEqual([LTX.REFERENCE_AUDIO, 1])
     expect(wf[LTX.ADD_GUIDE]!.inputs!.negative).toEqual([LTX.REFERENCE_AUDIO, 2])
+    expect(wf[LTX.ANCHOR]!.inputs!.model).toEqual([LTX.REFERENCE_AUDIO, 0])
   })
 
   it('omits ID LoRA when reference audio is absent', async () => {
@@ -83,9 +83,10 @@ describe('buildLtxWorkflow reference audio', () => {
 
     expect(wf[LTX.ID_LORA]).toBeUndefined()
     expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
+    expect(wf[LTX.ANCHOR]!.inputs!.model).toEqual([LTX.NAG, 0])
   })
 
-  it('appends ID LoRA before reference audio when enabled and reference audio exists', async () => {
+  it('appends ID LoRA after NAG and before reference audio when enabled and reference audio exists', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
@@ -102,7 +103,7 @@ describe('buildLtxWorkflow reference audio', () => {
       audio: 0.53,
       audio_to_video: 0.54,
       other: 0.55,
-      model: [LTX.LORA_1, 0],
+      model: [LTX.NAG, 0],
     })
     expect(wf[LTX.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTX.ID_LORA, 0])
   })
@@ -119,10 +120,10 @@ describe('buildLtxWorkflow reference audio', () => {
     })
 
     expect(wf[LTX.ID_LORA]).toBeUndefined()
-    expect(wf[LTX.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTX.LORA_1, 0])
+    expect(wf[LTX.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTX.NAG, 0])
   })
 
-  it('removes reference audio nodes and rewires ADD_GUIDE to conditioning outputs when audio absent', async () => {
+  it('removes reference audio nodes and routes ANCHOR through NAG when audio absent', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
@@ -133,8 +134,8 @@ describe('buildLtxWorkflow reference audio', () => {
     expect(wf[LTX.LOAD_AUDIO]).toBeUndefined()
     expect(wf[LTX.REFERENCE_AUDIO]).toBeUndefined()
     expect(wf[LTX.ID_LORA]).toBeUndefined()
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
     expect(wf[LTX.ADD_GUIDE]!.inputs!.positive).toEqual([LTX.VRAM_POST_CONDITIONING, 0])
     expect(wf[LTX.ADD_GUIDE]!.inputs!.negative).toEqual([LTX.CONDITIONING, 1])
+    expect(wf[LTX.ANCHOR]!.inputs!.model).toEqual([LTX.NAG, 0])
   })
 })

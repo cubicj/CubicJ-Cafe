@@ -1,10 +1,28 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { cleanTables } from '../../helpers/db'
 import { createUser, createAdminUser } from '../../helpers/fixtures'
 import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 import { GET, PUT } from '@/app/api/admin/settings/route'
+import { LTX_KEYS } from '@/lib/database/system-settings'
 
 beforeEach(async () => {
   await cleanTables()
+})
+
+describe('LTX 2.3 rebuild migration parity', () => {
+  it('contains every active LTX settings key required by LTX_KEYS', () => {
+    const sql = readFileSync(
+      join(process.cwd(), 'prisma/migrations/20260512_ltx23_workflow_rebuild/migration.sql'),
+      'utf8'
+    )
+    const preservedKeys = new Set(['ltx.enabled', 'ltx.lora_enabled'])
+    const missing = Object.values(LTX_KEYS)
+      .filter((key) => !preservedKeys.has(key))
+      .filter((key) => !sql.includes(`'${key}'`))
+
+    expect(missing).toEqual([])
+  })
 })
 
 describe('GET /api/admin/settings', () => {
@@ -91,6 +109,25 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(400)
   })
 
+  it('rejects removed standalone LTX setting keys', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+
+    const rtxReq = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'ltx.rtx_enabled', value: 'true' }),
+    })
+    const rtxRes = await PUT(rtxReq)
+    expect(rtxRes.status).toBe(400)
+
+    const scheduledCfgReq = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'ltx.scheduled_cfg', value: '2.2' }),
+    })
+    const scheduledCfgRes = await PUT(scheduledCfgReq)
+    expect(scheduledCfgRes.status).toBe(400)
+  })
+
   it('returns 400 with missing key or value', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
@@ -167,5 +204,25 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.setting.key).toBe('ltx.id_lora_enabled')
     expect(body.setting.value).toBe('true')
+  })
+
+  it('updates LTX second-pass settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx.second_pass_sigmas',
+        value: 'fake-sigmas-from-admin',
+        type: 'string',
+        category: 'ltx',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx.second_pass_sigmas')
+    expect(body.setting.value).toBe('fake-sigmas-from-admin')
   })
 })

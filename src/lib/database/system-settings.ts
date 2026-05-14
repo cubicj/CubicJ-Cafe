@@ -160,15 +160,18 @@ export interface LtxSettings {
   anchorFrame: number;
   anchorDepthCurve: string;
   anchorBlockIndexFilter: string;
-  scheduledCfg: number;
-  scheduledCfgStartPercent: number;
-  scheduledCfgEndPercent: number;
+  latentUpscaleModel: string;
+  textAttentionAmplification: number;
+  multimodalVideoCfg: number;
+  multimodalAudioCfg: number;
+  multimodalInactiveCfg: number;
+  multimodalActiveSteps: number;
+  secondPassCfg: number;
+  secondPassSigmas: string;
+  secondPassUpscaleMethod: string;
+  secondPassUpscaleBy: number;
   loras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
   idLora: LtxLoraSlotSettings;
-  rtxEnabled: boolean;
-  rtxResizeType: string;
-  rtxScale: number;
-  rtxQuality: string;
   videoCrf: number;
   videoFormat: string;
   videoPixFmt: string;
@@ -268,9 +271,16 @@ export const LTX_KEYS = {
   anchorFrame: 'ltx.anchor_frame',
   anchorDepthCurve: 'ltx.anchor_depth_curve',
   anchorBlockIndexFilter: 'ltx.anchor_block_index_filter',
-  scheduledCfg: 'ltx.scheduled_cfg',
-  scheduledCfgStartPercent: 'ltx.scheduled_cfg_start_percent',
-  scheduledCfgEndPercent: 'ltx.scheduled_cfg_end_percent',
+  latentUpscaleModel: 'ltx.latent_upscale_model',
+  textAttentionAmplification: 'ltx.text_attention_amplification',
+  multimodalVideoCfg: 'ltx.multimodal_video_cfg',
+  multimodalAudioCfg: 'ltx.multimodal_audio_cfg',
+  multimodalInactiveCfg: 'ltx.multimodal_inactive_cfg',
+  multimodalActiveSteps: 'ltx.multimodal_active_steps',
+  secondPassCfg: 'ltx.second_pass_cfg',
+  secondPassSigmas: 'ltx.second_pass_sigmas',
+  secondPassUpscaleMethod: 'ltx.second_pass_upscale_method',
+  secondPassUpscaleBy: 'ltx.second_pass_upscale_by',
   lora1Enabled: 'ltx.lora_1_enabled',
   lora1Name: 'ltx.lora_1_name',
   lora1Strength: 'ltx.lora_1_strength',
@@ -311,10 +321,6 @@ export const LTX_KEYS = {
   idLoraAudio: 'ltx.id_lora_audio',
   idLoraAudioToVideo: 'ltx.id_lora_audio_to_video',
   idLoraOther: 'ltx.id_lora_other',
-  rtxEnabled: 'ltx.rtx_enabled',
-  rtxResizeType: 'ltx.rtx_resize_type',
-  rtxScale: 'ltx.rtx_scale',
-  rtxQuality: 'ltx.rtx_quality',
   videoCrf: 'ltx.video_crf',
   videoFormat: 'ltx.video_format',
   videoPixFmt: 'ltx.video_pix_fmt',
@@ -496,9 +502,16 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     anchorFrame: parseLtxInteger(map, k.anchorFrame),
     anchorDepthCurve: map.get(k.anchorDepthCurve)!,
     anchorBlockIndexFilter: map.get(k.anchorBlockIndexFilter)!,
-    scheduledCfg: parseLtxNumber(map, k.scheduledCfg),
-    scheduledCfgStartPercent: parseLtxNumber(map, k.scheduledCfgStartPercent),
-    scheduledCfgEndPercent: parseLtxNumber(map, k.scheduledCfgEndPercent),
+    latentUpscaleModel: map.get(k.latentUpscaleModel)!,
+    textAttentionAmplification: parseLtxNumber(map, k.textAttentionAmplification),
+    multimodalVideoCfg: parseLtxNumber(map, k.multimodalVideoCfg),
+    multimodalAudioCfg: parseLtxNumber(map, k.multimodalAudioCfg),
+    multimodalInactiveCfg: parseLtxNumber(map, k.multimodalInactiveCfg),
+    multimodalActiveSteps: parseLtxInteger(map, k.multimodalActiveSteps),
+    secondPassCfg: parseLtxNumber(map, k.secondPassCfg),
+    secondPassSigmas: map.get(k.secondPassSigmas)!,
+    secondPassUpscaleMethod: map.get(k.secondPassUpscaleMethod)!,
+    secondPassUpscaleBy: parseLtxNumber(map, k.secondPassUpscaleBy),
     loras: [
       parseLtxLoraSlot(map, {
         enabled: k.lora1Enabled,
@@ -551,10 +564,6 @@ export async function getLtxSettings(): Promise<LtxSettings> {
       audioToVideo: k.idLoraAudioToVideo,
       other: k.idLoraOther,
     }),
-    rtxEnabled: map.get(k.rtxEnabled)! === 'true',
-    rtxResizeType: map.get(k.rtxResizeType)!,
-    rtxScale: parseLtxNumber(map, k.rtxScale),
-    rtxQuality: map.get(k.rtxQuality)!,
     videoCrf: parseLtxInteger(map, k.videoCrf),
     videoFormat: map.get(k.videoFormat)!,
     videoPixFmt: map.get(k.videoPixFmt)!,

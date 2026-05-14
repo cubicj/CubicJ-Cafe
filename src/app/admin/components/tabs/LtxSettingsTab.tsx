@@ -68,9 +68,16 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTX - Anchor', nodeQuery: 'anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltx.anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTX - Anchor', monoFont: true },
 
-  { key: 'ltx.scheduled_cfg', label: 'CFG', type: 'number', step: 0.1, group: 'LTX - Scheduled CFG' },
-  { key: 'ltx.scheduled_cfg_start_percent', label: 'Start Percent', type: 'number', step: 0.01, group: 'LTX - Scheduled CFG' },
-  { key: 'ltx.scheduled_cfg_end_percent', label: 'End Percent', type: 'number', step: 0.01, group: 'LTX - Scheduled CFG' },
+  { key: 'ltx.latent_upscale_model', label: 'Latent Upscale Model', type: 'nodeOption', group: 'LTX - 2-Pass', nodeQuery: 'latent_upscale_model:LatentUpscaleModelLoader:model_name' },
+  { key: 'ltx.text_attention_amplification', label: 'Text Attention Amplification', type: 'number', step: 0.01, group: 'LTX - 2-Pass' },
+  { key: 'ltx.second_pass_cfg', label: 'Second Pass CFG', type: 'number', step: 0.01, group: 'LTX - 2-Pass' },
+  { key: 'ltx.second_pass_sigmas', label: 'Second Pass Sigmas', type: 'string', group: 'LTX - 2-Pass', monoFont: true },
+  { key: 'ltx.second_pass_upscale_method', label: 'Second Pass Upscale Method', type: 'nodeOption', group: 'LTX - 2-Pass', nodeQuery: 'second_pass_upscale_method:ImageScaleBy:upscale_method' },
+  { key: 'ltx.second_pass_upscale_by', label: 'Second Pass Upscale By', type: 'number', step: 0.01, group: 'LTX - 2-Pass' },
+  { key: 'ltx.multimodal_video_cfg', label: 'Video CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
+  { key: 'ltx.multimodal_audio_cfg', label: 'Audio CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
+  { key: 'ltx.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
+  { key: 'ltx.multimodal_active_steps', label: 'Active Steps', type: 'number', step: 1, group: 'LTX - Multimodal CFG' },
 
   { key: 'ltx.lora_1_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - LoRA 1' },
   { key: 'ltx.lora_1_name', label: 'Name', type: 'nodeOption', group: 'LTX - LoRA 1', nodeQuery: 'lora_1_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
@@ -116,11 +123,6 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.id_lora_audio', label: 'Audio', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
   { key: 'ltx.id_lora_audio_to_video', label: 'Audio To Video', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
   { key: 'ltx.id_lora_other', label: 'Other', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
-
-  { key: 'ltx.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTX - RTX' },
-  { key: 'ltx.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTX - RTX', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
-  { key: 'ltx.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTX - RTX' },
-  { key: 'ltx.rtx_quality', label: 'Quality', type: 'nodeOption', group: 'LTX - RTX', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
 
   { key: 'ltx.video_crf', label: 'CRF', type: 'number', step: 1, group: 'LTX - Output' },
   { key: 'ltx.video_format', label: 'Format', type: 'nodeOption', group: 'LTX - Output', nodeQuery: 'video_format:VHS_VideoCombine:format' },
