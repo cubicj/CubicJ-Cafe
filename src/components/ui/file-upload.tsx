@@ -7,6 +7,7 @@ import { Button } from './button';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { createImagePreview } from './file-upload-preview';
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
@@ -27,16 +28,24 @@ export function FileUpload({
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (externalSelectedFile === null) {
       setSelectedFile(null);
       setPreview(null);
-    } else if (externalSelectedFile && externalSelectedFile !== selectedFile) {
+    } else if (externalSelectedFile) {
       setSelectedFile(externalSelectedFile);
-      const reader = new FileReader();
-      reader.onload = () => setPreview(reader.result as string);
-      reader.readAsDataURL(externalSelectedFile);
+      createImagePreview(externalSelectedFile).then(dataUrl => {
+        if (!cancelled) setPreview(dataUrl);
+      }).catch(() => {
+        if (!cancelled) setPreview(null);
+      });
     }
-  }, [externalSelectedFile]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when external prop changes, internal setters are stable
+
+    return () => {
+      cancelled = true;
+    };
+  }, [externalSelectedFile]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -45,11 +54,7 @@ export function FileUpload({
         setSelectedFile(file);
         onFileSelect(file);
 
-        const reader = new FileReader();
-        reader.onload = () => {
-          setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        createImagePreview(file).then(setPreview).catch(() => setPreview(null));
       }
     },
     [onFileSelect]
