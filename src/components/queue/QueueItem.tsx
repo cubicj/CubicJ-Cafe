@@ -6,7 +6,7 @@ import { Trash2, Eye, ImagePlus, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 import { cn } from '@/lib/utils';
-import { getQueueDetailTags } from './queue-detail-tags';
+import { getQueueDetailTags, getQueueDisplayDurationSeconds } from './queue-detail-tags';
 
 interface QueueRequest {
   id: string;
@@ -22,6 +22,7 @@ interface QueueRequest {
   videoModel: string;
   generationMode: string;
   videoDuration: number;
+  videoDurationSeconds?: number | null;
   endImageFile?: string;
   audioFile?: string;
   audioPresetName?: string;
@@ -120,7 +121,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
     modelClassName: modelConfig.className,
     modeLabel: modeConfig.label,
     modeClassName: modeConfig.className,
-    durationSeconds: request.videoDuration,
+    durationSeconds: getQueueDisplayDurationSeconds(request.videoDuration, request.videoDurationSeconds),
     isNSFW: request.isNSFW,
     loraName,
     audioPresetName: request.audioPresetName,
