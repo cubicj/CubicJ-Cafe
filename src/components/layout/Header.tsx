@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
-import { apiClient } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
+import { apiClient } from '@/lib/api-client';
+import { startDiscordLogin } from '@/lib/auth/discord-login';
 
 const log = createLogger('ui');
 import { Button } from '@/components/ui/button';
@@ -32,8 +33,7 @@ export default function Header() {
 
   const handleSignIn = async () => {
     try {
-      const { url } = await apiClient.post<{ url: string }>('/api/auth/discord');
-      window.location.href = url;
+      await startDiscordLogin();
     } catch (error) {
       log.error('Failed to initiate Discord login', { error: error instanceof Error ? error.message : String(error) });
     }
