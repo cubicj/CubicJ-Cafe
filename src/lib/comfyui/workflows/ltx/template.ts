@@ -1,6 +1,6 @@
 import type { ComfyUIWorkflow } from '@/types';
 
-export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
+export const LTX_WORKFLOW_TEMPLATE = {
   '5': {
     inputs: {
       text: 'PLACEHOLDER',
@@ -55,14 +55,14 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   '17': {
     inputs: {
       noise: ['16', 0],
-      guider: ['526', 0],
+      guider: ['555', 0],
       sampler: ['463', 0],
       sigmas: ['527', 0],
       latent_image: ['15', 0],
     },
     class_type: 'SamplerCustomAdvanced',
     _meta: {
-      title: 'SamplerCustomAdvanced',
+      title: '1-Pass',
     },
   },
   '23': {
@@ -132,31 +132,9 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'LTXVImgToVideoInplaceKJ',
     },
   },
-  '321': {
-    inputs: {
-      samples: ['384', 1],
-      audio_vae: ['505', 0],
-    },
-    class_type: 'LTXVAudioVAEDecode',
-    _meta: {
-      title: 'LTXV Audio VAE Decode',
-    },
-  },
-  '322': {
-    inputs: {
-      resize_type: 'PLACEHOLDER',
-      'resize_type.scale': 0,
-      quality: 'PLACEHOLDER',
-      images: ['489', 0],
-    },
-    class_type: 'RTXVideoSuperResolution',
-    _meta: {
-      title: 'RTX Video Super Resolution',
-    },
-  },
   '333': {
     inputs: {
-      samples: ['510', 2],
+      samples: ['539', 0],
       vae: ['504', 2],
     },
     class_type: 'VAEDecode',
@@ -176,8 +154,8 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       trim_to_audio: false,
       pingpong: false,
       save_output: true,
-      images: ['322', 0],
-      audio: ['488', 0],
+      images: ['489', 0],
+      audio: ['587', 0],
     },
     class_type: 'VHS_VideoCombine',
     _meta: {
@@ -189,7 +167,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       identity_guidance_scale: 0,
       start_percent: 0,
       end_percent: 0,
-      model: ['491', 0],
+      model: ['492', 0],
       positive: ['490', 0],
       negative: ['23', 1],
       reference_audio: ['350', 0],
@@ -203,7 +181,6 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   '350': {
     inputs: {
       audio: 'PLACEHOLDER',
-      audioUI: '',
     },
     class_type: 'LoadAudio',
     _meta: {
@@ -247,7 +224,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       nag_alpha: 0,
       nag_tau: 0,
       inplace: true,
-      model: ['348', 0],
+      model: ['491', 0],
       nag_cond_video: ['512', 0],
       nag_cond_audio: ['513', 0],
     },
@@ -268,7 +245,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '486': {
     inputs: {
-      verbose: true,
+      verbose: false,
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['17', 0],
@@ -280,7 +257,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '487': {
     inputs: {
-      verbose: true,
+      verbose: false,
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['345', 0],
@@ -290,21 +267,9 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'Force Full Unload (VRAM+Pinned)',
     },
   },
-  '488': {
-    inputs: {
-      verbose: true,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['321', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
   '489': {
     inputs: {
-      verbose: true,
+      verbose: false,
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['333', 0],
@@ -316,7 +281,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
   },
   '490': {
     inputs: {
-      verbose: true,
+      verbose: false,
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['23', 0],
@@ -351,7 +316,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       audio: 0,
       audio_to_video: 0,
       other: 0,
-      model: ['496', 0],
+      model: ['476', 0],
     },
     class_type: 'LTX2LoraLoaderAdvanced',
     _meta: {
@@ -432,7 +397,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       audio: 0,
       audio_to_video: 0,
       other: 0,
-      model: ['492', 0],
+      model: ['496', 0],
     },
     class_type: 'LTX2LoraLoaderAdvanced',
     _meta: {
@@ -485,7 +450,7 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       anchor_frame: 0,
       depth_curve: 'PLACEHOLDER',
       block_index_filter: 'PLACEHOLDER',
-      model: ['476', 0],
+      model: ['348', 0],
       reference_image: ['86', 0],
       vae: ['504', 2],
       energy_latent: ['508', 2],
@@ -516,26 +481,12 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'audio',
     },
   },
-  '526': {
-    inputs: {
-      cfg: 0,
-      start_percent: 0,
-      end_percent: 0,
-      model: ['511', 0],
-      positive: ['508', 0],
-      negative: ['508', 1],
-    },
-    class_type: 'ScheduledCFGGuidance',
-    _meta: {
-      title: 'Scheduled CFG Guidance',
-    },
-  },
   '527': {
     inputs: {
       steps: 0,
       max_shift: 0,
       base_shift: 0,
-      stretch: true,
+      stretch: false,
       terminal: 0,
       latent: ['508', 2],
     },
@@ -544,4 +495,172 @@ export const LTX_WORKFLOW_TEMPLATE: ComfyUIWorkflow = {
       title: 'LTXVScheduler',
     },
   },
-};
+  '534': {
+    inputs: {
+      text_amplification: 0,
+      spatial_focus: 0,
+      block_index_filter: '',
+      bypass: false,
+      debug: false,
+      model: ['476', 0],
+    },
+    class_type: 'LTXTextAttentionAmplifier',
+    _meta: {
+      title: '🔊 LTX Text Attention Amplifier',
+    },
+  },
+  '536': {
+    inputs: {
+      model_name: 'PLACEHOLDER',
+    },
+    class_type: 'LatentUpscaleModelLoader',
+    _meta: {
+      title: 'Load Latent Upscale Model',
+    },
+  },
+  '538': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['583', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '539': {
+    inputs: {
+      av_latent: ['538', 0],
+    },
+    class_type: 'LTXVSeparateAVLatent',
+    _meta: {
+      title: 'LTXVSeparateAVLatent',
+    },
+  },
+  '540': {
+    inputs: {
+      samples: ['510', 2],
+      upscale_model: ['536', 0],
+      vae: ['504', 2],
+    },
+    class_type: 'LTXVLatentUpsampler',
+    _meta: {
+      title: 'LTXVLatentUpsampler',
+    },
+  },
+  '543': {
+    inputs: {
+      video_latent: ['572', 0],
+      audio_latent: ['384', 1],
+    },
+    class_type: 'LTXVConcatAVLatent',
+    _meta: {
+      title: 'LTXVConcatAVLatent',
+    },
+  },
+  '544': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['540', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '555': {
+    inputs: {
+      video_cfg: 0,
+      audio_cfg: 0,
+      inactive_cfg: 0,
+      active_steps: 0,
+      video_stg: 0,
+      audio_stg: 0,
+      rescale: 0,
+      modality_scale: 1,
+      cross_attn: true,
+      skip_blocks: '',
+      debug: false,
+      model: ['511', 0],
+      positive: ['508', 0],
+      negative: ['508', 1],
+    },
+    class_type: 'LTXScheduledMultimodalCFGGuider',
+    _meta: {
+      title: '🔊 LTX Scheduled Multimodal CFG Guider',
+    },
+  },
+  '572': {
+    inputs: {
+      num_images: '1',
+      'num_images.strength_1': 1,
+      'num_images.index_1': 0,
+      vae: ['504', 2],
+      latent: ['544', 0],
+      'num_images.image_1': ['575', 0],
+    },
+    class_type: 'LTXVImgToVideoInplaceKJ',
+    _meta: {
+      title: 'LTXVImgToVideoInplaceKJ',
+    },
+  },
+  '575': {
+    inputs: {
+      upscale_method: 'PLACEHOLDER',
+      scale_by: 0,
+      image: ['86', 0],
+    },
+    class_type: 'ImageScaleBy',
+    _meta: {
+      title: 'Upscale Image By',
+    },
+  },
+  '580': {
+    inputs: {
+      cfg: 0,
+      model: ['534', 0],
+      positive: ['510', 0],
+      negative: ['510', 1],
+    },
+    class_type: 'CFGGuider',
+    _meta: {
+      title: 'CFGGuider',
+    },
+  },
+  '582': {
+    inputs: {
+      sigmas: 'PLACEHOLDER',
+    },
+    class_type: 'ManualSigmas',
+    _meta: {
+      title: 'ManualSigmas',
+    },
+  },
+  '583': {
+    inputs: {
+      noise: ['16', 0],
+      guider: ['580', 0],
+      sampler: ['463', 0],
+      sigmas: ['582', 0],
+      latent_image: ['543', 0],
+    },
+    class_type: 'SamplerCustomAdvanced',
+    _meta: {
+      title: '2-Pass',
+    },
+  },
+  '587': {
+    inputs: {
+      samples: ['539', 1],
+      audio_vae: ['505', 0],
+    },
+    class_type: 'LTXVAudioVAEDecode',
+    _meta: {
+      title: 'LTXV Audio VAE Decode',
+    },
+  },
+} as ComfyUIWorkflow;

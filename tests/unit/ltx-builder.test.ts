@@ -11,6 +11,23 @@ const END_IMAGE = {
   RESIZE: '264',
 } as const
 
+const TWO_PASS = {
+  TEXT_ATTENTION: '534',
+  LATENT_UPSCALE_MODEL: '536',
+  FORCE_AFTER_SECOND_PASS: '538',
+  FINAL_SEPARATE_AV: '539',
+  LATENT_UPSAMPLER: '540',
+  SECOND_PASS_CONCAT_AV: '543',
+  FORCE_AFTER_UPSCALE: '544',
+  MULTIMODAL_CFG: '555',
+  SECOND_PASS_IMG_TO_VIDEO: '572',
+  SECOND_PASS_IMAGE_SCALE: '575',
+  SECOND_PASS_CFG_GUIDER: '580',
+  SECOND_PASS_SIGMAS: '582',
+  SECOND_PASS_SAMPLER: '583',
+  FINAL_AUDIO_DECODE: '587',
+} as const
+
 let lastWorkflow: ComfyUIWorkflow | null = null
 const buildLtxWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
   const wf = await rawBuilder(...args)
@@ -70,7 +87,35 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.REFERENCE_AUDIO]).toBeUndefined()
   })
 
-  it('injects scheduler, NAG, guide, anchor, and scheduled CFG settings', async () => {
+  it('builds the LTX two-pass topology and removes replaced single-pass nodes', async () => {
+    const wf = await buildLtxWorkflow({
+      model: 'ltx',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    for (const id of Object.values(TWO_PASS)) {
+      expect(wf[id]).toBeDefined()
+    }
+
+    expect(wf['322']).toBeUndefined()
+    expect(wf['526']).toBeUndefined()
+    expect(wf['321']).toBeUndefined()
+    expect(wf['488']).toBeUndefined()
+
+    expect(wf[LTX.SAMPLER_ADVANCED]!.inputs!.guider).toEqual([TWO_PASS.MULTIMODAL_CFG, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_SAMPLER]!.inputs).toMatchObject({
+      guider: [TWO_PASS.SECOND_PASS_CFG_GUIDER, 0],
+      sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
+      latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([TWO_PASS.TEXT_ATTENTION, 0])
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
+  })
+
+  it('injects scheduler, NAG, guide, anchor, and two-pass settings', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
@@ -119,10 +164,27 @@ describe('buildLtxWorkflow', () => {
       depth_curve: 'fake-anchor-depth-curve',
       block_index_filter: 'fake-block-filter-2,4,6',
     })
-    expect(wf[LTX.SCHEDULED_CFG]!.inputs).toMatchObject({
-      cfg: 2.2,
-      start_percent: 0.08,
-      end_percent: 0.77,
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs).toMatchObject({
+      text_amplification: 1.37,
+    })
+    expect(wf[TWO_PASS.LATENT_UPSCALE_MODEL]!.inputs).toMatchObject({
+      model_name: 'fake-ltx-latent-upscaler-u8p.safetensors',
+    })
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs).toMatchObject({
+      video_cfg: 2.41,
+      audio_cfg: 4.73,
+      inactive_cfg: 0.83,
+      active_steps: 3,
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      cfg: 1.29,
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_SIGMAS]!.inputs).toMatchObject({
+      sigmas: 'fake-second-pass-sigmas-q5m',
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_IMAGE_SCALE]!.inputs).toMatchObject({
+      upscale_method: 'fake-second-pass-upscale-method',
+      scale_by: 1.75,
     })
   })
 
@@ -251,6 +313,10 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
   })
 
   it('removes end image nodes when endImage absent', async () => {
@@ -268,36 +334,10 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
     expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
-  })
-
-  it('routes video combine through RTX when enabled', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
-      prompt: 'p',
-      inputImage: 'fake-start.png',
-      videoDuration: 4,
-    })
-
-    expect(wf[LTX.RTX_SUPER_RES]!.inputs).toMatchObject({
-      resize_type: 'fake-rtx-resize-type',
-      'resize_type.scale': 1.6,
-      quality: 'fake-rtx-quality',
-    })
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
-  })
-
-  it('removes RTX node and routes video combine directly when RTX disabled', async () => {
-    await updateSettings({ 'ltx.rtx_enabled': 'false' })
-
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
-      prompt: 'p',
-      inputImage: 'fake-start.png',
-      videoDuration: 4,
-    })
-
-    expect(wf[LTX.RTX_SUPER_RES]).toBeUndefined()
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
+    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
   })
 
   it('injects output settings', async () => {
