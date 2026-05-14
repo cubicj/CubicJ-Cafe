@@ -32,6 +32,8 @@ function createLtxLoraFields(mode: 'sfw' | 'nsfw', label: 'SFW' | 'NSFW'): Setti
 }
 
 const LTX_FIELDS: SettingsField[] = [
+  { key: 'ltx.end_image_enabled', label: 'End Image / Loop', type: 'boolean', group: '활성화' },
+
   { key: 'ltx.checkpoint', label: 'Checkpoint', type: 'nodeOption', group: 'LTX - Model', nodeQuery: 'checkpoint:CheckpointLoaderSimple:ckpt_name' },
   { key: 'ltx.text_encoder', label: 'Text Encoder', type: 'nodeOption', group: 'LTX - Model', nodeQuery: 'text_encoder:LTXAVTextEncoderLoader:text_encoder' },
 

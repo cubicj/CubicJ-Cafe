@@ -5,6 +5,7 @@ type SeedType = 'string' | 'number' | 'boolean'
 export const LTX_SEED: Array<{ key: string; value: string; type: SeedType }> = [
   { key: 'ltx.enabled', value: 'true', type: 'boolean' },
   { key: 'ltx.lora_enabled', value: 'false', type: 'boolean' },
+  { key: 'ltx.end_image_enabled', value: 'false', type: 'boolean' },
   { key: 'ltx.checkpoint', value: 'fake-ltx-checkpoint-q7m.safetensors', type: 'string' },
   { key: 'ltx.text_encoder', value: 'fake-ltx-text-encoder-p4v.safetensors', type: 'string' },
   { key: 'ltx.negative_prompt', value: 'fake negative prompt z8r', type: 'string' },
