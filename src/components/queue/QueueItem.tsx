@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Eye, ImagePlus, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
+import { cn } from '@/lib/utils';
+import { getQueueDetailTags } from './queue-detail-tags';
 
 interface QueueRequest {
   id: string;
@@ -111,7 +113,18 @@ function DeleteButton({ isDeleting, onClick }: { isDeleting: boolean; onClick: (
 
 function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
   const modelConfig = getModelConfig(request.videoModel);
+  const modeConfig = getModeConfig(request.generationMode);
   const loraName = parseLoraPresetName(request.loraPresetData);
+  const detailTags = getQueueDetailTags({
+    modelLabel: modelConfig.label,
+    modelClassName: modelConfig.className,
+    modeLabel: modeConfig.label,
+    modeClassName: modeConfig.className,
+    durationSeconds: request.videoDuration,
+    isNSFW: request.isNSFW,
+    loraName,
+    audioPresetName: request.audioPresetName,
+  });
 
   return (
     <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -140,30 +153,19 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
         </div>
 
         <div>
-          <div className="font-medium text-xs text-muted-foreground mb-1">생성 정보</div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={`text-xs ${modelConfig.className}`}>
-              {modelConfig.label}
-            </Badge>
-            <Badge variant="outline" className={`text-xs ${getModeConfig(request.generationMode).className}`}>
-              {getModeConfig(request.generationMode).label}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {request.videoDuration}초
-            </Badge>
+          <div className="font-medium text-xs text-muted-foreground mb-1">태그</div>
+          <div className="flex flex-wrap gap-1.5">
+            {detailTags.map((tag) => (
+              <Badge
+                key={tag.key}
+                variant={tag.variant}
+                className={cn('text-xs max-w-full min-w-0', tag.className)}
+              >
+                <span className="truncate">{tag.label}</span>
+              </Badge>
+            ))}
           </div>
         </div>
-
-        {(loraName || request.audioPresetName || request.isNSFW) && (
-          <div>
-            <div className="font-medium text-xs text-muted-foreground mb-1">옵션</div>
-            <div className="p-2 bg-muted/50 rounded space-y-1 text-sm">
-              {loraName && <div><span className="text-xs text-muted-foreground font-medium">LoRA:</span> {loraName}</div>}
-              {request.audioPresetName && <div><span className="text-xs text-muted-foreground font-medium">오디오 프리셋:</span> {request.audioPresetName}</div>}
-              {request.isNSFW && <Badge variant="destructive" className="text-xs">NSFW</Badge>}
-            </div>
-          </div>
-        )}
 
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">시간</div>
