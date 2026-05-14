@@ -13,6 +13,10 @@ import { ContentSettingsSection } from './sections/ContentSettingsSection';
 import { I2VControlsSection } from './sections/I2VControlsSection';
 import { useI2VForm } from './hooks/useI2VForm';
 import { useSession } from '@/contexts/SessionContext';
+import { createLogger } from '@/lib/logger';
+import { startDiscordLogin } from '@/lib/auth/discord-login';
+
+const log = createLogger('ui');
 
 export default function I2VPageClient() {
   const { user, isLoading: isLoadingAuth } = useSession();
@@ -52,11 +56,12 @@ export default function I2VPageClient() {
     setVideoDuration,
   } = useI2VForm();
 
-  const handleSignIn = () => {
-    const discordClientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/api/auth/callback/discord`;
-    const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
-    window.location.href = discordAuthUrl;
+  const handleSignIn = async () => {
+    try {
+      await startDiscordLogin();
+    } catch (error) {
+      log.error('Failed to initiate Discord login', { error: error instanceof Error ? error.message : String(error) });
+    }
   };
 
   if (isLoadingAuth) {
