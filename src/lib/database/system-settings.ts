@@ -114,6 +114,23 @@ export interface LtxLoraSlotSettings {
   other: number;
 }
 
+export interface LtxAnchorSettings {
+  strength: number;
+  cacheAtStep: number;
+  similarityThreshold: number;
+  decayWithDistance: number;
+  energyThreshold: number;
+  bypass: boolean;
+  debug: boolean;
+  advancedMode: boolean;
+  cacheMode: string;
+  forwardsPerStep: number;
+  cacheWarmup: number;
+  anchorFrame: number;
+  depthCurve: string;
+  blockIndexFilter: string;
+}
+
 export interface LtxSettings {
   checkpoint: string;
   textEncoder: string;
@@ -170,7 +187,9 @@ export interface LtxSettings {
   secondPassSigmas: string;
   secondPassUpscaleMethod: string;
   secondPassUpscaleBy: number;
-  loras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
+  secondPassAnchor: LtxAnchorSettings;
+  sfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
+  nsfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
   idLora: LtxLoraSlotSettings;
   videoCrf: number;
   videoFormat: string;
@@ -281,38 +300,84 @@ export const LTX_KEYS = {
   secondPassSigmas: 'ltx.second_pass_sigmas',
   secondPassUpscaleMethod: 'ltx.second_pass_upscale_method',
   secondPassUpscaleBy: 'ltx.second_pass_upscale_by',
-  lora1Enabled: 'ltx.lora_1_enabled',
-  lora1Name: 'ltx.lora_1_name',
-  lora1Strength: 'ltx.lora_1_strength',
-  lora1Video: 'ltx.lora_1_video',
-  lora1VideoToAudio: 'ltx.lora_1_video_to_audio',
-  lora1Audio: 'ltx.lora_1_audio',
-  lora1AudioToVideo: 'ltx.lora_1_audio_to_video',
-  lora1Other: 'ltx.lora_1_other',
-  lora2Enabled: 'ltx.lora_2_enabled',
-  lora2Name: 'ltx.lora_2_name',
-  lora2Strength: 'ltx.lora_2_strength',
-  lora2Video: 'ltx.lora_2_video',
-  lora2VideoToAudio: 'ltx.lora_2_video_to_audio',
-  lora2Audio: 'ltx.lora_2_audio',
-  lora2AudioToVideo: 'ltx.lora_2_audio_to_video',
-  lora2Other: 'ltx.lora_2_other',
-  lora3Enabled: 'ltx.lora_3_enabled',
-  lora3Name: 'ltx.lora_3_name',
-  lora3Strength: 'ltx.lora_3_strength',
-  lora3Video: 'ltx.lora_3_video',
-  lora3VideoToAudio: 'ltx.lora_3_video_to_audio',
-  lora3Audio: 'ltx.lora_3_audio',
-  lora3AudioToVideo: 'ltx.lora_3_audio_to_video',
-  lora3Other: 'ltx.lora_3_other',
-  lora4Enabled: 'ltx.lora_4_enabled',
-  lora4Name: 'ltx.lora_4_name',
-  lora4Strength: 'ltx.lora_4_strength',
-  lora4Video: 'ltx.lora_4_video',
-  lora4VideoToAudio: 'ltx.lora_4_video_to_audio',
-  lora4Audio: 'ltx.lora_4_audio',
-  lora4AudioToVideo: 'ltx.lora_4_audio_to_video',
-  lora4Other: 'ltx.lora_4_other',
+  secondPassAnchorStrength: 'ltx.second_pass_anchor_strength',
+  secondPassAnchorCacheAtStep: 'ltx.second_pass_anchor_cache_at_step',
+  secondPassAnchorSimilarityThreshold: 'ltx.second_pass_anchor_similarity_threshold',
+  secondPassAnchorDecayWithDistance: 'ltx.second_pass_anchor_decay_with_distance',
+  secondPassAnchorEnergyThreshold: 'ltx.second_pass_anchor_energy_threshold',
+  secondPassAnchorBypass: 'ltx.second_pass_anchor_bypass',
+  secondPassAnchorDebug: 'ltx.second_pass_anchor_debug',
+  secondPassAnchorAdvancedMode: 'ltx.second_pass_anchor_advanced_mode',
+  secondPassAnchorCacheMode: 'ltx.second_pass_anchor_cache_mode',
+  secondPassAnchorForwardsPerStep: 'ltx.second_pass_anchor_forwards_per_step',
+  secondPassAnchorCacheWarmup: 'ltx.second_pass_anchor_cache_warmup',
+  secondPassAnchorFrame: 'ltx.second_pass_anchor_frame',
+  secondPassAnchorDepthCurve: 'ltx.second_pass_anchor_depth_curve',
+  secondPassAnchorBlockIndexFilter: 'ltx.second_pass_anchor_block_index_filter',
+  sfwLora1Enabled: 'ltx.sfw_lora_1_enabled',
+  sfwLora1Name: 'ltx.sfw_lora_1_name',
+  sfwLora1Strength: 'ltx.sfw_lora_1_strength',
+  sfwLora1Video: 'ltx.sfw_lora_1_video',
+  sfwLora1VideoToAudio: 'ltx.sfw_lora_1_video_to_audio',
+  sfwLora1Audio: 'ltx.sfw_lora_1_audio',
+  sfwLora1AudioToVideo: 'ltx.sfw_lora_1_audio_to_video',
+  sfwLora1Other: 'ltx.sfw_lora_1_other',
+  sfwLora2Enabled: 'ltx.sfw_lora_2_enabled',
+  sfwLora2Name: 'ltx.sfw_lora_2_name',
+  sfwLora2Strength: 'ltx.sfw_lora_2_strength',
+  sfwLora2Video: 'ltx.sfw_lora_2_video',
+  sfwLora2VideoToAudio: 'ltx.sfw_lora_2_video_to_audio',
+  sfwLora2Audio: 'ltx.sfw_lora_2_audio',
+  sfwLora2AudioToVideo: 'ltx.sfw_lora_2_audio_to_video',
+  sfwLora2Other: 'ltx.sfw_lora_2_other',
+  sfwLora3Enabled: 'ltx.sfw_lora_3_enabled',
+  sfwLora3Name: 'ltx.sfw_lora_3_name',
+  sfwLora3Strength: 'ltx.sfw_lora_3_strength',
+  sfwLora3Video: 'ltx.sfw_lora_3_video',
+  sfwLora3VideoToAudio: 'ltx.sfw_lora_3_video_to_audio',
+  sfwLora3Audio: 'ltx.sfw_lora_3_audio',
+  sfwLora3AudioToVideo: 'ltx.sfw_lora_3_audio_to_video',
+  sfwLora3Other: 'ltx.sfw_lora_3_other',
+  sfwLora4Enabled: 'ltx.sfw_lora_4_enabled',
+  sfwLora4Name: 'ltx.sfw_lora_4_name',
+  sfwLora4Strength: 'ltx.sfw_lora_4_strength',
+  sfwLora4Video: 'ltx.sfw_lora_4_video',
+  sfwLora4VideoToAudio: 'ltx.sfw_lora_4_video_to_audio',
+  sfwLora4Audio: 'ltx.sfw_lora_4_audio',
+  sfwLora4AudioToVideo: 'ltx.sfw_lora_4_audio_to_video',
+  sfwLora4Other: 'ltx.sfw_lora_4_other',
+  nsfwLora1Enabled: 'ltx.nsfw_lora_1_enabled',
+  nsfwLora1Name: 'ltx.nsfw_lora_1_name',
+  nsfwLora1Strength: 'ltx.nsfw_lora_1_strength',
+  nsfwLora1Video: 'ltx.nsfw_lora_1_video',
+  nsfwLora1VideoToAudio: 'ltx.nsfw_lora_1_video_to_audio',
+  nsfwLora1Audio: 'ltx.nsfw_lora_1_audio',
+  nsfwLora1AudioToVideo: 'ltx.nsfw_lora_1_audio_to_video',
+  nsfwLora1Other: 'ltx.nsfw_lora_1_other',
+  nsfwLora2Enabled: 'ltx.nsfw_lora_2_enabled',
+  nsfwLora2Name: 'ltx.nsfw_lora_2_name',
+  nsfwLora2Strength: 'ltx.nsfw_lora_2_strength',
+  nsfwLora2Video: 'ltx.nsfw_lora_2_video',
+  nsfwLora2VideoToAudio: 'ltx.nsfw_lora_2_video_to_audio',
+  nsfwLora2Audio: 'ltx.nsfw_lora_2_audio',
+  nsfwLora2AudioToVideo: 'ltx.nsfw_lora_2_audio_to_video',
+  nsfwLora2Other: 'ltx.nsfw_lora_2_other',
+  nsfwLora3Enabled: 'ltx.nsfw_lora_3_enabled',
+  nsfwLora3Name: 'ltx.nsfw_lora_3_name',
+  nsfwLora3Strength: 'ltx.nsfw_lora_3_strength',
+  nsfwLora3Video: 'ltx.nsfw_lora_3_video',
+  nsfwLora3VideoToAudio: 'ltx.nsfw_lora_3_video_to_audio',
+  nsfwLora3Audio: 'ltx.nsfw_lora_3_audio',
+  nsfwLora3AudioToVideo: 'ltx.nsfw_lora_3_audio_to_video',
+  nsfwLora3Other: 'ltx.nsfw_lora_3_other',
+  nsfwLora4Enabled: 'ltx.nsfw_lora_4_enabled',
+  nsfwLora4Name: 'ltx.nsfw_lora_4_name',
+  nsfwLora4Strength: 'ltx.nsfw_lora_4_strength',
+  nsfwLora4Video: 'ltx.nsfw_lora_4_video',
+  nsfwLora4VideoToAudio: 'ltx.nsfw_lora_4_video_to_audio',
+  nsfwLora4Audio: 'ltx.nsfw_lora_4_audio',
+  nsfwLora4AudioToVideo: 'ltx.nsfw_lora_4_audio_to_video',
+  nsfwLora4Other: 'ltx.nsfw_lora_4_other',
   idLoraEnabled: 'ltx.id_lora_enabled',
   idLoraName: 'ltx.id_lora_name',
   idLoraStrength: 'ltx.id_lora_strength',
@@ -415,6 +480,43 @@ function parseLtxLoraSlot(
   };
 }
 
+function parseLtxAnchorSettings(
+  map: Map<string, string>,
+  keys: {
+    strength: string;
+    cacheAtStep: string;
+    similarityThreshold: string;
+    decayWithDistance: string;
+    energyThreshold: string;
+    bypass: string;
+    debug: string;
+    advancedMode: string;
+    cacheMode: string;
+    forwardsPerStep: string;
+    cacheWarmup: string;
+    anchorFrame: string;
+    depthCurve: string;
+    blockIndexFilter: string;
+  }
+): LtxAnchorSettings {
+  return {
+    strength: parseLtxNumber(map, keys.strength),
+    cacheAtStep: parseLtxInteger(map, keys.cacheAtStep),
+    similarityThreshold: parseLtxNumber(map, keys.similarityThreshold),
+    decayWithDistance: parseLtxNumber(map, keys.decayWithDistance),
+    energyThreshold: parseLtxNumber(map, keys.energyThreshold),
+    bypass: map.get(keys.bypass)! === 'true',
+    debug: map.get(keys.debug)! === 'true',
+    advancedMode: map.get(keys.advancedMode)! === 'true',
+    cacheMode: map.get(keys.cacheMode)!,
+    forwardsPerStep: parseLtxInteger(map, keys.forwardsPerStep),
+    cacheWarmup: parseLtxInteger(map, keys.cacheWarmup),
+    anchorFrame: parseLtxInteger(map, keys.anchorFrame),
+    depthCurve: map.get(keys.depthCurve)!,
+    blockIndexFilter: map.get(keys.blockIndexFilter)!,
+  };
+}
+
 function parseLtxNumber(map: Map<string, string>, key: string): number {
   const value = map.get(key)!;
   if (value.trim() === '') {
@@ -512,46 +614,104 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     secondPassSigmas: map.get(k.secondPassSigmas)!,
     secondPassUpscaleMethod: map.get(k.secondPassUpscaleMethod)!,
     secondPassUpscaleBy: parseLtxNumber(map, k.secondPassUpscaleBy),
-    loras: [
+    secondPassAnchor: parseLtxAnchorSettings(map, {
+      strength: k.secondPassAnchorStrength,
+      cacheAtStep: k.secondPassAnchorCacheAtStep,
+      similarityThreshold: k.secondPassAnchorSimilarityThreshold,
+      decayWithDistance: k.secondPassAnchorDecayWithDistance,
+      energyThreshold: k.secondPassAnchorEnergyThreshold,
+      bypass: k.secondPassAnchorBypass,
+      debug: k.secondPassAnchorDebug,
+      advancedMode: k.secondPassAnchorAdvancedMode,
+      cacheMode: k.secondPassAnchorCacheMode,
+      forwardsPerStep: k.secondPassAnchorForwardsPerStep,
+      cacheWarmup: k.secondPassAnchorCacheWarmup,
+      anchorFrame: k.secondPassAnchorFrame,
+      depthCurve: k.secondPassAnchorDepthCurve,
+      blockIndexFilter: k.secondPassAnchorBlockIndexFilter,
+    }),
+    sfwLoras: [
       parseLtxLoraSlot(map, {
-        enabled: k.lora1Enabled,
-        name: k.lora1Name,
-        strength: k.lora1Strength,
-        video: k.lora1Video,
-        videoToAudio: k.lora1VideoToAudio,
-        audio: k.lora1Audio,
-        audioToVideo: k.lora1AudioToVideo,
-        other: k.lora1Other,
+        enabled: k.sfwLora1Enabled,
+        name: k.sfwLora1Name,
+        strength: k.sfwLora1Strength,
+        video: k.sfwLora1Video,
+        videoToAudio: k.sfwLora1VideoToAudio,
+        audio: k.sfwLora1Audio,
+        audioToVideo: k.sfwLora1AudioToVideo,
+        other: k.sfwLora1Other,
       }),
       parseLtxLoraSlot(map, {
-        enabled: k.lora2Enabled,
-        name: k.lora2Name,
-        strength: k.lora2Strength,
-        video: k.lora2Video,
-        videoToAudio: k.lora2VideoToAudio,
-        audio: k.lora2Audio,
-        audioToVideo: k.lora2AudioToVideo,
-        other: k.lora2Other,
+        enabled: k.sfwLora2Enabled,
+        name: k.sfwLora2Name,
+        strength: k.sfwLora2Strength,
+        video: k.sfwLora2Video,
+        videoToAudio: k.sfwLora2VideoToAudio,
+        audio: k.sfwLora2Audio,
+        audioToVideo: k.sfwLora2AudioToVideo,
+        other: k.sfwLora2Other,
       }),
       parseLtxLoraSlot(map, {
-        enabled: k.lora3Enabled,
-        name: k.lora3Name,
-        strength: k.lora3Strength,
-        video: k.lora3Video,
-        videoToAudio: k.lora3VideoToAudio,
-        audio: k.lora3Audio,
-        audioToVideo: k.lora3AudioToVideo,
-        other: k.lora3Other,
+        enabled: k.sfwLora3Enabled,
+        name: k.sfwLora3Name,
+        strength: k.sfwLora3Strength,
+        video: k.sfwLora3Video,
+        videoToAudio: k.sfwLora3VideoToAudio,
+        audio: k.sfwLora3Audio,
+        audioToVideo: k.sfwLora3AudioToVideo,
+        other: k.sfwLora3Other,
       }),
       parseLtxLoraSlot(map, {
-        enabled: k.lora4Enabled,
-        name: k.lora4Name,
-        strength: k.lora4Strength,
-        video: k.lora4Video,
-        videoToAudio: k.lora4VideoToAudio,
-        audio: k.lora4Audio,
-        audioToVideo: k.lora4AudioToVideo,
-        other: k.lora4Other,
+        enabled: k.sfwLora4Enabled,
+        name: k.sfwLora4Name,
+        strength: k.sfwLora4Strength,
+        video: k.sfwLora4Video,
+        videoToAudio: k.sfwLora4VideoToAudio,
+        audio: k.sfwLora4Audio,
+        audioToVideo: k.sfwLora4AudioToVideo,
+        other: k.sfwLora4Other,
+      }),
+    ],
+    nsfwLoras: [
+      parseLtxLoraSlot(map, {
+        enabled: k.nsfwLora1Enabled,
+        name: k.nsfwLora1Name,
+        strength: k.nsfwLora1Strength,
+        video: k.nsfwLora1Video,
+        videoToAudio: k.nsfwLora1VideoToAudio,
+        audio: k.nsfwLora1Audio,
+        audioToVideo: k.nsfwLora1AudioToVideo,
+        other: k.nsfwLora1Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.nsfwLora2Enabled,
+        name: k.nsfwLora2Name,
+        strength: k.nsfwLora2Strength,
+        video: k.nsfwLora2Video,
+        videoToAudio: k.nsfwLora2VideoToAudio,
+        audio: k.nsfwLora2Audio,
+        audioToVideo: k.nsfwLora2AudioToVideo,
+        other: k.nsfwLora2Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.nsfwLora3Enabled,
+        name: k.nsfwLora3Name,
+        strength: k.nsfwLora3Strength,
+        video: k.nsfwLora3Video,
+        videoToAudio: k.nsfwLora3VideoToAudio,
+        audio: k.nsfwLora3Audio,
+        audioToVideo: k.nsfwLora3AudioToVideo,
+        other: k.nsfwLora3Other,
+      }),
+      parseLtxLoraSlot(map, {
+        enabled: k.nsfwLora4Enabled,
+        name: k.nsfwLora4Name,
+        strength: k.nsfwLora4Strength,
+        video: k.nsfwLora4Video,
+        videoToAudio: k.nsfwLora4VideoToAudio,
+        audio: k.nsfwLora4Audio,
+        audioToVideo: k.nsfwLora4AudioToVideo,
+        other: k.nsfwLora4Other,
       }),
     ],
     idLora: parseLtxLoraSlot(map, {

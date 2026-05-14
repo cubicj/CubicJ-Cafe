@@ -1,6 +1,6 @@
 import type { LtxGenerationParams } from '../types';
 import type { ComfyUIWorkflow } from '@/types';
-import type { LtxSettings } from '@/lib/database/system-settings';
+import type { LtxAnchorSettings, LtxSettings } from '@/lib/database/system-settings';
 import { LTX_WORKFLOW_TEMPLATE } from './template';
 import { LTX } from './nodes';
 import { createLogger } from '@/lib/logger';
@@ -38,7 +38,10 @@ export async function buildLtxWorkflow(
   configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
-  const generalModelOutput = configureLoras(workflow, settings);
+  const generalModelOutput = configureLoras(
+    workflow,
+    params.isNSFW ? settings.nsfwLoras : settings.sfwLoras
+  );
   setNode(workflow, LTX.NAG, { model: generalModelOutput });
   const nagModelOutput: NodeOutput = [LTX.NAG, 0];
   const modelOutput = configureIdLora(
@@ -74,6 +77,7 @@ export async function buildLtxWorkflow(
     hasEndImage: !!params.endImage,
     videoDuration: params.videoDuration,
     hasReferenceAudio: !!params.referenceAudio,
+    isNSFW: !!params.isNSFW,
   });
 
   dumpWorkflow('ltx', workflow);
@@ -156,21 +160,21 @@ function configureGuide(workflow: ComfyUIWorkflow, settings: LtxSettings) {
 }
 
 function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxSettings) {
-  setNode(workflow, LTX.ANCHOR, {
+  setAnchorNode(workflow, LTX.ANCHOR, {
     strength: settings.anchorStrength,
-    cache_at_step: settings.anchorCacheAtStep,
-    similarity_threshold: settings.anchorSimilarityThreshold,
-    decay_with_distance: settings.anchorDecayWithDistance,
-    energy_threshold: settings.anchorEnergyThreshold,
+    cacheAtStep: settings.anchorCacheAtStep,
+    similarityThreshold: settings.anchorSimilarityThreshold,
+    decayWithDistance: settings.anchorDecayWithDistance,
+    energyThreshold: settings.anchorEnergyThreshold,
     bypass: settings.anchorBypass,
     debug: settings.anchorDebug,
-    advanced_mode: settings.anchorAdvancedMode,
-    cache_mode: settings.anchorCacheMode,
-    forwards_per_step: settings.anchorForwardsPerStep,
-    cache_warmup: settings.anchorCacheWarmup,
-    anchor_frame: settings.anchorFrame,
-    depth_curve: settings.anchorDepthCurve,
-    block_index_filter: settings.anchorBlockIndexFilter,
+    advancedMode: settings.anchorAdvancedMode,
+    cacheMode: settings.anchorCacheMode,
+    forwardsPerStep: settings.anchorForwardsPerStep,
+    cacheWarmup: settings.anchorCacheWarmup,
+    anchorFrame: settings.anchorFrame,
+    depthCurve: settings.anchorDepthCurve,
+    blockIndexFilter: settings.anchorBlockIndexFilter,
   });
 }
 
@@ -203,17 +207,41 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxSettings) {
     upscale_method: settings.secondPassUpscaleMethod,
     scale_by: settings.secondPassUpscaleBy,
   });
+  setAnchorNode(workflow, LTX.SECOND_PASS_ANCHOR, settings.secondPassAnchor);
+}
+
+function setAnchorNode(
+  workflow: ComfyUIWorkflow,
+  nodeId: string,
+  settings: LtxAnchorSettings
+) {
+  setNode(workflow, nodeId, {
+    strength: settings.strength,
+    cache_at_step: settings.cacheAtStep,
+    similarity_threshold: settings.similarityThreshold,
+    decay_with_distance: settings.decayWithDistance,
+    energy_threshold: settings.energyThreshold,
+    bypass: settings.bypass,
+    debug: settings.debug,
+    advanced_mode: settings.advancedMode,
+    cache_mode: settings.cacheMode,
+    forwards_per_step: settings.forwardsPerStep,
+    cache_warmup: settings.cacheWarmup,
+    anchor_frame: settings.anchorFrame,
+    depth_curve: settings.depthCurve,
+    block_index_filter: settings.blockIndexFilter,
+  });
 }
 
 function configureLoras(
   workflow: ComfyUIWorkflow,
-  settings: LtxSettings
+  loras: LtxSettings['sfwLoras']
 ): NodeOutput {
   const chain = [
-    { node: LTX.LORA_3, slot: settings.loras[2] },
-    { node: LTX.LORA_2, slot: settings.loras[1] },
-    { node: LTX.LORA_4, slot: settings.loras[3] },
-    { node: LTX.LORA_1, slot: settings.loras[0] },
+    { node: LTX.LORA_3, slot: loras[2] },
+    { node: LTX.LORA_2, slot: loras[1] },
+    { node: LTX.LORA_4, slot: loras[3] },
+    { node: LTX.LORA_1, slot: loras[0] },
   ] as const;
   let model: NodeOutput = [LTX.SAGE_ATTN_PATCH, 0];
 

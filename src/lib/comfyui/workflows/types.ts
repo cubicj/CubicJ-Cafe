@@ -19,6 +19,7 @@ export interface BaseGenerationParams {
   prompt: string
   inputImage: string
   videoDuration: number
+  isNSFW?: boolean
 }
 
 export interface WanGenerationParams extends BaseGenerationParams {

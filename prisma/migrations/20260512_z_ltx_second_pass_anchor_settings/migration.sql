@@ -1,0 +1,15 @@
+INSERT OR IGNORE INTO system_settings (id, key, value, type, category, created_at, updated_at) VALUES
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_strength', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_cache_at_step', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_similarity_threshold', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_decay_with_distance', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_energy_threshold', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_bypass', 'false', 'boolean', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_debug', 'false', 'boolean', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_advanced_mode', 'false', 'boolean', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_cache_mode', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_forwards_per_step', '1', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_cache_warmup', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_frame', '0', 'number', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_depth_curve', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now')),
+  (lower(hex(randomblob(12))), 'ltx.second_pass_anchor_block_index_filter', 'CONFIGURE_IN_ADMIN', 'string', 'ltx', datetime('now'), datetime('now'));

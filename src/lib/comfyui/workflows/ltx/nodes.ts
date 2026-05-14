@@ -54,4 +54,5 @@ export const LTX = {
   SECOND_PASS_SIGMAS: '582',
   SECOND_PASS_SAMPLER: '583',
   FINAL_AUDIO_DECODE: '587',
+  SECOND_PASS_ANCHOR: '593',
 } as const;
