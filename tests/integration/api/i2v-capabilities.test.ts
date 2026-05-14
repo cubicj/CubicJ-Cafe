@@ -180,6 +180,32 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.capabilities.wan.audio).toBe(false)
     expect(body.capabilities.ltx.audio).toBe(true)
     expect(body.capabilities.wan.endImage).toBe(true)
+    expect(body.capabilities.ltx.endImage).toBe(false)
+  })
+
+  it('disables LTX end image capability from admin setting', async () => {
+    await seedSettings({ 'ltx.end_image_enabled': 'false' })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.capabilities.wan.endImage).toBe(true)
+    expect(body.capabilities.ltx.endImage).toBe(false)
+    expect(body.capabilities['ltx-wan'].endImage).toBe(true)
+  })
+
+  it('enables LTX end image capability from admin setting', async () => {
+    await seedSettings({ 'ltx.end_image_enabled': 'true' })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
     expect(body.capabilities.ltx.endImage).toBe(true)
   })
 })

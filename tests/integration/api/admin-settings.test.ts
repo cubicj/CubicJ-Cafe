@@ -16,6 +16,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260512_ltx23_workflow_rebuild',
       '20260512_z_ltx_second_pass_anchor_settings',
       '20260512_zz_ltx_content_mode_lora_settings',
+      '20260514_ltx_end_image_enabled',
     ]
       .map((migration) =>
         readFileSync(
@@ -270,5 +271,25 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.setting.key).toBe('ltx.second_pass_anchor_cache_mode')
     expect(body.setting.value).toBe('fake-second-pass-anchor-cache-mode-from-admin')
+  })
+
+  it('updates LTX end image capability setting', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx.end_image_enabled',
+        value: 'true',
+        type: 'boolean',
+        category: 'ltx',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx.end_image_enabled')
+    expect(body.setting.value).toBe('true')
   })
 })

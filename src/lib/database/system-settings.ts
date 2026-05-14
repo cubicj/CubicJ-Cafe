@@ -245,6 +245,7 @@ export const WAN_KEYS = {
 } as const;
 
 export const LTX_KEYS = {
+  endImageEnabled: 'ltx.end_image_enabled',
   checkpoint: 'ltx.checkpoint',
   textEncoder: 'ltx.text_encoder',
   negativePrompt: 'ltx.negative_prompt',
