@@ -26,6 +26,7 @@ const TWO_PASS = {
   SECOND_PASS_SIGMAS: '582',
   SECOND_PASS_SAMPLER: '583',
   FINAL_AUDIO_DECODE: '587',
+  SECOND_PASS_ANCHOR: '593',
 } as const
 
 let lastWorkflow: ComfyUIWorkflow | null = null
@@ -110,7 +111,13 @@ describe('buildLtxWorkflow', () => {
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
       latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
     })
-    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([TWO_PASS.TEXT_ATTENTION, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
+      model: [TWO_PASS.TEXT_ATTENTION, 0],
+      reference_image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
+      energy_latent: [TWO_PASS.SECOND_PASS_IMG_TO_VIDEO, 0],
+      sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
+    })
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
@@ -186,9 +193,25 @@ describe('buildLtxWorkflow', () => {
       upscale_method: 'fake-second-pass-upscale-method',
       scale_by: 1.75,
     })
+    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
+      strength: 0.24,
+      cache_at_step: 7,
+      similarity_threshold: 0.58,
+      decay_with_distance: 0.14,
+      energy_threshold: 0.22,
+      bypass: false,
+      debug: true,
+      advanced_mode: true,
+      cache_mode: 'fake-second-pass-anchor-cache-mode',
+      forwards_per_step: 3,
+      cache_warmup: 9,
+      anchor_frame: 2,
+      depth_curve: 'fake-second-pass-anchor-depth-curve',
+      block_index_filter: 'fake-second-pass-block-filter-1,3,5',
+    })
   })
 
-  it('injects four LoRA slots with routing values and chains enabled slots', async () => {
+  it('injects SFW LoRA slots by default and chains enabled slots', async () => {
     const wf = await buildLtxWorkflow({
       model: 'ltx',
       prompt: 'p',
@@ -197,7 +220,7 @@ describe('buildLtxWorkflow', () => {
     })
 
     expect(wf[LTX.LORA_3]!.inputs).toMatchObject({
-      lora_name: 'fake-ltx-lora-slot3-c3e.safetensors',
+      lora_name: 'fake-ltx-sfw-lora-slot3-c3e.safetensors',
       strength_model: 0.73,
       video: 0.31,
       video_to_audio: 0.32,
@@ -207,7 +230,7 @@ describe('buildLtxWorkflow', () => {
       model: [LTX.SAGE_ATTN_PATCH, 0],
     })
     expect(wf[LTX.LORA_2]!.inputs).toMatchObject({
-      lora_name: 'fake-ltx-lora-slot2-b2w.safetensors',
+      lora_name: 'fake-ltx-sfw-lora-slot2-b2w.safetensors',
       strength_model: 0.62,
       video: 0.21,
       video_to_audio: 0.22,
@@ -217,7 +240,7 @@ describe('buildLtxWorkflow', () => {
       model: [LTX.LORA_3, 0],
     })
     expect(wf[LTX.LORA_4]!.inputs).toMatchObject({
-      lora_name: 'fake-ltx-lora-slot4-d4r.safetensors',
+      lora_name: 'fake-ltx-sfw-lora-slot4-d4r.safetensors',
       strength_model: 0.84,
       video: 0.41,
       video_to_audio: 0.42,
@@ -227,7 +250,7 @@ describe('buildLtxWorkflow', () => {
       model: [LTX.LORA_2, 0],
     })
     expect(wf[LTX.LORA_1]!.inputs).toMatchObject({
-      lora_name: 'fake-ltx-lora-slot1-a1q.safetensors',
+      lora_name: 'fake-ltx-sfw-lora-slot1-a1q.safetensors',
       strength_model: 0.51,
       video: 0.11,
       video_to_audio: 0.12,
@@ -239,8 +262,60 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
   })
 
+  it('injects NSFW LoRA slots when content is NSFW', async () => {
+    const wf = await buildLtxWorkflow({
+      model: 'ltx',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+      isNSFW: true,
+    })
+
+    expect(wf[LTX.LORA_3]!.inputs).toMatchObject({
+      lora_name: 'fake-ltx-nsfw-lora-slot3-x3k.safetensors',
+      strength_model: 0.78,
+      video: 0.36,
+      video_to_audio: 0.37,
+      audio: 0.38,
+      audio_to_video: 0.39,
+      other: 0.4,
+      model: [LTX.SAGE_ATTN_PATCH, 0],
+    })
+    expect(wf[LTX.LORA_2]!.inputs).toMatchObject({
+      lora_name: 'fake-ltx-nsfw-lora-slot2-w2p.safetensors',
+      strength_model: 0.67,
+      video: 0.26,
+      video_to_audio: 0.27,
+      audio: 0.28,
+      audio_to_video: 0.29,
+      other: 0.3,
+      model: [LTX.LORA_3, 0],
+    })
+    expect(wf[LTX.LORA_4]!.inputs).toMatchObject({
+      lora_name: 'fake-ltx-nsfw-lora-slot4-y4m.safetensors',
+      strength_model: 0.89,
+      video: 0.46,
+      video_to_audio: 0.47,
+      audio: 0.48,
+      audio_to_video: 0.49,
+      other: 0.5,
+      model: [LTX.LORA_2, 0],
+    })
+    expect(wf[LTX.LORA_1]!.inputs).toMatchObject({
+      lora_name: 'fake-ltx-nsfw-lora-slot1-v1n.safetensors',
+      strength_model: 0.56,
+      video: 0.16,
+      video_to_audio: 0.17,
+      audio: 0.18,
+      audio_to_video: 0.19,
+      other: 0.2,
+      model: [LTX.LORA_4, 0],
+    })
+    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
+  })
+
   it('bypasses a disabled LoRA in a mixed enabled chain', async () => {
-    await updateSettings({ 'ltx.lora_2_enabled': 'false' })
+    await updateSettings({ 'ltx.sfw_lora_2_enabled': 'false' })
 
     const wf = await buildLtxWorkflow({
       model: 'ltx',
@@ -267,10 +342,10 @@ describe('buildLtxWorkflow', () => {
 
   it('removes disabled LoRA nodes while bypassing the chain', async () => {
     await updateSettings({
-      'ltx.lora_1_enabled': 'false',
-      'ltx.lora_2_enabled': 'false',
-      'ltx.lora_3_enabled': 'false',
-      'ltx.lora_4_enabled': 'false',
+      'ltx.sfw_lora_1_enabled': 'false',
+      'ltx.sfw_lora_2_enabled': 'false',
+      'ltx.sfw_lora_3_enabled': 'false',
+      'ltx.sfw_lora_4_enabled': 'false',
     })
 
     const wf = await buildLtxWorkflow({

@@ -12,10 +12,18 @@ beforeEach(async () => {
 
 describe('LTX 2.3 rebuild migration parity', () => {
   it('contains every active LTX settings key required by LTX_KEYS', () => {
-    const sql = readFileSync(
-      join(process.cwd(), 'prisma/migrations/20260512_ltx23_workflow_rebuild/migration.sql'),
-      'utf8'
-    )
+    const sql = [
+      '20260512_ltx23_workflow_rebuild',
+      '20260512_z_ltx_second_pass_anchor_settings',
+      '20260512_zz_ltx_content_mode_lora_settings',
+    ]
+      .map((migration) =>
+        readFileSync(
+          join(process.cwd(), `prisma/migrations/${migration}/migration.sql`),
+          'utf8'
+        )
+      )
+      .join('\n')
     const preservedKeys = new Set(['ltx.enabled', 'ltx.lora_enabled'])
     const missing = Object.values(LTX_KEYS)
       .filter((key) => !preservedKeys.has(key))
@@ -48,16 +56,7 @@ describe('GET /api/admin/settings', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(typeof body).toBe('object')
-    expect(Object.keys(body.ltx)).toEqual(expect.arrayContaining([
-      'ltx.id_lora_enabled',
-      'ltx.id_lora_name',
-      'ltx.id_lora_strength',
-      'ltx.id_lora_video',
-      'ltx.id_lora_video_to_audio',
-      'ltx.id_lora_audio',
-      'ltx.id_lora_audio_to_video',
-      'ltx.id_lora_other',
-    ]))
+    expect(Object.keys(body.ltx)).toEqual(expect.arrayContaining(Object.values(LTX_KEYS)))
   })
 })
 
@@ -126,6 +125,13 @@ describe('PUT /api/admin/settings', () => {
     })
     const scheduledCfgRes = await PUT(scheduledCfgReq)
     expect(scheduledCfgRes.status).toBe(400)
+
+    const oldLoraReq = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'ltx.lora_1_name', value: 'legacy' }),
+    })
+    const oldLoraRes = await PUT(oldLoraReq)
+    expect(oldLoraRes.status).toBe(400)
   })
 
   it('returns 400 with missing key or value', async () => {
@@ -206,6 +212,26 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('true')
   })
 
+  it('updates LTX content-mode LoRA settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx.nsfw_lora_1_name',
+        value: 'fake-admin-nsfw-lora.safetensors',
+        type: 'string',
+        category: 'ltx',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx.nsfw_lora_1_name')
+    expect(body.setting.value).toBe('fake-admin-nsfw-lora.safetensors')
+  })
+
   it('updates LTX second-pass settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
@@ -224,5 +250,25 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.setting.key).toBe('ltx.second_pass_sigmas')
     expect(body.setting.value).toBe('fake-sigmas-from-admin')
+  })
+
+  it('updates LTX second-pass anchor settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltx.second_pass_anchor_cache_mode',
+        value: 'fake-second-pass-anchor-cache-mode-from-admin',
+        type: 'string',
+        category: 'ltx',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltx.second_pass_anchor_cache_mode')
+    expect(body.setting.value).toBe('fake-second-pass-anchor-cache-mode-from-admin')
   })
 })

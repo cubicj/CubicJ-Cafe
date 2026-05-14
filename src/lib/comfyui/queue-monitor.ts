@@ -362,6 +362,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
+          isNSFW: Boolean(request.isNSFW),
           endImage: uploadedEndImageName || undefined,
         };
       } else if (videoModel === 'ltx-wan') {
@@ -370,6 +371,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
+          isNSFW: Boolean(request.isNSFW),
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
@@ -379,6 +381,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
+          isNSFW: Boolean(request.isNSFW),
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };

@@ -622,7 +622,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   '580': {
     inputs: {
       cfg: 0,
-      model: ['534', 0],
+      model: ['593', 0],
       positive: ['510', 0],
       negative: ['510', 1],
     },
@@ -661,6 +661,33 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVAudioVAEDecode',
     _meta: {
       title: 'LTXV Audio VAE Decode',
+    },
+  },
+  '593': {
+    inputs: {
+      strength: 0,
+      cache_at_step: 0,
+      similarity_threshold: 0,
+      decay_with_distance: 0,
+      energy_threshold: 0,
+      bypass: false,
+      debug: false,
+      advanced_mode: false,
+      cache_mode: 'PLACEHOLDER',
+      forwards_per_step: 0,
+      cache_warmup: 0,
+      anchor_frame: 0,
+      depth_curve: 'PLACEHOLDER',
+      block_index_filter: 'PLACEHOLDER',
+      model: ['534', 0],
+      reference_image: ['575', 0],
+      vae: ['504', 2],
+      energy_latent: ['572', 0],
+      sigmas: ['582', 0],
+    },
+    class_type: 'LTXLatentAnchorAware',
+    _meta: {
+      title: '🎯 LTX Latent Anchor Aware',
     },
   },
 } as ComfyUIWorkflow;
