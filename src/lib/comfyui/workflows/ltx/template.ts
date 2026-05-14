@@ -153,7 +153,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       save_metadata: false,
       trim_to_audio: false,
       pingpong: false,
-      save_output: true,
+      save_output: false,
       images: ['489', 0],
       audio: ['587', 0],
     },

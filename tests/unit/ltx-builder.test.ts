@@ -72,6 +72,7 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.DURATION]!.inputs!.value).toBe(8)
     expect(wf[LTX.FRAME_BASE]!.inputs!.value).toBe(10)
     expect(wf[LTX.FRAME_RATE]!.inputs!.number).toBe(18)
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.save_output).toBe(false)
     expect(wf[LTX.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
     expect(wf[LTX.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
     expect(wf[LTX.AUDIO_VAE]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
