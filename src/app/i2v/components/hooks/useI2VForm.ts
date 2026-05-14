@@ -135,7 +135,7 @@ export function useI2VForm(): UseI2VFormReturn {
   const [hasUnavailableLoRAs, setHasUnavailableLoRAs] = useState(false);
 
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
-  const { isLoading: isLoadingAuth } = useSession();
+  const { user, isLoading: isLoadingAuth } = useSession();
   const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
@@ -162,6 +162,8 @@ export function useI2VForm(): UseI2VFormReturn {
   const durationLabels: Record<number, string> = durationLabelsMap?.[activeModel] ?? Object.fromEntries(durationOptions.map(duration => [duration, `${duration}초`]));
 
   useEffect(() => {
+    if (isLoadingAuth || !user) return;
+
     const fetchCapabilities = async () => {
       try {
         const data = await apiClient.get<{
@@ -190,7 +192,7 @@ export function useI2VForm(): UseI2VFormReturn {
       }
     };
     fetchCapabilities();
-  }, []);
+  }, [isLoadingAuth, user]);
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -207,6 +209,11 @@ export function useI2VForm(): UseI2VFormReturn {
   }, [selectedPresetIds]);
 
   const fetchServerStatus = async () => {
+    if (isLoadingAuth || !user) {
+      setIsLoadingServerStatus(false);
+      return;
+    }
+
     setIsLoadingServerStatus(true);
     try {
       const data = await apiClient.get<ComfyUIStatus>('/api/comfyui/status');
@@ -222,6 +229,8 @@ export function useI2VForm(): UseI2VFormReturn {
   };
 
   const fetchPresets = async (model?: string) => {
+    if (isLoadingAuth || !user) return [];
+
     try {
       const m = model || activeModel;
       const data = await apiClient.get<{ presets: PresetData[] }>(`/api/lora-presets?model=${m}`);
@@ -358,11 +367,21 @@ export function useI2VForm(): UseI2VFormReturn {
   };
 
   useEffect(() => {
+    if (isLoadingAuth || !user) {
+      setIsLoadingServerStatus(false);
+      return;
+    }
+
     fetchServerStatus();
-  }, []);
+  }, [isLoadingAuth, user]);
 
   useEffect(() => {
     const reloadPresets = async () => {
+      if (isLoadingAuth || !user) {
+        setPresets([]);
+        return;
+      }
+
       if (capabilities.loraPresets) {
         const allPresets = await fetchPresets(activeModel);
         setPresets(allPresets);
@@ -372,7 +391,7 @@ export function useI2VForm(): UseI2VFormReturn {
     };
     reloadPresets();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- capabilities and fetchPresets derived from activeModel
-  }, [activeModel]);
+  }, [activeModel, isLoadingAuth, user]);
 
   useEffect(() => {
     if (presets.length > 0 && selectedPresetIds.length > 0) {
