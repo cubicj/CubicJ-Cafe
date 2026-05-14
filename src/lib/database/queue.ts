@@ -418,6 +418,19 @@ export class QueueService {
     });
   }
 
+  static async getProcessingRequestIds(): Promise<string[]> {
+    const requests = await prisma.queueRequest.findMany({
+      where: {
+        status: QueueStatus.PROCESSING
+      },
+      select: {
+        id: true
+      }
+    });
+
+    return requests.map(request => request.id);
+  }
+
   static async getAndClaimNextPendingRequest(): Promise<QueueRequestWithUser | null> {
     try {
       return await prisma.$transaction(async (tx) => {

@@ -25,9 +25,17 @@ export const POST = createRouteHandler(
       case 'status':
         return { data: queueMonitor.getStatus() };
 
+      case 'refresh': {
+        const result = await queueMonitor.forceRefreshQueue();
+        return {
+          message: 'Queue Monitor 새로고침이 완료되었습니다.',
+          data: result
+        };
+      }
+
       default:
         return NextResponse.json({
-          error: '잘못된 액션입니다. (start, stop, status 중 선택)'
+          error: '잘못된 액션입니다. (start, stop, status, refresh 중 선택)'
         }, { status: 400 });
     }
   }
