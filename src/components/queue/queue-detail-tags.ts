@@ -18,6 +18,10 @@ interface QueueDetailTagInput {
   audioPresetName?: string | null;
 }
 
+export function getQueueDisplayDurationSeconds(videoDuration: number, videoDurationSeconds?: number | null): number {
+  return videoDurationSeconds ?? videoDuration;
+}
+
 export function getQueueDetailTags(input: QueueDetailTagInput): QueueDetailTag[] {
   const tags: QueueDetailTag[] = [
     {
