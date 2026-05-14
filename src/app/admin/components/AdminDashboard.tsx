@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal } from 'lucide-react';
+import { Database, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
@@ -69,6 +69,8 @@ export default function AdminDashboard() {
   const [currentPause, setCurrentPause] = useState<number | null>(null);
   const [pauseLoading, setPauseLoading] = useState(false);
   const [pauseMessage, setPauseMessage] = useState('');
+  const [queueRefreshLoading, setQueueRefreshLoading] = useState(false);
+  const [queueRefreshMessage, setQueueRefreshMessage] = useState('');
   const [activeTab, setActiveTab] = useState('database');
 
   const fetchComfyUIState = async (): Promise<boolean> => {
@@ -162,6 +164,32 @@ export default function AdminDashboard() {
       setTimeout(() => setPauseMessage(''), 3000);
     } finally {
       setPauseLoading(false);
+    }
+  };
+
+  const handleForceQueueRefresh = async () => {
+    setQueueRefreshLoading(true);
+    try {
+      const data = await apiClient.post<{
+        data: {
+          releasedSlots: number;
+          releasedMemoryJobs: number;
+          status: { running: boolean; activeServers: number; currentlyProcessing: number };
+        };
+      }>('/api/queue/monitor', { action: 'refresh' });
+      const released = data.data.releasedSlots + data.data.releasedMemoryJobs;
+      setQueueRefreshMessage(
+        released > 0
+          ? `큐 새로고침 완료 — 고립된 슬롯 ${released}개 정리됨`
+          : '큐 새로고침 완료'
+      );
+      setTimeout(() => setQueueRefreshMessage(''), 3000);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.errorMessage : '큐 새로고침에 실패했습니다.';
+      setQueueRefreshMessage(message);
+      setTimeout(() => setQueueRefreshMessage(''), 3000);
+    } finally {
+      setQueueRefreshLoading(false);
     }
   };
 
@@ -280,6 +308,12 @@ export default function AdminDashboard() {
         </Alert>
       )}
 
+      {queueRefreshMessage && (
+        <Alert>
+          <AlertDescription>{queueRefreshMessage}</AlertDescription>
+        </Alert>
+      )}
+
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -296,6 +330,28 @@ export default function AdminDashboard() {
             onCheckedChange={toggleComfyUI}
             disabled={comfyuiLoading}
           />
+        </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <RefreshCw className={`h-5 w-5 ${queueRefreshLoading ? 'animate-spin text-blue-500' : 'text-gray-400'}`} />
+            <div>
+              <h3 className="font-semibold">큐 강제 새로고침</h3>
+              <p className="text-sm text-muted-foreground">
+                멈춘 슬롯을 정리하고 대기 중인 요청을 즉시 다시 확인합니다
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleForceQueueRefresh}
+            disabled={queueRefreshLoading}
+          >
+            새로고침
+          </Button>
         </div>
       </Card>
 

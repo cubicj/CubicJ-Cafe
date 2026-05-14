@@ -234,6 +234,21 @@ describe('QueueService', () => {
     })
   })
 
+  describe('getProcessingRequestIds', () => {
+    it('returns only PROCESSING request ids', async () => {
+      const user = await createUser()
+      const pending = await createQueueRequest(user.id, { position: 1, status: QueueStatus.PENDING })
+      const processing = await createQueueRequest(user.id, { position: 2, status: QueueStatus.PROCESSING })
+      const completed = await createQueueRequest(user.id, { position: 3, status: QueueStatus.COMPLETED })
+
+      const ids = await QueueService.getProcessingRequestIds()
+
+      expect(ids).toContain(processing.id)
+      expect(ids).not.toContain(pending.id)
+      expect(ids).not.toContain(completed.id)
+    })
+  })
+
   describe('createRequest with imageBlob', () => {
     it('stores imageBlob in the database', async () => {
       const user = await createUser()

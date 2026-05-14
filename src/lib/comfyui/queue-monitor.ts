@@ -283,6 +283,61 @@ class QueueMonitor {
     }
   }
 
+  async forceRefreshQueue(): Promise<{
+    status: ReturnType<QueueMonitor['getStatus']>;
+    releasedSlots: number;
+    releasedMemoryJobs: number;
+  }> {
+    if (!this.isRunning) {
+      this.start();
+    }
+
+    QueueService.invalidateCache();
+    this.lastServerUpdateTime = 0;
+    await this.updateActiveServers();
+
+    const { releasedSlots, releasedMemoryJobs } = await this.reconcileProcessingState();
+    await this.processQueue();
+
+    log.info('Queue force refresh completed', {
+      releasedSlots,
+      releasedMemoryJobs,
+      status: this.getStatus()
+    });
+
+    return {
+      status: this.getStatus(),
+      releasedSlots,
+      releasedMemoryJobs
+    };
+  }
+
+  private async reconcileProcessingState(): Promise<{ releasedSlots: number; releasedMemoryJobs: number }> {
+    const processingIds = new Set(await QueueService.getProcessingRequestIds());
+    let releasedSlots = 0;
+    let releasedMemoryJobs = 0;
+
+    for (const server of this.activeServers) {
+      if (server.currentJobId && !processingIds.has(server.currentJobId)) {
+        log.warn('Releasing orphaned server slot during force refresh', {
+          server: server.name,
+          requestId: server.currentJobId
+        });
+        server.currentJobId = undefined;
+        releasedSlots += 1;
+      }
+    }
+
+    for (const requestId of Array.from(this.currentlyProcessing)) {
+      if (!processingIds.has(requestId)) {
+        this.currentlyProcessing.delete(requestId);
+        releasedMemoryJobs += 1;
+      }
+    }
+
+    return { releasedSlots, releasedMemoryJobs };
+  }
+
 
   // 특정 서버로 요청 처리
   async processQueueRequestWithServer(
