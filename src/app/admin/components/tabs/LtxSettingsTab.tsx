@@ -107,6 +107,12 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.second_pass_anchor_frame', label: 'Anchor Frame', type: 'number', step: 1, group: 'LTX - 2-Pass Anchor' },
   { key: 'ltx.second_pass_anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTX - 2-Pass Anchor', nodeQuery: 'second_pass_anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltx.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTX - 2-Pass Anchor', monoFont: true },
+
+  { key: 'ltx.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTX - RTX Postprocess' },
+  { key: 'ltx.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTX - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
+  { key: 'ltx.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTX - RTX Postprocess' },
+  { key: 'ltx.rtx_quality', label: 'Quality', type: 'nodeOption', group: 'LTX - RTX Postprocess', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
+
   { key: 'ltx.multimodal_video_cfg', label: 'Video CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
   { key: 'ltx.multimodal_audio_cfg', label: 'Audio CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
   { key: 'ltx.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },

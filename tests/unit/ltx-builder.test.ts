@@ -73,6 +73,13 @@ describe('buildLtxWorkflow', () => {
     expect(wf[LTX.FRAME_BASE]!.inputs!.value).toBe(10)
     expect(wf[LTX.FRAME_RATE]!.inputs!.number).toBe(18)
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.save_output).toBe(false)
+    expect(wf[LTX.RTX_SUPER_RES]!.inputs).toMatchObject({
+      resize_type: 'fake-rtx-resize-type',
+      'resize_type.scale': 1.5,
+      quality: 'fake-rtx-quality',
+      images: [LTX.VRAM_POST_VAE_DECODE, 0],
+    })
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
     expect(wf[LTX.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
     expect(wf[LTX.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
     expect(wf[LTX.AUDIO_VAE]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
@@ -101,7 +108,6 @@ describe('buildLtxWorkflow', () => {
       expect(wf[id]).toBeDefined()
     }
 
-    expect(wf['322']).toBeUndefined()
     expect(wf['526']).toBeUndefined()
     expect(wf['321']).toBeUndefined()
     expect(wf['488']).toBeUndefined()
@@ -123,7 +129,7 @@ describe('buildLtxWorkflow', () => {
       energy_latent: [TWO_PASS.SECOND_PASS_IMG_TO_VIDEO, 0],
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
     })
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
 
@@ -364,6 +370,22 @@ describe('buildLtxWorkflow', () => {
       expect(wf[id]).toBeUndefined()
     }
     expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.CHECKPOINT, 0])
+  })
+
+  it('removes RTX upscale when disabled', async () => {
+    await updateSettings({
+      'ltx.rtx_enabled': 'false',
+    })
+
+    const wf = await buildLtxWorkflow({
+      model: 'ltx',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTX.RTX_SUPER_RES]).toBeUndefined()
+    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VRAM_POST_VAE_DECODE, 0])
   })
 
   it('injects end image nodes when endImage provided', async () => {

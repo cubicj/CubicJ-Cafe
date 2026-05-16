@@ -132,6 +132,18 @@ export const LTX_WORKFLOW_TEMPLATE = {
       title: 'LTXVImgToVideoInplaceKJ',
     },
   },
+  '322': {
+    inputs: {
+      resize_type: 'PLACEHOLDER',
+      'resize_type.scale': 0,
+      quality: 'PLACEHOLDER',
+      images: ['489', 0],
+    },
+    class_type: 'RTXVideoSuperResolution',
+    _meta: {
+      title: 'RTX Video Super Resolution',
+    },
+  },
   '333': {
     inputs: {
       samples: ['539', 0],

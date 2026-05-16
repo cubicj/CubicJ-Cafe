@@ -188,6 +188,10 @@ export interface LtxSettings {
   secondPassUpscaleMethod: string;
   secondPassUpscaleBy: number;
   secondPassAnchor: LtxAnchorSettings;
+  rtxEnabled: boolean;
+  rtxResizeType: string;
+  rtxScale: number;
+  rtxQuality: string;
   sfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
   nsfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
   idLora: LtxLoraSlotSettings;
@@ -315,6 +319,10 @@ export const LTX_KEYS = {
   secondPassAnchorFrame: 'ltx.second_pass_anchor_frame',
   secondPassAnchorDepthCurve: 'ltx.second_pass_anchor_depth_curve',
   secondPassAnchorBlockIndexFilter: 'ltx.second_pass_anchor_block_index_filter',
+  rtxEnabled: 'ltx.rtx_enabled',
+  rtxResizeType: 'ltx.rtx_resize_type',
+  rtxScale: 'ltx.rtx_scale',
+  rtxQuality: 'ltx.rtx_quality',
   sfwLora1Enabled: 'ltx.sfw_lora_1_enabled',
   sfwLora1Name: 'ltx.sfw_lora_1_name',
   sfwLora1Strength: 'ltx.sfw_lora_1_strength',
@@ -631,6 +639,10 @@ export async function getLtxSettings(): Promise<LtxSettings> {
       depthCurve: k.secondPassAnchorDepthCurve,
       blockIndexFilter: k.secondPassAnchorBlockIndexFilter,
     }),
+    rtxEnabled: map.get(k.rtxEnabled)! === 'true',
+    rtxResizeType: map.get(k.rtxResizeType)!,
+    rtxScale: parseLtxNumber(map, k.rtxScale),
+    rtxQuality: map.get(k.rtxQuality)!,
     sfwLoras: [
       parseLtxLoraSlot(map, {
         enabled: k.sfwLora1Enabled,
