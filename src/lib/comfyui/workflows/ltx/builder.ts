@@ -150,14 +150,16 @@ function configureNag(workflow: ComfyUIWorkflow, settings: LtxSettings) {
 }
 
 function configureGuide(workflow: ComfyUIWorkflow, settings: LtxSettings) {
-  setNode(workflow, LTX.ADD_GUIDE, {
+  const guideInputs = {
     frame_idx: settings.guideFrameIndex,
     strength: settings.guideStrength,
     crf: settings.guideCrf,
     blur_radius: settings.guideBlurRadius,
     interpolation: settings.guideInterpolation,
     crop: settings.guideCrop,
-  });
+  };
+  setNode(workflow, LTX.ADD_GUIDE, guideInputs);
+  setNode(workflow, LTX.SECOND_PASS_ADD_GUIDE, guideInputs);
 }
 
 function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxSettings) {

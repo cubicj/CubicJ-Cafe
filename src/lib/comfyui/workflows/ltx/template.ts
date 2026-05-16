@@ -146,7 +146,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   '333': {
     inputs: {
-      samples: ['539', 0],
+      samples: ['608', 2],
       vae: ['504', 2],
     },
     class_type: 'VAEDecode',
@@ -564,7 +564,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   '543': {
     inputs: {
-      video_latent: ['572', 0],
+      video_latent: ['607', 2],
       audio_latent: ['384', 1],
     },
     class_type: 'LTXVConcatAVLatent',
@@ -635,8 +635,8 @@ export const LTX_WORKFLOW_TEMPLATE = {
     inputs: {
       cfg: 0,
       model: ['481', 0],
-      positive: ['510', 0],
-      negative: ['510', 1],
+      positive: ['607', 0],
+      negative: ['607', 1],
     },
     class_type: 'CFGGuider',
     _meta: {
@@ -694,7 +694,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       model: ['534', 0],
       reference_image: ['575', 0],
       vae: ['504', 2],
-      energy_latent: ['572', 0],
+      energy_latent: ['607', 2],
       sigmas: ['582', 0],
     },
     class_type: 'LTXLatentAnchorAware',
@@ -710,6 +710,36 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'LTX2MemoryEfficientSageAttentionPatch',
     _meta: {
       title: 'LTX2 Mem Eff Sage Attention Patch',
+    },
+  },
+  '607': {
+    inputs: {
+      frame_idx: 0,
+      strength: 0,
+      crf: 0,
+      blur_radius: 0,
+      interpolation: 'PLACEHOLDER',
+      crop: 'PLACEHOLDER',
+      positive: ['510', 0],
+      negative: ['510', 1],
+      vae: ['504', 2],
+      latent: ['572', 0],
+      image: ['575', 0],
+    },
+    class_type: 'LTXVAddGuideAdvanced',
+    _meta: {
+      title: '?뀤?뀭?뀱 LTXV Add Guide Advanced',
+    },
+  },
+  '608': {
+    inputs: {
+      positive: ['607', 0],
+      negative: ['607', 1],
+      latent: ['539', 0],
+    },
+    class_type: 'LTXVCropGuides',
+    _meta: {
+      title: 'LTXVCropGuides',
     },
   },
 } as ComfyUIWorkflow;
