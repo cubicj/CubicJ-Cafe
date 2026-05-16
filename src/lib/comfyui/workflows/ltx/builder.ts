@@ -68,6 +68,7 @@ export async function buildLtxWorkflow(
     handleEndImageBypass(workflow);
   }
 
+  configureRtx(workflow, settings);
   configureOutput(workflow, params, settings);
 
   setNode(workflow, LTX.NOISE_SEED, { noise_seed: generateSeed() });
@@ -386,6 +387,22 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   delete workflow[END_IMAGE.LOAD_IMAGE];
   delete workflow[END_IMAGE.FRAME_INDEX];
   delete workflow[END_IMAGE.RESIZE];
+}
+
+function configureRtx(workflow: ComfyUIWorkflow, settings: LtxSettings) {
+  if (settings.rtxEnabled) {
+    setNode(workflow, LTX.RTX_SUPER_RES, {
+      resize_type: settings.rtxResizeType,
+      'resize_type.scale': settings.rtxScale,
+      quality: settings.rtxQuality,
+      images: [LTX.VRAM_POST_VAE_DECODE, 0],
+    });
+    setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.RTX_SUPER_RES, 0] });
+    return;
+  }
+
+  delete workflow[LTX.RTX_SUPER_RES];
+  setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.VRAM_POST_VAE_DECODE, 0] });
 }
 
 function configureOutput(

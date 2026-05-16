@@ -17,6 +17,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260512_z_ltx_second_pass_anchor_settings',
       '20260512_zz_ltx_content_mode_lora_settings',
       '20260514_ltx_end_image_enabled',
+      '20260516_ltx_rtx_upscale_settings',
     ]
       .map((migration) =>
         readFileSync(
@@ -109,7 +110,7 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(400)
   })
 
-  it('rejects removed standalone LTX setting keys', async () => {
+  it('allows LTX RTX settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
 
@@ -118,7 +119,12 @@ describe('PUT /api/admin/settings', () => {
       body: JSON.stringify({ key: 'ltx.rtx_enabled', value: 'true' }),
     })
     const rtxRes = await PUT(rtxReq)
-    expect(rtxRes.status).toBe(400)
+    expect(rtxRes.status).toBe(200)
+  })
+
+  it('rejects removed standalone LTX setting keys', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
 
     const scheduledCfgReq = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
