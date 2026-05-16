@@ -112,7 +112,11 @@ describe('buildLtxWorkflow', () => {
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
       latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
     })
-    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
+    expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
+    expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs!.model).toEqual([LTX.ANCHOR, 0])
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTX.FIRST_PASS_SAGE_ATTN_PATCH, 0])
+    expect(wf[LTX.SAGE_ATTN_PATCH]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([LTX.SAGE_ATTN_PATCH, 0])
     expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
       reference_image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
@@ -228,7 +232,7 @@ describe('buildLtxWorkflow', () => {
       audio: 0.33,
       audio_to_video: 0.34,
       other: 0.35,
-      model: [LTX.SAGE_ATTN_PATCH, 0],
+      model: [LTX.CHECKPOINT, 0],
     })
     expect(wf[LTX.LORA_2]!.inputs).toMatchObject({
       lora_name: 'fake-ltx-sfw-lora-slot2-b2w.safetensors',
@@ -280,7 +284,7 @@ describe('buildLtxWorkflow', () => {
       audio: 0.38,
       audio_to_video: 0.39,
       other: 0.4,
-      model: [LTX.SAGE_ATTN_PATCH, 0],
+      model: [LTX.CHECKPOINT, 0],
     })
     expect(wf[LTX.LORA_2]!.inputs).toMatchObject({
       lora_name: 'fake-ltx-nsfw-lora-slot2-w2p.safetensors',
@@ -327,7 +331,7 @@ describe('buildLtxWorkflow', () => {
 
     expect(wf[LTX.LORA_3]!.inputs).toMatchObject({
       strength_model: 0.73,
-      model: [LTX.SAGE_ATTN_PATCH, 0],
+      model: [LTX.CHECKPOINT, 0],
     })
     expect(wf[LTX.LORA_2]).toBeUndefined()
     expect(wf[LTX.LORA_4]!.inputs).toMatchObject({
@@ -359,7 +363,7 @@ describe('buildLtxWorkflow', () => {
     for (const id of [LTX.LORA_1, LTX.LORA_2, LTX.LORA_3, LTX.LORA_4]) {
       expect(wf[id]).toBeUndefined()
     }
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.SAGE_ATTN_PATCH, 0])
+    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.CHECKPOINT, 0])
   })
 
   it('injects end image nodes when endImage provided', async () => {
