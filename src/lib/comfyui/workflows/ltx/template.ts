@@ -236,7 +236,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   '481': {
     inputs: {
       triton_kernels: true,
-      model: ['504', 0],
+      model: ['593', 0],
     },
     class_type: 'LTX2MemoryEfficientSageAttentionPatch',
     _meta: {
@@ -332,7 +332,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       audio: 0,
       audio_to_video: 0,
       other: 0,
-      model: ['481', 0],
+      model: ['504', 0],
     },
     class_type: 'LTX2LoraLoaderAdvanced',
     _meta: {
@@ -585,7 +585,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       cross_attn: true,
       skip_blocks: '',
       debug: false,
-      model: ['511', 0],
+      model: ['595', 0],
       positive: ['508', 0],
       negative: ['508', 1],
     },
@@ -622,7 +622,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   '580': {
     inputs: {
       cfg: 0,
-      model: ['593', 0],
+      model: ['481', 0],
       positive: ['510', 0],
       negative: ['510', 1],
     },
@@ -688,6 +688,16 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'LTXLatentAnchorAware',
     _meta: {
       title: '🎯 LTX Latent Anchor Aware',
+    },
+  },
+  '595': {
+    inputs: {
+      triton_kernels: true,
+      model: ['511', 0],
+    },
+    class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    _meta: {
+      title: 'LTX2 Mem Eff Sage Attention Patch',
     },
   },
 } as ComfyUIWorkflow;

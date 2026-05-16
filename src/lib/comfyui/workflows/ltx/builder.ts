@@ -243,7 +243,7 @@ function configureLoras(
     { node: LTX.LORA_4, slot: loras[3] },
     { node: LTX.LORA_1, slot: loras[0] },
   ] as const;
-  let model: NodeOutput = [LTX.SAGE_ATTN_PATCH, 0];
+  let model: NodeOutput = [LTX.CHECKPOINT, 0];
 
   for (const { node, slot } of chain) {
     if (!slot.enabled) {
