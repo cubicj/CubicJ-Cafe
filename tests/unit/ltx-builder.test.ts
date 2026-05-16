@@ -27,6 +27,8 @@ const TWO_PASS = {
   SECOND_PASS_SAMPLER: '583',
   FINAL_AUDIO_DECODE: '587',
   SECOND_PASS_ANCHOR: '593',
+  SECOND_PASS_ADD_GUIDE: '607',
+  SECOND_PASS_CROP_GUIDES: '608',
 } as const
 
 let lastWorkflow: ComfyUIWorkflow | null = null
@@ -118,17 +120,31 @@ describe('buildLtxWorkflow', () => {
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
       latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
     })
+    expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual([
+      TWO_PASS.SECOND_PASS_ADD_GUIDE,
+      2,
+    ])
     expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
     expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs!.model).toEqual([LTX.ANCHOR, 0])
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTX.FIRST_PASS_SAGE_ATTN_PATCH, 0])
     expect(wf[LTX.SAGE_ATTN_PATCH]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
-    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([LTX.SAGE_ATTN_PATCH, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      model: [LTX.SAGE_ATTN_PATCH, 0],
+      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
+      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
+    })
     expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
       reference_image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
-      energy_latent: [TWO_PASS.SECOND_PASS_IMG_TO_VIDEO, 0],
+      energy_latent: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 2],
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
     })
+    expect(wf[TWO_PASS.SECOND_PASS_CROP_GUIDES]!.inputs).toMatchObject({
+      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
+      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
+      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
+    })
+    expect(wf[LTX.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_CROP_GUIDES, 2])
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
     expect(wf[LTX.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
@@ -159,6 +175,14 @@ describe('buildLtxWorkflow', () => {
       nag_tau: 1.61,
     })
     expect(wf[LTX.ADD_GUIDE]!.inputs).toMatchObject({
+      frame_idx: 3,
+      strength: 0.46,
+      crf: 27,
+      blur_radius: 5,
+      interpolation: 'fake-guide-interpolation',
+      crop: 'fake-guide-crop',
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_ADD_GUIDE]!.inputs).toMatchObject({
       frame_idx: 3,
       strength: 0.46,
       crf: 27,
