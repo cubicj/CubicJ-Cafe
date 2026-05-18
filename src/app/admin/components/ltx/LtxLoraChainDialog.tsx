@@ -15,6 +15,10 @@ interface SettingEntry {
   type: string;
 }
 
+interface NodeOptionsResponse {
+  options: Record<string, string[]>;
+}
+
 interface LtxLoraChainItem {
   id: string;
   enabled: boolean;
@@ -103,13 +107,15 @@ export default function LtxLoraChainDialog() {
       try {
         const [settingsData, loraData] = await Promise.all([
           apiClient.get<Record<string, Record<string, SettingEntry>>>('/api/admin/settings'),
-          apiClient.get<{ loras: string[] }>('/api/comfyui/loras?model=ltx'),
+          apiClient.get<NodeOptionsResponse>(
+            '/api/admin/comfyui/node-options?q=ltx_lora_chain_name:LTX2LoraLoaderAdvanced:lora_name:LTX/'
+          ),
         ]);
 
         const ltxSettings = settingsData.ltx ?? {};
         setSfw(parseChain(ltxSettings['ltx.sfw_lora_chain']?.value));
         setNsfw(parseChain(ltxSettings['ltx.nsfw_lora_chain']?.value));
-        setLoras(loraData.loras ?? []);
+        setLoras(loraData.options.ltx_lora_chain_name ?? []);
       } catch {
         setMessage({ type: 'error', text: 'LoRA 체인을 불러오지 못했습니다.' });
       } finally {
