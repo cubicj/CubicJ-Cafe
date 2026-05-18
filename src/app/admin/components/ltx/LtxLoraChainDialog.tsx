@@ -1,12 +1,19 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -91,8 +98,12 @@ function updateItem(
   return items.map((item, itemIndex) => itemIndex === index ? { ...item, ...update } : item);
 }
 
+function getLoraOptions(currentName: string, loras: string[]): string[] {
+  if (!currentName || loras.includes(currentName)) return loras;
+  return [currentName, ...loras];
+}
+
 export default function LtxLoraChainDialog() {
-  const datalistId = useId();
   const [sfw, setSfw] = useState<LtxLoraChainItem[]>([]);
   const [nsfw, setNsfw] = useState<LtxLoraChainItem[]>([]);
   const [loras, setLoras] = useState<string[]>([]);
@@ -158,22 +169,16 @@ export default function LtxLoraChainDialog() {
         </Alert>
       )}
 
-      <datalist id={datalistId}>
-        {sortedLoras.map((lora) => (
-          <option key={lora} value={lora} />
-        ))}
-      </datalist>
-
       <Tabs defaultValue="sfw">
         <TabsList>
           <TabsTrigger value="sfw">SFW</TabsTrigger>
           <TabsTrigger value="nsfw">NSFW</TabsTrigger>
         </TabsList>
         <TabsContent value="sfw">
-          <ChainEditor items={sfw} loraListId={datalistId} onChange={setSfw} />
+          <ChainEditor items={sfw} loras={sortedLoras} onChange={setSfw} />
         </TabsContent>
         <TabsContent value="nsfw">
-          <ChainEditor items={nsfw} loraListId={datalistId} onChange={setNsfw} />
+          <ChainEditor items={nsfw} loras={sortedLoras} onChange={setNsfw} />
         </TabsContent>
       </Tabs>
 
@@ -189,11 +194,11 @@ export default function LtxLoraChainDialog() {
 
 function ChainEditor({
   items,
-  loraListId,
+  loras,
   onChange,
 }: {
   items: LtxLoraChainItem[];
-  loraListId: string;
+  loras: string[];
   onChange: (items: LtxLoraChainItem[]) => void;
 }) {
   return (
@@ -226,12 +231,30 @@ function ChainEditor({
 
             <div className="space-y-1">
               <Label>LoRA 이름</Label>
-              <Input
-                value={item.name}
-                list={loraListId}
-                onChange={(event) => onChange(updateItem(items, index, { name: event.target.value }))}
-                className="font-mono text-xs"
-              />
+              {loras.length > 0 ? (
+                <Select
+                  value={item.name || undefined}
+                  onValueChange={(name) => onChange(updateItem(items, index, { name }))}
+                >
+                  <SelectTrigger className="w-full font-mono text-xs">
+                    <SelectValue placeholder="LoRA 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getLoraOptions(item.name, loras).map((lora) => (
+                      <SelectItem key={lora} value={lora} className="font-mono text-xs">
+                        {lora}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={item.name}
+                  onChange={(event) => onChange(updateItem(items, index, { name: event.target.value }))}
+                  placeholder="새로고침으로 목록 불러오기"
+                  className="font-mono text-xs"
+                />
+              )}
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
