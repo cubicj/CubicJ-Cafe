@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Music } from 'lucide-react';
+import { Copy, Check, ListPlus, Music } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 import {
@@ -13,23 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager';
-
-function createLtxLoraFields(mode: 'sfw' | 'nsfw', label: 'SFW' | 'NSFW'): SettingsField[] {
-  return [1, 2, 3, 4].flatMap((slot) => {
-    const keyPrefix = `ltx.${mode}_lora_${slot}`;
-    const group = `LTX - ${label} LoRA ${slot}`;
-    return [
-      { key: `${keyPrefix}_enabled`, label: 'Enabled', type: 'boolean', group },
-      { key: `${keyPrefix}_name`, label: 'Name', type: 'nodeOption', group, nodeQuery: `${mode}_lora_${slot}_name:LTX2LoraLoaderAdvanced:lora_name:LTX/` },
-      { key: `${keyPrefix}_strength`, label: 'Strength', type: 'number', step: 0.01, group },
-      { key: `${keyPrefix}_video`, label: 'Video', type: 'number', step: 0.01, group },
-      { key: `${keyPrefix}_video_to_audio`, label: 'Video To Audio', type: 'number', step: 0.01, group },
-      { key: `${keyPrefix}_audio`, label: 'Audio', type: 'number', step: 0.01, group },
-      { key: `${keyPrefix}_audio_to_video`, label: 'Audio To Video', type: 'number', step: 0.01, group },
-      { key: `${keyPrefix}_other`, label: 'Other', type: 'number', step: 0.01, group },
-    ] satisfies SettingsField[];
-  });
-}
+import LtxLoraChainDialog from '@/app/admin/components/ltx/LtxLoraChainDialog';
 
 const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.end_image_enabled', label: 'End Image / Loop', type: 'boolean', group: '활성화' },
@@ -118,9 +102,6 @@ const LTX_FIELDS: SettingsField[] = [
   { key: 'ltx.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTX - Multimodal CFG' },
   { key: 'ltx.multimodal_active_steps', label: 'Active Steps', type: 'number', step: 1, group: 'LTX - Multimodal CFG' },
 
-  ...createLtxLoraFields('sfw', 'SFW'),
-  ...createLtxLoraFields('nsfw', 'NSFW'),
-
   { key: 'ltx.id_lora_enabled', label: 'Enabled', type: 'boolean', group: 'LTX - ID LoRA' },
   { key: 'ltx.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTX - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
   { key: 'ltx.id_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX - ID LoRA' },
@@ -166,6 +147,20 @@ function LtxLoRACopyButton() {
 function LtxHeaderExtra() {
   return (
     <div className="flex items-center gap-2">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <ListPlus className="h-4 w-4 mr-1" />
+            LoRA 체인
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="w-[80vw] h-[90vh] max-w-[80vw] sm:max-w-[80vw] overflow-y-auto flex flex-col items-stretch justify-start">
+          <DialogHeader>
+            <DialogTitle>LTX LoRA 체인 관리</DialogTitle>
+          </DialogHeader>
+          <LtxLoraChainDialog />
+        </DialogContent>
+      </Dialog>
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
