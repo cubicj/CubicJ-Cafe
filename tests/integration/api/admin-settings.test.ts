@@ -71,18 +71,19 @@ describe('LTX 2.3 rebuild migration parity', () => {
     const nsfw = JSON.parse(map.get('ltx.nsfw_lora_chain')!)
 
     expect(sfw.map((item: { id: string }) => item.id)).toEqual([
-      'legacy-sfw-lora-1',
-      'legacy-sfw-lora-2',
       'legacy-sfw-lora-3',
+      'legacy-sfw-lora-2',
       'legacy-sfw-lora-4',
+      'legacy-sfw-lora-1',
     ])
     expect(nsfw.map((item: { id: string }) => item.id)).toEqual([
-      'legacy-nsfw-lora-1',
-      'legacy-nsfw-lora-2',
       'legacy-nsfw-lora-3',
+      'legacy-nsfw-lora-2',
       'legacy-nsfw-lora-4',
+      'legacy-nsfw-lora-1',
     ])
     expect(sfw[1]).toMatchObject({
+      id: 'legacy-sfw-lora-2',
       enabled: false,
       name: 'fake-legacy-sfw-2.safetensors',
       strength: 0.21,
@@ -93,6 +94,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       other: 0.26,
     })
     expect(nsfw[1]).toMatchObject({
+      id: 'legacy-nsfw-lora-2',
       enabled: true,
       name: 'fake-legacy-nsfw-2.safetensors',
     })

@@ -2,10 +2,11 @@ INSERT OR IGNORE INTO system_settings (id, key, value, type, category, created_a
   (lower(hex(randomblob(12))), 'ltx.sfw_lora_chain', '[]', 'string', 'ltx', datetime('now'), datetime('now')),
   (lower(hex(randomblob(12))), 'ltx.nsfw_lora_chain', '[]', 'string', 'ltx', datetime('now'), datetime('now'));
 
-WITH slots(slot) AS (VALUES (1), (2), (3), (4)),
+WITH slots(slot, sort_order) AS (VALUES (3, 1), (2, 2), (4, 3), (1, 4)),
 legacy AS (
   SELECT
     slots.slot,
+    slots.sort_order,
     json_object(
       'id', 'legacy-sfw-lora-' || slots.slot,
       'enabled', CASE lower(enabled.value) WHEN 'true' THEN json('true') ELSE json('false') END,
@@ -31,16 +32,17 @@ UPDATE system_settings
 SET
   value = (
     SELECT json_group_array(json(item))
-    FROM (SELECT item FROM legacy ORDER BY slot)
+    FROM (SELECT item FROM legacy ORDER BY sort_order)
   ),
   updated_at = datetime('now')
 WHERE key = 'ltx.sfw_lora_chain'
   AND EXISTS (SELECT 1 FROM legacy);
 
-WITH slots(slot) AS (VALUES (1), (2), (3), (4)),
+WITH slots(slot, sort_order) AS (VALUES (3, 1), (2, 2), (4, 3), (1, 4)),
 legacy AS (
   SELECT
     slots.slot,
+    slots.sort_order,
     json_object(
       'id', 'legacy-nsfw-lora-' || slots.slot,
       'enabled', CASE lower(enabled.value) WHEN 'true' THEN json('true') ELSE json('false') END,
@@ -66,7 +68,7 @@ UPDATE system_settings
 SET
   value = (
     SELECT json_group_array(json(item))
-    FROM (SELECT item FROM legacy ORDER BY slot)
+    FROM (SELECT item FROM legacy ORDER BY sort_order)
   ),
   updated_at = datetime('now')
 WHERE key = 'ltx.nsfw_lora_chain'
