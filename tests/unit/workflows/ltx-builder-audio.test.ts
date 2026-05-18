@@ -5,6 +5,10 @@ import { LTX } from '@/lib/comfyui/workflows/ltx/nodes'
 import type { ComfyUIWorkflow } from '@/types'
 import { prisma } from '@/lib/database/prisma'
 
+const DYNAMIC_LORA = {
+  SECOND: '7001',
+} as const
+
 let lastWorkflow: ComfyUIWorkflow | null = null
 const buildLtxWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
   const wf = await rawBuilder(...args)
@@ -82,7 +86,7 @@ describe('buildLtxWorkflow reference audio', () => {
     })
 
     expect(wf[LTX.ID_LORA]).toBeUndefined()
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.LORA_1, 0])
+    expect(wf[LTX.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
     expect(wf[LTX.ANCHOR]!.inputs!.model).toEqual([LTX.NAG, 0])
   })
 
