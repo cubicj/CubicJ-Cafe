@@ -114,6 +114,18 @@ export interface LtxLoraSlotSettings {
   other: number;
 }
 
+export interface LtxLoraChainItem {
+  id: string;
+  enabled: boolean;
+  name: string;
+  strength: number;
+  video: number;
+  videoToAudio: number;
+  audio: number;
+  audioToVideo: number;
+  other: number;
+}
+
 export interface LtxAnchorSettings {
   strength: number;
   cacheAtStep: number;
@@ -192,8 +204,8 @@ export interface LtxSettings {
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
-  sfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
-  nsfwLoras: [LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings, LtxLoraSlotSettings];
+  sfwLoraChain: LtxLoraChainItem[];
+  nsfwLoraChain: LtxLoraChainItem[];
   idLora: LtxLoraSlotSettings;
   videoCrf: number;
   videoFormat: string;
@@ -323,70 +335,8 @@ export const LTX_KEYS = {
   rtxResizeType: 'ltx.rtx_resize_type',
   rtxScale: 'ltx.rtx_scale',
   rtxQuality: 'ltx.rtx_quality',
-  sfwLora1Enabled: 'ltx.sfw_lora_1_enabled',
-  sfwLora1Name: 'ltx.sfw_lora_1_name',
-  sfwLora1Strength: 'ltx.sfw_lora_1_strength',
-  sfwLora1Video: 'ltx.sfw_lora_1_video',
-  sfwLora1VideoToAudio: 'ltx.sfw_lora_1_video_to_audio',
-  sfwLora1Audio: 'ltx.sfw_lora_1_audio',
-  sfwLora1AudioToVideo: 'ltx.sfw_lora_1_audio_to_video',
-  sfwLora1Other: 'ltx.sfw_lora_1_other',
-  sfwLora2Enabled: 'ltx.sfw_lora_2_enabled',
-  sfwLora2Name: 'ltx.sfw_lora_2_name',
-  sfwLora2Strength: 'ltx.sfw_lora_2_strength',
-  sfwLora2Video: 'ltx.sfw_lora_2_video',
-  sfwLora2VideoToAudio: 'ltx.sfw_lora_2_video_to_audio',
-  sfwLora2Audio: 'ltx.sfw_lora_2_audio',
-  sfwLora2AudioToVideo: 'ltx.sfw_lora_2_audio_to_video',
-  sfwLora2Other: 'ltx.sfw_lora_2_other',
-  sfwLora3Enabled: 'ltx.sfw_lora_3_enabled',
-  sfwLora3Name: 'ltx.sfw_lora_3_name',
-  sfwLora3Strength: 'ltx.sfw_lora_3_strength',
-  sfwLora3Video: 'ltx.sfw_lora_3_video',
-  sfwLora3VideoToAudio: 'ltx.sfw_lora_3_video_to_audio',
-  sfwLora3Audio: 'ltx.sfw_lora_3_audio',
-  sfwLora3AudioToVideo: 'ltx.sfw_lora_3_audio_to_video',
-  sfwLora3Other: 'ltx.sfw_lora_3_other',
-  sfwLora4Enabled: 'ltx.sfw_lora_4_enabled',
-  sfwLora4Name: 'ltx.sfw_lora_4_name',
-  sfwLora4Strength: 'ltx.sfw_lora_4_strength',
-  sfwLora4Video: 'ltx.sfw_lora_4_video',
-  sfwLora4VideoToAudio: 'ltx.sfw_lora_4_video_to_audio',
-  sfwLora4Audio: 'ltx.sfw_lora_4_audio',
-  sfwLora4AudioToVideo: 'ltx.sfw_lora_4_audio_to_video',
-  sfwLora4Other: 'ltx.sfw_lora_4_other',
-  nsfwLora1Enabled: 'ltx.nsfw_lora_1_enabled',
-  nsfwLora1Name: 'ltx.nsfw_lora_1_name',
-  nsfwLora1Strength: 'ltx.nsfw_lora_1_strength',
-  nsfwLora1Video: 'ltx.nsfw_lora_1_video',
-  nsfwLora1VideoToAudio: 'ltx.nsfw_lora_1_video_to_audio',
-  nsfwLora1Audio: 'ltx.nsfw_lora_1_audio',
-  nsfwLora1AudioToVideo: 'ltx.nsfw_lora_1_audio_to_video',
-  nsfwLora1Other: 'ltx.nsfw_lora_1_other',
-  nsfwLora2Enabled: 'ltx.nsfw_lora_2_enabled',
-  nsfwLora2Name: 'ltx.nsfw_lora_2_name',
-  nsfwLora2Strength: 'ltx.nsfw_lora_2_strength',
-  nsfwLora2Video: 'ltx.nsfw_lora_2_video',
-  nsfwLora2VideoToAudio: 'ltx.nsfw_lora_2_video_to_audio',
-  nsfwLora2Audio: 'ltx.nsfw_lora_2_audio',
-  nsfwLora2AudioToVideo: 'ltx.nsfw_lora_2_audio_to_video',
-  nsfwLora2Other: 'ltx.nsfw_lora_2_other',
-  nsfwLora3Enabled: 'ltx.nsfw_lora_3_enabled',
-  nsfwLora3Name: 'ltx.nsfw_lora_3_name',
-  nsfwLora3Strength: 'ltx.nsfw_lora_3_strength',
-  nsfwLora3Video: 'ltx.nsfw_lora_3_video',
-  nsfwLora3VideoToAudio: 'ltx.nsfw_lora_3_video_to_audio',
-  nsfwLora3Audio: 'ltx.nsfw_lora_3_audio',
-  nsfwLora3AudioToVideo: 'ltx.nsfw_lora_3_audio_to_video',
-  nsfwLora3Other: 'ltx.nsfw_lora_3_other',
-  nsfwLora4Enabled: 'ltx.nsfw_lora_4_enabled',
-  nsfwLora4Name: 'ltx.nsfw_lora_4_name',
-  nsfwLora4Strength: 'ltx.nsfw_lora_4_strength',
-  nsfwLora4Video: 'ltx.nsfw_lora_4_video',
-  nsfwLora4VideoToAudio: 'ltx.nsfw_lora_4_video_to_audio',
-  nsfwLora4Audio: 'ltx.nsfw_lora_4_audio',
-  nsfwLora4AudioToVideo: 'ltx.nsfw_lora_4_audio_to_video',
-  nsfwLora4Other: 'ltx.nsfw_lora_4_other',
+  sfwLoraChain: 'ltx.sfw_lora_chain',
+  nsfwLoraChain: 'ltx.nsfw_lora_chain',
   idLoraEnabled: 'ltx.id_lora_enabled',
   idLoraName: 'ltx.id_lora_name',
   idLoraStrength: 'ltx.id_lora_strength',
@@ -526,6 +476,62 @@ function parseLtxAnchorSettings(
   };
 }
 
+function parseLtxLoraChain(map: Map<string, string>, key: string): LtxLoraChainItem[] {
+  const raw = map.get(key)!;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(`Invalid LTX LoRA chain JSON: ${key}`);
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error(`Invalid LTX LoRA chain shape: ${key}`);
+  }
+
+  return parsed.map((item, index) => {
+    if (!item || typeof item !== 'object') {
+      throw new Error(`Invalid LTX LoRA chain item at ${key}[${index}]`);
+    }
+    const row = item as Record<string, unknown>;
+    const requiredString = typeof row.id === 'string' && typeof row.name === 'string';
+    const requiredBoolean = typeof row.enabled === 'boolean';
+    const requiredNumbers =
+      typeof row.strength === 'number' &&
+      typeof row.video === 'number' &&
+      typeof row.videoToAudio === 'number' &&
+      typeof row.audio === 'number' &&
+      typeof row.audioToVideo === 'number' &&
+      typeof row.other === 'number';
+
+    if (!requiredString || !requiredBoolean || !requiredNumbers) {
+      throw new Error(`Invalid LTX LoRA chain item at ${key}[${index}]`);
+    }
+
+    const id = row.id as string;
+    const enabled = row.enabled as boolean;
+    const name = row.name as string;
+    const strength = row.strength as number;
+    const video = row.video as number;
+    const videoToAudio = row.videoToAudio as number;
+    const audio = row.audio as number;
+    const audioToVideo = row.audioToVideo as number;
+    const other = row.other as number;
+
+    return {
+      id,
+      enabled,
+      name,
+      strength,
+      video,
+      videoToAudio,
+      audio,
+      audioToVideo,
+      other,
+    };
+  });
+}
+
 function parseLtxNumber(map: Map<string, string>, key: string): number {
   const value = map.get(key)!;
   if (value.trim() === '') {
@@ -643,90 +649,8 @@ export async function getLtxSettings(): Promise<LtxSettings> {
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),
     rtxQuality: map.get(k.rtxQuality)!,
-    sfwLoras: [
-      parseLtxLoraSlot(map, {
-        enabled: k.sfwLora1Enabled,
-        name: k.sfwLora1Name,
-        strength: k.sfwLora1Strength,
-        video: k.sfwLora1Video,
-        videoToAudio: k.sfwLora1VideoToAudio,
-        audio: k.sfwLora1Audio,
-        audioToVideo: k.sfwLora1AudioToVideo,
-        other: k.sfwLora1Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.sfwLora2Enabled,
-        name: k.sfwLora2Name,
-        strength: k.sfwLora2Strength,
-        video: k.sfwLora2Video,
-        videoToAudio: k.sfwLora2VideoToAudio,
-        audio: k.sfwLora2Audio,
-        audioToVideo: k.sfwLora2AudioToVideo,
-        other: k.sfwLora2Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.sfwLora3Enabled,
-        name: k.sfwLora3Name,
-        strength: k.sfwLora3Strength,
-        video: k.sfwLora3Video,
-        videoToAudio: k.sfwLora3VideoToAudio,
-        audio: k.sfwLora3Audio,
-        audioToVideo: k.sfwLora3AudioToVideo,
-        other: k.sfwLora3Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.sfwLora4Enabled,
-        name: k.sfwLora4Name,
-        strength: k.sfwLora4Strength,
-        video: k.sfwLora4Video,
-        videoToAudio: k.sfwLora4VideoToAudio,
-        audio: k.sfwLora4Audio,
-        audioToVideo: k.sfwLora4AudioToVideo,
-        other: k.sfwLora4Other,
-      }),
-    ],
-    nsfwLoras: [
-      parseLtxLoraSlot(map, {
-        enabled: k.nsfwLora1Enabled,
-        name: k.nsfwLora1Name,
-        strength: k.nsfwLora1Strength,
-        video: k.nsfwLora1Video,
-        videoToAudio: k.nsfwLora1VideoToAudio,
-        audio: k.nsfwLora1Audio,
-        audioToVideo: k.nsfwLora1AudioToVideo,
-        other: k.nsfwLora1Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.nsfwLora2Enabled,
-        name: k.nsfwLora2Name,
-        strength: k.nsfwLora2Strength,
-        video: k.nsfwLora2Video,
-        videoToAudio: k.nsfwLora2VideoToAudio,
-        audio: k.nsfwLora2Audio,
-        audioToVideo: k.nsfwLora2AudioToVideo,
-        other: k.nsfwLora2Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.nsfwLora3Enabled,
-        name: k.nsfwLora3Name,
-        strength: k.nsfwLora3Strength,
-        video: k.nsfwLora3Video,
-        videoToAudio: k.nsfwLora3VideoToAudio,
-        audio: k.nsfwLora3Audio,
-        audioToVideo: k.nsfwLora3AudioToVideo,
-        other: k.nsfwLora3Other,
-      }),
-      parseLtxLoraSlot(map, {
-        enabled: k.nsfwLora4Enabled,
-        name: k.nsfwLora4Name,
-        strength: k.nsfwLora4Strength,
-        video: k.nsfwLora4Video,
-        videoToAudio: k.nsfwLora4VideoToAudio,
-        audio: k.nsfwLora4Audio,
-        audioToVideo: k.nsfwLora4AudioToVideo,
-        other: k.nsfwLora4Other,
-      }),
-    ],
+    sfwLoraChain: parseLtxLoraChain(map, k.sfwLoraChain),
+    nsfwLoraChain: parseLtxLoraChain(map, k.nsfwLoraChain),
     idLora: parseLtxLoraSlot(map, {
       enabled: k.idLoraEnabled,
       name: k.idLoraName,

@@ -55,7 +55,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   '17': {
     inputs: {
       noise: ['16', 0],
-      guider: ['555', 0],
+      guider: ['641', 0],
       sampler: ['463', 0],
       sigmas: ['527', 0],
       latent_image: ['15', 0],
@@ -137,7 +137,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       resize_type: 'PLACEHOLDER',
       'resize_type.scale': 0,
       quality: 'PLACEHOLDER',
-      images: ['489', 0],
+      images: ['333', 0],
     },
     class_type: 'RTXVideoSuperResolution',
     _meta: {
@@ -166,7 +166,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       trim_to_audio: false,
       pingpong: false,
       save_output: false,
-      images: ['489', 0],
+      images: ['322', 0],
       audio: ['587', 0],
     },
     class_type: 'VHS_VideoCombine',
@@ -201,7 +201,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   '384': {
     inputs: {
-      av_latent: ['486', 0],
+      av_latent: ['17', 0],
     },
     class_type: 'LTXVSeparateAVLatent',
     _meta: {
@@ -210,8 +210,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   },
   '416': {
     inputs: {
-      number_type: 'integer',
-      number: 0,
+      value: 0,
     },
     class_type: 'Constant Number',
     _meta: {
@@ -236,11 +235,12 @@ export const LTX_WORKFLOW_TEMPLATE = {
       nag_alpha: 0,
       nag_tau: 0,
       inplace: true,
-      model: ['491', 0],
+      debug: false,
+      model: ['504', 0],
       nag_cond_video: ['512', 0],
       nag_cond_audio: ['513', 0],
     },
-    class_type: 'LTX2_NAG',
+    class_type: 'CubicJLTX2ExplicitNAG',
     _meta: {
       title: 'LTX2 NAG',
     },
@@ -255,36 +255,12 @@ export const LTX_WORKFLOW_TEMPLATE = {
       title: 'LTX2 Mem Eff Sage Attention Patch',
     },
   },
-  '486': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['17', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
   '487': {
     inputs: {
       verbose: false,
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['345', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
-  '489': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['333', 0],
     },
     class_type: 'ForceFullUnload',
     _meta: {
@@ -301,54 +277,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'ForceFullUnload',
     _meta: {
       title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
-  '491': {
-    inputs: {
-      lora_name: 'PLACEHOLDER',
-      strength_model: 0,
-      video: 0,
-      video_to_audio: 0,
-      audio: 0,
-      audio_to_video: 0,
-      other: 0,
-      model: ['507', 0],
-    },
-    class_type: 'LTX2LoraLoaderAdvanced',
-    _meta: {
-      title: 'LTX2 LoRA Loader Advanced',
-    },
-  },
-  '492': {
-    inputs: {
-      lora_name: 'PLACEHOLDER',
-      strength_model: 0,
-      video: 0,
-      video_to_audio: 0,
-      audio: 0,
-      audio_to_video: 0,
-      other: 0,
-      model: ['476', 0],
-    },
-    class_type: 'LTX2LoraLoaderAdvanced',
-    _meta: {
-      title: 'LTX2 LoRA Loader Advanced',
-    },
-  },
-  '496': {
-    inputs: {
-      lora_name: 'PLACEHOLDER',
-      strength_model: 0,
-      video: 0,
-      video_to_audio: 0,
-      audio: 0,
-      audio_to_video: 0,
-      other: 0,
-      model: ['504', 0],
-    },
-    class_type: 'LTX2LoraLoaderAdvanced',
-    _meta: {
-      title: 'LTX2 LoRA Loader Advanced',
     },
   },
   '498': {
@@ -398,22 +326,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'LTXAVTextEncoderLoader',
     _meta: {
       title: 'LTXV Audio Text Encoder Loader',
-    },
-  },
-  '507': {
-    inputs: {
-      lora_name: 'PLACEHOLDER',
-      strength_model: 0,
-      video: 0,
-      video_to_audio: 0,
-      audio: 0,
-      audio_to_video: 0,
-      other: 0,
-      model: ['496', 0],
-    },
-    class_type: 'LTX2LoraLoaderAdvanced',
-    _meta: {
-      title: 'LTX2 LoRA Loader Advanced',
     },
   },
   '508': {
@@ -572,18 +484,6 @@ export const LTX_WORKFLOW_TEMPLATE = {
       title: 'LTXVConcatAVLatent',
     },
   },
-  '544': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['540', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
   '555': {
     inputs: {
       video_cfg: 0,
@@ -612,7 +512,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
       'num_images.strength_1': 1,
       'num_images.index_1': 0,
       vae: ['504', 2],
-      latent: ['544', 0],
+      latent: ['540', 0],
       'num_images.image_1': ['575', 0],
     },
     class_type: 'LTXVImgToVideoInplaceKJ',
@@ -655,7 +555,7 @@ export const LTX_WORKFLOW_TEMPLATE = {
   '583': {
     inputs: {
       noise: ['16', 0],
-      guider: ['580', 0],
+      guider: ['642', 0],
       sampler: ['463', 0],
       sigmas: ['582', 0],
       latent_image: ['543', 0],
@@ -740,6 +640,30 @@ export const LTX_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVCropGuides',
     _meta: {
       title: 'LTXVCropGuides',
+    },
+  },
+  '641': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['555', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (First-Pass Guider)',
+    },
+  },
+  '642': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['580', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (Second-Pass Guider)',
     },
   },
 } as ComfyUIWorkflow;

@@ -1,6 +1,10 @@
 import type { LtxGenerationParams } from '../types';
 import type { ComfyUIWorkflow } from '@/types';
-import type { LtxAnchorSettings, LtxSettings } from '@/lib/database/system-settings';
+import type {
+  LtxAnchorSettings,
+  LtxLoraChainItem,
+  LtxSettings,
+} from '@/lib/database/system-settings';
 import { LTX_WORKFLOW_TEMPLATE } from './template';
 import { LTX } from './nodes';
 import { createLogger } from '@/lib/logger';
@@ -38,11 +42,15 @@ export async function buildLtxWorkflow(
   configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
-  const generalModelOutput = configureLoras(
+  const generalModelOutput = configureLoraChain(
     workflow,
-    params.isNSFW ? settings.nsfwLoras : settings.sfwLoras
+    params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain
   );
-  setNode(workflow, LTX.NAG, { model: generalModelOutput });
+  setNode(workflow, LTX.NAG, {
+    model: generalModelOutput,
+    nag_cond_video: [LTX.VIDEO_CONDITIONING_PROMPT, 0],
+    nag_cond_audio: [LTX.AUDIO_CONDITIONING_PROMPT, 0],
+  });
   const nagModelOutput: NodeOutput = [LTX.NAG, 0];
   const modelOutput = configureIdLora(
     workflow,
@@ -122,7 +130,7 @@ function configureGeneration(
   });
   setNode(workflow, LTX.DURATION, { value: params.videoDuration });
   setNode(workflow, LTX.FRAME_BASE, { value: settings.frameBase });
-  setNode(workflow, LTX.FRAME_RATE, { number: Math.round(settings.frameRate) });
+  setNode(workflow, LTX.FRAME_RATE, { value: Math.round(settings.frameRate) });
   setNode(workflow, LTX.RESIZE_START_IMAGE, {
     megapixels: settings.megapixels,
     multiple_of: settings.resizeMultipleOf,
@@ -236,35 +244,35 @@ function setAnchorNode(
   });
 }
 
-function configureLoras(
+function configureLoraChain(
   workflow: ComfyUIWorkflow,
-  loras: LtxSettings['sfwLoras']
+  loras: LtxLoraChainItem[]
 ): NodeOutput {
-  const chain = [
-    { node: LTX.LORA_3, slot: loras[2] },
-    { node: LTX.LORA_2, slot: loras[1] },
-    { node: LTX.LORA_4, slot: loras[3] },
-    { node: LTX.LORA_1, slot: loras[0] },
-  ] as const;
   let model: NodeOutput = [LTX.CHECKPOINT, 0];
+  let nextNodeId = 7000;
 
-  for (const { node, slot } of chain) {
+  for (const slot of loras) {
     if (!slot.enabled) {
-      delete workflow[node];
       continue;
     }
 
-    setNode(workflow, node, {
-      lora_name: slot.name,
-      strength_model: slot.strength,
-      video: slot.video,
-      video_to_audio: slot.videoToAudio,
-      audio: slot.audio,
-      audio_to_video: slot.audioToVideo,
-      other: slot.other,
-      model,
-    });
-    model = [node, 0];
+    const nodeId = String(nextNodeId);
+    workflow[nodeId] = {
+      inputs: {
+        lora_name: slot.name,
+        strength_model: slot.strength,
+        video: slot.video,
+        video_to_audio: slot.videoToAudio,
+        audio: slot.audio,
+        audio_to_video: slot.audioToVideo,
+        other: slot.other,
+        model,
+      },
+      class_type: 'LTX2LoraLoaderAdvanced',
+      _meta: { title: 'LTX2 LoRA Loader Advanced' },
+    };
+    model = [nodeId, 0];
+    nextNodeId += 1;
   }
 
   return model;
@@ -397,14 +405,14 @@ function configureRtx(workflow: ComfyUIWorkflow, settings: LtxSettings) {
       resize_type: settings.rtxResizeType,
       'resize_type.scale': settings.rtxScale,
       quality: settings.rtxQuality,
-      images: [LTX.VRAM_POST_VAE_DECODE, 0],
+      images: [LTX.VAE_DECODE, 0],
     });
     setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.RTX_SUPER_RES, 0] });
     return;
   }
 
   delete workflow[LTX.RTX_SUPER_RES];
-  setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.VRAM_POST_VAE_DECODE, 0] });
+  setNode(workflow, LTX.VIDEO_COMBINE, { images: [LTX.VAE_DECODE, 0] });
 }
 
 function configureOutput(
