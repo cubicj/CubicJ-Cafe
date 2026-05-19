@@ -185,8 +185,8 @@ describe('GET /api/comfyui/loras', () => {
       getLoRAList: mockGetLoRAList,
     } as any)
 
-    await getLoras(buildAuthenticatedRequest('/api/comfyui/loras?model=ltx', sessionId), noContext)
+    await getLoras(buildAuthenticatedRequest('/api/comfyui/loras?model=ltxa', sessionId), noContext)
 
-    expect(mockGetLoRAList).toHaveBeenCalledWith('ltx')
+    expect(mockGetLoRAList).toHaveBeenCalledWith('ltxa')
   })
 })

@@ -175,16 +175,18 @@ describe('model-scoped presets', () => {
     sessionId = session.id
 
     await createPresetViaAPI('WAN Preset', [{ loraFilename: 'wan-lora.safetensors', loraName: 'WAN', strength: 0.8, group: 'HIGH' as const }], 'wan')
-    await createPresetViaAPI('LTX Preset', [{ loraFilename: 'ltx-lora.safetensors', loraName: 'LTX', strength: 0.7, group: 'HIGH' as const }], 'ltx')
+    await createPresetViaAPI('LTXA Preset', [{ loraFilename: 'ltxa-lora.safetensors', loraName: 'LTXA', strength: 0.7, group: 'HIGH' as const }], 'ltxa')
 
     const wanRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=wan', sessionId))
     const wanData = await wanRes.json()
     const userWanPresets = wanData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
     expect(userWanPresets.every((p: any) => p.model === 'wan')).toBe(true)
 
-    const ltxRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=ltx', sessionId))
+    const ltxRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=ltxa', sessionId))
     const ltxData = await ltxRes.json()
-    expect(ltxData.presets.every((p: any) => p.model === 'ltx')).toBe(true)
+    const userLtxaPresets = ltxData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
+    expect(userLtxaPresets.map((p: any) => p.name)).toEqual(['LTXA Preset'])
+    expect(userLtxaPresets.every((p: any) => p.model === 'ltxa')).toBe(true)
   })
 
   it('GET defaults to wan when no model param', async () => {
@@ -204,14 +206,14 @@ describe('model-scoped presets', () => {
     const req = buildAuthenticatedRequest('/api/lora-presets', session.id, {
       method: 'POST',
       body: JSON.stringify({
-        name: 'LTX Test',
-        model: 'ltx',
+        name: 'LTXA Test',
+        model: 'ltxa',
         loraItems: [{ loraFilename: 'test.safetensors', loraName: 'Test', strength: 0.5, group: 'HIGH', order: 0 }],
       }),
     })
     const res = await POST(req)
     const data = await res.json()
-    expect(data.preset.model).toBe('ltx')
+    expect(data.preset.model).toBe('ltxa')
   })
 })
 

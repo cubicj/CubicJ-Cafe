@@ -1,9 +1,9 @@
-import { buildLtxWorkflow as rawBuilder } from '@/lib/comfyui/workflows/ltx/builder'
+import { buildLtxaWorkflow as rawBuilder } from '@/lib/comfyui/workflows/ltxa/builder'
 import { prisma } from '@/lib/database/prisma'
 import { assertNoPlaceholders } from '../helpers/workflow-assertions'
 import { cleanTables } from '../helpers/db'
 import type { ComfyUIWorkflow } from '@/types'
-import { LTX } from '@/lib/comfyui/workflows/ltx/nodes'
+import { LTXA } from '@/lib/comfyui/workflows/ltxa/nodes'
 
 const END_IMAGE = {
   LOAD_IMAGE: '260',
@@ -38,7 +38,7 @@ const TWO_PASS = {
 } as const
 
 let lastWorkflow: ComfyUIWorkflow | null = null
-const buildLtxWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
+const buildLtxaWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
   const wf = await rawBuilder(...args)
   lastWorkflow = wf
   return wf
@@ -64,62 +64,62 @@ afterEach(() => {
   lastWorkflow = null
 })
 
-describe('buildLtxWorkflow', () => {
+describe('buildLtxaWorkflow', () => {
   it('builds base workflow with prompt, input image, models, duration, and conditioning prompts', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'fake requested scene',
       inputImage: 'fake-start.png',
       videoDuration: 8,
     })
 
-    expect(wf[LTX.POSITIVE_PROMPT]!.inputs!.text).toBe('fake requested scene')
-    expect(wf[LTX.NEGATIVE_PROMPT]!.inputs!.text).toBe('fake negative prompt z8r')
-    expect(wf[LTX.VIDEO_CONDITIONING_PROMPT]!.inputs!.text).toBe('fake video conditioning prompt h2k')
-    expect(wf[LTX.AUDIO_CONDITIONING_PROMPT]!.inputs!.text).toBe('fake audio conditioning prompt m9t')
-    expect(wf[LTX.DURATION]!.inputs!.value).toBe(8)
-    expect(wf[LTX.FRAME_BASE]!.inputs!.value).toBe(10)
-    expect(wf[LTX.FRAME_RATE]!.inputs!.value).toBe(18)
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.save_output).toBe(false)
-    expect(wf[LTX.RTX_SUPER_RES]!.inputs).toMatchObject({
+    expect(wf[LTXA.POSITIVE_PROMPT]!.inputs!.text).toBe('fake requested scene')
+    expect(wf[LTXA.NEGATIVE_PROMPT]!.inputs!.text).toBe('fake negative prompt z8r')
+    expect(wf[LTXA.VIDEO_CONDITIONING_PROMPT]!.inputs!.text).toBe('fake video conditioning prompt h2k')
+    expect(wf[LTXA.AUDIO_CONDITIONING_PROMPT]!.inputs!.text).toBe('fake audio conditioning prompt m9t')
+    expect(wf[LTXA.DURATION]!.inputs!.value).toBe(8)
+    expect(wf[LTXA.FRAME_BASE]!.inputs!.value).toBe(10)
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBe(18)
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.save_output).toBe(false)
+    expect(wf[LTXA.RTX_SUPER_RES]!.inputs).toMatchObject({
       resize_type: 'fake-rtx-resize-type',
       'resize_type.scale': 1.5,
       quality: 'fake-rtx-quality',
-      images: [LTX.VAE_DECODE, 0],
+      images: [LTXA.VAE_DECODE, 0],
     })
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
-    expect(wf[LTX.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
-    expect(wf[LTX.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
-    expect(wf[LTX.AUDIO_VAE]!.inputs!.ckpt_name).toBe('fake-ltx-checkpoint-q7m.safetensors')
-    expect(wf[LTX.TEXT_ENCODER]!.inputs).toMatchObject({
-      text_encoder: 'fake-ltx-text-encoder-p4v.safetensors',
-      ckpt_name: 'fake-ltx-checkpoint-q7m.safetensors',
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
+    expect(wf[LTXA.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
+    expect(wf[LTXA.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltxa-checkpoint-q7m.safetensors')
+    expect(wf[LTXA.AUDIO_VAE]!.inputs!.ckpt_name).toBe('fake-ltxa-checkpoint-q7m.safetensors')
+    expect(wf[LTXA.TEXT_ENCODER]!.inputs).toMatchObject({
+      text_encoder: 'fake-ltxa-text-encoder-p4v.safetensors',
+      ckpt_name: 'fake-ltxa-checkpoint-q7m.safetensors',
     })
-    expect(wf[LTX.RESIZE_START_IMAGE]!.inputs).toMatchObject({
+    expect(wf[LTXA.RESIZE_START_IMAGE]!.inputs).toMatchObject({
       megapixels: 0.73,
       multiple_of: 24,
       upscale_method: 'fake-resize-method',
     })
-    expect(wf[LTX.LOAD_AUDIO]).toBeUndefined()
-    expect(wf[LTX.REFERENCE_AUDIO]).toBeUndefined()
+    expect(wf[LTXA.LOAD_AUDIO]).toBeUndefined()
+    expect(wf[LTXA.REFERENCE_AUDIO]).toBeUndefined()
   })
 
   it('uses the updated Constant Number input shape for frame rate', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
     })
 
-    expect(wf[LTX.FRAME_RATE]!.inputs!.value).toBe(18)
-    expect(wf[LTX.FRAME_RATE]!.inputs!.number).toBeUndefined()
-    expect(wf[LTX.FRAME_RATE]!.inputs!.number_type).toBeUndefined()
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBe(18)
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number).toBeUndefined()
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number_type).toBeUndefined()
   })
 
-  it('builds the LTX two-pass topology and removes replaced single-pass nodes', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+  it('builds the LTXA two-pass topology and removes replaced single-pass nodes', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -137,7 +137,7 @@ describe('buildLtxWorkflow', () => {
       class_type: 'ForceFullUnload',
       inputs: { passthrough: [TWO_PASS.MULTIMODAL_CFG, 0] },
     })
-    expect(wf[LTX.SAMPLER_ADVANCED]!.inputs!.guider).toEqual([TWO_PASS.FIRST_PASS_GUIDER_UNLOAD, 0])
+    expect(wf[LTXA.SAMPLER_ADVANCED]!.inputs!.guider).toEqual([TWO_PASS.FIRST_PASS_GUIDER_UNLOAD, 0])
     expect(wf[TWO_PASS.SECOND_PASS_GUIDER_UNLOAD]).toMatchObject({
       class_type: 'ForceFullUnload',
       inputs: { passthrough: [TWO_PASS.SECOND_PASS_CFG_GUIDER, 0] },
@@ -151,12 +151,12 @@ describe('buildLtxWorkflow', () => {
       TWO_PASS.SECOND_PASS_ADD_GUIDE,
       2,
     ])
-    expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
-    expect(wf[LTX.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs!.model).toEqual([LTX.ANCHOR, 0])
-    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTX.FIRST_PASS_SAGE_ATTN_PATCH, 0])
-    expect(wf[LTX.SAGE_ATTN_PATCH]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
+    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
+    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_SAGE_ATTN_PATCH, 0])
+    expect(wf[LTXA.SAGE_ATTN_PATCH]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
-      model: [LTX.SAGE_ATTN_PATCH, 0],
+      model: [LTXA.SAGE_ATTN_PATCH, 0],
       positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
     })
@@ -171,37 +171,37 @@ describe('buildLtxWorkflow', () => {
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
       latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
     })
-    expect(wf[LTX.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_CROP_GUIDES, 2])
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.RTX_SUPER_RES, 0])
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_CROP_GUIDES, 2])
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
 
   it('injects scheduler, NAG, guide, anchor, and two-pass settings', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
     })
 
-    expect(wf[LTX.CLOWN_SAMPLER]!.inputs).toMatchObject({
+    expect(wf[LTXA.CLOWN_SAMPLER]!.inputs).toMatchObject({
       sampler_name: 'fake-sampler-r6d',
       eta: 0.17,
       bongmath: true,
     })
-    expect(wf[LTX.SCHEDULER]!.inputs).toMatchObject({
+    expect(wf[LTXA.SCHEDULER]!.inputs).toMatchObject({
       steps: 13,
       max_shift: 1.37,
       base_shift: 0.41,
       stretch: false,
       terminal: 0.23,
     })
-    expect(wf[LTX.NAG]!.inputs).toMatchObject({
+    expect(wf[LTXA.NAG]!.inputs).toMatchObject({
       nag_scale: 3.4,
       nag_alpha: 0.19,
       nag_tau: 1.61,
     })
-    expect(wf[LTX.ADD_GUIDE]!.inputs).toMatchObject({
+    expect(wf[LTXA.ADD_GUIDE]!.inputs).toMatchObject({
       frame_idx: 3,
       strength: 0.46,
       crf: 27,
@@ -217,7 +217,7 @@ describe('buildLtxWorkflow', () => {
       interpolation: 'fake-guide-interpolation',
       crop: 'fake-guide-crop',
     })
-    expect(wf[LTX.ANCHOR]!.inputs).toMatchObject({
+    expect(wf[LTXA.ANCHOR]!.inputs).toMatchObject({
       strength: 0.31,
       cache_at_step: 4,
       similarity_threshold: 0.62,
@@ -237,7 +237,7 @@ describe('buildLtxWorkflow', () => {
       text_amplification: 1.37,
     })
     expect(wf[TWO_PASS.LATENT_UPSCALE_MODEL]!.inputs).toMatchObject({
-      model_name: 'fake-ltx-latent-upscaler-u8p.safetensors',
+      model_name: 'fake-ltxa-latent-upscaler-u8p.safetensors',
     })
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs).toMatchObject({
       video_cfg: 2.41,
@@ -274,8 +274,8 @@ describe('buildLtxWorkflow', () => {
   })
 
   it('injects the enabled SFW LoRA chain by default', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -284,20 +284,20 @@ describe('buildLtxWorkflow', () => {
     expect(wf[DYNAMIC_LORA.FIRST]).toMatchObject({
       class_type: 'LTX2LoraLoaderAdvanced',
       inputs: {
-        lora_name: 'fake-ltx-sfw-chain-a.safetensors',
+        lora_name: 'fake-ltxa-sfw-chain-a.safetensors',
         strength_model: 0.51,
         video: 0.11,
         video_to_audio: 0.12,
         audio: 0.13,
         audio_to_video: 0.14,
         other: 0.15,
-        model: [LTX.CHECKPOINT, 0],
+        model: [LTXA.CHECKPOINT, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
       class_type: 'LTX2LoraLoaderAdvanced',
       inputs: {
-        lora_name: 'fake-ltx-sfw-chain-c.safetensors',
+        lora_name: 'fake-ltxa-sfw-chain-c.safetensors',
         strength_model: 0.73,
         video: 0.31,
         video_to_audio: 0.32,
@@ -307,13 +307,13 @@ describe('buildLtxWorkflow', () => {
         model: [DYNAMIC_LORA.FIRST, 0],
       },
     })
-    expect(wf[LTX.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
   })
 
   it('injects the enabled NSFW LoRA chain when content is NSFW', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -323,26 +323,26 @@ describe('buildLtxWorkflow', () => {
     expect(wf[DYNAMIC_LORA.FIRST]).toMatchObject({
       class_type: 'LTX2LoraLoaderAdvanced',
       inputs: {
-        lora_name: 'fake-ltx-nsfw-chain-a.safetensors',
+        lora_name: 'fake-ltxa-nsfw-chain-a.safetensors',
         strength_model: 0.56,
-        model: [LTX.CHECKPOINT, 0],
+        model: [LTXA.CHECKPOINT, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
       class_type: 'LTX2LoraLoaderAdvanced',
       inputs: {
-        lora_name: 'fake-ltx-nsfw-chain-b.safetensors',
+        lora_name: 'fake-ltxa-nsfw-chain-b.safetensors',
         strength_model: 0.67,
         model: [DYNAMIC_LORA.FIRST, 0],
       },
     })
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
   })
 
   it('bypasses the LoRA chain when it is empty', async () => {
-    await updateSettings({ 'ltx.sfw_lora_chain': '[]' })
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    await updateSettings({ 'ltxa.sfw_lora_chain': '[]' })
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -350,52 +350,52 @@ describe('buildLtxWorkflow', () => {
 
     expect(wf[DYNAMIC_LORA.FIRST]).toBeUndefined()
     expect(wf[DYNAMIC_LORA.SECOND]).toBeUndefined()
-    expect(wf[LTX.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
-    expect(wf[LTX.NAG]!.inputs!.model).toEqual([LTX.CHECKPOINT, 0])
+    expect(wf[LTXA.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([LTXA.CHECKPOINT, 0])
   })
 
   it('applies ID LoRA after NAG and before reference audio', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       referenceAudio: 'fake-reference.wav',
       videoDuration: 4,
     })
 
-    expect(wf[LTX.NAG]).toMatchObject({
+    expect(wf[LTXA.NAG]).toMatchObject({
       class_type: 'CubicJLTX2ExplicitNAG',
       inputs: {
         nag_scale: 3.4,
         nag_alpha: 0.19,
         nag_tau: 1.61,
-        nag_cond_video: [LTX.VIDEO_CONDITIONING_PROMPT, 0],
-        nag_cond_audio: [LTX.AUDIO_CONDITIONING_PROMPT, 0],
+        nag_cond_video: [LTXA.VIDEO_CONDITIONING_PROMPT, 0],
+        nag_cond_audio: [LTXA.AUDIO_CONDITIONING_PROMPT, 0],
       },
     })
-    expect(wf[LTX.ID_LORA]!.inputs!.model).toEqual([LTX.NAG, 0])
-    expect(wf[LTX.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTX.ID_LORA, 0])
+    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.ID_LORA, 0])
   })
 
   it('removes RTX upscale when disabled', async () => {
     await updateSettings({
-      'ltx.rtx_enabled': 'false',
+      'ltxa.rtx_enabled': 'false',
     })
 
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
     })
 
-    expect(wf[LTX.RTX_SUPER_RES]).toBeUndefined()
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs!.images).toEqual([LTX.VAE_DECODE, 0])
+    expect(wf[LTXA.RTX_SUPER_RES]).toBeUndefined()
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
   })
 
   it('injects end image nodes when endImage provided', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -408,7 +408,7 @@ describe('buildLtxWorkflow', () => {
     })
     expect(wf[END_IMAGE.FRAME_INDEX]!.inputs).toMatchObject({
       expression: 'a - 1',
-      a: [LTX.FRAME_COUNT_MATH, 0],
+      a: [LTXA.FRAME_COUNT_MATH, 0],
     })
     expect(wf[END_IMAGE.RESIZE]!.inputs).toMatchObject({
       megapixels: 0.73,
@@ -416,10 +416,10 @@ describe('buildLtxWorkflow', () => {
       upscale_method: 'fake-resize-method',
       image: [END_IMAGE.LOAD_IMAGE, 0],
     })
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
@@ -427,8 +427,8 @@ describe('buildLtxWorkflow', () => {
   })
 
   it('removes end image nodes when endImage absent', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
@@ -437,10 +437,10 @@ describe('buildLtxWorkflow', () => {
     expect(wf[END_IMAGE.LOAD_IMAGE]).toBeUndefined()
     expect(wf[END_IMAGE.FRAME_INDEX]).toBeUndefined()
     expect(wf[END_IMAGE.RESIZE]).toBeUndefined()
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
-    expect(wf[LTX.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
+    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
     expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
@@ -448,19 +448,19 @@ describe('buildLtxWorkflow', () => {
   })
 
   it('injects output settings', async () => {
-    const wf = await buildLtxWorkflow({
-      model: 'ltx',
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
       prompt: 'p',
       inputImage: 'fake-start.png',
       videoDuration: 4,
     })
 
-    expect(wf[LTX.VIDEO_COMBINE]!.inputs).toMatchObject({
-      frame_rate: [LTX.FRAME_RATE, 1],
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs).toMatchObject({
+      frame_rate: [LTXA.FRAME_RATE, 1],
       crf: 29,
       format: 'fake-video-format',
       pix_fmt: 'fake-pix-fmt',
-      filename_prefix: 'LTX/fake-start',
+      filename_prefix: 'LTXA/fake-start',
     })
   })
 })

@@ -29,7 +29,6 @@ vi.mock('fs', () => ({
 
 vi.mock('@/lib/database/system-settings', () => ({
   getWanSettings: vi.fn(() => ({ loraEnabled: true })),
-  getLtxSettings: vi.fn(() => ({ loraEnabled: false })),
   getLtxaSettings: vi.fn(() => ({ loraEnabled: false })),
   getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false })),
   getEnabledModels: vi.fn(() => ['wan', 'ltxa', 'ltx-wan']),

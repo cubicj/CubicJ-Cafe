@@ -5,14 +5,14 @@ import { createUser, createAdminUser } from '../../helpers/fixtures'
 import { createTestSession, buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 import { GET, PUT } from '@/app/api/admin/settings/route'
 import { prisma } from '@/lib/database/prisma'
-import { LTX_KEYS } from '@/lib/database/system-settings'
+import { LTXA_KEYS } from '@/lib/database/system-settings'
 
 beforeEach(async () => {
   await cleanTables()
 })
 
 describe('LTX 2.3 rebuild migration parity', () => {
-  it('contains every active LTX settings key required by LTX_KEYS', () => {
+  it('contains every active LTXA settings key required by LTXA_KEYS legacy source rows', () => {
     const sql = [
       '20260512_ltx23_workflow_rebuild',
       '20260512_z_ltx_second_pass_anchor_settings',
@@ -28,10 +28,11 @@ describe('LTX 2.3 rebuild migration parity', () => {
         )
       )
       .join('\n')
-    const preservedKeys = new Set(['ltx.enabled', 'ltx.lora_enabled'])
-    const missing = Object.values(LTX_KEYS)
+    const preservedKeys = new Set(['ltxa.enabled', 'ltxa.lora_enabled'])
+    const missing = Object.values(LTXA_KEYS)
       .filter((key) => !preservedKeys.has(key))
-      .filter((key) => !sql.includes(`'${key}'`))
+      .map((key) => key.replace('ltxa.', 'ltx.'))
+      .filter((legacyKey) => !sql.includes(`'${legacyKey}'`))
 
     expect(missing).toEqual([])
   })
@@ -108,6 +109,9 @@ describe('LTX 2.3 rebuild migration parity', () => {
       'utf8'
     )
 
+    await prisma.systemSetting.deleteMany({
+      where: { OR: [{ key: { startsWith: 'ltxa.' } }, { category: 'ltxa' }] },
+    })
     await prisma.queueRequest.create({
       data: {
         userId: (await createUser()).id,
@@ -169,7 +173,7 @@ describe('GET /api/admin/settings', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(typeof body).toBe('object')
-    expect(Object.keys(body.ltx)).toEqual(expect.arrayContaining(Object.values(LTX_KEYS)))
+    expect(Object.keys(body.ltxa)).toEqual(expect.arrayContaining(Object.values(LTXA_KEYS)))
   })
 })
 
@@ -221,13 +225,13 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(400)
   })
 
-  it('allows LTX RTX settings', async () => {
+  it('allows LTXA RTX settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
 
     const rtxReq = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
-      body: JSON.stringify({ key: 'ltx.rtx_enabled', value: 'true' }),
+      body: JSON.stringify({ key: 'ltxa.rtx_enabled', value: 'true' }),
     })
     const rtxRes = await PUT(rtxReq)
     expect(rtxRes.status).toBe(200)
@@ -310,27 +314,27 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('false')
   })
 
-  it('updates LTX ID LoRA settings', async () => {
+  it('updates LTXA ID LoRA settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltx.id_lora_enabled',
+        key: 'ltxa.id_lora_enabled',
         value: 'true',
         type: 'boolean',
-        category: 'ltx',
+        category: 'ltxa',
       }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltx.id_lora_enabled')
+    expect(body.setting.key).toBe('ltxa.id_lora_enabled')
     expect(body.setting.value).toBe('true')
   })
 
-  it('updates LTX dynamic LoRA chain settings', async () => {
+  it('updates LTXA dynamic LoRA chain settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const value = JSON.stringify([
@@ -349,77 +353,77 @@ describe('PUT /api/admin/settings', () => {
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltx.nsfw_lora_chain',
+        key: 'ltxa.nsfw_lora_chain',
         value,
         type: 'string',
-        category: 'ltx',
+        category: 'ltxa',
       }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltx.nsfw_lora_chain')
+    expect(body.setting.key).toBe('ltxa.nsfw_lora_chain')
     expect(body.setting.value).toBe(value)
   })
 
-  it('updates LTX second-pass settings', async () => {
+  it('updates LTXA second-pass settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltx.second_pass_sigmas',
+        key: 'ltxa.second_pass_sigmas',
         value: 'fake-sigmas-from-admin',
         type: 'string',
-        category: 'ltx',
+        category: 'ltxa',
       }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltx.second_pass_sigmas')
+    expect(body.setting.key).toBe('ltxa.second_pass_sigmas')
     expect(body.setting.value).toBe('fake-sigmas-from-admin')
   })
 
-  it('updates LTX second-pass anchor settings', async () => {
+  it('updates LTXA second-pass anchor settings', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltx.second_pass_anchor_cache_mode',
+        key: 'ltxa.second_pass_anchor_cache_mode',
         value: 'fake-second-pass-anchor-cache-mode-from-admin',
         type: 'string',
-        category: 'ltx',
+        category: 'ltxa',
       }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltx.second_pass_anchor_cache_mode')
+    expect(body.setting.key).toBe('ltxa.second_pass_anchor_cache_mode')
     expect(body.setting.value).toBe('fake-second-pass-anchor-cache-mode-from-admin')
   })
 
-  it('updates LTX end image capability setting', async () => {
+  it('updates LTXA end image capability setting', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltx.end_image_enabled',
+        key: 'ltxa.end_image_enabled',
         value: 'true',
         type: 'boolean',
-        category: 'ltx',
+        category: 'ltxa',
       }),
     })
     const res = await PUT(req)
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltx.end_image_enabled')
+    expect(body.setting.key).toBe('ltxa.end_image_enabled')
     expect(body.setting.value).toBe('true')
   })
 })
