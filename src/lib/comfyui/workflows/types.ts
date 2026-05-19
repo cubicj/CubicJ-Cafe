@@ -1,4 +1,4 @@
-export type VideoModel = 'wan' | 'ltxa' | 'ltx-wan'
+export type VideoModel = 'wan' | 'ltxa' | 'ltxr' | 'ltx-wan'
 
 export interface ModelCapabilities {
   loraPresets: boolean
@@ -33,10 +33,17 @@ export interface LtxaGenerationParams extends BaseGenerationParams {
   referenceAudio?: string
 }
 
+export interface LtxrGenerationParams extends BaseGenerationParams {
+  model: 'ltxr'
+  endImage?: string
+  referenceAudio?: string
+  watermarkImage?: string
+}
+
 export interface LtxWanGenerationParams extends BaseGenerationParams {
   model: 'ltx-wan'
   endImage?: string
   referenceAudio?: string
 }
 
-export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxWanGenerationParams
+export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxrGenerationParams | LtxWanGenerationParams

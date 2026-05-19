@@ -1,9 +1,10 @@
 import { z } from 'zod'
-import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTX_WAN_KEYS } from '@/lib/database/system-settings'
+import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTXR_KEYS, LTX_WAN_KEYS } from '@/lib/database/system-settings'
 
 export const ALLOWED_SETTING_KEYS = new Set([
   ...Object.values(WAN_KEYS),
   ...Object.values(LTXA_KEYS),
+  ...Object.values(LTXR_KEYS),
   ...Object.values(LTX_WAN_KEYS),
   ...Object.values(MODEL_ENABLED_KEYS),
   'comfyui_enabled',
