@@ -71,7 +71,7 @@ export function LoRAPresetList({
   const combinedLoRAItems = getCombinedLoRAItems();
   const flatCombinedLoRAItems = getFlatCombinedLoRAItems();
 
-  const allCombinedItems = activeModel === 'ltx' ? flatCombinedLoRAItems : combinedLoRAItems;
+  const allCombinedItems = activeModel === 'ltxa' ? flatCombinedLoRAItems : combinedLoRAItems;
   const unavailableLoRANames = allCombinedItems
     .filter(item => !isLoRAAvailable(item.loraFilename))
     .map(item => item.loraName);
@@ -212,7 +212,7 @@ export function LoRAPresetList({
 
                             {isExpanded && preset.loraItems.length > 0 && (
                               <div className="px-3 sm:px-6 pb-3 space-y-3 bg-muted/25">
-                                {activeModel === 'ltx' ? (
+                                {activeModel === 'ltxa' ? (
                                   <div className="space-y-1 pl-2">
                                     {preset.loraItems.map((item, index) => {
                                       const isAvailable = isLoRAAvailable(item.loraFilename);
@@ -313,7 +313,7 @@ export function LoRAPresetList({
         <div className="space-y-3 p-3 sm:p-4 bg-muted/50 rounded-lg">
           <h4 className="font-medium text-sm text-muted-foreground">최종 적용될 LoRA</h4>
 
-          {activeModel === 'ltx' ? (
+          {activeModel === 'ltxa' ? (
             flatCombinedLoRAItems.length > 0 && (
               <div className="space-y-1 pl-2">
                 {flatCombinedLoRAItems.map((item, index) => {

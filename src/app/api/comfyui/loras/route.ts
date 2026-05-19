@@ -6,6 +6,10 @@ import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handle
 
 const log = createLogger('comfyui');
 
+function isLtxLoraModel(model: string): boolean {
+  return model === 'ltx' || model === 'ltxa';
+}
+
 export const GET = createRouteHandler(
   { auth: 'user' },
   async (req: AuthenticatedRequest) => {
@@ -60,7 +64,7 @@ export const GET = createRouteHandler(
 
     log.debug('LoRA list fetched', { model, count: loras.length })
 
-    const categorizedLoras = model === 'ltx'
+    const categorizedLoras = isLtxLoraModel(model)
       ? {
           all: loras,
           safetensors: loras.filter(f => f.endsWith('.safetensors')),

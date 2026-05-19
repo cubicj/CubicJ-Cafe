@@ -259,7 +259,7 @@ export function LoRAPresetManager({
           activeModel={activeModel}
         />
 
-        {activeModel === 'ltx' ? (
+        {activeModel === 'ltxa' ? (
           <LoRAFileSelector
             isOpen={isAddLoRADialogOpen}
             onOpenChange={setIsAddLoRADialogOpen}

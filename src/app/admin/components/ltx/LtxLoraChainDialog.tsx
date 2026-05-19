@@ -103,7 +103,15 @@ function getLoraOptions(currentName: string, loras: string[]): string[] {
   return [currentName, ...loras];
 }
 
-export default function LtxLoraChainDialog() {
+interface LtxLoraChainDialogProps {
+  category: string;
+  settingsPrefix: string;
+}
+
+export default function LtxLoraChainDialog({
+  category,
+  settingsPrefix,
+}: LtxLoraChainDialogProps) {
   const [sfw, setSfw] = useState<LtxLoraChainItem[]>([]);
   const [nsfw, setNsfw] = useState<LtxLoraChainItem[]>([]);
   const [loras, setLoras] = useState<string[]>([]);
@@ -123,9 +131,9 @@ export default function LtxLoraChainDialog() {
           ),
         ]);
 
-        const ltxSettings = settingsData.ltx ?? {};
-        setSfw(parseChain(ltxSettings['ltx.sfw_lora_chain']?.value));
-        setNsfw(parseChain(ltxSettings['ltx.nsfw_lora_chain']?.value));
+        const settings = settingsData[category] ?? {};
+        setSfw(parseChain(settings[`${settingsPrefix}.sfw_lora_chain`]?.value));
+        setNsfw(parseChain(settings[`${settingsPrefix}.nsfw_lora_chain`]?.value));
         setLoras(loraData.options.ltx_lora_chain_name ?? []);
       } catch {
         setMessage({ type: 'error', text: 'LoRA 체인을 불러오지 못했습니다.' });
@@ -135,7 +143,7 @@ export default function LtxLoraChainDialog() {
     };
 
     load();
-  }, []);
+  }, [category, settingsPrefix]);
 
   const sortedLoras = useMemo(() => [...loras].sort((a, b) => a.localeCompare(b)), [loras]);
 
@@ -145,8 +153,8 @@ export default function LtxLoraChainDialog() {
     try {
       await apiClient.put('/api/admin/settings', {
         settings: [
-          { key: 'ltx.sfw_lora_chain', value: JSON.stringify(sfw), type: 'string', category: 'ltx' },
-          { key: 'ltx.nsfw_lora_chain', value: JSON.stringify(nsfw), type: 'string', category: 'ltx' },
+          { key: `${settingsPrefix}.sfw_lora_chain`, value: JSON.stringify(sfw), type: 'string', category },
+          { key: `${settingsPrefix}.nsfw_lora_chain`, value: JSON.stringify(nsfw), type: 'string', category },
         ],
       });
       setMessage({ type: 'success', text: 'LoRA 체인이 저장되었습니다.' });

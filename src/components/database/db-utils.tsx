@@ -58,7 +58,7 @@ export function SortableHeader({ field, sort, onSort, children, className = "" }
 export function LoRAPresetDisplay({ loraPresetData, videoModel }: { loraPresetData: string; videoModel?: string }) {
   try {
     const presetData = JSON.parse(loraPresetData);
-    const showGroup = videoModel !== 'ltx';
+    const showGroup = videoModel !== 'ltx' && videoModel !== 'ltxa';
     return (
       <div className="mt-1 p-2 bg-background rounded">
         {presetData.presetName && (

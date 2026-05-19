@@ -83,7 +83,7 @@ export function LoRAPresetEditor({
               </Button>
             </div>
 
-            {activeModel === 'ltx' ? (
+            {activeModel === 'ltxa' ? (
               <LoRAItemEditor
                 items={editForm.loraItems}
                 onRemove={removeLoRAItem}
