@@ -2,6 +2,7 @@ import { cleanTables } from '../../helpers/db'
 import { createUser } from '../../helpers/fixtures'
 import { buildRequest, buildAuthenticatedRequest } from '../../helpers/auth'
 import { createTestSession } from '../../helpers/auth'
+import { seedLtxrSettings } from '../../helpers/ltxr-seed'
 import { prisma } from '@/lib/database/prisma'
 
 import { GET } from '@/app/api/i2v/capabilities/route'
@@ -94,6 +95,38 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(res.status).toBe(200)
     expect(body.enabledModels).toEqual(['wan', 'ltx-wan'])
+  })
+
+  it('returns LTXR capabilities through existing response contract', async () => {
+    await seedLtxrSettings(prisma, { 'ltxr.enabled': false })
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const disabledRes = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const disabledBody = await disabledRes.json()
+
+    expect(disabledRes.status).toBe(200)
+    expect(disabledBody.enabledModels).not.toContain('ltxr')
+
+    await seedLtxrSettings(prisma, { 'ltxr.enabled': true })
+
+    const enabledRes = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const enabledBody = await enabledRes.json()
+
+    expect(enabledRes.status).toBe(200)
+    expect(enabledBody.enabledModels).toContain('ltxr')
+    expect(enabledBody.capabilities.ltxr).toEqual({
+      loraPresets: false,
+      endImage: true,
+      videoDuration: true,
+      audio: true,
+    })
+    expect(enabledBody.durationOptions.ltxr).toEqual([5, 6, 7])
+    expect(MODEL_REGISTRY.ltxr).toMatchObject({
+      displayName: 'LTX(Real)',
+      defaultSubfolder: 'LTXR',
+      defaultDuration: 5,
+    })
   })
 
   it('allows all models to be disabled', async () => {

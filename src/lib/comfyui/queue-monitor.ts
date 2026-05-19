@@ -15,6 +15,18 @@ import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('queue');
 
+async function uploadLtxrWatermark(assetId: string | null, client: ComfyUIClient): Promise<string> {
+  if (!assetId) {
+    throw new Error('LTXR watermark is enabled but no watermark asset is configured.');
+  }
+
+  const { getWatermarkAssetBlob } = await import('@/lib/database/watermark-assets');
+  const asset = await getWatermarkAssetBlob(assetId);
+  const blob = new Blob([Buffer.from(asset.imageBlob)], { type: asset.mimeType });
+  const file = new File([blob], asset.filename, { type: asset.mimeType });
+  return client.uploadImage(file);
+}
+
 class QueueMonitor {
   private isRunning = false;
   private intervalId: NodeJS.Timeout | null = null;
@@ -409,6 +421,7 @@ class QueueMonitor {
       }
 
       const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
+      const effectiveIsNSFW = videoModel === 'ltxr' ? false : Boolean(request.isNSFW);
 
       let params: GenerationParams;
       if (videoModel === 'wan') {
@@ -417,7 +430,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
-          isNSFW: Boolean(request.isNSFW),
+          isNSFW: effectiveIsNSFW,
           endImage: uploadedEndImageName || undefined,
         };
       } else if (videoModel === 'ltx-wan') {
@@ -426,7 +439,7 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
-          isNSFW: Boolean(request.isNSFW),
+          isNSFW: effectiveIsNSFW,
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
@@ -436,9 +449,25 @@ class QueueMonitor {
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
-          isNSFW: Boolean(request.isNSFW),
+          isNSFW: effectiveIsNSFW,
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
+        };
+      } else if (videoModel === 'ltxr') {
+        const { getLtxrSettings } = await import('@/lib/database/system-settings');
+        const settings = await getLtxrSettings();
+        const watermarkImage = settings.watermarkEnabled
+          ? await uploadLtxrWatermark(settings.watermarkImageAssetId, server.client)
+          : undefined;
+        params = {
+          model: 'ltxr',
+          prompt: request.prompt,
+          inputImage,
+          videoDuration: request.videoDuration,
+          isNSFW: effectiveIsNSFW,
+          endImage: uploadedEndImageName || undefined,
+          referenceAudio: uploadedAudioName || undefined,
+          watermarkImage,
         };
       } else {
         throw new Error(`Unsupported video model: ${videoModel}`);
@@ -483,7 +512,7 @@ class QueueMonitor {
         status: 'processing' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-        isNSFW: Boolean(request.isNSFW),
+        isNSFW: effectiveIsNSFW,
         videoModel,
         userInfo: {
           name: request.user?.nickname || request.nickname,

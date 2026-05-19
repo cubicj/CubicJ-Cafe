@@ -7,7 +7,7 @@ import { ServerType, GenerationMode } from '@prisma/client';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { getEnabledModels, getWanSettings, getLtxaSettings, getLtxWanSettings } from '@/lib/database/system-settings';
+import { getEnabledModels, getWanSettings, getLtxaSettings, getLtxrSettings, getLtxWanSettings } from '@/lib/database/system-settings';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
 import { AudioPresetService } from '@/lib/database/audio-presets';
@@ -17,7 +17,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('api');
 
 function getVideoDurationSeconds(model: VideoModel, videoDuration: number, modelSettings: unknown): number {
-  if (model !== 'ltxa') return videoDuration;
+  if (model !== 'ltxa' && model !== 'ltxr') return videoDuration;
 
   const settings = modelSettings as { frameBase?: number; frameRate?: number };
   if (!settings.frameBase || !settings.frameRate) return videoDuration;
@@ -96,7 +96,9 @@ export const POST = createRouteHandler(
       ? await getWanSettings()
       : activeModel === 'ltxa'
         ? await getLtxaSettings()
-        : await getLtxWanSettings();
+        : activeModel === 'ltxr'
+          ? await getLtxrSettings()
+          : await getLtxWanSettings();
     const loraEnabled = capabilities.loraPresets && 'loraEnabled' in modelSettings && modelSettings.loraEnabled;
 
     const settingsDurations = (modelSettings as { durationOptions?: number[] } | undefined)?.durationOptions;
@@ -176,7 +178,7 @@ export const POST = createRouteHandler(
         audioBlob: audioBuffer || undefined,
         audioPresetName: audioPresetName || undefined,
         loraPreset: loraPresetData,
-        isNSFW: isNSFW,
+        isNSFW: activeModel === 'ltxr' ? false : isNSFW,
         serverType: selectedServer.serverType,
         serverId: selectedServer.serverId,
         videoModel: activeModel,
