@@ -8,11 +8,13 @@ import { ShieldAlert, Eye, EyeOff } from "lucide-react";
 interface ContentSettingsSectionProps {
   isNSFW: boolean;
   onNSFWToggle: (isNSFW: boolean) => void;
+  isSfwLocked?: boolean;
 }
 
 export function ContentSettingsSection({
   isNSFW,
   onNSFWToggle,
+  isSfwLocked = false,
 }: ContentSettingsSectionProps) {
   return (
     <div className="space-y-2">
@@ -37,11 +39,13 @@ export function ContentSettingsSection({
               </p>
             </div>
           </div>
-          <Switch
-            id="nsfw-toggle"
-            checked={isNSFW}
-            onCheckedChange={onNSFWToggle}
-          />
+          {!isSfwLocked && (
+            <Switch
+              id="nsfw-toggle"
+              checked={isNSFW}
+              onCheckedChange={onNSFWToggle}
+            />
+          )}
         </div>
       </Card>
     </div>

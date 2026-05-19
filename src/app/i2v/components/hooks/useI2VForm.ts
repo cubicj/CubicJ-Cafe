@@ -147,7 +147,7 @@ export function useI2VForm(): UseI2VFormReturn {
           localStorage.setItem('activeModel', 'ltxa');
           return 'ltxa';
         }
-        if (saved === 'wan' || saved === 'ltxa' || saved === 'ltx-wan') return saved as VideoModel;
+        if (saved === 'wan' || saved === 'ltxa' || saved === 'ltxr' || saved === 'ltx-wan') return saved as VideoModel;
       } catch { /* ignore */ }
     }
     return 'wan';
@@ -157,6 +157,8 @@ export function useI2VForm(): UseI2VFormReturn {
   );
   const initialModelRef = useRef(activeModel);
   const initialDurationRef = useRef(videoDuration);
+  const previousActiveModelRef = useRef(activeModel);
+  const nonLtxrIsNSFWRef = useRef(isNSFW);
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
   const [durationLabelsMap, setDurationLabelsMap] = useState<Record<VideoModel, Record<number, string>> | null>(null);
@@ -197,6 +199,42 @@ export function useI2VForm(): UseI2VFormReturn {
     };
     fetchCapabilities();
   }, [isLoadingAuth, user]);
+
+  useEffect(() => {
+    const previousActiveModel = previousActiveModelRef.current;
+
+    if (activeModel === 'ltxr') {
+      if (previousActiveModel !== 'ltxr') {
+        nonLtxrIsNSFWRef.current = isNSFW;
+      }
+      previousActiveModelRef.current = activeModel;
+      if (isNSFW) {
+        setIsNSFW(false);
+      }
+      return;
+    }
+
+    if (previousActiveModel === 'ltxr') {
+      previousActiveModelRef.current = activeModel;
+      if (isNSFW !== nonLtxrIsNSFWRef.current) {
+        setIsNSFW(nonLtxrIsNSFWRef.current);
+      }
+      return;
+    }
+
+    nonLtxrIsNSFWRef.current = isNSFW;
+    previousActiveModelRef.current = activeModel;
+  }, [activeModel, isNSFW, setIsNSFW]);
+
+  const setFormIsNSFW = (nsfw: boolean) => {
+    if (activeModel === 'ltxr') {
+      setIsNSFW(false);
+      return;
+    }
+
+    nonLtxrIsNSFWRef.current = nsfw;
+    setIsNSFW(nsfw);
+  };
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -277,7 +315,8 @@ export function useI2VForm(): UseI2VFormReturn {
       }
       formData.append('prompt', prompt.trim());
       formData.append('model', activeModel);
-      formData.append('isNSFW', isNSFW.toString());
+      const effectiveIsNSFW = activeModel === 'ltxr' ? false : isNSFW;
+      formData.append('isNSFW', effectiveIsNSFW.toString());
       formData.append('isLoop', isLoopEnabled.toString());
       formData.append('videoDuration', videoDuration.toString());
 
@@ -432,7 +471,7 @@ export function useI2VForm(): UseI2VFormReturn {
     isGenerating,
     setIsGenerating,
     isNSFW,
-    setIsNSFW,
+    setIsNSFW: setFormIsNSFW,
     videoDuration,
     setVideoDuration,
     submitMessage,

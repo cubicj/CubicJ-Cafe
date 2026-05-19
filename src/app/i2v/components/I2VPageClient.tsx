@@ -6,7 +6,6 @@ import { LoRAPresetManager } from '@/components/ui/lora-preset-manager';
 import { QueueMonitor } from '@/components/ui/queue-monitor';
 import { Sparkles, Bot, XCircle, Film } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
-import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { ServerStatusSection } from './sections/ServerStatusSection';
 import { ImageUploadSection } from './sections/ImageUploadSection';
 import { ContentSettingsSection } from './sections/ContentSettingsSection';
@@ -55,6 +54,8 @@ export default function I2VPageClient() {
     videoDuration,
     setVideoDuration,
   } = useI2VForm();
+  const isLtxr = activeModel === 'ltxr';
+  const effectiveIsNSFW = isLtxr ? false : isNSFW;
 
   const handleSignIn = async () => {
     try {
@@ -218,14 +219,15 @@ export default function I2VPageClient() {
               )}
 
               <ContentSettingsSection
-                isNSFW={isNSFW}
+                isNSFW={effectiveIsNSFW}
                 onNSFWToggle={setIsNSFW}
+                isSfwLocked={isLtxr}
               />
 
               <I2VControlsSection
                 isFormValid={isFormValid}
                 isGenerating={isGenerating}
-                isNSFW={isNSFW}
+                isNSFW={effectiveIsNSFW}
                 onSubmit={handleSubmit}
               />
             </div>
