@@ -1,4 +1,4 @@
-export const LTX = {
+export const LTXA = {
   POSITIVE_PROMPT: '5',
   NEGATIVE_PROMPT: '6',
   EMPTY_LATENT_AUDIO: '13',

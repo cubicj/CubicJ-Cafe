@@ -1,6 +1,6 @@
 import type { ComfyUIWorkflow } from '@/types';
 
-export const LTX_WORKFLOW_TEMPLATE = {
+export const LTXA_WORKFLOW_TEMPLATE = {
   '5': {
     inputs: {
       text: 'PLACEHOLDER',

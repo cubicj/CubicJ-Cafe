@@ -430,9 +430,9 @@ class QueueMonitor {
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
-      } else {
+      } else if (videoModel === 'ltxa') {
         params = {
-          model: 'ltx',
+          model: 'ltxa',
           prompt: request.prompt,
           inputImage,
           videoDuration: request.videoDuration,
@@ -440,6 +440,8 @@ class QueueMonitor {
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
+      } else {
+        throw new Error(`Unsupported video model: ${videoModel}`);
       }
 
       const workflow = await buildWorkflow(params);
