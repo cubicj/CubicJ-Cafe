@@ -72,6 +72,18 @@ describe('i2vSchema image validation', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts ltxr model id', () => {
+    const form = new FormData()
+    form.set('prompt', 'test prompt')
+    form.set('image', new File(['fake'], 'test.png', { type: 'image/png' }))
+    form.set('model', 'ltxr')
+
+    const result = parseFormData(i2vSchema, form)
+
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.model).toBe('ltxr')
+  })
+
   it('accepts ltxa model id', () => {
     const form = new FormData()
     form.set('prompt', 'test prompt')

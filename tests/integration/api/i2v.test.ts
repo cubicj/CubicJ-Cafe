@@ -2,6 +2,8 @@ import { vi } from 'vitest'
 import { cleanTables } from '../../helpers/db'
 import { createUser } from '../../helpers/fixtures'
 import { createTestSession } from '../../helpers/auth'
+import { seedLtxrSettings } from '../../helpers/ltxr-seed'
+import { prisma } from '@/lib/database/prisma'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => true),
@@ -30,6 +32,7 @@ vi.mock('fs', () => ({
 vi.mock('@/lib/database/system-settings', () => ({
   getWanSettings: vi.fn(() => ({ loraEnabled: true })),
   getLtxaSettings: vi.fn(() => ({ loraEnabled: false })),
+  getLtxrSettings: vi.fn(() => ({ loraEnabled: false, durationOptions: [5, 6, 7], frameBase: 11, frameRate: 19 })),
   getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false })),
   getEnabledModels: vi.fn(() => ['wan', 'ltxa', 'ltx-wan']),
 }))
@@ -260,6 +263,34 @@ describe('POST /api/i2v', () => {
     expect(rows[0]).toEqual({
       video_duration: 24,
       video_duration_seconds: 7.7,
+    })
+  })
+
+  it('stores LTXR queue requests as SFW even when submitted NSFW', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['ltxr'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    await seedLtxrSettings(prisma, { 'ltxr.enabled': true })
+
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ model: 'ltxr', isNSFW: 'true' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const nextReq = new NextRequest(req)
+    const res = await POST(nextReq)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+
+    const queueRequest = await prisma.queueRequest.findUnique({
+      where: { id: body.requestId },
+      select: { videoModel: true, isNSFW: true },
+    })
+
+    expect(queueRequest).toEqual({
+      videoModel: 'ltxr',
+      isNSFW: false,
     })
   })
 })
