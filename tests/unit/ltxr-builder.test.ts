@@ -47,6 +47,7 @@ describe('buildLtxrWorkflow', () => {
       text_encoder: 'fake-ltxr-text-encoder-p4v.safetensors',
       ckpt_name: 'fake-ltxr-checkpoint-q7m.safetensors',
     })
+    expect(wf[LTXR.TEXT_ENCODER]!.class_type).toBe('LTXAVTextEncoderLoader')
     expect(wf[LTXR.DURATION]!.inputs!.value).toBe(8)
     expect(wf[LTXR.VIDEO_COMBINE]!.inputs).toMatchObject({
       filename_prefix: 'LTXR/fake-ltxr-start',

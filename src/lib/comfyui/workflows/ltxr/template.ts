@@ -324,7 +324,7 @@ export const LTXR_WORKFLOW_TEMPLATE = {
       ckpt_name: 'PLACEHOLDER',
       device: 'default',
     },
-    class_type: 'LTXRVTextEncoderLoader',
+    class_type: 'LTXAVTextEncoderLoader',
     _meta: {
       title: 'LTXV Audio Text Encoder Loader',
     },
