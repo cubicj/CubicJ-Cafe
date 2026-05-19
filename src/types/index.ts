@@ -73,7 +73,7 @@ export type {
   ModelConfig,
   GenerationParams,
   WanGenerationParams,
-  LtxGenerationParams,
+  LtxaGenerationParams,
 } from '@/lib/comfyui/workflows/types'
 
 export interface DiscordMessage {

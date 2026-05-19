@@ -13,13 +13,13 @@ export const GET = createRouteHandler(
           key: {
             in: [
               'wan.lora_enabled',
-              'ltx.lora_enabled',
+              'ltxa.lora_enabled',
               'wan.duration_options',
-              'ltx.duration_options',
+              'ltxa.duration_options',
               'ltx-wan.duration_options',
-              'ltx.frame_base',
-              'ltx.frame_rate',
-              'ltx.end_image_enabled',
+              'ltxa.frame_base',
+              'ltxa.frame_rate',
+              'ltxa.end_image_enabled',
             ],
           },
         },
@@ -40,7 +40,7 @@ export const GET = createRouteHandler(
 
     const loraEnabledMap: Record<VideoModel, boolean> = {
       wan: settingsMap.get('wan.lora_enabled') === 'true',
-      ltx: settingsMap.get('ltx.lora_enabled') === 'true',
+      ltxa: settingsMap.get('ltxa.lora_enabled') === 'true',
       'ltx-wan': false,
     }
 
@@ -49,8 +49,8 @@ export const GET = createRouteHandler(
       const videoModel = model as VideoModel
       capabilities[model as VideoModel] = {
         ...config.capabilities,
-        endImage: videoModel === 'ltx'
-          ? settingsMap.get('ltx.end_image_enabled') === 'true'
+        endImage: videoModel === 'ltxa'
+          ? settingsMap.get('ltxa.end_image_enabled') === 'true'
           : config.capabilities.endImage,
         loraPresets: config.capabilities.loraPresets && loraEnabledMap[videoModel],
       }
@@ -58,18 +58,18 @@ export const GET = createRouteHandler(
 
     const durationOptions: Record<VideoModel, number[]> = {
       wan: parseCsv(settingsMap.get('wan.duration_options')) ?? MODEL_REGISTRY.wan.durationOptions,
-      ltx: parseCsv(settingsMap.get('ltx.duration_options')) ?? MODEL_REGISTRY.ltx.durationOptions,
+      ltxa: parseCsv(settingsMap.get('ltxa.duration_options')) ?? MODEL_REGISTRY.ltxa.durationOptions,
       'ltx-wan': parseCsv(settingsMap.get('ltx-wan.duration_options')) ?? MODEL_REGISTRY['ltx-wan'].durationOptions,
     }
 
-    const ltxFrameBase = parsePositiveNumber(settingsMap.get('ltx.frame_base'))
-    const ltxFrameRate = parsePositiveNumber(settingsMap.get('ltx.frame_rate'))
+    const ltxaFrameBase = parsePositiveNumber(settingsMap.get('ltxa.frame_base'))
+    const ltxaFrameRate = parsePositiveNumber(settingsMap.get('ltxa.frame_rate'))
     const durationLabels: Record<VideoModel, Record<number, string>> = {
       wan: buildSecondLabels(durationOptions.wan),
-      ltx: Object.fromEntries(durationOptions.ltx.map(duration => [
+      ltxa: Object.fromEntries(durationOptions.ltxa.map(duration => [
         duration,
-        ltxFrameBase && ltxFrameRate
-          ? `${(((ltxFrameBase * duration) + 1) / ltxFrameRate).toFixed(1)}초`
+        ltxaFrameBase && ltxaFrameRate
+          ? `${(((ltxaFrameBase * duration) + 1) / ltxaFrameRate).toFixed(1)}초`
           : `${duration}초`,
       ])),
       'ltx-wan': buildSecondLabels(durationOptions['ltx-wan']),
