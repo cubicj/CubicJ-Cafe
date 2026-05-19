@@ -427,4 +427,3 @@ function configureOutput(
     filename_prefix: `LTXA/${extractBaseImageName(params.inputImage)}`,
   });
 }
-
