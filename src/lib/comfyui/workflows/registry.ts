@@ -25,6 +25,18 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     durationOptions: [5, 6, 7],
     defaultDuration: 5,
   },
+  ltxr: {
+    displayName: 'LTX(Real)',
+    capabilities: {
+      loraPresets: false,
+      endImage: true,
+      videoDuration: true,
+      audio: true,
+    },
+    defaultSubfolder: 'LTXR',
+    durationOptions: [5, 6, 7],
+    defaultDuration: 5,
+  },
   'ltx-wan': {
     displayName: 'L+W',
     capabilities: {
@@ -48,5 +60,6 @@ export const VIDEO_OUTPUT_TYPES: Record<
 > = {
   wan: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
   ltxa: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
+  ltxr: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
   'ltx-wan': { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
 };
