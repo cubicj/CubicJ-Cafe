@@ -30,19 +30,20 @@ vi.mock('fs', () => ({
 vi.mock('@/lib/database/system-settings', () => ({
   getWanSettings: vi.fn(() => ({ loraEnabled: true })),
   getLtxSettings: vi.fn(() => ({ loraEnabled: false })),
+  getLtxaSettings: vi.fn(() => ({ loraEnabled: false })),
   getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false })),
-  getEnabledModels: vi.fn(() => ['wan', 'ltx', 'ltx-wan']),
+  getEnabledModels: vi.fn(() => ['wan', 'ltxa', 'ltx-wan']),
 }))
 
 import { POST } from '@/app/api/i2v/route'
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 import { serverManager } from '@/lib/comfyui/server-manager'
-import { getEnabledModels, getLtxSettings } from '@/lib/database/system-settings'
+import { getEnabledModels, getLtxaSettings } from '@/lib/database/system-settings'
 
 beforeEach(async () => {
   await cleanTables()
   vi.mocked(isComfyUIEnabled).mockReturnValue(true)
-  vi.mocked(getEnabledModels).mockResolvedValue(['wan', 'ltx', 'ltx-wan'])
+  vi.mocked(getEnabledModels).mockResolvedValue(['wan', 'ltxa', 'ltx-wan'])
   vi.mocked(serverManager.selectBestServer).mockReturnValue({
     id: 'local',
     type: 'LOCAL',
@@ -199,7 +200,7 @@ describe('POST /api/i2v', () => {
   })
 
   it('returns 400 when selected model is disabled', async () => {
-    vi.mocked(getEnabledModels).mockResolvedValue(['ltx', 'ltx-wan'])
+    vi.mocked(getEnabledModels).mockResolvedValue(['ltxa', 'ltx-wan'])
 
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -233,16 +234,16 @@ describe('POST /api/i2v', () => {
     expect(queueRequest?.videoDuration).toBe(7)
   })
 
-  it('stores LTX N and requested actual seconds in queue request', async () => {
-    vi.mocked(getLtxSettings).mockResolvedValue({
+  it('stores LTXA N and requested actual seconds in queue request', async () => {
+    vi.mocked(getLtxaSettings).mockResolvedValue({
       loraEnabled: false,
       durationOptions: [24],
       frameBase: 8,
       frameRate: 25,
-    } as unknown as Awaited<ReturnType<typeof getLtxSettings>>)
+    } as unknown as Awaited<ReturnType<typeof getLtxaSettings>>)
     const user = await createUser()
     const session = await createTestSession(user.id)
-    const form = buildFormData({ model: 'ltx', videoDuration: '24' })
+    const form = buildFormData({ model: 'ltxa', videoDuration: '24' })
     const req = buildFormDataRequest('/api/i2v', session.id, form)
     const { NextRequest } = await import('next/server')
     const nextReq = new NextRequest(req)

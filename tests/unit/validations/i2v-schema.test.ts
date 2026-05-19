@@ -5,6 +5,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import { i2vSchema } from '@/lib/validations/schemas/i2v'
+import { parseFormData } from '@/lib/validations/parse'
 
 describe('i2vSchema image validation', () => {
   function makeFormData(image: File, endImage?: File): FormData {
@@ -58,5 +59,28 @@ describe('i2vSchema image validation', () => {
     fd.set('model', 'wan')
     const result = i2vSchema.safeParse(Object.fromEntries(fd.entries()))
     expect(result.success).toBe(false)
+  })
+
+  it('rejects legacy ltx model id', () => {
+    const form = new FormData()
+    form.set('prompt', 'test prompt')
+    form.set('image', new File(['fake'], 'test.png', { type: 'image/png' }))
+    form.set('model', 'ltx')
+
+    const result = parseFormData(i2vSchema, form)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts ltxa model id', () => {
+    const form = new FormData()
+    form.set('prompt', 'test prompt')
+    form.set('image', new File(['fake'], 'test.png', { type: 'image/png' }))
+    form.set('model', 'ltxa')
+
+    const result = parseFormData(i2vSchema, form)
+
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.model).toBe('ltxa')
   })
 })
