@@ -12,7 +12,7 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   ...Object.fromEntries(
     Object.entries(MODEL_REGISTRY).map(([model, config]) => [model, config.displayName])
   ),
-  ltx: 'LTXA',
+  ltx: 'LTX(Anime)',
 };
 
 function getModelDisplayName(videoModel: string) {

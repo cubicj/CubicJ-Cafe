@@ -14,7 +14,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     defaultDuration: 5,
   },
   ltxa: {
-    displayName: 'LTXA',
+    displayName: 'LTX(Anime)',
     capabilities: {
       loraPresets: false,
       endImage: true,
