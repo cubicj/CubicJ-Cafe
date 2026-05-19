@@ -143,7 +143,11 @@ export function useI2VForm(): UseI2VFormReturn {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('activeModel');
-        if (saved === 'wan' || saved === 'ltx' || saved === 'ltx-wan') return saved as VideoModel;
+        if (saved === 'ltx') {
+          localStorage.setItem('activeModel', 'ltxa');
+          return 'ltxa';
+        }
+        if (saved === 'wan' || saved === 'ltxa' || saved === 'ltx-wan') return saved as VideoModel;
       } catch { /* ignore */ }
     }
     return 'wan';

@@ -105,7 +105,7 @@ function extractLoRAs(
     return []
   }
 
-  const filtered = model === 'ltx'
+  const filtered = (model === 'ltx' || model === 'ltxa')
     ? filterLTXLoRAs(loras, normalizeRunpod)
     : filterWANLoRAs(loras, normalizeRunpod)
 

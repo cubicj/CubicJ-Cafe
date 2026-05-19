@@ -17,7 +17,7 @@ import { useAdminSettings } from './hooks/useAdminSettings';
 import DatabaseTab from './tabs/DatabaseTab';
 import LogViewerTab from './tabs/LogViewerTab';
 import WanSettingsTab from './tabs/WanSettingsTab';
-import LtxSettingsTab from './tabs/LtxSettingsTab';
+import LtxaSettingsTab from './tabs/LtxaSettingsTab';
 import LtxWanSettingsTab from './tabs/LtxWanSettingsTab';
 
 const log = createLogger('admin');
@@ -27,7 +27,7 @@ type AdminSettingEntry = {
   type: string;
 };
 
-type ModelEnabledKey = 'wan.enabled' | 'ltx.enabled' | 'ltx-wan.enabled';
+type ModelEnabledKey = 'wan.enabled' | 'ltxa.enabled' | 'ltx-wan.enabled';
 
 const MODEL_ENABLE_TOGGLES: Array<{
   key: ModelEnabledKey;
@@ -35,14 +35,14 @@ const MODEL_ENABLE_TOGGLES: Array<{
   category: string;
 }> = [
   { key: 'wan.enabled', label: 'WAN 2.2', category: 'wan' },
-  { key: 'ltx.enabled', label: 'LTX 2.3', category: 'ltx' },
+  { key: 'ltxa.enabled', label: 'LTXA', category: 'ltxa' },
   { key: 'ltx-wan.enabled', label: 'L+W', category: 'ltx-wan' },
 ];
 
 const ADMIN_TABS = [
   { value: 'database', label: '데이터베이스', icon: Database },
   { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
-  { value: 'ltx-settings', label: 'LTX', icon: SlidersHorizontal },
+  { value: 'ltxa-settings', label: 'LTXA', icon: SlidersHorizontal },
   { value: 'ltx-wan-settings', label: 'L+W', icon: SlidersHorizontal },
   { value: 'logs', label: 'Logs', icon: ScrollText },
 ] as const;
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
   const [comfyuiMessage, setComfyuiMessage] = useState('');
   const [modelEnabled, setModelEnabled] = useState<Record<ModelEnabledKey, boolean>>({
     'wan.enabled': true,
-    'ltx.enabled': true,
+    'ltxa.enabled': true,
     'ltx-wan.enabled': true,
   });
   const [modelEnabledLoading, setModelEnabledLoading] = useState(false);
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
       const data = await apiClient.get<Record<string, Record<string, AdminSettingEntry>>>('/api/admin/settings');
       setModelEnabled({
         'wan.enabled': data.wan?.['wan.enabled']?.value !== 'false',
-        'ltx.enabled': data.ltx?.['ltx.enabled']?.value !== 'false',
+        'ltxa.enabled': data.ltxa?.['ltxa.enabled']?.value !== 'false',
         'ltx-wan.enabled': data['ltx-wan']?.['ltx-wan.enabled']?.value !== 'false',
       });
     } catch {
@@ -448,8 +448,8 @@ export default function AdminDashboard() {
           <WanSettingsTab />
         </TabsContent>
 
-        <TabsContent value="ltx-settings" className="space-y-4">
-          <LtxSettingsTab />
+        <TabsContent value="ltxa-settings" className="space-y-4">
+          <LtxaSettingsTab />
         </TabsContent>
 
         <TabsContent value="ltx-wan-settings" className="space-y-4">
