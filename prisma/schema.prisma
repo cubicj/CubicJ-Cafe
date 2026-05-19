@@ -126,6 +126,18 @@ model SystemSetting {
   @@map("system_settings")
 }
 
+model WatermarkAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String   @map("mime_type")
+  size      Int
+  imageBlob Bytes    @map("image_blob")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("watermark_assets")
+}
+
 enum QueueStatus {
   PENDING
   PROCESSING
