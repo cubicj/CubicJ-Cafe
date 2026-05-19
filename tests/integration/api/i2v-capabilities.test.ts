@@ -28,7 +28,7 @@ describe('GET /api/i2v/capabilities', () => {
   })
 
   it('returns loraPresets false for both models (registry-disabled)', async () => {
-    await seedSettings({ 'wan.lora_enabled': 'true', 'ltx.lora_enabled': 'true' })
+    await seedSettings({ 'wan.lora_enabled': 'true', 'ltxa.lora_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -37,11 +37,11 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(res.status).toBe(200)
     expect(body.capabilities.wan.loraPresets).toBe(false)
-    expect(body.capabilities.ltx.loraPresets).toBe(false)
+    expect(body.capabilities.ltxa.loraPresets).toBe(false)
   })
 
-  it('returns loraPresets false for LTX when disabled', async () => {
-    await seedSettings({ 'wan.lora_enabled': 'true', 'ltx.lora_enabled': 'false' })
+  it('returns loraPresets false for LTXA when disabled', async () => {
+    await seedSettings({ 'wan.lora_enabled': 'true', 'ltxa.lora_enabled': 'false' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -49,11 +49,11 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.capabilities.wan.loraPresets).toBe(false)
-    expect(body.capabilities.ltx.loraPresets).toBe(false)
+    expect(body.capabilities.ltxa.loraPresets).toBe(false)
   })
 
   it('returns loraPresets false for WAN when disabled', async () => {
-    await seedSettings({ 'wan.lora_enabled': 'false', 'ltx.lora_enabled': 'true' })
+    await seedSettings({ 'wan.lora_enabled': 'false', 'ltxa.lora_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -61,13 +61,13 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.capabilities.wan.loraPresets).toBe(false)
-    expect(body.capabilities.ltx.loraPresets).toBe(false)
+    expect(body.capabilities.ltxa.loraPresets).toBe(false)
   })
 
   it('returns durationOptions from settings for ltx-wan and registry for others', async () => {
     await seedSettings({ 'ltx-wan.duration_options': '5,6,7,8' })
     await prisma.systemSetting.deleteMany({
-      where: { key: { in: ['wan.duration_options', 'ltx.duration_options'] } },
+      where: { key: { in: ['wan.duration_options', 'ltxa.duration_options'] } },
     })
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -77,13 +77,13 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
     expect(body.durationOptions.wan).toEqual([5, 6, 7])
-    expect(body.durationOptions.ltx).toEqual([5, 6, 7])
+    expect(body.durationOptions.ltxa).toEqual([5, 6, 7])
   })
 
   it('returns only enabled models', async () => {
     await seedSettings({
       'wan.enabled': 'true',
-      'ltx.enabled': 'false',
+      'ltxa.enabled': 'false',
       'ltx-wan.enabled': 'true',
     })
     const user = await createUser()
@@ -99,7 +99,7 @@ describe('GET /api/i2v/capabilities', () => {
   it('allows all models to be disabled', async () => {
     await seedSettings({
       'wan.enabled': 'false',
-      'ltx.enabled': 'false',
+      'ltxa.enabled': 'false',
       'ltx-wan.enabled': 'false',
     })
     const user = await createUser()
@@ -125,7 +125,7 @@ describe('GET /api/i2v/capabilities', () => {
   it('returns durationOptions for all three models from settings', async () => {
     await seedSettings({
       'wan.duration_options': '3,5,7,9',
-      'ltx.duration_options': '4,8,12',
+      'ltxa.duration_options': '4,8,12',
       'ltx-wan.duration_options': '5,6,7,8',
     })
     const user = await createUser()
@@ -135,15 +135,15 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.durationOptions.wan).toEqual([3, 5, 7, 9])
-    expect(body.durationOptions.ltx).toEqual([4, 8, 12])
+    expect(body.durationOptions.ltxa).toEqual([4, 8, 12])
     expect(body.durationOptions['ltx-wan']).toEqual([5, 6, 7, 8])
   })
 
-  it('returns LTX duration labels as actual seconds from frame settings', async () => {
+  it('returns LTXA duration labels as actual seconds from frame settings', async () => {
     await seedSettings({
-      'ltx.duration_options': '24',
-      'ltx.frame_base': '8',
-      'ltx.frame_rate': '25',
+      'ltxa.duration_options': '24',
+      'ltxa.frame_base': '8',
+      'ltxa.frame_rate': '25',
     })
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -151,14 +151,14 @@ describe('GET /api/i2v/capabilities', () => {
     const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
     const body = await res.json()
 
-    expect(body.durationOptions.ltx).toEqual([24])
-    expect(body.durationLabels.ltx['24']).toBe('7.7초')
+    expect(body.durationOptions.ltxa).toEqual([24])
+    expect(body.durationLabels.ltxa['24']).toBe('7.7초')
     expect(body.durationLabels.wan['5']).toBe('5초')
   })
 
   it('falls back to registry durations when a model setting is missing', async () => {
     await prisma.systemSetting.deleteMany({
-      where: { key: { in: ['wan.duration_options', 'ltx.duration_options'] } },
+      where: { key: { in: ['wan.duration_options', 'ltxa.duration_options'] } },
     })
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -167,7 +167,7 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.durationOptions.wan).toEqual(MODEL_REGISTRY.wan.durationOptions)
-    expect(body.durationOptions.ltx).toEqual(MODEL_REGISTRY.ltx.durationOptions)
+    expect(body.durationOptions.ltxa).toEqual(MODEL_REGISTRY.ltxa.durationOptions)
   })
 
   it('preserves other capabilities from registry', async () => {
@@ -178,13 +178,13 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(body.capabilities.wan.audio).toBe(false)
-    expect(body.capabilities.ltx.audio).toBe(true)
+    expect(body.capabilities.ltxa.audio).toBe(true)
     expect(body.capabilities.wan.endImage).toBe(true)
-    expect(body.capabilities.ltx.endImage).toBe(false)
+    expect(body.capabilities.ltxa.endImage).toBe(false)
   })
 
-  it('disables LTX end image capability from admin setting', async () => {
-    await seedSettings({ 'ltx.end_image_enabled': 'false' })
+  it('disables LTXA end image capability from admin setting', async () => {
+    await seedSettings({ 'ltxa.end_image_enabled': 'false' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -193,12 +193,12 @@ describe('GET /api/i2v/capabilities', () => {
 
     expect(res.status).toBe(200)
     expect(body.capabilities.wan.endImage).toBe(true)
-    expect(body.capabilities.ltx.endImage).toBe(false)
+    expect(body.capabilities.ltxa.endImage).toBe(false)
     expect(body.capabilities['ltx-wan'].endImage).toBe(true)
   })
 
-  it('enables LTX end image capability from admin setting', async () => {
-    await seedSettings({ 'ltx.end_image_enabled': 'true' })
+  it('enables LTXA end image capability from admin setting', async () => {
+    await seedSettings({ 'ltxa.end_image_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
 
@@ -206,6 +206,6 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.capabilities.ltx.endImage).toBe(true)
+    expect(body.capabilities.ltxa.endImage).toBe(true)
   })
 })

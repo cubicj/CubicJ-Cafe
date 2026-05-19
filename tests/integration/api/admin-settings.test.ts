@@ -101,6 +101,49 @@ describe('LTX 2.3 rebuild migration parity', () => {
     expect(typeof sfw[1].enabled).toBe('boolean')
     expect(typeof sfw[1].strength).toBe('number')
   })
+
+  it('migrates standalone LTX ids and settings to LTXA', async () => {
+    const migrationSql = readFileSync(
+      join(process.cwd(), 'prisma/migrations/20260519_ltxa_model_id_migration/migration.sql'),
+      'utf8'
+    )
+
+    await prisma.queueRequest.create({
+      data: {
+        userId: (await createUser()).id,
+        nickname: 'tester',
+        prompt: 'fake prompt',
+        imageFile: 'fake.png',
+        videoModel: 'ltx',
+      },
+    })
+    await prisma.systemSetting.upsert({
+      where: { key: 'ltx.enabled' },
+      create: { key: 'ltx.enabled', value: 'true', type: 'boolean', category: 'ltx' },
+      update: { value: 'true', type: 'boolean', category: 'ltx' },
+    })
+    await prisma.systemSetting.upsert({
+      where: { key: 'ltx.duration_options' },
+      create: { key: 'ltx.duration_options', value: '4,8,12', type: 'string', category: 'ltx' },
+      update: { value: '4,8,12', type: 'string', category: 'ltx' },
+    })
+
+    for (const statement of migrationSql.split(';').map((item) => item.trim()).filter(Boolean)) {
+      await prisma.$executeRawUnsafe(statement)
+    }
+
+    const legacySettings = await prisma.systemSetting.findMany({
+      where: { OR: [{ key: { startsWith: 'ltx.' } }, { category: 'ltx' }] },
+    })
+    const ltxaEnabled = await prisma.systemSetting.findUnique({ where: { key: 'ltxa.enabled' } })
+    const ltxaDurationOptions = await prisma.systemSetting.findUnique({ where: { key: 'ltxa.duration_options' } })
+    const queueRows = await prisma.queueRequest.findMany({ select: { videoModel: true } })
+
+    expect(legacySettings).toEqual([])
+    expect(ltxaEnabled?.value).toBe('true')
+    expect(ltxaDurationOptions?.value).toBe('4,8,12')
+    expect(queueRows.map((row) => row.videoModel)).toEqual(['ltxa'])
+  })
 })
 
 describe('GET /api/admin/settings', () => {
