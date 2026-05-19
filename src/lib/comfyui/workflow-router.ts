@@ -2,6 +2,7 @@ import type { GenerationParams } from './workflows/types'
 import type { ComfyUIWorkflow } from '@/types'
 import { buildWanWorkflow } from './workflows/wan/builder'
 import { buildLtxaWorkflow } from './workflows/ltxa/builder'
+import { buildLtxrWorkflow } from './workflows/ltxr/builder'
 import { buildLtxWanWorkflow } from './workflows/ltx-wan/builder'
 
 export async function buildWorkflow(
@@ -12,6 +13,8 @@ export async function buildWorkflow(
       return buildWanWorkflow(params)
     case 'ltxa':
       return buildLtxaWorkflow(params)
+    case 'ltxr':
+      return buildLtxrWorkflow(params)
     case 'ltx-wan':
       return buildLtxWanWorkflow(params)
     default:
