@@ -62,7 +62,7 @@ vi.mock('@/lib/comfyui/job-monitor', () => ({
   },
 }))
 
-describe('QueueMonitor LTX params', () => {
+describe('QueueMonitor LTXA params', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockBuildWorkflow.mockResolvedValue({ prompt: { class_type: 'TestNode', inputs: {} } })
@@ -71,7 +71,7 @@ describe('QueueMonitor LTX params', () => {
     mockStartMonitoring.mockResolvedValue(undefined)
   })
 
-  it('passes request isNSFW to LTX workflow params', async () => {
+  it('passes request isNSFW to LTXA workflow params', async () => {
     mockGetRequestById.mockResolvedValue({
       id: 'request-1',
       userId: 1,
@@ -84,7 +84,7 @@ describe('QueueMonitor LTX params', () => {
       audioBlob: null,
       loraPresetData: null,
       isNSFW: true,
-      videoModel: 'ltx',
+      videoModel: 'ltxa',
       videoDuration: 4,
       user: {
         nickname: 'Tester',
@@ -108,7 +108,7 @@ describe('QueueMonitor LTX params', () => {
     })
 
     expect(mockBuildWorkflow).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'ltx',
+      model: 'ltxa',
       isNSFW: true,
       inputImage: 'uploaded-start.png',
     }))
