@@ -200,6 +200,8 @@ export interface LtxaSettings {
   secondPassUpscaleMethod: string;
   secondPassUpscaleBy: number;
   secondPassAnchor: LtxAnchorSettings;
+  sageAttention: string;
+  sageAllowCompile: boolean;
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
@@ -340,6 +342,8 @@ export const LTXA_KEYS = {
   secondPassAnchorFrame: 'ltxa.second_pass_anchor_frame',
   secondPassAnchorDepthCurve: 'ltxa.second_pass_anchor_depth_curve',
   secondPassAnchorBlockIndexFilter: 'ltxa.second_pass_anchor_block_index_filter',
+  sageAttention: 'ltxa.sage_attention',
+  sageAllowCompile: 'ltxa.sage_allow_compile',
   rtxEnabled: 'ltxa.rtx_enabled',
   rtxResizeType: 'ltxa.rtx_resize_type',
   rtxScale: 'ltxa.rtx_scale',
@@ -430,6 +434,8 @@ export const LTXR_KEYS = {
   secondPassAnchorFrame: 'ltxr.second_pass_anchor_frame',
   secondPassAnchorDepthCurve: 'ltxr.second_pass_anchor_depth_curve',
   secondPassAnchorBlockIndexFilter: 'ltxr.second_pass_anchor_block_index_filter',
+  sageAttention: 'ltxr.sage_attention',
+  sageAllowCompile: 'ltxr.sage_allow_compile',
   rtxEnabled: 'ltxr.rtx_enabled',
   rtxResizeType: 'ltxr.rtx_resize_type',
   rtxScale: 'ltxr.rtx_scale',
@@ -750,6 +756,8 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
       depthCurve: k.secondPassAnchorDepthCurve,
       blockIndexFilter: k.secondPassAnchorBlockIndexFilter,
     }),
+    sageAttention: map.get(k.sageAttention)!,
+    sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),
@@ -856,6 +864,8 @@ export async function getLtxrSettings(): Promise<LtxrSettings> {
       depthCurve: k.secondPassAnchorDepthCurve,
       blockIndexFilter: k.secondPassAnchorBlockIndexFilter,
     }),
+    sageAttention: map.get(k.sageAttention)!,
+    sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),

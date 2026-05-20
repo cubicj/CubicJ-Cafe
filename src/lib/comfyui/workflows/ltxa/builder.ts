@@ -42,6 +42,7 @@ export async function buildLtxaWorkflow(
   configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
+  configureSageAttention(workflow, settings);
   const generalModelOutput = configureLoraChain(
     workflow,
     params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain
@@ -219,6 +220,15 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
     scale_by: settings.secondPassUpscaleBy,
   });
   setAnchorNode(workflow, LTXA.SECOND_PASS_ANCHOR, settings.secondPassAnchor);
+}
+
+function configureSageAttention(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
+  const inputs = {
+    sage_attention: settings.sageAttention,
+    allow_compile: settings.sageAllowCompile,
+  };
+  setNode(workflow, LTXA.FIRST_PASS_SAGE_ATTN_PATCH, inputs);
+  setNode(workflow, LTXA.SAGE_ATTN_PATCH, inputs);
 }
 
 function setAnchorNode(

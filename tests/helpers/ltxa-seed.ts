@@ -136,6 +136,8 @@ export const LTXA_SEED: Array<{ key: string; value: string; type: SeedType }> = 
   { key: 'ltxa.second_pass_anchor_frame', value: '2', type: 'number' },
   { key: 'ltxa.second_pass_anchor_depth_curve', value: 'fake-second-pass-anchor-depth-curve', type: 'string' },
   { key: 'ltxa.second_pass_anchor_block_index_filter', value: 'fake-second-pass-block-filter-1,3,5', type: 'string' },
+  { key: 'ltxa.sage_attention', value: 'auto', type: 'string' },
+  { key: 'ltxa.sage_allow_compile', value: 'false', type: 'boolean' },
   { key: 'ltxa.rtx_enabled', value: 'true', type: 'boolean' },
   { key: 'ltxa.rtx_resize_type', value: 'fake-rtx-resize-type', type: 'string' },
   { key: 'ltxa.rtx_scale', value: '1.5', type: 'number' },
