@@ -247,12 +247,13 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '481': {
     inputs: {
-      triton_kernels: true,
+      sage_attention: 'auto',
+      allow_compile: false,
       model: ['593', 0],
     },
-    class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    class_type: 'PathchSageAttentionKJ',
     _meta: {
-      title: 'LTX2 Mem Eff Sage Attention Patch',
+      title: 'Patch Sage Attention KJ',
     },
   },
   '487': {
@@ -604,12 +605,13 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '595': {
     inputs: {
-      triton_kernels: true,
+      sage_attention: 'auto',
+      allow_compile: false,
       model: ['511', 0],
     },
-    class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    class_type: 'PathchSageAttentionKJ',
     _meta: {
-      title: 'LTX2 Mem Eff Sage Attention Patch',
+      title: 'Patch Sage Attention KJ',
     },
   },
   '607': {

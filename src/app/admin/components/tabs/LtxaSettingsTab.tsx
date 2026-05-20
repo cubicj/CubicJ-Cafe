@@ -92,6 +92,9 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.second_pass_anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXA - 2-Pass Anchor', nodeQuery: 'second_pass_anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltxa.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - 2-Pass Anchor', monoFont: true },
 
+  { key: 'ltxa.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXA - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
+  { key: 'ltxa.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXA - Sage Attention' },
+
   { key: 'ltxa.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXA - RTX Postprocess' },
   { key: 'ltxa.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXA - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltxa.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTXA - RTX Postprocess' },

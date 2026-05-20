@@ -152,9 +152,23 @@ describe('buildLtxaWorkflow', () => {
       2,
     ])
     expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
-    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
+    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]).toMatchObject({
+      class_type: 'PathchSageAttentionKJ',
+      inputs: {
+        model: [LTXA.ANCHOR, 0],
+        sage_attention: 'auto',
+        allow_compile: false,
+      },
+    })
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_SAGE_ATTN_PATCH, 0])
-    expect(wf[LTXA.SAGE_ATTN_PATCH]!.inputs!.model).toEqual([TWO_PASS.SECOND_PASS_ANCHOR, 0])
+    expect(wf[LTXA.SAGE_ATTN_PATCH]).toMatchObject({
+      class_type: 'PathchSageAttentionKJ',
+      inputs: {
+        model: [TWO_PASS.SECOND_PASS_ANCHOR, 0],
+        sage_attention: 'auto',
+        allow_compile: false,
+      },
+    })
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [LTXA.SAGE_ATTN_PATCH, 0],
       positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
@@ -174,6 +188,29 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_CROP_GUIDES, 2])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
+  })
+
+  it('injects admin-configured Sage attention settings', async () => {
+    await updateSettings({
+      'ltxa.sage_attention': 'fake-sage-backend',
+      'ltxa.sage_allow_compile': 'true',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs).toMatchObject({
+      sage_attention: 'fake-sage-backend',
+      allow_compile: true,
+    })
+    expect(wf[LTXA.SAGE_ATTN_PATCH]!.inputs).toMatchObject({
+      sage_attention: 'fake-sage-backend',
+      allow_compile: true,
+    })
   })
 
   it('injects scheduler, NAG, guide, anchor, and two-pass settings', async () => {

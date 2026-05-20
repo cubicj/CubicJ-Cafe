@@ -107,6 +107,9 @@ const LTXR_FIELDS: SettingsField[] = [
   { key: 'ltxr.second_pass_anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXR - 2-Pass Anchor', nodeQuery: 'second_pass_anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltxr.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXR - 2-Pass Anchor', monoFont: true },
 
+  { key: 'ltxr.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXR - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
+  { key: 'ltxr.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXR - Sage Attention' },
+
   { key: 'ltxr.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXR - RTX Postprocess' },
   { key: 'ltxr.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXR - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltxr.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTXR - RTX Postprocess' },

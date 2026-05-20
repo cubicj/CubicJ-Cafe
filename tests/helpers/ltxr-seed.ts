@@ -82,6 +82,8 @@ export const LTXR_SEED: SeedRow[] = [
   { key: 'ltxr.second_pass_anchor_frame', value: 2, type: 'number' },
   { key: 'ltxr.second_pass_anchor_depth_curve', value: 'fake-ltxr-second-pass-anchor-depth-curve', type: 'string' },
   { key: 'ltxr.second_pass_anchor_block_index_filter', value: 'fake-ltxr-second-pass-block-filter-1,4,6', type: 'string' },
+  { key: 'ltxr.sage_attention', value: 'auto', type: 'string' },
+  { key: 'ltxr.sage_allow_compile', value: false, type: 'boolean' },
   { key: 'ltxr.rtx_enabled', value: false, type: 'boolean' },
   { key: 'ltxr.rtx_resize_type', value: 'fake-ltxr-rtx-resize-type', type: 'string' },
   { key: 'ltxr.rtx_scale', value: 1.42, type: 'number' },

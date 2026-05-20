@@ -42,6 +42,7 @@ export async function buildLtxrWorkflow(
   configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
+  configureSageAttention(workflow, settings);
   const generalModelOutput = configureLoraChain(
     workflow,
     settings.sfwLoraChain
@@ -221,6 +222,15 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxrSettings) 
     scale_by: settings.secondPassUpscaleBy,
   });
   setAnchorNode(workflow, LTXR.SECOND_PASS_ANCHOR, settings.secondPassAnchor);
+}
+
+function configureSageAttention(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
+  const inputs = {
+    sage_attention: settings.sageAttention,
+    allow_compile: settings.sageAllowCompile,
+  };
+  setNode(workflow, LTXR.FIRST_PASS_SAGE_ATTN_PATCH, inputs);
+  setNode(workflow, LTXR.SAGE_ATTN_PATCH, inputs);
 }
 
 function setAnchorNode(

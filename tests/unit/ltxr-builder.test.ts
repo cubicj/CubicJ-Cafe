@@ -49,6 +49,24 @@ describe('buildLtxrWorkflow', () => {
     })
     expect(wf[LTXR.TEXT_ENCODER]!.class_type).toBe('LTXAVTextEncoderLoader')
     expect(wf[LTXR.DURATION]!.inputs!.value).toBe(8)
+    expect(wf[LTXR.FIRST_PASS_SAGE_ATTN_PATCH]).toMatchObject({
+      class_type: 'PathchSageAttentionKJ',
+      inputs: {
+        model: [LTXR.ANCHOR, 0],
+        sage_attention: 'auto',
+        allow_compile: false,
+      },
+    })
+    expect(wf[LTXR.SAGE_ATTN_PATCH]).toMatchObject({
+      class_type: 'PathchSageAttentionKJ',
+      inputs: {
+        model: [LTXR.SECOND_PASS_ANCHOR, 0],
+        sage_attention: 'auto',
+        allow_compile: false,
+      },
+    })
+    expect(wf[LTXR.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXR.FIRST_PASS_SAGE_ATTN_PATCH, 0])
+    expect(wf[LTXR.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([LTXR.SAGE_ATTN_PATCH, 0])
     expect(wf[LTXR.VIDEO_COMBINE]!.inputs).toMatchObject({
       filename_prefix: 'LTXR/fake-ltxr-start',
       crf: 29,
@@ -57,6 +75,29 @@ describe('buildLtxrWorkflow', () => {
     })
     expect(wf[LTXR.WATERMARK]).toBeUndefined()
     expect(wf[LTXR.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXR.RTX_SUPER_RES, 0])
+  })
+
+  it('injects admin-configured Sage attention settings', async () => {
+    await updateSettings({
+      'ltxr.sage_attention': 'fake-ltxr-sage-backend',
+      'ltxr.sage_allow_compile': 'true',
+    })
+
+    const wf = await buildLtxrWorkflow({
+      model: 'ltxr',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXR.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs).toMatchObject({
+      sage_attention: 'fake-ltxr-sage-backend',
+      allow_compile: true,
+    })
+    expect(wf[LTXR.SAGE_ATTN_PATCH]!.inputs).toMatchObject({
+      sage_attention: 'fake-ltxr-sage-backend',
+      allow_compile: true,
+    })
   })
 
   it('always uses the SFW LoRA chain even when generation is NSFW', async () => {
