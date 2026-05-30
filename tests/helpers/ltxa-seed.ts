@@ -78,6 +78,7 @@ export const LTXA_SEED: Array<{ key: string; value: string; type: SeedType }> = 
   { key: 'ltxa.megapixels', value: '0.73', type: 'number' },
   { key: 'ltxa.resize_multiple_of', value: '24', type: 'number' },
   { key: 'ltxa.resize_upscale_method', value: 'fake-resize-method', type: 'string' },
+  { key: 'ltxa.preprocess_img_compression', value: '19', type: 'number' },
   { key: 'ltxa.sampler', value: 'fake-sampler-r6d', type: 'string' },
   { key: 'ltxa.clown_eta', value: '0.17', type: 'number' },
   { key: 'ltxa.clown_bongmath', value: 'true', type: 'boolean' },

@@ -36,6 +36,7 @@ export async function buildLtxaWorkflow(
   configureModels(workflow, settings);
   configurePrompts(workflow, params, settings);
   configureGeneration(workflow, params, settings);
+  configurePreprocess(workflow, settings);
   configureScheduler(workflow, settings);
   configureNag(workflow, settings);
   configureGuide(workflow, settings);
@@ -123,11 +124,8 @@ function configureGeneration(
   params: LtxaGenerationParams,
   settings: LtxaSettings
 ) {
-  setNode(workflow, LTXA.CLOWN_SAMPLER, {
+  setNode(workflow, LTXA.SAMPLER_SELECT, {
     sampler_name: settings.sampler,
-    eta: settings.clownEta,
-    seed: generateSeed(),
-    bongmath: settings.clownBongmath,
   });
   setNode(workflow, LTXA.DURATION, { value: params.videoDuration });
   setNode(workflow, LTXA.FRAME_BASE, { value: settings.frameBase });
@@ -138,6 +136,12 @@ function configureGeneration(
     upscale_method: settings.resizeUpscaleMethod,
   });
   setNode(workflow, LTXA.LOAD_IMAGE_START, { image: params.inputImage });
+}
+
+function configurePreprocess(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
+  const inputs = { img_compression: settings.preprocessImgCompression };
+  setNode(workflow, LTXA.FIRST_PASS_PREPROCESS, inputs);
+  setNode(workflow, LTXA.SECOND_PASS_PREPROCESS, inputs);
 }
 
 function configureScheduler(workflow: ComfyUIWorkflow, settings: LtxaSettings) {

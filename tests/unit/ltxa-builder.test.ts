@@ -37,6 +37,16 @@ const TWO_PASS = {
   SECOND_PASS_GUIDER_UNLOAD: '642',
 } as const
 
+const REFRESH = {
+  SAMPLER_SELECT: '654',
+  FIRST_PASS_PREPROCESS: '660',
+  SECOND_PASS_PREPROCESS: '661',
+} as const
+
+const REMOVED = {
+  CLOWN_SAMPLER: '463',
+} as const
+
 let lastWorkflow: ComfyUIWorkflow | null = null
 const buildLtxaWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
   const wf = await rawBuilder(...args)
@@ -213,6 +223,55 @@ describe('buildLtxaWorkflow', () => {
     })
   })
 
+  it('uses the refreshed shared sampler topology', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[REMOVED.CLOWN_SAMPLER]).toBeUndefined()
+    expect(wf[REFRESH.SAMPLER_SELECT]).toMatchObject({
+      class_type: 'KSamplerSelect',
+      inputs: { sampler_name: 'fake-sampler-r6d' },
+    })
+    expect(wf[LTXA.SAMPLER_ADVANCED]!.inputs!.sampler).toEqual([REFRESH.SAMPLER_SELECT, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_SAMPLER]!.inputs!.sampler).toEqual([
+      REFRESH.SAMPLER_SELECT,
+      0,
+    ])
+  })
+
+  it('uses refreshed preprocess nodes before first and second pass guides', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[REFRESH.FIRST_PASS_PREPROCESS]).toMatchObject({
+      class_type: 'LTXVPreprocess',
+      inputs: {
+        img_compression: 19,
+        image: [LTXA.RESIZE_START_IMAGE, 0],
+      },
+    })
+    expect(wf[LTXA.ADD_GUIDE]!.inputs!.image).toEqual([REFRESH.FIRST_PASS_PREPROCESS, 0])
+    expect(wf[REFRESH.SECOND_PASS_PREPROCESS]).toMatchObject({
+      class_type: 'LTXVPreprocess',
+      inputs: {
+        img_compression: 19,
+        image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
+      },
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_ADD_GUIDE]!.inputs!.image).toEqual([
+      REFRESH.SECOND_PASS_PREPROCESS,
+      0,
+    ])
+  })
+
   it('injects scheduler, NAG, guide, anchor, and two-pass settings', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
@@ -221,11 +280,6 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[LTXA.CLOWN_SAMPLER]!.inputs).toMatchObject({
-      sampler_name: 'fake-sampler-r6d',
-      eta: 0.17,
-      bongmath: true,
-    })
     expect(wf[LTXA.SCHEDULER]!.inputs).toMatchObject({
       steps: 13,
       max_shift: 1.37,

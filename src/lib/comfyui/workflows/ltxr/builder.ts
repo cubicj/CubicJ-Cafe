@@ -36,6 +36,7 @@ export async function buildLtxrWorkflow(
   configureModels(workflow, settings);
   configurePrompts(workflow, params, settings);
   configureGeneration(workflow, params, settings);
+  configurePreprocess(workflow, settings);
   configureScheduler(workflow, settings);
   configureNag(workflow, settings);
   configureGuide(workflow, settings);
@@ -125,11 +126,8 @@ function configureGeneration(
   params: LtxrGenerationParams,
   settings: LtxrSettings
 ) {
-  setNode(workflow, LTXR.CLOWN_SAMPLER, {
+  setNode(workflow, LTXR.SAMPLER_SELECT, {
     sampler_name: settings.sampler,
-    eta: settings.clownEta,
-    seed: generateSeed(),
-    bongmath: settings.clownBongmath,
   });
   setNode(workflow, LTXR.DURATION, { value: params.videoDuration });
   setNode(workflow, LTXR.FRAME_BASE, { value: settings.frameBase });
@@ -140,6 +138,12 @@ function configureGeneration(
     upscale_method: settings.resizeUpscaleMethod,
   });
   setNode(workflow, LTXR.LOAD_IMAGE_START, { image: params.inputImage });
+}
+
+function configurePreprocess(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
+  const inputs = { img_compression: settings.preprocessImgCompression };
+  setNode(workflow, LTXR.FIRST_PASS_PREPROCESS, inputs);
+  setNode(workflow, LTXR.SECOND_PASS_PREPROCESS, inputs);
 }
 
 function configureScheduler(workflow: ComfyUIWorkflow, settings: LtxrSettings) {

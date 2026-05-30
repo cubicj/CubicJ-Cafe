@@ -155,6 +155,7 @@ export interface LtxaSettings {
   megapixels: number;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
+  preprocessImgCompression: number;
   sampler: string;
   clownEta: number;
   clownBongmath: boolean;
@@ -284,6 +285,7 @@ export const LTXA_KEYS = {
   megapixels: 'ltxa.megapixels',
   resizeMultipleOf: 'ltxa.resize_multiple_of',
   resizeUpscaleMethod: 'ltxa.resize_upscale_method',
+  preprocessImgCompression: 'ltxa.preprocess_img_compression',
   sampler: 'ltxa.sampler',
   clownEta: 'ltxa.clown_eta',
   clownBongmath: 'ltxa.clown_bongmath',
@@ -376,6 +378,7 @@ export const LTXR_KEYS = {
   megapixels: 'ltxr.megapixels',
   resizeMultipleOf: 'ltxr.resize_multiple_of',
   resizeUpscaleMethod: 'ltxr.resize_upscale_method',
+  preprocessImgCompression: 'ltxr.preprocess_img_compression',
   sampler: 'ltxr.sampler',
   clownEta: 'ltxr.clown_eta',
   clownBongmath: 'ltxr.clown_bongmath',
@@ -696,6 +699,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     megapixels: parseLtxNumber(map, k.megapixels),
     resizeMultipleOf: parseLtxInteger(map, k.resizeMultipleOf),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
+    preprocessImgCompression: parseLtxInteger(map, k.preprocessImgCompression),
     sampler: map.get(k.sampler)!,
     clownEta: parseLtxNumber(map, k.clownEta),
     clownBongmath: map.get(k.clownBongmath)! === 'true',
@@ -804,6 +808,7 @@ export async function getLtxrSettings(): Promise<LtxrSettings> {
     megapixels: parseLtxNumber(map, k.megapixels),
     resizeMultipleOf: parseLtxInteger(map, k.resizeMultipleOf),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
+    preprocessImgCompression: parseLtxInteger(map, k.preprocessImgCompression),
     sampler: map.get(k.sampler)!,
     clownEta: parseLtxNumber(map, k.clownEta),
     clownBongmath: map.get(k.clownBongmath)! === 'true',
