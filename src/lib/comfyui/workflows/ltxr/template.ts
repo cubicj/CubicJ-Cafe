@@ -57,7 +57,7 @@ export const LTXR_WORKFLOW_TEMPLATE = {
     inputs: {
       noise: ['16', 0],
       guider: ['641', 0],
-      sampler: ['463', 0],
+      sampler: ['654', 0],
       sigmas: ['527', 0],
       latent_image: ['15', 0],
     },
@@ -218,16 +218,13 @@ export const LTXR_WORKFLOW_TEMPLATE = {
       title: 'FPS',
     },
   },
-  '463': {
+  '654': {
     inputs: {
-      eta: 0,
       sampler_name: 'PLACEHOLDER',
-      seed: 0,
-      bongmath: false,
     },
-    class_type: 'ClownSampler_Beta',
+    class_type: 'KSamplerSelect',
     _meta: {
-      title: 'ClownSampler',
+      title: 'KSamplerSelect',
     },
   },
   '476': {
@@ -342,7 +339,7 @@ export const LTXR_WORKFLOW_TEMPLATE = {
       negative: ['348', 2],
       vae: ['504', 2],
       latent: ['265', 0],
-      image: ['86', 0],
+      image: ['660', 0],
     },
     class_type: 'LTXVAddGuideAdvanced',
     _meta: {
@@ -558,7 +555,7 @@ export const LTXR_WORKFLOW_TEMPLATE = {
     inputs: {
       noise: ['16', 0],
       guider: ['642', 0],
-      sampler: ['463', 0],
+      sampler: ['654', 0],
       sigmas: ['582', 0],
       latent_image: ['543', 0],
     },
@@ -627,7 +624,7 @@ export const LTXR_WORKFLOW_TEMPLATE = {
       negative: ['510', 1],
       vae: ['504', 2],
       latent: ['572', 0],
-      image: ['575', 0],
+      image: ['661', 0],
     },
     class_type: 'LTXVAddGuideAdvanced',
     _meta: {
@@ -667,6 +664,26 @@ export const LTXR_WORKFLOW_TEMPLATE = {
     class_type: 'ForceFullUnload',
     _meta: {
       title: 'Force Full Unload (Second-Pass Guider)',
+    },
+  },
+  '660': {
+    inputs: {
+      img_compression: 0,
+      image: ['86', 0],
+    },
+    class_type: 'LTXVPreprocess',
+    _meta: {
+      title: 'LTXVPreprocess',
+    },
+  },
+  '661': {
+    inputs: {
+      img_compression: 0,
+      image: ['575', 0],
+    },
+    class_type: 'LTXVPreprocess',
+    _meta: {
+      title: 'LTXVPreprocess',
     },
   },
   '643': {

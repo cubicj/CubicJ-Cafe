@@ -31,10 +31,9 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.megapixels', label: 'Resolution (MP)', type: 'number', step: 0.01, group: 'LTXA - Generation' },
   { key: 'ltxa.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'LTXA - Generation' },
   { key: 'ltxa.resize_upscale_method', label: 'Resize Method', type: 'nodeOption', group: 'LTXA - Generation', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
+  { key: 'ltxa.preprocess_img_compression', label: 'Image Compression', type: 'number', step: 1, group: 'LTXA - Generation' },
 
-  { key: 'ltxa.sampler', label: 'Sampler', type: 'nodeOption', group: 'LTXA - Sampler', nodeQuery: 'sampler:ClownSampler_Beta:sampler_name' },
-  { key: 'ltxa.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: 'LTXA - Sampler' },
-  { key: 'ltxa.clown_bongmath', label: 'Bongmath', type: 'boolean', group: 'LTXA - Sampler' },
+  { key: 'ltxa.sampler', label: 'Sampler', type: 'nodeOption', group: 'LTXA - Sampler', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
   { key: 'ltxa.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTXA - Scheduler' },
   { key: 'ltxa.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTXA - Scheduler' },
   { key: 'ltxa.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTXA - Scheduler' },

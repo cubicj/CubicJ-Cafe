@@ -24,6 +24,7 @@ export const LTXR_SEED: SeedRow[] = [
   { key: 'ltxr.megapixels', value: 0.64, type: 'number' },
   { key: 'ltxr.resize_multiple_of', value: 32, type: 'number' },
   { key: 'ltxr.resize_upscale_method', value: 'fake-ltxr-resize-method', type: 'string' },
+  { key: 'ltxr.preprocess_img_compression', value: '19', type: 'number' },
   { key: 'ltxr.sampler', value: 'fake-ltxr-sampler-p3d', type: 'string' },
   { key: 'ltxr.clown_eta', value: 0.21, type: 'number' },
   { key: 'ltxr.clown_bongmath', value: false, type: 'boolean' },
