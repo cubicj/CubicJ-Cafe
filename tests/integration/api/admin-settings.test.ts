@@ -12,7 +12,7 @@ beforeEach(async () => {
 })
 
 describe('LTX 2.3 rebuild migration parity', () => {
-  it('contains every active LTXA settings key required by LTXA_KEYS legacy source rows', () => {
+  it('contains every active LTXA settings key required by LTXA_KEYS migration rows', () => {
     const sql = [
       '20260512_ltx23_workflow_rebuild',
       '20260512_z_ltx_second_pass_anchor_settings',
@@ -20,6 +20,8 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260514_ltx_end_image_enabled',
       '20260516_ltx_rtx_upscale_settings',
       '20260518_ltx_dynamic_lora_chains',
+      '20260520_ltx_sage_attention_settings',
+      '20260530_ltx_preprocess_sampler_refresh',
     ]
       .map((migration) =>
         readFileSync(
@@ -31,8 +33,10 @@ describe('LTX 2.3 rebuild migration parity', () => {
     const preservedKeys = new Set(['ltxa.enabled', 'ltxa.lora_enabled'])
     const missing = Object.values(LTXA_KEYS)
       .filter((key) => !preservedKeys.has(key))
-      .map((key) => key.replace('ltxa.', 'ltx.'))
-      .filter((legacyKey) => !sql.includes(`'${legacyKey}'`))
+      .filter((key) => {
+        const legacyKey = key.replace('ltxa.', 'ltx.')
+        return !sql.includes(`'${legacyKey}'`) && !sql.includes(`'${key}'`)
+      })
 
     expect(missing).toEqual([])
   })
