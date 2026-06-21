@@ -69,7 +69,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.anchor_cache_warmup', label: 'Cache Warmup', type: 'number', step: 1, group: 'LTXA - Anchor' },
   { key: 'ltxa.anchor_frame', label: 'Anchor Frame', type: 'number', step: 1, group: 'LTXA - Anchor' },
   { key: 'ltxa.anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXA - Anchor', nodeQuery: 'anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
-  { key: 'ltxa.anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - Anchor', monoFont: true },
+  { key: 'ltxa.anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - Anchor', monoFont: true, allowEmpty: true },
 
   { key: 'ltxa.latent_upscale_model', label: 'Latent Upscale Model', type: 'nodeOption', group: 'LTXA - 2-Pass', nodeQuery: 'latent_upscale_model:LatentUpscaleModelLoader:model_name' },
   { key: 'ltxa.text_attention_amplification', label: 'Text Attention Amplification', type: 'number', step: 0.01, group: 'LTXA - 2-Pass' },
@@ -90,7 +90,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.second_pass_anchor_cache_warmup', label: 'Cache Warmup', type: 'number', step: 1, group: 'LTXA - 2-Pass Anchor' },
   { key: 'ltxa.second_pass_anchor_frame', label: 'Anchor Frame', type: 'number', step: 1, group: 'LTXA - 2-Pass Anchor' },
   { key: 'ltxa.second_pass_anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXA - 2-Pass Anchor', nodeQuery: 'second_pass_anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
-  { key: 'ltxa.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - 2-Pass Anchor', monoFont: true },
+  { key: 'ltxa.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - 2-Pass Anchor', monoFont: true, allowEmpty: true },
 
   { key: 'ltxa.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXA - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
   { key: 'ltxa.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXA - Sage Attention' },
@@ -101,7 +101,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.attention_tuner_video_to_audio_scale', label: 'Video To Audio Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
   { key: 'ltxa.attention_tuner_audio_scale', label: 'Audio Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
   { key: 'ltxa.attention_tuner_audio_to_video_scale', label: 'Audio To Video Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
-  { key: 'ltxa.attention_tuner_blocks', label: 'Blocks', type: 'string', group: 'LTXA - Attention Tuner', monoFont: true },
+  { key: 'ltxa.attention_tuner_blocks', label: 'Blocks', type: 'string', group: 'LTXA - Attention Tuner', monoFont: true, allowEmpty: true },
   { key: 'ltxa.attention_tuner_triton_kernels', label: 'Triton Kernels', type: 'boolean', group: 'LTXA - Attention Tuner' },
 
   { key: 'ltxa.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXA - RTX Postprocess' },
