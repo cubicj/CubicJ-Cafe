@@ -78,6 +78,48 @@ const buildLtxaWorkflow = async (...args: Parameters<typeof rawBuilder>) => {
   return wf
 }
 
+function findDependencyCycle(workflow: ComfyUIWorkflow) {
+  const visiting = new Set<string>()
+  const visited = new Set<string>()
+
+  const dependenciesOf = (id: string) => {
+    const inputs = workflow[id]?.inputs ?? {}
+    return Object.values(inputs)
+      .filter((value): value is [string, number] => Array.isArray(value) && typeof value[0] === 'string')
+      .map(([nodeId]) => nodeId)
+      .filter((nodeId) => workflow[nodeId])
+  }
+
+  const visit = (id: string, path: string[]): string[] | null => {
+    if (visiting.has(id)) {
+      return [...path.slice(path.indexOf(id)), id]
+    }
+    if (visited.has(id)) {
+      return null
+    }
+
+    visiting.add(id)
+    for (const dependency of dependenciesOf(id)) {
+      const cycle = visit(dependency, [...path, dependency])
+      if (cycle) {
+        return cycle
+      }
+    }
+    visiting.delete(id)
+    visited.add(id)
+    return null
+  }
+
+  for (const id of Object.keys(workflow)) {
+    const cycle = visit(id, [id])
+    if (cycle) {
+      return cycle
+    }
+  }
+
+  return null
+}
+
 async function updateSettings(settings: Record<string, string>) {
   await prisma.$transaction(
     Object.entries(settings).map(([key, value]) =>
@@ -305,8 +347,8 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
-      positive: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 0],
-      negative: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 1],
+      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
+      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
     })
     expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
       positive: [LTXA.CROP_GUIDES, 0],
@@ -319,9 +361,21 @@ describe('buildLtxaWorkflow', () => {
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
       latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
     })
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_CROP_GUIDES, 2])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_REFERENCE_CROP, 2])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
+  })
+
+  it('does not create dependency cycles in the LTXA graph', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+      referenceAudio: 'fake-reference.wav',
+    })
+
+    expect(findDependencyCycle(wf)).toBeNull()
   })
 
   it('allows empty LTXA anchor block index filters', async () => {
@@ -698,8 +752,8 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.model).toEqual([DISTILLED_LORA.SECOND_PASS, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
-      positive: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 0],
-      negative: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 1],
+      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
+      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
     })
     expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
       positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],

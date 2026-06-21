@@ -224,8 +224,8 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
     model: [LTXA.TEXT_ATTENTION, 0],
-    positive: [LTXA.SECOND_PASS_REFERENCE_CROP, 0],
-    negative: [LTXA.SECOND_PASS_REFERENCE_CROP, 1],
+    positive: [LTXA.SECOND_PASS_ADD_GUIDE, 0],
+    negative: [LTXA.SECOND_PASS_ADD_GUIDE, 1],
   });
   setNode(workflow, LTXA.SECOND_PASS_SIGMAS, {
     sigmas: settings.secondPassSigmas,
@@ -441,6 +441,10 @@ function handleReferenceAudio(
     positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
     negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
     latent: [LTXA.FINAL_SEPARATE_AV, 0],
+  });
+  setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
+    positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
+    negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
   });
   return {
     firstPassModel: [LTXA.REFERENCE_AUDIO, 0],
