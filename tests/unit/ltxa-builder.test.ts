@@ -33,6 +33,7 @@ const TWO_PASS = {
   SECOND_PASS_ANCHOR: '593',
   SECOND_PASS_ADD_GUIDE: '607',
   SECOND_PASS_CROP_GUIDES: '608',
+  SECOND_PASS_REFERENCE_CROP: '708',
   FIRST_PASS_GUIDER_UNLOAD: '641',
   SECOND_PASS_GUIDER_UNLOAD: '642',
 } as const
@@ -304,8 +305,13 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
-      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
-      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
+      positive: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 0],
+      negative: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 1],
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
+      positive: [LTXA.CROP_GUIDES, 0],
+      negative: [LTXA.CROP_GUIDES, 1],
+      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
     })
     expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]).toBeUndefined()
     expect(wf[TWO_PASS.SECOND_PASS_CROP_GUIDES]!.inputs).toMatchObject({
@@ -692,8 +698,13 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.model).toEqual([DISTILLED_LORA.SECOND_PASS, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
+      positive: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 0],
+      negative: [TWO_PASS.SECOND_PASS_REFERENCE_CROP, 1],
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
       positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
       negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
+      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
     })
   })
 
