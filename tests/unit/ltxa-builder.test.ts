@@ -320,6 +320,23 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
 
+  it('allows empty LTXA anchor block index filters', async () => {
+    await updateSettings({
+      'ltxa.anchor_block_index_filter': '',
+      'ltxa.second_pass_anchor_block_index_filter': '',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.ANCHOR]!.inputs!.block_index_filter).toBe('')
+    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs!.block_index_filter).toBe('')
+  })
+
   it('injects admin-configured model patch settings', async () => {
     await updateSettings({
       'ltxa.sage_attention': 'fake-sage-backend',
