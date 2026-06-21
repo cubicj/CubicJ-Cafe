@@ -498,7 +498,8 @@ export const LTXR_KEYS = {
 function buildSettingsMap(
   settings: { key: string; value: string }[],
   keys: Record<string, string>,
-  optionalKeys: readonly string[] = []
+  optionalKeys: readonly string[] = [],
+  emptyStringKeys: readonly string[] = []
 ): Map<string, string> {
   const map = new Map<string, string>();
   for (const s of settings) {
@@ -506,7 +507,16 @@ function buildSettingsMap(
   }
   const allKeys = Object.values(keys);
   const optional = new Set(optionalKeys);
-  const missing = allKeys.filter(k => !optional.has(k) && (!map.has(k) || !map.get(k)));
+  const emptyStringAllowed = new Set(emptyStringKeys);
+  const missing = allKeys.filter(k => {
+    if (optional.has(k)) {
+      return false;
+    }
+    if (!map.has(k)) {
+      return true;
+    }
+    return !emptyStringAllowed.has(k) && !map.get(k);
+  });
   if (missing.length > 0) {
     throw new Error(`필수 설정값 누락: ${missing.join(', ')}`);
   }
@@ -718,7 +728,10 @@ function parseLtxNumberList(map: Map<string, string>, key: string): number[] {
 export async function getLtxaSettings(): Promise<LtxaSettings> {
   const keys = Object.values(LTXA_KEYS);
   const settings = await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
-  const map = buildSettingsMap(settings, LTXA_KEYS);
+  const map = buildSettingsMap(settings, LTXA_KEYS, [], [
+    LTXA_KEYS.anchorBlockIndexFilter,
+    LTXA_KEYS.secondPassAnchorBlockIndexFilter,
+  ]);
   const k = LTXA_KEYS;
   return {
     checkpoint: map.get(k.checkpoint)!,
