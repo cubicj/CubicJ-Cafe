@@ -26,7 +26,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       frames_number: ['498', 0],
       frame_rate: ['416', 2],
       batch_size: 1,
-      audio_vae: ['505', 0],
+      audio_vae: ['611', 0],
     },
     class_type: 'LTXVEmptyLatentAudio',
     _meta: {
@@ -57,7 +57,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       noise: ['16', 0],
       guider: ['641', 0],
       sampler: ['654', 0],
-      sigmas: ['527', 0],
+      sigmas: ['682', 0],
       latent_image: ['15', 0],
     },
     class_type: 'SamplerCustomAdvanced',
@@ -183,7 +183,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       positive: ['490', 0],
       negative: ['23', 1],
       reference_audio: ['350', 0],
-      audio_vae: ['505', 0],
+      audio_vae: ['611', 0],
     },
     class_type: 'LTXVReferenceAudio',
     _meta: {
@@ -210,7 +210,8 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '416': {
     inputs: {
-      value: 0,
+      number: 0,
+      number_type: 'integer',
     },
     class_type: 'Constant Number',
     _meta: {
@@ -240,17 +241,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'CubicJLTX2ExplicitNAG',
     _meta: {
       title: 'LTX2 NAG',
-    },
-  },
-  '481': {
-    inputs: {
-      sage_attention: 'auto',
-      allow_compile: false,
-      model: ['593', 0],
-    },
-    class_type: 'PathchSageAttentionKJ',
-    _meta: {
-      title: 'Patch Sage Attention KJ',
     },
   },
   '487': {
@@ -306,7 +296,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'Load Checkpoint',
     },
   },
-  '505': {
+  '611': {
     inputs: {
       ckpt_name: 'PLACEHOLDER',
     },
@@ -376,7 +366,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       reference_image: ['86', 0],
       vae: ['504', 2],
       energy_latent: ['508', 2],
-      sigmas: ['527', 0],
+      sigmas: ['682', 0],
     },
     class_type: 'LTXLatentAnchorAware',
     _meta: {
@@ -401,20 +391,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'CLIPTextEncode',
     _meta: {
       title: 'audio',
-    },
-  },
-  '527': {
-    inputs: {
-      steps: 0,
-      max_shift: 0,
-      base_shift: 0,
-      stretch: false,
-      terminal: 0,
-      latent: ['508', 2],
-    },
-    class_type: 'LTXVScheduler',
-    _meta: {
-      title: 'LTXVScheduler',
     },
   },
   '534': {
@@ -495,7 +471,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       cross_attn: true,
       skip_blocks: '',
       debug: false,
-      model: ['595', 0],
+      model: ['511', 0],
       positive: ['508', 0],
       negative: ['508', 1],
     },
@@ -532,7 +508,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '580': {
     inputs: {
       cfg: 0,
-      model: ['481', 0],
+      model: ['593', 0],
       positive: ['607', 0],
       negative: ['607', 1],
     },
@@ -566,7 +542,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '587': {
     inputs: {
       samples: ['539', 1],
-      audio_vae: ['505', 0],
+      audio_vae: ['611', 0],
     },
     class_type: 'LTXVAudioVAEDecode',
     _meta: {
@@ -600,17 +576,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: '🎯 LTX Latent Anchor Aware',
     },
   },
-  '595': {
-    inputs: {
-      sage_attention: 'auto',
-      allow_compile: false,
-      model: ['511', 0],
-    },
-    class_type: 'PathchSageAttentionKJ',
-    _meta: {
-      title: 'Patch Sage Attention KJ',
-    },
-  },
   '607': {
     inputs: {
       frame_idx: 0,
@@ -641,6 +606,17 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'LTXVCropGuides',
     },
   },
+  '658': {
+    inputs: {
+      sage_attention: 'PLACEHOLDER',
+      allow_compile: false,
+      model: ['504', 0],
+    },
+    class_type: 'PathchSageAttentionKJ',
+    _meta: {
+      title: 'Patch Sage Attention KJ',
+    },
+  },
   '660': {
     inputs: {
       img_compression: 0,
@@ -659,6 +635,78 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVPreprocess',
     _meta: {
       title: 'LTXVPreprocess',
+    },
+  },
+  '672': {
+    inputs: {
+      triton_kernels: false,
+      model: ['658', 0],
+    },
+    class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+    _meta: {
+      title: 'LTX2 Memory Efficient Sage Attention Patch',
+    },
+  },
+  '674': {
+    inputs: {
+      enable_fp16_accumulation: false,
+      model: ['672', 0],
+    },
+    class_type: 'ModelPatchTorchSettings',
+    _meta: {
+      title: 'Model Patch Torch Settings',
+    },
+  },
+  '675': {
+    inputs: {
+      expression: 'max(1, round(((a * b * c * 4) / 120000000)**1.3 * 0.5 * 2))',
+      'values.a': ['498', 0],
+      'values.b': ['86', 1],
+      'values.c': ['86', 2],
+    },
+    class_type: 'ComfyMathExpression',
+    _meta: {
+      title: 'Chunk Count',
+    },
+  },
+  '676': {
+    inputs: {
+      dim_threshold: 0,
+      chunks: ['675', 1],
+      model: ['674', 0],
+    },
+    class_type: 'LTXVChunkFeedForward',
+    _meta: {
+      title: 'LTXV Chunk Feed Forward',
+    },
+  },
+  '677': {
+    inputs: {
+      video_scale: 0,
+      video_to_audio_scale: 0,
+      audio_scale: 0,
+      audio_to_video_scale: 0,
+      blocks: 'PLACEHOLDER',
+      triton_kernels: false,
+      model: ['676', 0],
+    },
+    class_type: 'LTX2AttentionTunerPatch',
+    _meta: {
+      title: 'LTX2 Attention Tuner Patch',
+    },
+  },
+  '682': {
+    inputs: {
+      steps: 0,
+      max_shift: 0,
+      base_shift: 0,
+      stretch: false,
+      terminal: 0,
+      latent: ['15', 0],
+    },
+    class_type: 'LTXVScheduler',
+    _meta: {
+      title: 'LTXVScheduler',
     },
   },
   '641': {

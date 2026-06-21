@@ -20,6 +20,7 @@ const LTXA_FIELDS: SettingsField[] = [
 
   { key: 'ltxa.checkpoint', label: 'Checkpoint', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'checkpoint:CheckpointLoaderSimple:ckpt_name' },
   { key: 'ltxa.text_encoder', label: 'Text Encoder', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'text_encoder:LTXAVTextEncoderLoader:text_encoder' },
+  { key: 'ltxa.audio_vae', label: 'Audio VAE', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'audio_vae:LTXVAudioVAELoader:ckpt_name' },
 
   { key: 'ltxa.negative_prompt', label: 'Negative Prompt', type: 'textarea', group: 'LTXA - Prompts', monoFont: true },
   { key: 'ltxa.video_conditioning_prompt', label: 'Video Conditioning Prompt', type: 'textarea', group: 'LTXA - Prompts', monoFont: true },
@@ -93,6 +94,15 @@ const LTXA_FIELDS: SettingsField[] = [
 
   { key: 'ltxa.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXA - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
   { key: 'ltxa.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXA - Sage Attention' },
+  { key: 'ltxa.memory_sage_triton_kernels', label: 'Memory Sage Triton Kernels', type: 'boolean', group: 'LTXA - Model Patch' },
+  { key: 'ltxa.torch_fp16_accumulation', label: 'Torch FP16 Accumulation', type: 'boolean', group: 'LTXA - Model Patch' },
+  { key: 'ltxa.chunk_feed_forward_dim_threshold', label: 'Chunk Dim Threshold', type: 'number', step: 1, group: 'LTXA - Model Patch' },
+  { key: 'ltxa.attention_tuner_video_scale', label: 'Video Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
+  { key: 'ltxa.attention_tuner_video_to_audio_scale', label: 'Video To Audio Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
+  { key: 'ltxa.attention_tuner_audio_scale', label: 'Audio Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
+  { key: 'ltxa.attention_tuner_audio_to_video_scale', label: 'Audio To Video Scale', type: 'number', step: 0.01, group: 'LTXA - Attention Tuner' },
+  { key: 'ltxa.attention_tuner_blocks', label: 'Blocks', type: 'string', group: 'LTXA - Attention Tuner', monoFont: true },
+  { key: 'ltxa.attention_tuner_triton_kernels', label: 'Triton Kernels', type: 'boolean', group: 'LTXA - Attention Tuner' },
 
   { key: 'ltxa.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXA - RTX Postprocess' },
   { key: 'ltxa.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXA - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },

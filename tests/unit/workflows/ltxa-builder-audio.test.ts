@@ -6,7 +6,13 @@ import type { ComfyUIWorkflow } from '@/types'
 import { prisma } from '@/lib/database/prisma'
 
 const DYNAMIC_LORA = {
+  FIRST: '7000',
   SECOND: '7001',
+} as const
+
+const SOURCE_PATCH = {
+  AUDIO_VAE: '611',
+  ATTENTION_TUNER: '677',
 } as const
 
 let lastWorkflow: ComfyUIWorkflow | null = null
@@ -61,6 +67,7 @@ describe('buildLtxaWorkflow reference audio', () => {
         negative: [LTXA.CONDITIONING, 1],
       },
     })
+    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.audio_vae).toEqual([SOURCE_PATCH.AUDIO_VAE, 0])
   })
 
   it('routes reference audio through Add Guide and ANCHOR when audio provided', async () => {
@@ -86,6 +93,9 @@ describe('buildLtxaWorkflow reference audio', () => {
     })
 
     expect(wf[LTXA.ID_LORA]).toBeUndefined()
+    expect(wf[LTXA.LOAD_AUDIO]).toBeUndefined()
+    expect(wf[LTXA.REFERENCE_AUDIO]).toBeUndefined()
+    expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).not.toEqual([LTXA.ID_LORA, 0])
     expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
     expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.NAG, 0])
   })
@@ -109,6 +119,9 @@ describe('buildLtxaWorkflow reference audio', () => {
       other: 0.55,
       model: [LTXA.NAG, 0],
     })
+    expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).toEqual([DYNAMIC_LORA.FIRST, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([LTXA.NAG, 0])
     expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.ID_LORA, 0])
   })
 

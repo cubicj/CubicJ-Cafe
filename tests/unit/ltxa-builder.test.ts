@@ -43,6 +43,26 @@ const REFRESH = {
   SECOND_PASS_PREPROCESS: '661',
 } as const
 
+const SOURCE_PATCH = {
+  AUDIO_VAE: '611',
+  SCHEDULER: '682',
+  MODEL_SAGE_PATCH: '658',
+  MEMORY_SAGE_PATCH: '672',
+  TORCH_SETTINGS: '674',
+  CHUNK_EXPRESSION: '675',
+  CHUNK_FEED_FORWARD: '676',
+  ATTENTION_TUNER: '677',
+} as const
+
+const SOURCE_STATIC = {
+  FIRST_STATIC_LORA: '606',
+  SECOND_STATIC_LORA: '634',
+  THIRD_STATIC_LORA: '646',
+  FIRST_REFERENCE_LORA: '680',
+  SECOND_REFERENCE_LORA: '681',
+  SECOND_REFERENCE_AUDIO: '684',
+} as const
+
 const REMOVED = {
   CLOWN_SAMPLER: '463',
 } as const
@@ -89,7 +109,9 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.AUDIO_CONDITIONING_PROMPT]!.inputs!.text).toBe('fake audio conditioning prompt m9t')
     expect(wf[LTXA.DURATION]!.inputs!.value).toBe(8)
     expect(wf[LTXA.FRAME_BASE]!.inputs!.value).toBe(10)
-    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBe(18)
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number).toBe(18)
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number_type).toBe('integer')
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBeUndefined()
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.save_output).toBe(false)
     expect(wf[LTXA.RTX_SUPER_RES]!.inputs).toMatchObject({
       resize_type: 'fake-rtx-resize-type',
@@ -100,7 +122,9 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
     expect(wf[LTXA.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltxa-checkpoint-q7m.safetensors')
-    expect(wf[LTXA.AUDIO_VAE]!.inputs!.ckpt_name).toBe('fake-ltxa-checkpoint-q7m.safetensors')
+    expect(wf[SOURCE_PATCH.AUDIO_VAE]!.inputs!.ckpt_name).toBe(
+      'fake-ltxa-audio-vae-b2m.safetensors'
+    )
     expect(wf[LTXA.TEXT_ENCODER]!.inputs).toMatchObject({
       text_encoder: 'fake-ltxa-text-encoder-p4v.safetensors',
       ckpt_name: 'fake-ltxa-checkpoint-q7m.safetensors',
@@ -122,9 +146,122 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBe(18)
-    expect(wf[LTXA.FRAME_RATE]!.inputs!.number).toBeUndefined()
-    expect(wf[LTXA.FRAME_RATE]!.inputs!.number_type).toBeUndefined()
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number).toBe(18)
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.number_type).toBe('integer')
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBeUndefined()
+  })
+
+  it('builds the refreshed LTXA model patch chain before the dynamic LoRA chain', async () => {
+    await updateSettings({
+      'ltxa.sage_attention': 'fake-sage-backend',
+      'ltxa.sage_allow_compile': 'true',
+      'ltxa.memory_sage_triton_kernels': 'false',
+      'ltxa.torch_fp16_accumulation': 'true',
+      'ltxa.chunk_feed_forward_dim_threshold': '37',
+      'ltxa.attention_tuner_video_scale': '0.71',
+      'ltxa.attention_tuner_video_to_audio_scale': '0.72',
+      'ltxa.attention_tuner_audio_scale': '0.73',
+      'ltxa.attention_tuner_audio_to_video_scale': '0.74',
+      'ltxa.attention_tuner_blocks': 'fake-attention-blocks-1,3',
+      'ltxa.attention_tuner_triton_kernels': 'false',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[SOURCE_PATCH.MODEL_SAGE_PATCH]).toMatchObject({
+      class_type: 'PathchSageAttentionKJ',
+      inputs: {
+        model: [LTXA.CHECKPOINT, 0],
+        sage_attention: 'fake-sage-backend',
+        allow_compile: true,
+      },
+    })
+    expect(wf[SOURCE_PATCH.MEMORY_SAGE_PATCH]).toMatchObject({
+      class_type: 'LTX2MemoryEfficientSageAttentionPatch',
+      inputs: {
+        model: [SOURCE_PATCH.MODEL_SAGE_PATCH, 0],
+        triton_kernels: false,
+      },
+    })
+    expect(wf[SOURCE_PATCH.TORCH_SETTINGS]).toMatchObject({
+      class_type: 'ModelPatchTorchSettings',
+      inputs: {
+        model: [SOURCE_PATCH.MEMORY_SAGE_PATCH, 0],
+        enable_fp16_accumulation: true,
+      },
+    })
+    expect(wf[SOURCE_PATCH.CHUNK_EXPRESSION]).toMatchObject({
+      class_type: 'ComfyMathExpression',
+      inputs: {
+        'values.a': [LTXA.FRAME_COUNT_MATH, 0],
+        'values.b': [LTXA.RESIZE_START_IMAGE, 1],
+        'values.c': [LTXA.RESIZE_START_IMAGE, 2],
+      },
+    })
+    expect(wf[SOURCE_PATCH.CHUNK_FEED_FORWARD]).toMatchObject({
+      class_type: 'LTXVChunkFeedForward',
+      inputs: {
+        model: [SOURCE_PATCH.TORCH_SETTINGS, 0],
+        chunks: [SOURCE_PATCH.CHUNK_EXPRESSION, 1],
+        dim_threshold: 37,
+      },
+    })
+    expect(wf[SOURCE_PATCH.ATTENTION_TUNER]).toMatchObject({
+      class_type: 'LTX2AttentionTunerPatch',
+      inputs: {
+        model: [SOURCE_PATCH.CHUNK_FEED_FORWARD, 0],
+        video_scale: 0.71,
+        video_to_audio_scale: 0.72,
+        audio_scale: 0.73,
+        audio_to_video_scale: 0.74,
+        blocks: 'fake-attention-blocks-1,3',
+        triton_kernels: false,
+      },
+    })
+    expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf['481']).toBeUndefined()
+    expect(wf['595']).toBeUndefined()
+  })
+
+  it('uses the refreshed scheduler, audio VAE, and frame rate node shapes', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[SOURCE_PATCH.SCHEDULER]).toMatchObject({
+      class_type: 'LTXVScheduler',
+      inputs: {
+        steps: 13,
+        max_shift: 1.37,
+        base_shift: 0.41,
+        stretch: false,
+        terminal: 0.23,
+        latent: [LTXA.CONCAT_AV, 0],
+      },
+    })
+    expect(wf[LTXA.SAMPLER_ADVANCED]!.inputs!.sigmas).toEqual([SOURCE_PATCH.SCHEDULER, 0])
+    expect(wf[LTXA.FRAME_RATE]!.inputs).toMatchObject({
+      number: 18,
+      number_type: 'integer',
+    })
+    expect(wf[LTXA.FRAME_RATE]!.inputs!.value).toBeUndefined()
+    expect(wf[SOURCE_PATCH.AUDIO_VAE]).toMatchObject({
+      class_type: 'LTXVAudioVAELoader',
+      inputs: {
+        ckpt_name: 'fake-ltxa-audio-vae-b2m.safetensors',
+      },
+    })
+    expect(wf[LTXA.EMPTY_LATENT_AUDIO]!.inputs!.audio_vae).toEqual([SOURCE_PATCH.AUDIO_VAE, 0])
+    expect(wf[LTXA.FINAL_AUDIO_DECODE]!.inputs!.audio_vae).toEqual([SOURCE_PATCH.AUDIO_VAE, 0])
   })
 
   it('builds the LTXA two-pass topology and removes replaced single-pass nodes', async () => {
@@ -161,26 +298,9 @@ describe('buildLtxaWorkflow', () => {
       TWO_PASS.SECOND_PASS_ADD_GUIDE,
       2,
     ])
-    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]).toBeDefined()
-    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]).toMatchObject({
-      class_type: 'PathchSageAttentionKJ',
-      inputs: {
-        model: [LTXA.ANCHOR, 0],
-        sage_attention: 'auto',
-        allow_compile: false,
-      },
-    })
-    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_SAGE_ATTN_PATCH, 0])
-    expect(wf[LTXA.SAGE_ATTN_PATCH]).toMatchObject({
-      class_type: 'PathchSageAttentionKJ',
-      inputs: {
-        model: [TWO_PASS.SECOND_PASS_ANCHOR, 0],
-        sage_attention: 'auto',
-        allow_compile: false,
-      },
-    })
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
-      model: [LTXA.SAGE_ATTN_PATCH, 0],
+      model: [TWO_PASS.SECOND_PASS_ANCHOR, 0],
       positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
     })
@@ -200,10 +320,19 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
 
-  it('injects admin-configured Sage attention settings', async () => {
+  it('injects admin-configured model patch settings', async () => {
     await updateSettings({
       'ltxa.sage_attention': 'fake-sage-backend',
       'ltxa.sage_allow_compile': 'true',
+      'ltxa.memory_sage_triton_kernels': 'false',
+      'ltxa.torch_fp16_accumulation': 'true',
+      'ltxa.chunk_feed_forward_dim_threshold': '37',
+      'ltxa.attention_tuner_video_scale': '0.71',
+      'ltxa.attention_tuner_video_to_audio_scale': '0.72',
+      'ltxa.attention_tuner_audio_scale': '0.73',
+      'ltxa.attention_tuner_audio_to_video_scale': '0.74',
+      'ltxa.attention_tuner_blocks': 'fake-attention-blocks-1,3',
+      'ltxa.attention_tuner_triton_kernels': 'false',
     })
 
     const wf = await buildLtxaWorkflow({
@@ -213,13 +342,26 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[LTXA.FIRST_PASS_SAGE_ATTN_PATCH]!.inputs).toMatchObject({
+    expect(wf[SOURCE_PATCH.MODEL_SAGE_PATCH]!.inputs).toMatchObject({
       sage_attention: 'fake-sage-backend',
       allow_compile: true,
     })
-    expect(wf[LTXA.SAGE_ATTN_PATCH]!.inputs).toMatchObject({
-      sage_attention: 'fake-sage-backend',
-      allow_compile: true,
+    expect(wf[SOURCE_PATCH.MEMORY_SAGE_PATCH]!.inputs).toMatchObject({
+      triton_kernels: false,
+    })
+    expect(wf[SOURCE_PATCH.TORCH_SETTINGS]!.inputs).toMatchObject({
+      enable_fp16_accumulation: true,
+    })
+    expect(wf[SOURCE_PATCH.CHUNK_FEED_FORWARD]!.inputs).toMatchObject({
+      dim_threshold: 37,
+    })
+    expect(wf[SOURCE_PATCH.ATTENTION_TUNER]!.inputs).toMatchObject({
+      video_scale: 0.71,
+      video_to_audio_scale: 0.72,
+      audio_scale: 0.73,
+      audio_to_video_scale: 0.74,
+      blocks: 'fake-attention-blocks-1,3',
+      triton_kernels: false,
     })
   })
 
@@ -280,7 +422,7 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[LTXA.SCHEDULER]!.inputs).toMatchObject({
+    expect(wf[SOURCE_PATCH.SCHEDULER]!.inputs).toMatchObject({
       steps: 13,
       max_shift: 1.37,
       base_shift: 0.41,
@@ -382,7 +524,7 @@ describe('buildLtxaWorkflow', () => {
         audio: 0.13,
         audio_to_video: 0.14,
         other: 0.15,
-        model: [LTXA.CHECKPOINT, 0],
+        model: [SOURCE_PATCH.ATTENTION_TUNER, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
@@ -402,6 +544,21 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
   })
 
+  it('does not copy source static LoRA or second reference-audio helper nodes', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    for (const id of Object.values(SOURCE_STATIC)) {
+      expect(wf[id]).toBeUndefined()
+    }
+    expect(wf[DYNAMIC_LORA.FIRST]).toBeDefined()
+    expect(wf[DYNAMIC_LORA.SECOND]).toBeDefined()
+  })
+
   it('injects the enabled NSFW LoRA chain when content is NSFW', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
@@ -416,7 +573,7 @@ describe('buildLtxaWorkflow', () => {
       inputs: {
         lora_name: 'fake-ltxa-nsfw-chain-a.safetensors',
         strength_model: 0.56,
-        model: [LTXA.CHECKPOINT, 0],
+        model: [SOURCE_PATCH.ATTENTION_TUNER, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
@@ -442,7 +599,7 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[DYNAMIC_LORA.FIRST]).toBeUndefined()
     expect(wf[DYNAMIC_LORA.SECOND]).toBeUndefined()
     expect(wf[LTXA.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([LTXA.CHECKPOINT, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
   })
 
   it('applies ID LoRA after NAG and before reference audio', async () => {
