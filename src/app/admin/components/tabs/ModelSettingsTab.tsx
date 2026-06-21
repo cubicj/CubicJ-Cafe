@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw } from 'lucide-react';
+import { isModelSettingsSaveDisabled } from './model-settings-save-state';
 
 interface SettingEntry {
   value: string;
@@ -45,6 +46,7 @@ export interface SettingsField {
   step?: number;
   textareaRows?: number;
   monoFont?: boolean;
+  allowEmpty?: boolean;
   options?: { label: string; value: string }[];
 }
 
@@ -150,11 +152,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
     }
   };
 
-  const isSaveDisabled =
-    saving ||
-    fields.some(
-      (field) => field.type !== 'boolean' && (values[field.key] ?? '').trim() === ''
-    );
+  const isSaveDisabled = isModelSettingsSaveDisabled(saving, fields, values);
 
   if (loading) {
     return (
