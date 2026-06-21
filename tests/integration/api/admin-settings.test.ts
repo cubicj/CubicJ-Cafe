@@ -23,6 +23,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260520_ltx_sage_attention_settings',
       '20260530_ltx_preprocess_sampler_refresh',
       '20260621_ltxa_source_topology_refresh',
+      '20260621_zz_ltxa_distilled_lora_settings',
     ]
       .map((migration) =>
         readFileSync(

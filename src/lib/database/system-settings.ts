@@ -213,6 +213,10 @@ export interface LtxaSettings {
   attentionTunerAudioToVideoScale: number;
   attentionTunerBlocks: string;
   attentionTunerTritonKernels: boolean;
+  firstPassDistilledLoraName: string;
+  firstPassDistilledLoraStrength: number;
+  secondPassDistilledLoraName: string;
+  secondPassDistilledLoraStrength: number;
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
@@ -237,6 +241,10 @@ export type LtxrSettings = Omit<
   | 'attentionTunerAudioToVideoScale'
   | 'attentionTunerBlocks'
   | 'attentionTunerTritonKernels'
+  | 'firstPassDistilledLoraName'
+  | 'firstPassDistilledLoraStrength'
+  | 'secondPassDistilledLoraName'
+  | 'secondPassDistilledLoraStrength'
   | 'nsfwLoraChain'
 > & {
   watermarkEnabled: boolean;
@@ -379,6 +387,10 @@ export const LTXA_KEYS = {
   attentionTunerAudioToVideoScale: 'ltxa.attention_tuner_audio_to_video_scale',
   attentionTunerBlocks: 'ltxa.attention_tuner_blocks',
   attentionTunerTritonKernels: 'ltxa.attention_tuner_triton_kernels',
+  firstPassDistilledLoraName: 'ltxa.first_pass_distilled_lora_name',
+  firstPassDistilledLoraStrength: 'ltxa.first_pass_distilled_lora_strength',
+  secondPassDistilledLoraName: 'ltxa.second_pass_distilled_lora_name',
+  secondPassDistilledLoraStrength: 'ltxa.second_pass_distilled_lora_strength',
   rtxEnabled: 'ltxa.rtx_enabled',
   rtxResizeType: 'ltxa.rtx_resize_type',
   rtxScale: 'ltxa.rtx_scale',
@@ -819,6 +831,10 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     attentionTunerAudioToVideoScale: parseLtxNumber(map, k.attentionTunerAudioToVideoScale),
     attentionTunerBlocks: map.get(k.attentionTunerBlocks)!,
     attentionTunerTritonKernels: map.get(k.attentionTunerTritonKernels)! === 'true',
+    firstPassDistilledLoraName: map.get(k.firstPassDistilledLoraName)!,
+    firstPassDistilledLoraStrength: parseLtxNumber(map, k.firstPassDistilledLoraStrength),
+    secondPassDistilledLoraName: map.get(k.secondPassDistilledLoraName)!,
+    secondPassDistilledLoraStrength: parseLtxNumber(map, k.secondPassDistilledLoraStrength),
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),

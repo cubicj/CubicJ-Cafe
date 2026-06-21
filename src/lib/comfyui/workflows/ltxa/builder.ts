@@ -44,34 +44,38 @@ export async function buildLtxaWorkflow(
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
   configureModelPatchChain(workflow, settings);
-  const generalModelOutput = configureLoraChain(
-    workflow,
-    params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain,
-    [LTXA.ATTENTION_TUNER, 0]
-  );
   setNode(workflow, LTXA.NAG, {
-    model: generalModelOutput,
+    model: [LTXA.ATTENTION_TUNER, 0],
     nag_cond_video: [LTXA.VIDEO_CONDITIONING_PROMPT, 0],
     nag_cond_audio: [LTXA.AUDIO_CONDITIONING_PROMPT, 0],
   });
-  const nagModelOutput: NodeOutput = [LTXA.NAG, 0];
+  const generalModelOutput = configureLoraChain(
+    workflow,
+    params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain,
+    [LTXA.NAG, 0]
+  );
   const modelOutput = configureIdLora(
     workflow,
     settings,
-    nagModelOutput,
+    generalModelOutput,
     !!params.referenceAudio
   );
 
+  let firstPassDistilledBase = modelOutput;
+  let secondPassDistilledBase = modelOutput;
   if (params.referenceAudio) {
-    handleReferenceAudio(
+    const referenceAudioOutputs = handleReferenceAudio(
       workflow,
       params.referenceAudio,
       settings,
       modelOutput
     );
+    firstPassDistilledBase = referenceAudioOutputs.firstPassModel;
+    secondPassDistilledBase = referenceAudioOutputs.secondPassModel;
   } else {
     handleReferenceAudioBypass(workflow);
   }
+  configureDistilledLoras(workflow, settings, firstPassDistilledBase, secondPassDistilledBase);
 
   if (params.endImage) {
     handleEndImage(workflow, params.endImage, settings);
@@ -219,6 +223,9 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   });
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
+    model: [LTXA.TEXT_ATTENTION, 0],
+    positive: [LTXA.SECOND_PASS_ADD_GUIDE, 0],
+    negative: [LTXA.SECOND_PASS_ADD_GUIDE, 1],
   });
   setNode(workflow, LTXA.SECOND_PASS_SIGMAS, {
     sigmas: settings.secondPassSigmas,
@@ -227,7 +234,7 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
     upscale_method: settings.secondPassUpscaleMethod,
     scale_by: settings.secondPassUpscaleBy,
   });
-  setAnchorNode(workflow, LTXA.SECOND_PASS_ANCHOR, settings.secondPassAnchor);
+  delete workflow[LTXA.SECOND_PASS_ANCHOR];
 }
 
 function configureModelPatchChain(
@@ -255,6 +262,58 @@ function configureModelPatchChain(
     blocks: settings.attentionTunerBlocks,
     triton_kernels: settings.attentionTunerTritonKernels,
   });
+}
+
+function configureDistilledLoras(
+  workflow: ComfyUIWorkflow,
+  settings: LtxaSettings,
+  firstPassModel: NodeOutput,
+  secondPassModel: NodeOutput
+) {
+  setDistilledLoraNode(workflow, LTXA.FIRST_PASS_DISTILLED_LORA, {
+    name: settings.firstPassDistilledLoraName,
+    strength: settings.firstPassDistilledLoraStrength,
+    model: firstPassModel,
+    title: '1 Pass Distilled LoRA',
+  });
+  setDistilledLoraNode(workflow, LTXA.SECOND_PASS_DISTILLED_LORA, {
+    name: settings.secondPassDistilledLoraName,
+    strength: settings.secondPassDistilledLoraStrength,
+    model: secondPassModel,
+    title: '2 Pass Distilled LoRA',
+  });
+  setNode(workflow, LTXA.ANCHOR, {
+    model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
+  });
+  setNode(workflow, LTXA.TEXT_ATTENTION, {
+    model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
+  });
+}
+
+function setDistilledLoraNode(
+  workflow: ComfyUIWorkflow,
+  nodeId: string,
+  lora: {
+    name: string;
+    strength: number;
+    model: NodeOutput;
+    title: string;
+  }
+) {
+  workflow[nodeId] = {
+    inputs: {
+      lora_name: lora.name,
+      strength_model: lora.strength,
+      video: 1,
+      video_to_audio: 1,
+      audio: 1,
+      audio_to_video: 1,
+      other: 1,
+      model: lora.model,
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: { title: lora.title },
+  };
 }
 
 function setAnchorNode(
@@ -354,32 +413,53 @@ function handleReferenceAudio(
   audioFile: string,
   settings: LtxaSettings,
   modelOutput: NodeOutput
-) {
+): { firstPassModel: NodeOutput; secondPassModel: NodeOutput } {
   setNode(workflow, LTXA.LOAD_AUDIO, { audio: audioFile });
   setNode(workflow, LTXA.REFERENCE_AUDIO, {
     identity_guidance_scale: settings.identityGuidanceScale,
     start_percent: settings.identityStartPercent,
     end_percent: settings.identityEndPercent,
     model: modelOutput,
-    positive: [LTXA.VRAM_POST_CONDITIONING, 0],
+    positive: [LTXA.CONDITIONING, 0],
     negative: [LTXA.CONDITIONING, 1],
   });
   setNode(workflow, LTXA.ADD_GUIDE, {
     positive: [LTXA.REFERENCE_AUDIO, 1],
     negative: [LTXA.REFERENCE_AUDIO, 2],
   });
-  setNode(workflow, LTXA.ANCHOR, { model: [LTXA.REFERENCE_AUDIO, 0] });
+  setNode(workflow, LTXA.SECOND_PASS_REFERENCE_AUDIO, {
+    identity_guidance_scale: 0,
+    start_percent: 0,
+    end_percent: 1,
+    model: modelOutput,
+    positive: [LTXA.CROP_GUIDES, 0],
+    negative: [LTXA.CROP_GUIDES, 1],
+    reference_audio: [LTXA.LOAD_AUDIO, 0],
+    audio_vae: [LTXA.AUDIO_VAE, 0],
+  });
+  setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
+    positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
+    negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
+  });
+  return {
+    firstPassModel: [LTXA.REFERENCE_AUDIO, 0],
+    secondPassModel: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 0],
+  };
 }
 
 function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
   delete workflow[LTXA.LOAD_AUDIO];
   delete workflow[LTXA.REFERENCE_AUDIO];
   delete workflow[LTXA.ID_LORA];
+  delete workflow[LTXA.SECOND_PASS_REFERENCE_AUDIO];
   setNode(workflow, LTXA.ADD_GUIDE, {
-    positive: [LTXA.VRAM_POST_CONDITIONING, 0],
+    positive: [LTXA.CONDITIONING, 0],
     negative: [LTXA.CONDITIONING, 1],
   });
-  setNode(workflow, LTXA.ANCHOR, { model: [LTXA.NAG, 0] });
+  setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
+    positive: [LTXA.SECOND_PASS_ADD_GUIDE, 0],
+    negative: [LTXA.SECOND_PASS_ADD_GUIDE, 1],
+  });
 }
 
 function handleEndImage(

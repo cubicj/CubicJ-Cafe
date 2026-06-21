@@ -104,6 +104,11 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.attention_tuner_blocks', label: 'Blocks', type: 'string', group: 'LTXA - Attention Tuner', monoFont: true, allowEmpty: true },
   { key: 'ltxa.attention_tuner_triton_kernels', label: 'Triton Kernels', type: 'boolean', group: 'LTXA - Attention Tuner' },
 
+  { key: 'ltxa.first_pass_distilled_lora_name', label: '1-Pass Model', type: 'nodeOption', group: 'LTXA - Distilled LoRA', nodeQuery: 'first_pass_distilled_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
+  { key: 'ltxa.first_pass_distilled_lora_strength', label: '1-Pass Strength', type: 'number', step: 0.01, group: 'LTXA - Distilled LoRA' },
+  { key: 'ltxa.second_pass_distilled_lora_name', label: '2-Pass Model', type: 'nodeOption', group: 'LTXA - Distilled LoRA', nodeQuery: 'second_pass_distilled_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
+  { key: 'ltxa.second_pass_distilled_lora_strength', label: '2-Pass Strength', type: 'number', step: 0.01, group: 'LTXA - Distilled LoRA' },
+
   { key: 'ltxa.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXA - RTX Postprocess' },
   { key: 'ltxa.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXA - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltxa.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTXA - RTX Postprocess' },
