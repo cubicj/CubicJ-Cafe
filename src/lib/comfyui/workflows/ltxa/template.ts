@@ -146,7 +146,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '333': {
     inputs: {
-      samples: ['608', 2],
+      samples: ['708', 2],
       vae: ['504', 2],
     },
     class_type: 'VAEDecode',
