@@ -63,7 +63,7 @@ describe('buildLtxaWorkflow reference audio', () => {
         start_percent: 0.12,
         end_percent: 0.86,
         model: [LTXA.ID_LORA, 0],
-        positive: [LTXA.VRAM_POST_CONDITIONING, 0],
+        positive: [LTXA.CONDITIONING, 0],
         negative: [LTXA.CONDITIONING, 1],
       },
     })
@@ -81,7 +81,19 @@ describe('buildLtxaWorkflow reference audio', () => {
 
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.positive).toEqual([LTXA.REFERENCE_AUDIO, 1])
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.negative).toEqual([LTXA.REFERENCE_AUDIO, 2])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.REFERENCE_AUDIO, 0])
+    expect(wf[LTXA.FIRST_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([LTXA.REFERENCE_AUDIO, 0])
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
+    expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]!.inputs).toMatchObject({
+      model: [LTXA.ID_LORA, 0],
+      positive: [LTXA.CROP_GUIDES, 0],
+      negative: [LTXA.CROP_GUIDES, 1],
+      reference_audio: [LTXA.LOAD_AUDIO, 0],
+      audio_vae: [SOURCE_PATCH.AUDIO_VAE, 0],
+    })
+    expect(wf[LTXA.SECOND_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([
+      LTXA.SECOND_PASS_REFERENCE_AUDIO,
+      0,
+    ])
   })
 
   it('omits ID LoRA when reference audio is absent', async () => {
@@ -95,12 +107,14 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.ID_LORA]).toBeUndefined()
     expect(wf[LTXA.LOAD_AUDIO]).toBeUndefined()
     expect(wf[LTXA.REFERENCE_AUDIO]).toBeUndefined()
+    expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]).toBeUndefined()
     expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).not.toEqual([LTXA.ID_LORA, 0])
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
   })
 
-  it('appends ID LoRA after NAG and before reference audio when enabled and reference audio exists', async () => {
+  it('appends ID LoRA after dynamic LoRA and before reference audio when enabled and reference audio exists', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -117,11 +131,11 @@ describe('buildLtxaWorkflow reference audio', () => {
       audio: 0.53,
       audio_to_video: 0.54,
       other: 0.55,
-      model: [LTXA.NAG, 0],
+      model: [DYNAMIC_LORA.SECOND, 0],
     })
     expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).toEqual([DYNAMIC_LORA.FIRST, 0])
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
-    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
     expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.ID_LORA, 0])
   })
 
@@ -137,10 +151,11 @@ describe('buildLtxaWorkflow reference audio', () => {
     })
 
     expect(wf[LTXA.ID_LORA]).toBeUndefined()
-    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
   })
 
-  it('removes reference audio nodes and routes ANCHOR through NAG when audio absent', async () => {
+  it('removes reference audio nodes and routes ANCHOR through first-pass distilled LoRA when audio absent', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -150,9 +165,12 @@ describe('buildLtxaWorkflow reference audio', () => {
 
     expect(wf[LTXA.LOAD_AUDIO]).toBeUndefined()
     expect(wf[LTXA.REFERENCE_AUDIO]).toBeUndefined()
+    expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]).toBeUndefined()
     expect(wf[LTXA.ID_LORA]).toBeUndefined()
-    expect(wf[LTXA.ADD_GUIDE]!.inputs!.positive).toEqual([LTXA.VRAM_POST_CONDITIONING, 0])
+    expect(wf[LTXA.ADD_GUIDE]!.inputs!.positive).toEqual([LTXA.CONDITIONING, 0])
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.negative).toEqual([LTXA.CONDITIONING, 1])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.FIRST_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.SECOND_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
   })
 })

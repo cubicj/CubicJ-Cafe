@@ -180,7 +180,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       start_percent: 0,
       end_percent: 0,
       model: ['492', 0],
-      positive: ['490', 0],
+      positive: ['23', 0],
       negative: ['23', 1],
       reference_audio: ['350', 0],
       audio_vae: ['611', 0],
@@ -362,7 +362,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       anchor_frame: 0,
       depth_curve: 'PLACEHOLDER',
       block_index_filter: 'PLACEHOLDER',
-      model: ['348', 0],
+      model: ['680', 0],
       reference_image: ['86', 0],
       vae: ['504', 2],
       energy_latent: ['508', 2],
@@ -400,7 +400,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       block_index_filter: '',
       bypass: false,
       debug: false,
-      model: ['476', 0],
+      model: ['681', 0],
     },
     class_type: 'LTXTextAttentionAmplifier',
     _meta: {
@@ -508,7 +508,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '580': {
     inputs: {
       cfg: 0,
-      model: ['593', 0],
+      model: ['534', 0],
       positive: ['607', 0],
       negative: ['607', 1],
     },
@@ -547,33 +547,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVAudioVAEDecode',
     _meta: {
       title: 'LTXV Audio VAE Decode',
-    },
-  },
-  '593': {
-    inputs: {
-      strength: 0,
-      cache_at_step: 0,
-      similarity_threshold: 0,
-      decay_with_distance: 0,
-      energy_threshold: 0,
-      bypass: false,
-      debug: false,
-      advanced_mode: false,
-      cache_mode: 'PLACEHOLDER',
-      forwards_per_step: 0,
-      cache_warmup: 0,
-      anchor_frame: 0,
-      depth_curve: 'PLACEHOLDER',
-      block_index_filter: 'PLACEHOLDER',
-      model: ['534', 0],
-      reference_image: ['575', 0],
-      vae: ['504', 2],
-      energy_latent: ['607', 2],
-      sigmas: ['582', 0],
-    },
-    class_type: 'LTXLatentAnchorAware',
-    _meta: {
-      title: '🎯 LTX Latent Anchor Aware',
     },
   },
   '607': {
@@ -695,6 +668,38 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'LTX2 Attention Tuner Patch',
     },
   },
+  '680': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 1,
+      video_to_audio: 1,
+      audio: 1,
+      audio_to_video: 1,
+      other: 1,
+      model: ['476', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: '1 Pass Distilled LoRA',
+    },
+  },
+  '681': {
+    inputs: {
+      lora_name: 'PLACEHOLDER',
+      strength_model: 0,
+      video: 1,
+      video_to_audio: 1,
+      audio: 1,
+      audio_to_video: 1,
+      other: 1,
+      model: ['476', 0],
+    },
+    class_type: 'LTX2LoraLoaderAdvanced',
+    _meta: {
+      title: '2 Pass Distilled LoRA',
+    },
+  },
   '682': {
     inputs: {
       steps: 0,
@@ -707,6 +712,22 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVScheduler',
     _meta: {
       title: 'LTXVScheduler',
+    },
+  },
+  '684': {
+    inputs: {
+      identity_guidance_scale: 0,
+      start_percent: 0,
+      end_percent: 1,
+      model: ['492', 0],
+      positive: ['510', 0],
+      negative: ['510', 1],
+      reference_audio: ['350', 0],
+      audio_vae: ['611', 0],
+    },
+    class_type: 'LTXVReferenceAudio',
+    _meta: {
+      title: '2 Pass Conditions',
     },
   },
   '641': {

@@ -54,13 +54,16 @@ const SOURCE_PATCH = {
   ATTENTION_TUNER: '677',
 } as const
 
+const DISTILLED_LORA = {
+  FIRST_PASS: '680',
+  SECOND_PASS: '681',
+  SECOND_PASS_REFERENCE_AUDIO: '684',
+} as const
+
 const SOURCE_STATIC = {
   FIRST_STATIC_LORA: '606',
   SECOND_STATIC_LORA: '634',
   THIRD_STATIC_LORA: '646',
-  FIRST_REFERENCE_LORA: '680',
-  SECOND_REFERENCE_LORA: '681',
-  SECOND_REFERENCE_AUDIO: '684',
 } as const
 
 const REMOVED = {
@@ -223,8 +226,8 @@ describe('buildLtxaWorkflow', () => {
         triton_kernels: false,
       },
     })
-    expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([LTXA.NAG, 0])
     expect(wf['481']).toBeUndefined()
     expect(wf['595']).toBeUndefined()
   })
@@ -272,7 +275,7 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    for (const id of Object.values(TWO_PASS)) {
+    for (const id of Object.values(TWO_PASS).filter((id) => id !== TWO_PASS.SECOND_PASS_ANCHOR)) {
       expect(wf[id]).toBeDefined()
     }
 
@@ -300,16 +303,11 @@ describe('buildLtxaWorkflow', () => {
     ])
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
-      model: [TWO_PASS.SECOND_PASS_ANCHOR, 0],
+      model: [TWO_PASS.TEXT_ATTENTION, 0],
       positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
     })
-    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
-      model: [TWO_PASS.TEXT_ATTENTION, 0],
-      reference_image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
-      energy_latent: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 2],
-      sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
-    })
+    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]).toBeUndefined()
     expect(wf[TWO_PASS.SECOND_PASS_CROP_GUIDES]!.inputs).toMatchObject({
       positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
       negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
@@ -323,7 +321,6 @@ describe('buildLtxaWorkflow', () => {
   it('allows empty LTXA anchor block index filters', async () => {
     await updateSettings({
       'ltxa.anchor_block_index_filter': '',
-      'ltxa.second_pass_anchor_block_index_filter': '',
     })
 
     const wf = await buildLtxaWorkflow({
@@ -334,7 +331,7 @@ describe('buildLtxaWorkflow', () => {
     })
 
     expect(wf[LTXA.ANCHOR]!.inputs!.block_index_filter).toBe('')
-    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs!.block_index_filter).toBe('')
+    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]).toBeUndefined()
   })
 
   it('allows an empty LTXA attention tuner blocks filter', async () => {
@@ -520,22 +517,6 @@ describe('buildLtxaWorkflow', () => {
       upscale_method: 'fake-second-pass-upscale-method',
       scale_by: 1.75,
     })
-    expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs).toMatchObject({
-      strength: 0.24,
-      cache_at_step: 7,
-      similarity_threshold: 0.58,
-      decay_with_distance: 0.14,
-      energy_threshold: 0.22,
-      bypass: false,
-      debug: true,
-      advanced_mode: true,
-      cache_mode: 'fake-second-pass-anchor-cache-mode',
-      forwards_per_step: 3,
-      cache_warmup: 9,
-      anchor_frame: 2,
-      depth_curve: 'fake-second-pass-anchor-depth-curve',
-      block_index_filter: 'fake-second-pass-block-filter-1,3,5',
-    })
   })
 
   it('injects the enabled SFW LoRA chain by default', async () => {
@@ -556,7 +537,7 @@ describe('buildLtxaWorkflow', () => {
         audio: 0.13,
         audio_to_video: 0.14,
         other: 0.15,
-        model: [SOURCE_PATCH.ATTENTION_TUNER, 0],
+        model: [LTXA.NAG, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
@@ -573,10 +554,10 @@ describe('buildLtxaWorkflow', () => {
       },
     })
     expect(wf[LTXA.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
   })
 
-  it('does not copy source static LoRA or second reference-audio helper nodes', async () => {
+  it('does not copy source static dynamic LoRA helper nodes', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -589,6 +570,41 @@ describe('buildLtxaWorkflow', () => {
     }
     expect(wf[DYNAMIC_LORA.FIRST]).toBeDefined()
     expect(wf[DYNAMIC_LORA.SECOND]).toBeDefined()
+  })
+
+  it('places dynamic and distilled LoRAs in the pass-specific model chains', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).toEqual([DYNAMIC_LORA.FIRST, 0])
+    expect(wf[DISTILLED_LORA.FIRST_PASS]).toMatchObject({
+      class_type: 'LTX2LoraLoaderAdvanced',
+      inputs: {
+        lora_name: 'fake-ltxa-first-pass-distilled.safetensors',
+        strength_model: 0.82,
+        model: [DYNAMIC_LORA.SECOND, 0],
+      },
+    })
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[DISTILLED_LORA.SECOND_PASS]).toMatchObject({
+      class_type: 'LTX2LoraLoaderAdvanced',
+      inputs: {
+        lora_name: 'fake-ltxa-second-pass-distilled.safetensors',
+        strength_model: 0.42,
+        model: [DYNAMIC_LORA.SECOND, 0],
+      },
+    })
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.model).toEqual([DISTILLED_LORA.SECOND_PASS, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+      TWO_PASS.TEXT_ATTENTION,
+      0,
+    ])
   })
 
   it('injects the enabled NSFW LoRA chain when content is NSFW', async () => {
@@ -605,7 +621,7 @@ describe('buildLtxaWorkflow', () => {
       inputs: {
         lora_name: 'fake-ltxa-nsfw-chain-a.safetensors',
         strength_model: 0.56,
-        model: [SOURCE_PATCH.ATTENTION_TUNER, 0],
+        model: [LTXA.NAG, 0],
       },
     })
     expect(wf[DYNAMIC_LORA.SECOND]).toMatchObject({
@@ -616,7 +632,7 @@ describe('buildLtxaWorkflow', () => {
         model: [DYNAMIC_LORA.FIRST, 0],
       },
     })
-    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
+    expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
   })
 
   it('bypasses the LoRA chain when it is empty', async () => {
@@ -632,9 +648,11 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[DYNAMIC_LORA.SECOND]).toBeUndefined()
     expect(wf[LTXA.NAG]!.class_type).toBe('CubicJLTX2ExplicitNAG')
     expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
+    expect(wf[DISTILLED_LORA.FIRST_PASS]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[DISTILLED_LORA.SECOND_PASS]!.inputs!.model).toEqual([LTXA.NAG, 0])
   })
 
-  it('applies ID LoRA after NAG and before reference audio', async () => {
+  it('applies ID LoRA after dynamic LoRA and before pass-specific reference audio', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -653,8 +671,30 @@ describe('buildLtxaWorkflow', () => {
         nag_cond_audio: [LTXA.AUDIO_CONDITIONING_PROMPT, 0],
       },
     })
-    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([LTXA.NAG, 0])
+    expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
     expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.ID_LORA, 0])
+    expect(wf[DISTILLED_LORA.FIRST_PASS]!.inputs!.model).toEqual([LTXA.REFERENCE_AUDIO, 0])
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO]).toMatchObject({
+      class_type: 'LTXVReferenceAudio',
+      inputs: {
+        model: [LTXA.ID_LORA, 0],
+        positive: [LTXA.CROP_GUIDES, 0],
+        negative: [LTXA.CROP_GUIDES, 1],
+        reference_audio: [LTXA.LOAD_AUDIO, 0],
+        audio_vae: [SOURCE_PATCH.AUDIO_VAE, 0],
+      },
+    })
+    expect(wf[DISTILLED_LORA.SECOND_PASS]!.inputs!.model).toEqual([
+      DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO,
+      0,
+    ])
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.model).toEqual([DISTILLED_LORA.SECOND_PASS, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      model: [TWO_PASS.TEXT_ATTENTION, 0],
+      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
+      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
+    })
   })
 
   it('removes RTX upscale when disabled', async () => {
