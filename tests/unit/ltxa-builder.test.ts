@@ -337,6 +337,21 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]!.inputs!.block_index_filter).toBe('')
   })
 
+  it('allows an empty LTXA attention tuner blocks filter', async () => {
+    await updateSettings({
+      'ltxa.attention_tuner_blocks': '',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[SOURCE_PATCH.ATTENTION_TUNER]!.inputs!.blocks).toBe('')
+  })
+
   it('injects admin-configured model patch settings', async () => {
     await updateSettings({
       'ltxa.sage_attention': 'fake-sage-backend',

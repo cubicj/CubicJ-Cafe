@@ -731,6 +731,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
   const map = buildSettingsMap(settings, LTXA_KEYS, [], [
     LTXA_KEYS.anchorBlockIndexFilter,
     LTXA_KEYS.secondPassAnchorBlockIndexFilter,
+    LTXA_KEYS.attentionTunerBlocks,
   ]);
   const k = LTXA_KEYS;
   return {
