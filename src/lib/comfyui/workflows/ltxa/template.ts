@@ -730,6 +730,17 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: '2 Pass Conditions',
     },
   },
+  '708': {
+    inputs: {
+      positive: ['510', 0],
+      negative: ['510', 1],
+      latent: ['539', 0],
+    },
+    class_type: 'LTXVCropGuides',
+    _meta: {
+      title: 'LTXVCropGuides',
+    },
+  },
   '641': {
     inputs: {
       verbose: false,
