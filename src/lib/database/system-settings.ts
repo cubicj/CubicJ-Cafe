@@ -146,6 +146,7 @@ export interface LtxAnchorSettings {
 export interface LtxaSettings {
   checkpoint: string;
   textEncoder: string;
+  audioVae: string;
   negativePrompt: string;
   videoConditioningPrompt: string;
   audioConditioningPrompt: string;
@@ -203,6 +204,15 @@ export interface LtxaSettings {
   secondPassAnchor: LtxAnchorSettings;
   sageAttention: string;
   sageAllowCompile: boolean;
+  memorySageTritonKernels: boolean;
+  torchFp16Accumulation: boolean;
+  chunkFeedForwardDimThreshold: number;
+  attentionTunerVideoScale: number;
+  attentionTunerVideoToAudioScale: number;
+  attentionTunerAudioScale: number;
+  attentionTunerAudioToVideoScale: number;
+  attentionTunerBlocks: string;
+  attentionTunerTritonKernels: boolean;
   rtxEnabled: boolean;
   rtxResizeType: string;
   rtxScale: number;
@@ -215,7 +225,20 @@ export interface LtxaSettings {
   videoPixFmt: string;
 }
 
-export type LtxrSettings = Omit<LtxaSettings, 'nsfwLoraChain'> & {
+export type LtxrSettings = Omit<
+  LtxaSettings,
+  | 'audioVae'
+  | 'memorySageTritonKernels'
+  | 'torchFp16Accumulation'
+  | 'chunkFeedForwardDimThreshold'
+  | 'attentionTunerVideoScale'
+  | 'attentionTunerVideoToAudioScale'
+  | 'attentionTunerAudioScale'
+  | 'attentionTunerAudioToVideoScale'
+  | 'attentionTunerBlocks'
+  | 'attentionTunerTritonKernels'
+  | 'nsfwLoraChain'
+> & {
   watermarkEnabled: boolean;
   watermarkImageAssetId: string | null;
   watermarkPosition: string;
@@ -276,6 +299,7 @@ export const LTXA_KEYS = {
   endImageEnabled: 'ltxa.end_image_enabled',
   checkpoint: 'ltxa.checkpoint',
   textEncoder: 'ltxa.text_encoder',
+  audioVae: 'ltxa.audio_vae',
   negativePrompt: 'ltxa.negative_prompt',
   videoConditioningPrompt: 'ltxa.video_conditioning_prompt',
   audioConditioningPrompt: 'ltxa.audio_conditioning_prompt',
@@ -346,6 +370,15 @@ export const LTXA_KEYS = {
   secondPassAnchorBlockIndexFilter: 'ltxa.second_pass_anchor_block_index_filter',
   sageAttention: 'ltxa.sage_attention',
   sageAllowCompile: 'ltxa.sage_allow_compile',
+  memorySageTritonKernels: 'ltxa.memory_sage_triton_kernels',
+  torchFp16Accumulation: 'ltxa.torch_fp16_accumulation',
+  chunkFeedForwardDimThreshold: 'ltxa.chunk_feed_forward_dim_threshold',
+  attentionTunerVideoScale: 'ltxa.attention_tuner_video_scale',
+  attentionTunerVideoToAudioScale: 'ltxa.attention_tuner_video_to_audio_scale',
+  attentionTunerAudioScale: 'ltxa.attention_tuner_audio_scale',
+  attentionTunerAudioToVideoScale: 'ltxa.attention_tuner_audio_to_video_scale',
+  attentionTunerBlocks: 'ltxa.attention_tuner_blocks',
+  attentionTunerTritonKernels: 'ltxa.attention_tuner_triton_kernels',
   rtxEnabled: 'ltxa.rtx_enabled',
   rtxResizeType: 'ltxa.rtx_resize_type',
   rtxScale: 'ltxa.rtx_scale',
@@ -690,6 +723,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
   return {
     checkpoint: map.get(k.checkpoint)!,
     textEncoder: map.get(k.textEncoder)!,
+    audioVae: map.get(k.audioVae)!,
     negativePrompt: map.get(k.negativePrompt)!,
     videoConditioningPrompt: map.get(k.videoConditioningPrompt)!,
     audioConditioningPrompt: map.get(k.audioConditioningPrompt)!,
@@ -762,6 +796,15 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     }),
     sageAttention: map.get(k.sageAttention)!,
     sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
+    memorySageTritonKernels: map.get(k.memorySageTritonKernels)! === 'true',
+    torchFp16Accumulation: map.get(k.torchFp16Accumulation)! === 'true',
+    chunkFeedForwardDimThreshold: parseLtxInteger(map, k.chunkFeedForwardDimThreshold),
+    attentionTunerVideoScale: parseLtxNumber(map, k.attentionTunerVideoScale),
+    attentionTunerVideoToAudioScale: parseLtxNumber(map, k.attentionTunerVideoToAudioScale),
+    attentionTunerAudioScale: parseLtxNumber(map, k.attentionTunerAudioScale),
+    attentionTunerAudioToVideoScale: parseLtxNumber(map, k.attentionTunerAudioToVideoScale),
+    attentionTunerBlocks: map.get(k.attentionTunerBlocks)!,
+    attentionTunerTritonKernels: map.get(k.attentionTunerTritonKernels)! === 'true',
     rtxEnabled: map.get(k.rtxEnabled)! === 'true',
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),

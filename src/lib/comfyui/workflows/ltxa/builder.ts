@@ -43,10 +43,11 @@ export async function buildLtxaWorkflow(
   configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
-  configureSageAttention(workflow, settings);
+  configureModelPatchChain(workflow, settings);
   const generalModelOutput = configureLoraChain(
     workflow,
-    params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain
+    params.isNSFW ? settings.nsfwLoraChain : settings.sfwLoraChain,
+    [LTXA.ATTENTION_TUNER, 0]
   );
   setNode(workflow, LTXA.NAG, {
     model: generalModelOutput,
@@ -97,7 +98,7 @@ export async function buildLtxaWorkflow(
 
 function configureModels(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
   setNode(workflow, LTXA.CHECKPOINT, { ckpt_name: settings.checkpoint });
-  setNode(workflow, LTXA.AUDIO_VAE, { ckpt_name: settings.checkpoint });
+  setNode(workflow, LTXA.AUDIO_VAE, { ckpt_name: settings.audioVae });
   setNode(workflow, LTXA.TEXT_ENCODER, {
     text_encoder: settings.textEncoder,
     ckpt_name: settings.checkpoint,
@@ -129,7 +130,10 @@ function configureGeneration(
   });
   setNode(workflow, LTXA.DURATION, { value: params.videoDuration });
   setNode(workflow, LTXA.FRAME_BASE, { value: settings.frameBase });
-  setNode(workflow, LTXA.FRAME_RATE, { value: Math.round(settings.frameRate) });
+  setNode(workflow, LTXA.FRAME_RATE, {
+    number: Math.round(settings.frameRate),
+    number_type: 'integer',
+  });
   setNode(workflow, LTXA.RESIZE_START_IMAGE, {
     megapixels: settings.megapixels,
     multiple_of: settings.resizeMultipleOf,
@@ -226,13 +230,31 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   setAnchorNode(workflow, LTXA.SECOND_PASS_ANCHOR, settings.secondPassAnchor);
 }
 
-function configureSageAttention(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  const inputs = {
+function configureModelPatchChain(
+  workflow: ComfyUIWorkflow,
+  settings: LtxaSettings
+) {
+  setNode(workflow, LTXA.MODEL_SAGE_PATCH, {
     sage_attention: settings.sageAttention,
     allow_compile: settings.sageAllowCompile,
-  };
-  setNode(workflow, LTXA.FIRST_PASS_SAGE_ATTN_PATCH, inputs);
-  setNode(workflow, LTXA.SAGE_ATTN_PATCH, inputs);
+  });
+  setNode(workflow, LTXA.MEMORY_SAGE_PATCH, {
+    triton_kernels: settings.memorySageTritonKernels,
+  });
+  setNode(workflow, LTXA.TORCH_SETTINGS, {
+    enable_fp16_accumulation: settings.torchFp16Accumulation,
+  });
+  setNode(workflow, LTXA.CHUNK_FEED_FORWARD, {
+    dim_threshold: settings.chunkFeedForwardDimThreshold,
+  });
+  setNode(workflow, LTXA.ATTENTION_TUNER, {
+    video_scale: settings.attentionTunerVideoScale,
+    video_to_audio_scale: settings.attentionTunerVideoToAudioScale,
+    audio_scale: settings.attentionTunerAudioScale,
+    audio_to_video_scale: settings.attentionTunerAudioToVideoScale,
+    blocks: settings.attentionTunerBlocks,
+    triton_kernels: settings.attentionTunerTritonKernels,
+  });
 }
 
 function setAnchorNode(
@@ -260,9 +282,10 @@ function setAnchorNode(
 
 function configureLoraChain(
   workflow: ComfyUIWorkflow,
-  loras: LtxLoraChainItem[]
+  loras: LtxLoraChainItem[],
+  baseModel: NodeOutput
 ): NodeOutput {
-  let model: NodeOutput = [LTXA.CHECKPOINT, 0];
+  let model: NodeOutput = baseModel;
   let nextNodeId = 7000;
 
   for (const slot of loras) {
