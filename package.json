@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": "^24.0.0"
   },
   "scripts": {
     "dev": "next dev",
@@ -64,7 +64,7 @@
     "@eslint/eslintrc": "^3",
     "@next/bundle-analyzer": "^15.4.6",
     "@tailwindcss/postcss": "^4.1.12",
-    "@types/node": "^20",
+    "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
