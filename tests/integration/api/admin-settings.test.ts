@@ -393,26 +393,6 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('fake-sigmas-from-admin')
   })
 
-  it('updates LTXA second-pass anchor settings', async () => {
-    const admin = await createAdminUser()
-    const session = await createTestSession(admin.id)
-    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
-      method: 'PUT',
-      body: JSON.stringify({
-        key: 'ltxa.second_pass_anchor_cache_mode',
-        value: 'fake-second-pass-anchor-cache-mode-from-admin',
-        type: 'string',
-        category: 'ltxa',
-      }),
-    })
-    const res = await PUT(req)
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltxa.second_pass_anchor_cache_mode')
-    expect(body.setting.value).toBe('fake-second-pass-anchor-cache-mode-from-admin')
-  })
-
   it('updates LTXA end image capability setting', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)

@@ -234,7 +234,6 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
     upscale_method: settings.secondPassUpscaleMethod,
     scale_by: settings.secondPassUpscaleBy,
   });
-  delete workflow[LTXA.SECOND_PASS_ANCHOR];
 }
 
 function configureModelPatchChain(

@@ -201,7 +201,6 @@ export interface LtxaSettings {
   secondPassSigmas: string;
   secondPassUpscaleMethod: string;
   secondPassUpscaleBy: number;
-  secondPassAnchor: LtxAnchorSettings;
   sageAttention: string;
   sageAllowCompile: boolean;
   memorySageTritonKernels: boolean;
@@ -247,6 +246,7 @@ export type LtxrSettings = Omit<
   | 'secondPassDistilledLoraStrength'
   | 'nsfwLoraChain'
 > & {
+  secondPassAnchor: LtxAnchorSettings;
   watermarkEnabled: boolean;
   watermarkImageAssetId: string | null;
   watermarkPosition: string;
@@ -362,20 +362,6 @@ export const LTXA_KEYS = {
   secondPassSigmas: 'ltxa.second_pass_sigmas',
   secondPassUpscaleMethod: 'ltxa.second_pass_upscale_method',
   secondPassUpscaleBy: 'ltxa.second_pass_upscale_by',
-  secondPassAnchorStrength: 'ltxa.second_pass_anchor_strength',
-  secondPassAnchorCacheAtStep: 'ltxa.second_pass_anchor_cache_at_step',
-  secondPassAnchorSimilarityThreshold: 'ltxa.second_pass_anchor_similarity_threshold',
-  secondPassAnchorDecayWithDistance: 'ltxa.second_pass_anchor_decay_with_distance',
-  secondPassAnchorEnergyThreshold: 'ltxa.second_pass_anchor_energy_threshold',
-  secondPassAnchorBypass: 'ltxa.second_pass_anchor_bypass',
-  secondPassAnchorDebug: 'ltxa.second_pass_anchor_debug',
-  secondPassAnchorAdvancedMode: 'ltxa.second_pass_anchor_advanced_mode',
-  secondPassAnchorCacheMode: 'ltxa.second_pass_anchor_cache_mode',
-  secondPassAnchorForwardsPerStep: 'ltxa.second_pass_anchor_forwards_per_step',
-  secondPassAnchorCacheWarmup: 'ltxa.second_pass_anchor_cache_warmup',
-  secondPassAnchorFrame: 'ltxa.second_pass_anchor_frame',
-  secondPassAnchorDepthCurve: 'ltxa.second_pass_anchor_depth_curve',
-  secondPassAnchorBlockIndexFilter: 'ltxa.second_pass_anchor_block_index_filter',
   sageAttention: 'ltxa.sage_attention',
   sageAllowCompile: 'ltxa.sage_allow_compile',
   memorySageTritonKernels: 'ltxa.memory_sage_triton_kernels',
@@ -742,7 +728,6 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
   const settings = await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
   const map = buildSettingsMap(settings, LTXA_KEYS, [], [
     LTXA_KEYS.anchorBlockIndexFilter,
-    LTXA_KEYS.secondPassAnchorBlockIndexFilter,
     LTXA_KEYS.attentionTunerBlocks,
   ]);
   const k = LTXA_KEYS;
@@ -804,22 +789,6 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     secondPassSigmas: map.get(k.secondPassSigmas)!,
     secondPassUpscaleMethod: map.get(k.secondPassUpscaleMethod)!,
     secondPassUpscaleBy: parseLtxNumber(map, k.secondPassUpscaleBy),
-    secondPassAnchor: parseLtxAnchorSettings(map, {
-      strength: k.secondPassAnchorStrength,
-      cacheAtStep: k.secondPassAnchorCacheAtStep,
-      similarityThreshold: k.secondPassAnchorSimilarityThreshold,
-      decayWithDistance: k.secondPassAnchorDecayWithDistance,
-      energyThreshold: k.secondPassAnchorEnergyThreshold,
-      bypass: k.secondPassAnchorBypass,
-      debug: k.secondPassAnchorDebug,
-      advancedMode: k.secondPassAnchorAdvancedMode,
-      cacheMode: k.secondPassAnchorCacheMode,
-      forwardsPerStep: k.secondPassAnchorForwardsPerStep,
-      cacheWarmup: k.secondPassAnchorCacheWarmup,
-      anchorFrame: k.secondPassAnchorFrame,
-      depthCurve: k.secondPassAnchorDepthCurve,
-      blockIndexFilter: k.secondPassAnchorBlockIndexFilter,
-    }),
     sageAttention: map.get(k.sageAttention)!,
     sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     memorySageTritonKernels: map.get(k.memorySageTritonKernels)! === 'true',
