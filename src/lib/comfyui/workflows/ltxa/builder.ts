@@ -149,7 +149,6 @@ function configureGeneration(
 function configurePreprocess(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
   const inputs = { img_compression: settings.preprocessImgCompression };
   setNode(workflow, LTXA.FIRST_PASS_PREPROCESS, inputs);
-  setNode(workflow, LTXA.SECOND_PASS_PREPROCESS, inputs);
 }
 
 function configureScheduler(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
@@ -180,7 +179,6 @@ function configureGuide(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
     crop: settings.guideCrop,
   };
   setNode(workflow, LTXA.ADD_GUIDE, guideInputs);
-  setNode(workflow, LTXA.SECOND_PASS_ADD_GUIDE, guideInputs);
 }
 
 function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
@@ -224,8 +222,8 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
     model: [LTXA.TEXT_ATTENTION, 0],
-    positive: [LTXA.SECOND_PASS_ADD_GUIDE, 0],
-    negative: [LTXA.SECOND_PASS_ADD_GUIDE, 1],
+    positive: [LTXA.CROP_GUIDES, 0],
+    negative: [LTXA.CROP_GUIDES, 1],
   });
   setNode(workflow, LTXA.SECOND_PASS_SIGMAS, {
     sigmas: settings.secondPassSigmas,
@@ -436,11 +434,6 @@ function handleReferenceAudio(
     reference_audio: [LTXA.LOAD_AUDIO, 0],
     audio_vae: [LTXA.AUDIO_VAE, 0],
   });
-  setNode(workflow, LTXA.SECOND_PASS_REFERENCE_CROP, {
-    positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
-    negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
-    latent: [LTXA.FINAL_SEPARATE_AV, 0],
-  });
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
     negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
@@ -459,11 +452,6 @@ function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
   setNode(workflow, LTXA.ADD_GUIDE, {
     positive: [LTXA.CONDITIONING, 0],
     negative: [LTXA.CONDITIONING, 1],
-  });
-  setNode(workflow, LTXA.SECOND_PASS_REFERENCE_CROP, {
-    positive: [LTXA.CROP_GUIDES, 0],
-    negative: [LTXA.CROP_GUIDES, 1],
-    latent: [LTXA.FINAL_SEPARATE_AV, 0],
   });
 }
 

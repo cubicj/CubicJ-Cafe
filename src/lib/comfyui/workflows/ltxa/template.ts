@@ -146,7 +146,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '333': {
     inputs: {
-      samples: ['708', 2],
+      samples: ['539', 0],
       vae: ['504', 2],
     },
     class_type: 'VAEDecode',
@@ -450,7 +450,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '543': {
     inputs: {
-      video_latent: ['607', 2],
+      video_latent: ['572', 0],
       audio_latent: ['384', 1],
     },
     class_type: 'LTXVConcatAVLatent',
@@ -509,8 +509,8 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       cfg: 0,
       model: ['534', 0],
-      positive: ['607', 0],
-      negative: ['607', 1],
+      positive: ['510', 0],
+      negative: ['510', 1],
     },
     class_type: 'CFGGuider',
     _meta: {
@@ -549,36 +549,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'LTXV Audio VAE Decode',
     },
   },
-  '607': {
-    inputs: {
-      frame_idx: 0,
-      strength: 0,
-      crf: 0,
-      blur_radius: 0,
-      interpolation: 'PLACEHOLDER',
-      crop: 'PLACEHOLDER',
-      positive: ['510', 0],
-      negative: ['510', 1],
-      vae: ['504', 2],
-      latent: ['572', 0],
-      image: ['661', 0],
-    },
-    class_type: 'LTXVAddGuideAdvanced',
-    _meta: {
-      title: '?뀤?뀭?뀱 LTXV Add Guide Advanced',
-    },
-  },
-  '608': {
-    inputs: {
-      positive: ['607', 0],
-      negative: ['607', 1],
-      latent: ['539', 0],
-    },
-    class_type: 'LTXVCropGuides',
-    _meta: {
-      title: 'LTXVCropGuides',
-    },
-  },
   '658': {
     inputs: {
       sage_attention: 'PLACEHOLDER',
@@ -594,16 +564,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       img_compression: 0,
       image: ['86', 0],
-    },
-    class_type: 'LTXVPreprocess',
-    _meta: {
-      title: 'LTXVPreprocess',
-    },
-  },
-  '661': {
-    inputs: {
-      img_compression: 0,
-      image: ['575', 0],
     },
     class_type: 'LTXVPreprocess',
     _meta: {
@@ -728,17 +688,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVReferenceAudio',
     _meta: {
       title: '2 Pass Conditions',
-    },
-  },
-  '708': {
-    inputs: {
-      positive: ['510', 0],
-      negative: ['510', 1],
-      latent: ['539', 0],
-    },
-    class_type: 'LTXVCropGuides',
-    _meta: {
-      title: 'LTXVCropGuides',
     },
   },
   '641': {

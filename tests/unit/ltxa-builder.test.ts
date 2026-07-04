@@ -31,9 +31,6 @@ const TWO_PASS = {
   SECOND_PASS_SAMPLER: '583',
   FINAL_AUDIO_DECODE: '587',
   SECOND_PASS_ANCHOR: '593',
-  SECOND_PASS_ADD_GUIDE: '607',
-  SECOND_PASS_CROP_GUIDES: '608',
-  SECOND_PASS_REFERENCE_CROP: '708',
   FIRST_PASS_GUIDER_UNLOAD: '641',
   SECOND_PASS_GUIDER_UNLOAD: '642',
 } as const
@@ -41,7 +38,6 @@ const TWO_PASS = {
 const REFRESH = {
   SAMPLER_SELECT: '654',
   FIRST_PASS_PREPROCESS: '660',
-  SECOND_PASS_PREPROCESS: '661',
 } as const
 
 const SOURCE_PATCH = {
@@ -341,27 +337,20 @@ describe('buildLtxaWorkflow', () => {
       latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
     })
     expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual([
-      TWO_PASS.SECOND_PASS_ADD_GUIDE,
-      2,
+      TWO_PASS.SECOND_PASS_IMG_TO_VIDEO,
+      0,
     ])
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [TWO_PASS.TEXT_ATTENTION, 0],
-      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
-      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
-    })
-    expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
       positive: [LTXA.CROP_GUIDES, 0],
       negative: [LTXA.CROP_GUIDES, 1],
-      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
     })
     expect(wf[TWO_PASS.SECOND_PASS_ANCHOR]).toBeUndefined()
-    expect(wf[TWO_PASS.SECOND_PASS_CROP_GUIDES]!.inputs).toMatchObject({
-      positive: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 0],
-      negative: [TWO_PASS.SECOND_PASS_ADD_GUIDE, 1],
-      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
-    })
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.SECOND_PASS_REFERENCE_CROP, 2])
+    expect(wf['607']).toBeUndefined()
+    expect(wf['608']).toBeUndefined()
+    expect(wf['708']).toBeUndefined()
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
   })
@@ -490,17 +479,7 @@ describe('buildLtxaWorkflow', () => {
       },
     })
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.image).toEqual([REFRESH.FIRST_PASS_PREPROCESS, 0])
-    expect(wf[REFRESH.SECOND_PASS_PREPROCESS]).toMatchObject({
-      class_type: 'LTXVPreprocess',
-      inputs: {
-        img_compression: 19,
-        image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0],
-      },
-    })
-    expect(wf[TWO_PASS.SECOND_PASS_ADD_GUIDE]!.inputs!.image).toEqual([
-      REFRESH.SECOND_PASS_PREPROCESS,
-      0,
-    ])
+    expect(wf['661']).toBeUndefined()
   })
 
   it('injects scheduler, NAG, guide, anchor, and two-pass settings', async () => {
@@ -524,14 +503,6 @@ describe('buildLtxaWorkflow', () => {
       nag_tau: 1.61,
     })
     expect(wf[LTXA.ADD_GUIDE]!.inputs).toMatchObject({
-      frame_idx: 3,
-      strength: 0.46,
-      crf: 27,
-      blur_radius: 5,
-      interpolation: 'fake-guide-interpolation',
-      crop: 'fake-guide-crop',
-    })
-    expect(wf[TWO_PASS.SECOND_PASS_ADD_GUIDE]!.inputs).toMatchObject({
       frame_idx: 3,
       strength: 0.46,
       crf: 27,
@@ -755,11 +726,8 @@ describe('buildLtxaWorkflow', () => {
       positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
       negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
     })
-    expect(wf[TWO_PASS.SECOND_PASS_REFERENCE_CROP]!.inputs).toMatchObject({
-      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
-      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
-      latent: [TWO_PASS.FINAL_SEPARATE_AV, 0],
-    })
+    expect(wf['708']).toBeUndefined()
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
   })
 
   it('removes RTX upscale when disabled', async () => {
