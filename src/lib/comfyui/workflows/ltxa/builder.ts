@@ -25,15 +25,6 @@ const END_IMAGE = {
   RESIZE: '264',
 } as const;
 
-const FORCE_FULL_UNLOAD_NODES = [
-  LTXA.VRAM_POST_COMBINE,
-  LTXA.VRAM_POST_SECOND_PASS,
-  LTXA.FIRST_PASS_GUIDER_UNLOAD,
-  LTXA.SECOND_PASS_GUIDER_UNLOAD,
-  LTXA.OUTPUT_IMAGE_UNLOAD,
-  LTXA.OUTPUT_AUDIO_UNLOAD,
-] as const;
-
 export async function buildLtxaWorkflow(
   params: LtxaGenerationParams
 ): Promise<ComfyUIWorkflow> {
@@ -525,14 +516,14 @@ function configureRtx(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
       resize_type: settings.rtxResizeType,
       'resize_type.scale': settings.rtxScale,
       quality: settings.rtxQuality,
-      images: [LTXA.OUTPUT_IMAGE_UNLOAD, 0],
+      images: [LTXA.VAE_DECODE, 0],
     });
     setNode(workflow, LTXA.VIDEO_COMBINE, { images: [LTXA.RTX_SUPER_RES, 0] });
     return;
   }
 
   delete workflow[LTXA.RTX_SUPER_RES];
-  setNode(workflow, LTXA.VIDEO_COMBINE, { images: [LTXA.OUTPUT_IMAGE_UNLOAD, 0] });
+  setNode(workflow, LTXA.VIDEO_COMBINE, { images: [LTXA.VAE_DECODE, 0] });
 }
 
 function configureOutput(
@@ -552,7 +543,7 @@ function configureForceFullUnloadVerbose(
   workflow: ComfyUIWorkflow,
   settings: LtxaSettings
 ) {
-  for (const nodeId of FORCE_FULL_UNLOAD_NODES) {
-    setNode(workflow, nodeId, { verbose: settings.forceFullUnloadVerbose });
-  }
+  setNode(workflow, LTXA.VRAM_POST_COMBINE, {
+    verbose: settings.forceFullUnloadVerbose,
+  });
 }

@@ -55,7 +55,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '17': {
     inputs: {
       noise: ['16', 0],
-      guider: ['641', 0],
+      guider: ['555', 0],
       sampler: ['654', 0],
       sigmas: ['682', 0],
       latent_image: ['15', 0],
@@ -137,7 +137,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       resize_type: 'PLACEHOLDER',
       'resize_type.scale': 0,
       quality: 'PLACEHOLDER',
-      images: ['710', 0],
+      images: ['333', 0],
     },
     class_type: 'RTXVideoSuperResolution',
     _meta: {
@@ -167,7 +167,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       pingpong: false,
       save_output: false,
       images: ['322', 0],
-      audio: ['711', 0],
+      audio: ['587', 0],
     },
     class_type: 'VHS_VideoCombine',
     _meta: {
@@ -404,21 +404,9 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'Load Latent Upscale Model',
     },
   },
-  '538': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['583', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
   '539': {
     inputs: {
-      av_latent: ['538', 0],
+      av_latent: ['583', 0],
     },
     class_type: 'LTXVSeparateAVLatent',
     _meta: {
@@ -517,7 +505,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '583': {
     inputs: {
       noise: ['16', 0],
-      guider: ['642', 0],
+      guider: ['580', 0],
       sampler: ['654', 0],
       sigmas: ['582', 0],
       latent_image: ['543', 0],
@@ -676,54 +664,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVReferenceAudio',
     _meta: {
       title: '2 Pass Conditions',
-    },
-  },
-  '641': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['555', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (First-Pass Guider)',
-    },
-  },
-  '642': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['580', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (Second-Pass Guider)',
-    },
-  },
-  '710': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['333', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
-  '711': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['587', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
     },
   },
 } as ComfyUIWorkflow;
