@@ -42,6 +42,13 @@ export const queuePauseSchema = z.object({
   position: z.number().int().min(1),
 })
 
+export const discordDebugMessageSchema = z.object({
+  prompt: z.string().trim().min(1),
+  model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('ltxa'),
+  isNSFW: z.boolean().default(false),
+  processingTime: z.number().int().min(0).optional(),
+})
+
 export const logsQuerySchema = paginationSchema.extend({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   level: z.enum(['debug', 'info', 'warn', 'error']).optional(),
@@ -94,6 +101,7 @@ export type SettingItem = z.infer<typeof settingItemSchema>
 export type CleanupInput = z.infer<typeof cleanupSchema>
 export type ComfyuiToggleInput = z.infer<typeof comfyuiToggleSchema>
 export type QueuePauseInput = z.infer<typeof queuePauseSchema>
+export type DiscordDebugMessageInput = z.infer<typeof discordDebugMessageSchema>
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>
 export type LoraBundleCreateInput = z.infer<typeof loraBundleCreateSchema>
 export type LoraBundleUpdateInput = z.infer<typeof loraBundleUpdateSchema>

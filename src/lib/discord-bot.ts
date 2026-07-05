@@ -38,6 +38,10 @@ class DiscordBot {
     });
     this.setupErrorHandlers();
   }
+
+  refreshForHotReload(): void {
+    this.setupErrorHandlers();
+  }
   
   private setupErrorHandlers(): void {
     this.client.removeAllListeners();
@@ -84,14 +88,14 @@ class DiscordBot {
         const prompt = request.prompt.trim();
         if (prompt.length <= PROMPT_REPLY_LIMIT) {
           await interaction.reply({
-            content: `**Prompt**\n\`\`\`\n${escapeCodeBlock(prompt)}\n\`\`\``,
+            content: buildPromptReplyContent(request, prompt),
             flags: MessageFlags.Ephemeral,
           });
           return;
         }
 
         await interaction.reply({
-          content: 'Prompt is attached.',
+          content: buildPromptReplyHeader(request),
           files: [
             new AttachmentBuilder(Buffer.from(prompt, 'utf8'), {
               name: `prompt-${request.id}.txt`,
@@ -267,6 +271,40 @@ class DiscordBot {
     
     throw lastError || new Error('Discord 전송 실패');
   }
+
+  async sendDebugVideoResultMessage(params: {
+    isNSFW?: boolean;
+    discordId?: string;
+    requestId: string;
+    videoModel?: string;
+    processingTime?: number;
+  }): Promise<void> {
+    if (!this.isInitialized || !this.client.isReady()) {
+      log.debug('Discord Bot not ready, attempting initialization');
+      await this.initialize();
+    }
+
+    if (!this.client.isReady()) {
+      throw new Error('Discord Bot 초기화에 실패했습니다');
+    }
+
+    if (!process.env.DISCORD_GUILD_ID || !process.env.DISCORD_CHANNEL_ID) {
+      throw new Error('DISCORD_GUILD_ID and DISCORD_CHANNEL_ID are required');
+    }
+
+    const channel = await this.getChannel(params.isNSFW ?? false);
+    await channel.send(
+      buildVideoResultMessage({
+        modelDisplayName: getVideoModelDisplayName(params.videoModel),
+        isNSFW: params.isNSFW ?? false,
+        discordId: params.discordId,
+        requestId: params.requestId,
+        processingTime: params.processingTime,
+      })
+    );
+
+    log.info('Discord debug result message sent');
+  }
   
   private async sendVideoToDiscordInternal(params: {
     videoPath?: string;
@@ -345,17 +383,12 @@ class DiscordBot {
         throw new Error('videoPath 또는 filename 중 하나는 반드시 제공되어야 합니다');
       }
       
-      const DISCORD_MODEL_NAMES: Partial<Record<VideoModel, string>> = {
-        'ltx-wan': 'LTX 2.3 + WAN 2.2',
-      }
-      const modelDisplayName = DISCORD_MODEL_NAMES[params.videoModel as VideoModel]
-        ?? MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName
-        ?? 'I2V';
       const resultMessage = buildVideoResultMessage({
-        modelDisplayName,
+        modelDisplayName: getVideoModelDisplayName(params.videoModel),
         isNSFW: params.isNSFW ?? false,
         discordId: params.discordId,
         requestId: params.requestId,
+        processingTime: params.processingTime,
       });
 
       await channel.send({
@@ -452,7 +485,18 @@ declare global {
   var __discordBot: DiscordBot | undefined;
 }
 
-export const discordBot = globalThis.__discordBot ?? (globalThis.__discordBot = new DiscordBot());
+function getDiscordBotSingleton(): DiscordBot {
+  if (globalThis.__discordBot) {
+    Object.setPrototypeOf(globalThis.__discordBot, DiscordBot.prototype);
+    globalThis.__discordBot.refreshForHotReload();
+    return globalThis.__discordBot;
+  }
+
+  globalThis.__discordBot = new DiscordBot();
+  return globalThis.__discordBot;
+}
+
+export const discordBot = getDiscordBotSingleton();
 
 export type SendImageParams = {
   imagePath: string;
@@ -479,29 +523,37 @@ export type SendVideoParams = {
   videoModel?: string;
 };
 
+function getVideoModelDisplayName(videoModel?: string): string {
+  const discordModelNames: Partial<Record<VideoModel, string>> = {
+    'ltx-wan': 'LTX 2.3 + WAN 2.2',
+  };
+
+  return discordModelNames[videoModel as VideoModel]
+    ?? MODEL_REGISTRY[videoModel as VideoModel]?.displayName
+    ?? 'I2V';
+}
+
 function buildVideoResultMessage(params: {
   modelDisplayName: string;
   isNSFW: boolean;
   discordId?: string;
   requestId: string;
+  processingTime?: number;
 }): MessageCreateOptions {
   const userLine = params.discordId ? `<@${params.discordId}>` : 'A generation is ready.';
+  const detailLine = `> ${userLine} · ${formatProcessingTime(params.processingTime)}`;
+  const appUrl = process.env.APP_URL || 'https://localhost:3000';
+  const title = `CubicJ Cafe I2V - ${params.modelDisplayName}${params.isNSFW ? ' NSFW' : ''}`;
   const container = new ContainerBuilder()
     .setAccentColor(params.isNSFW ? 0xff6b6b : 0x10b981)
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        [
-          `## CubicJ Cafe I2V - ${params.modelDisplayName}${params.isNSFW ? ' NSFW' : ''}`,
-          userLine,
-          'Video is ready.',
-        ].join('\n')
+        `## [${title}](${appUrl})`
       )
     )
     .addSectionComponents(
       new SectionBuilder()
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent('Prompt is hidden from the channel.')
-        )
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(detailLine))
         .setButtonAccessory(
           new ButtonBuilder()
             .setCustomId(`${SHOW_PROMPT_PREFIX}${params.requestId}`)
@@ -515,6 +567,35 @@ function buildVideoResultMessage(params: {
     components: [container],
     flags: [MessageFlags.IsComponentsV2],
   };
+}
+
+function formatProcessingTime(processingTime?: number) {
+  return typeof processingTime === 'number' ? `${processingTime}초` : '알 수 없음';
+}
+
+function buildPromptReplyContent(request: {
+  prompt: string;
+  audioFile?: string | null;
+  videoDuration?: number | null;
+  videoDurationSeconds?: number | null;
+}, prompt: string) {
+  return `${buildPromptReplyHeader(request)}\n\`\`\`\n${escapeCodeBlock(prompt)}\n\`\`\``;
+}
+
+function buildPromptReplyHeader(request: {
+  audioFile?: string | null;
+  videoDuration?: number | null;
+  videoDurationSeconds?: number | null;
+}) {
+  return [
+    `**레퍼런스 오디오:** ${request.audioFile ? '사용' : '없음'}`,
+    `**영상 길이:** ${formatVideoDuration(request.videoDurationSeconds ?? request.videoDuration)}`,
+  ].join('\n');
+}
+
+function formatVideoDuration(duration?: number | null) {
+  if (typeof duration !== 'number') return '알 수 없음';
+  return `${Number.isInteger(duration) ? duration : duration.toFixed(1)}초`;
 }
 
 function escapeCodeBlock(value: string) {
