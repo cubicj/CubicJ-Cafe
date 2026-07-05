@@ -9,12 +9,28 @@ export class ApiError extends Error {
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
+  const text = await res.text();
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.error || `HTTP ${res.status}`);
+    let errorMessage = text.trim() || `HTTP ${res.status}`;
+    if (text.trim()) {
+      try {
+        const body = JSON.parse(text) as { error?: unknown };
+        if (typeof body.error === 'string' && body.error.trim()) {
+          errorMessage = body.error;
+        }
+      } catch {
+        errorMessage = text;
+      }
+    }
+    throw new ApiError(res.status, errorMessage);
   }
-  if (res.status === 204) return undefined as T;
-  return res.json();
+
+  if (res.status === 204 || !text.trim()) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 }
 
 export const apiClient = {

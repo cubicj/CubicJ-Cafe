@@ -78,6 +78,7 @@ describe('sendVideoToDiscord', () => {
       processingTime: 60,
       isNSFW: false,
       discordId: 'disc-123',
+      requestId: 'job-1',
       comfyUIServerUrl: 'http://127.0.0.1:8188',
       videoModel: 'wan',
     })

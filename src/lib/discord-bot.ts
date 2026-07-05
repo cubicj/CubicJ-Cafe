@@ -1,10 +1,25 @@
-import { Client, GatewayIntentBits, TextChannel, AttachmentBuilder } from 'discord.js';
+import {
+  AttachmentBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  Client,
+  ContainerBuilder,
+  GatewayIntentBits,
+  MessageFlags,
+  SectionBuilder,
+  TextChannel,
+  TextDisplayBuilder,
+} from 'discord.js';
+import type { MessageCreateOptions } from 'discord.js';
+import { QueueService } from '@/lib/database/queue';
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
 import type { VideoModel } from './comfyui/workflows/types';
 import { createLogger } from '@/lib/logger';
 import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('discord');
+const SHOW_PROMPT_PREFIX = 'show_prompt:';
+const PROMPT_REPLY_LIMIT = 1800;
 
 class DiscordBot {
   private client: Client;
@@ -48,6 +63,55 @@ class DiscordBot {
       log.info('Discord Bot ready', { tag: this.client.user?.tag });
       this.isInitialized = true;
       this.isConnecting = false;
+    });
+
+    this.client.on('interactionCreate', async (interaction) => {
+      if (!interaction.isButton()) return;
+      if (!interaction.customId.startsWith(SHOW_PROMPT_PREFIX)) return;
+
+      const requestId = interaction.customId.slice(SHOW_PROMPT_PREFIX.length);
+
+      try {
+        const request = await QueueService.getRequestById(requestId);
+        if (!request) {
+          await interaction.reply({
+            content: 'Prompt not found.',
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        const prompt = request.prompt.trim();
+        if (prompt.length <= PROMPT_REPLY_LIMIT) {
+          await interaction.reply({
+            content: `**Prompt**\n\`\`\`\n${escapeCodeBlock(prompt)}\n\`\`\``,
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        await interaction.reply({
+          content: 'Prompt is attached.',
+          files: [
+            new AttachmentBuilder(Buffer.from(prompt, 'utf8'), {
+              name: `prompt-${request.id}.txt`,
+            }),
+          ],
+          flags: MessageFlags.Ephemeral,
+        });
+      } catch (error) {
+        log.error('Failed to handle prompt button', {
+          requestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: 'Failed to load prompt.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      }
     });
 
     this.client.on('shardError', (error) => {
@@ -175,6 +239,7 @@ class DiscordBot {
     inputImage?: string;
     isNSFW?: boolean;
     discordId?: string;
+    requestId: string;
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
@@ -215,6 +280,7 @@ class DiscordBot {
     inputImage?: string;
     isNSFW?: boolean;
     discordId?: string;
+    requestId: string;
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
@@ -285,17 +351,15 @@ class DiscordBot {
       const modelDisplayName = DISCORD_MODEL_NAMES[params.videoModel as VideoModel]
         ?? MODEL_REGISTRY[params.videoModel as VideoModel]?.displayName
         ?? 'I2V';
-      const embed = {
-        title: `CubicJ Cafe I2V - ${modelDisplayName} ${params.isNSFW ? '🔞' : ''}`,
-        description: `\`\`\`${params.prompt}\`\`\``,
-        color: params.isNSFW ? 0xff6b6b : 0x10b981,
-        url: process.env.APP_URL || 'https://localhost:3000'
-      };
+      const resultMessage = buildVideoResultMessage({
+        modelDisplayName,
+        isNSFW: params.isNSFW ?? false,
+        discordId: params.discordId,
+        requestId: params.requestId,
+      });
 
-      const mentionText = params.discordId ? `<@${params.discordId}>` : '';
       await channel.send({
-        content: mentionText,
-        embeds: [embed]
+        ...resultMessage,
       });
 
       await channel.send({
@@ -410,6 +474,49 @@ export type SendVideoParams = {
   inputImage?: string;
   isNSFW?: boolean;
   discordId?: string;
+  requestId: string;
   comfyUIServerUrl?: string;
   videoModel?: string;
 };
+
+function buildVideoResultMessage(params: {
+  modelDisplayName: string;
+  isNSFW: boolean;
+  discordId?: string;
+  requestId: string;
+}): MessageCreateOptions {
+  const userLine = params.discordId ? `<@${params.discordId}>` : 'A generation is ready.';
+  const container = new ContainerBuilder()
+    .setAccentColor(params.isNSFW ? 0xff6b6b : 0x10b981)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        [
+          `## CubicJ Cafe I2V - ${params.modelDisplayName}${params.isNSFW ? ' NSFW' : ''}`,
+          userLine,
+          'Video is ready.',
+        ].join('\n')
+      )
+    )
+    .addSectionComponents(
+      new SectionBuilder()
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent('Prompt is hidden from the channel.')
+        )
+        .setButtonAccessory(
+          new ButtonBuilder()
+            .setCustomId(`${SHOW_PROMPT_PREFIX}${params.requestId}`)
+            .setLabel('프롬프트 보기')
+            .setStyle(ButtonStyle.Secondary)
+        )
+    );
+
+  return {
+    allowedMentions: params.discordId ? { users: [params.discordId] } : { parse: [] },
+    components: [container],
+    flags: [MessageFlags.IsComponentsV2],
+  };
+}
+
+function escapeCodeBlock(value: string) {
+  return value.replaceAll('```', '`\\`\\`');
+}

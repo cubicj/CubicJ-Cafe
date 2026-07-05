@@ -48,6 +48,7 @@ export async function sendVideoToDiscord(
       processingTime,
       isNSFW: job.isNSFW,
       discordId: job.userInfo.discordId,
+      requestId: job.id,
       comfyUIServerUrl: server.url,
       videoModel,
     })
