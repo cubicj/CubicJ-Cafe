@@ -50,16 +50,24 @@ export class AudioPresetService {
   }
 
   static async createPreset(userId: number, data: CreateAudioPresetData) {
-    const preset = await prisma.audioPreset.create({
-      data: {
-        userId,
-        name: data.name,
-        audioBlob: data.audioBlob as Uint8Array<ArrayBuffer>,
-        audioFilename: data.audioFilename,
-        audioMimeType: data.audioMimeType,
-        audioSize: data.audioSize,
-      },
-      select: PRESET_SELECT_WITHOUT_BLOB,
+    const preset = await prisma.$transaction(async (tx) => {
+      const maxOrder = await tx.audioPreset.aggregate({
+        where: { userId },
+        _max: { order: true },
+      })
+
+      return tx.audioPreset.create({
+        data: {
+          userId,
+          name: data.name,
+          audioBlob: data.audioBlob as Uint8Array<ArrayBuffer>,
+          audioFilename: data.audioFilename,
+          audioMimeType: data.audioMimeType,
+          audioSize: data.audioSize,
+          order: (maxOrder._max.order ?? -1) + 1,
+        },
+        select: PRESET_SELECT_WITHOUT_BLOB,
+      })
     })
 
     log.info('Audio preset created', { name: preset.name, id: preset.id })

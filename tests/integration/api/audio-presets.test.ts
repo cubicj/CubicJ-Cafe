@@ -79,6 +79,31 @@ describe('Audio Presets API', () => {
       expect(body.preset.audioSize).toBe(2048)
     })
 
+    it('appends new presets after existing reordered presets', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+
+      const firstRes = await POST(buildFormDataRequest('/api/audio-presets', session.id, 'First', createAudioFile('first.wav')))
+      const secondRes = await POST(buildFormDataRequest('/api/audio-presets', session.id, 'Second', createAudioFile('second.wav')))
+      const first = (await firstRes.json()).preset
+      const second = (await secondRes.json()).preset
+
+      await REORDER(
+        buildAuthenticatedRequest('/api/audio-presets/reorder', session.id, {
+          method: 'PUT',
+          body: JSON.stringify({ presetIds: [first.id, second.id] }),
+          headers: { 'content-type': 'application/json' },
+        }),
+        noContext
+      )
+
+      await POST(buildFormDataRequest('/api/audio-presets', session.id, 'Third', createAudioFile('third.wav')))
+
+      const listRes = await GET(buildAuthenticatedRequest('/api/audio-presets', session.id))
+      const { presets } = await listRes.json()
+      expect(presets.map((preset: { name: string }) => preset.name)).toEqual(['First', 'Second', 'Third'])
+    })
+
     it('returns 400 when name is missing', async () => {
       const user = await createUser()
       const session = await createTestSession(user.id)
