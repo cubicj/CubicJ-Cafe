@@ -84,6 +84,27 @@ describe('sendVideoToDiscord', () => {
     })
   })
 
+  it('uses queue processing timestamps instead of stale job timestamps', async () => {
+    const { sendVideoToDiscord } = await import(
+      '@/lib/comfyui/video-result-sender'
+    )
+    mockGetRequestById.mockResolvedValue({
+      serverId: 'local',
+      startedAt: new Date('2026-03-29T10:01:00Z'),
+      completedAt: new Date('2026-03-29T10:06:00Z'),
+    })
+
+    await sendVideoToDiscord({
+      ...baseJob,
+      createdAt: new Date('2026-03-29T10:00:00Z'),
+      updatedAt: new Date('2026-03-29T10:00:00Z'),
+    }, videoInfo)
+
+    expect(mockSendVideoToDiscord).toHaveBeenCalledWith(expect.objectContaining({
+      processingTime: 300,
+    }))
+  })
+
   it('skips send when no userInfo', async () => {
     const { sendVideoToDiscord } = await import(
       '@/lib/comfyui/video-result-sender'

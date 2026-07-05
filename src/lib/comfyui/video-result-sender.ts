@@ -20,14 +20,8 @@ export async function sendVideoToDiscord(
 
     const videoModel = (job.videoModel as VideoModel) || 'wan'
 
-    const { server } = await resolveServer(job.id)
-
-    const processingTime =
-      job.updatedAt && job.createdAt
-        ? Math.round(
-            (job.updatedAt.getTime() - job.createdAt.getTime()) / 1000
-          )
-        : undefined
+    const { queueRequest, server } = await resolveServer(job.id)
+    const processingTime = getProcessingTimeSeconds(job, queueRequest)
 
     log.info('Discord video send attempt', {
       jobId: job.id,
@@ -74,4 +68,16 @@ async function resolveServer(jobId: string) {
   }
 
   return { queueRequest, server }
+}
+
+function getProcessingTimeSeconds(
+  job: GenerationJob,
+  queueRequest: Awaited<ReturnType<typeof QueueService.getRequestById>>
+): number | undefined {
+  const startedAt = queueRequest?.startedAt ?? job.createdAt
+  const completedAt = queueRequest?.completedAt ?? job.updatedAt
+  if (!startedAt || !completedAt) return undefined
+
+  const seconds = Math.round((completedAt.getTime() - startedAt.getTime()) / 1000)
+  return seconds >= 0 ? seconds : undefined
 }
