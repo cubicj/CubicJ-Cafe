@@ -220,6 +220,7 @@ export interface LtxaSettings {
   rtxResizeType: string;
   rtxScale: number;
   rtxQuality: string;
+  forceFullUnloadVerbose: boolean;
   sfwLoraChain: LtxLoraChainItem[];
   nsfwLoraChain: LtxLoraChainItem[];
   idLora: LtxLoraSlotSettings;
@@ -244,6 +245,7 @@ export type LtxrSettings = Omit<
   | 'firstPassDistilledLoraStrength'
   | 'secondPassDistilledLoraName'
   | 'secondPassDistilledLoraStrength'
+  | 'forceFullUnloadVerbose'
   | 'nsfwLoraChain'
 > & {
   secondPassAnchor: LtxAnchorSettings;
@@ -381,6 +383,7 @@ export const LTXA_KEYS = {
   rtxResizeType: 'ltxa.rtx_resize_type',
   rtxScale: 'ltxa.rtx_scale',
   rtxQuality: 'ltxa.rtx_quality',
+  forceFullUnloadVerbose: 'ltxa.force_full_unload_verbose',
   sfwLoraChain: 'ltxa.sfw_lora_chain',
   nsfwLoraChain: 'ltxa.nsfw_lora_chain',
   idLoraEnabled: 'ltxa.id_lora_enabled',
@@ -808,6 +811,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     rtxResizeType: map.get(k.rtxResizeType)!,
     rtxScale: parseLtxNumber(map, k.rtxScale),
     rtxQuality: map.get(k.rtxQuality)!,
+    forceFullUnloadVerbose: map.get(k.forceFullUnloadVerbose)! === 'true',
     sfwLoraChain: parseLtxLoraChain(map, k.sfwLoraChain),
     nsfwLoraChain: parseLtxLoraChain(map, k.nsfwLoraChain),
     idLora: parseLtxLoraSlot(map, {

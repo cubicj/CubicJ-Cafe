@@ -137,7 +137,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       resize_type: 'PLACEHOLDER',
       'resize_type.scale': 0,
       quality: 'PLACEHOLDER',
-      images: ['333', 0],
+      images: ['710', 0],
     },
     class_type: 'RTXVideoSuperResolution',
     _meta: {
@@ -167,7 +167,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       pingpong: false,
       save_output: false,
       images: ['322', 0],
-      audio: ['587', 0],
+      audio: ['711', 0],
     },
     class_type: 'VHS_VideoCombine',
     _meta: {
@@ -249,18 +249,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       release_pinned_ram: true,
       aimdo_analyze: true,
       passthrough: ['345', 0],
-    },
-    class_type: 'ForceFullUnload',
-    _meta: {
-      title: 'Force Full Unload (VRAM+Pinned)',
-    },
-  },
-  '490': {
-    inputs: {
-      verbose: false,
-      release_pinned_ram: true,
-      aimdo_analyze: true,
-      passthrough: ['23', 0],
     },
     class_type: 'ForceFullUnload',
     _meta: {
@@ -712,6 +700,30 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'ForceFullUnload',
     _meta: {
       title: 'Force Full Unload (Second-Pass Guider)',
+    },
+  },
+  '710': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['333', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
+    },
+  },
+  '711': {
+    inputs: {
+      verbose: false,
+      release_pinned_ram: true,
+      aimdo_analyze: true,
+      passthrough: ['587', 0],
+    },
+    class_type: 'ForceFullUnload',
+    _meta: {
+      title: 'Force Full Unload (VRAM+Pinned)',
     },
   },
 } as ComfyUIWorkflow;

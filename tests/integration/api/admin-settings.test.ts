@@ -24,6 +24,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260530_ltx_preprocess_sampler_refresh',
       '20260621_ltxa_source_topology_refresh',
       '20260621_zz_ltxa_distilled_lora_settings',
+      '20260705_ltxa_force_full_unload_verbose',
     ]
       .map((migration) =>
         readFileSync(
@@ -391,6 +392,26 @@ describe('PUT /api/admin/settings', () => {
     expect(res.status).toBe(200)
     expect(body.setting.key).toBe('ltxa.second_pass_sigmas')
     expect(body.setting.value).toBe('fake-sigmas-from-admin')
+  })
+
+  it('updates LTXA force full unload verbose setting', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({
+        key: 'ltxa.force_full_unload_verbose',
+        value: 'true',
+        type: 'boolean',
+        category: 'ltxa',
+      }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('ltxa.force_full_unload_verbose')
+    expect(body.setting.value).toBe('true')
   })
 
   it('updates LTXA end image capability setting', async () => {

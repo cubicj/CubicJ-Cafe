@@ -143,6 +143,7 @@ export const LTXA_SEED: Array<{ key: string; value: string; type: SeedType }> = 
   { key: 'ltxa.rtx_resize_type', value: 'fake-rtx-resize-type', type: 'string' },
   { key: 'ltxa.rtx_scale', value: '1.5', type: 'number' },
   { key: 'ltxa.rtx_quality', value: 'fake-rtx-quality', type: 'string' },
+  { key: 'ltxa.force_full_unload_verbose', value: 'false', type: 'boolean' },
   { key: 'ltxa.sfw_lora_chain', value: fakeSfwLoraChain, type: 'string' },
   { key: 'ltxa.nsfw_lora_chain', value: fakeNsfwLoraChain, type: 'string' },
   { key: 'ltxa.id_lora_enabled', value: 'true', type: 'boolean' },

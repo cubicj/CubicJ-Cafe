@@ -33,6 +33,8 @@ const TWO_PASS = {
   SECOND_PASS_ANCHOR: '593',
   FIRST_PASS_GUIDER_UNLOAD: '641',
   SECOND_PASS_GUIDER_UNLOAD: '642',
+  OUTPUT_IMAGE_UNLOAD: '710',
+  OUTPUT_AUDIO_UNLOAD: '711',
 } as const
 
 const REFRESH = {
@@ -159,7 +161,7 @@ describe('buildLtxaWorkflow', () => {
       resize_type: 'fake-rtx-resize-type',
       'resize_type.scale': 1.5,
       quality: 'fake-rtx-quality',
-      images: [LTXA.VAE_DECODE, 0],
+      images: [TWO_PASS.OUTPUT_IMAGE_UNLOAD, 0],
     })
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
@@ -350,9 +352,45 @@ describe('buildLtxaWorkflow', () => {
     expect(wf['607']).toBeUndefined()
     expect(wf['608']).toBeUndefined()
     expect(wf['708']).toBeUndefined()
+    expect(wf['490']).toBeUndefined()
     expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
+    expect(wf[TWO_PASS.OUTPUT_IMAGE_UNLOAD]).toMatchObject({
+      class_type: 'ForceFullUnload',
+      inputs: { passthrough: [LTXA.VAE_DECODE, 0] },
+    })
+    expect(wf[TWO_PASS.OUTPUT_AUDIO_UNLOAD]).toMatchObject({
+      class_type: 'ForceFullUnload',
+      inputs: { passthrough: [TWO_PASS.FINAL_AUDIO_DECODE, 0] },
+    })
+    expect(wf[LTXA.RTX_SUPER_RES]!.inputs!.images).toEqual([TWO_PASS.OUTPUT_IMAGE_UNLOAD, 0])
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
-    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.FINAL_AUDIO_DECODE, 0])
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.audio).toEqual([TWO_PASS.OUTPUT_AUDIO_UNLOAD, 0])
+  })
+
+  it('applies the LTXA force full unload verbose setting to every active unload node', async () => {
+    await updateSettings({
+      'ltxa.force_full_unload_verbose': 'true',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    for (const id of [
+      '487',
+      TWO_PASS.FORCE_AFTER_SECOND_PASS,
+      TWO_PASS.FIRST_PASS_GUIDER_UNLOAD,
+      TWO_PASS.SECOND_PASS_GUIDER_UNLOAD,
+      TWO_PASS.OUTPUT_IMAGE_UNLOAD,
+      TWO_PASS.OUTPUT_AUDIO_UNLOAD,
+    ]) {
+      expect(wf[id]!.class_type).toBe('ForceFullUnload')
+      expect(wf[id]!.inputs!.verbose).toBe(true)
+    }
+    expect(wf['490']).toBeUndefined()
   })
 
   it('does not create dependency cycles in the LTXA graph', async () => {
@@ -743,7 +781,7 @@ describe('buildLtxaWorkflow', () => {
     })
 
     expect(wf[LTXA.RTX_SUPER_RES]).toBeUndefined()
-    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
+    expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([TWO_PASS.OUTPUT_IMAGE_UNLOAD, 0])
   })
 
   it('injects end image nodes when endImage provided', async () => {

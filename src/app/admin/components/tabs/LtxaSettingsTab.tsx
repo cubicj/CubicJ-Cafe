@@ -80,6 +80,7 @@ const LTXA_FIELDS: SettingsField[] = [
 
   { key: 'ltxa.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXA - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
   { key: 'ltxa.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXA - Sage Attention' },
+  { key: 'ltxa.force_full_unload_verbose', label: 'Force Full Unload Verbose', type: 'boolean', group: 'LTXA - Memory' },
   { key: 'ltxa.memory_sage_triton_kernels', label: 'Memory Sage Triton Kernels', type: 'boolean', group: 'LTXA - Model Patch' },
   { key: 'ltxa.torch_fp16_accumulation', label: 'Torch FP16 Accumulation', type: 'boolean', group: 'LTXA - Model Patch' },
   { key: 'ltxa.chunk_feed_forward_dim_threshold', label: 'Chunk Dim Threshold', type: 'number', step: 1, group: 'LTXA - Model Patch' },
