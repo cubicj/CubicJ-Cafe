@@ -829,6 +829,10 @@ describe('buildLtxaWorkflow', () => {
       DISTILLED_LORA.SECOND_PASS,
       0,
     ])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.positive).toEqual([
+      DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO,
+      1,
+    ])
     expect(findDependencyCycle(wf)).toBeNull()
   })
 
