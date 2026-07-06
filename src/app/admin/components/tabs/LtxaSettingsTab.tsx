@@ -56,6 +56,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.guide_interpolation', label: 'Interpolation', type: 'nodeOption', group: 'LTXA - Guide', nodeQuery: 'guide_interpolation:LTXVAddGuideAdvanced:interpolation' },
   { key: 'ltxa.guide_crop', label: 'Crop', type: 'nodeOption', group: 'LTXA - Guide', nodeQuery: 'guide_crop:LTXVAddGuideAdvanced:crop' },
 
+  { key: 'ltxa.anchor_enabled', label: 'Enabled', type: 'boolean', group: 'LTXA - Anchor' },
   { key: 'ltxa.anchor_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTXA - Anchor' },
   { key: 'ltxa.anchor_cache_at_step', label: 'Cache At Step', type: 'number', step: 1, group: 'LTXA - Anchor' },
   { key: 'ltxa.anchor_similarity_threshold', label: 'Similarity Threshold', type: 'number', step: 0.01, group: 'LTXA - Anchor' },
@@ -72,6 +73,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXA - Anchor', monoFont: true, allowEmpty: true },
 
   { key: 'ltxa.latent_upscale_model', label: 'Latent Upscale Model', type: 'nodeOption', group: 'LTXA - 2-Pass', nodeQuery: 'latent_upscale_model:LatentUpscaleModelLoader:model_name' },
+  { key: 'ltxa.text_attention_enabled', label: 'Text Attention Enabled', type: 'boolean', group: 'LTXA - 2-Pass' },
   { key: 'ltxa.text_attention_amplification', label: 'Text Attention Amplification', type: 'number', step: 0.01, group: 'LTXA - 2-Pass' },
   { key: 'ltxa.second_pass_cfg', label: 'Second Pass CFG', type: 'number', step: 0.01, group: 'LTXA - 2-Pass' },
   { key: 'ltxa.second_pass_sigmas', label: 'Second Pass Sigmas', type: 'string', group: 'LTXA - 2-Pass', monoFont: true },
