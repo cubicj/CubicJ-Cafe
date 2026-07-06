@@ -767,6 +767,26 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
   })
 
+  it('removes the latent anchor when disabled', async () => {
+    await updateSettings({ 'ltxa.anchor_enabled': 'false' })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.ANCHOR]).toBeUndefined()
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeDefined()
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+      TWO_PASS.TEXT_ATTENTION,
+      0,
+    ])
+    expect(findDependencyCycle(wf)).toBeNull()
+  })
+
   it('injects end image nodes when endImage provided', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',

@@ -183,6 +183,10 @@ function configureGuide(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
 }
 
 function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
+  if (!settings.anchorEnabled) {
+    delete workflow[LTXA.ANCHOR];
+    return;
+  }
   setAnchorNode(workflow, LTXA.ANCHOR, {
     strength: settings.anchorStrength,
     cacheAtStep: settings.anchorCacheAtStep,
@@ -280,9 +284,15 @@ function configureDistilledLoras(
     model: secondPassModel,
     title: '2 Pass Distilled LoRA',
   });
-  setNode(workflow, LTXA.ANCHOR, {
-    model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
-  });
+  if (settings.anchorEnabled) {
+    setNode(workflow, LTXA.ANCHOR, {
+      model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
+    });
+  } else {
+    setNode(workflow, LTXA.MULTIMODAL_CFG, {
+      model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
+    });
+  }
   setNode(workflow, LTXA.TEXT_ATTENTION, {
     model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
   });
