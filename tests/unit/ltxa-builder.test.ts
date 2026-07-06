@@ -767,8 +767,11 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
   })
 
-  it('removes the latent anchor when disabled', async () => {
-    await updateSettings({ 'ltxa.anchor_enabled': 'false' })
+  it('bypasses the latent anchor when disabled', async () => {
+    await updateSettings({
+      'ltxa.anchor_enabled': 'false',
+      'ltxa.anchor_bypass': 'false',
+    })
 
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
@@ -777,17 +780,14 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[LTXA.ANCHOR]).toBeUndefined()
-    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
-    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeDefined()
-    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
-      TWO_PASS.TEXT_ATTENTION,
-      0,
-    ])
+    expect(wf[LTXA.ANCHOR]!.inputs!.bypass).toBe(true)
+    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.bypass).toBe(false)
     expect(findDependencyCycle(wf)).toBeNull()
   })
 
-  it('removes the text attention amplifier when disabled', async () => {
+  it('bypasses the text attention amplifier when disabled', async () => {
     await updateSettings({ 'ltxa.text_attention_enabled': 'false' })
 
     const wf = await buildLtxaWorkflow({
@@ -797,20 +797,25 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeUndefined()
-    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.bypass).toBe(true)
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.model).toEqual([
       DISTILLED_LORA.SECOND_PASS,
       0,
     ])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+      TWO_PASS.TEXT_ATTENTION,
+      0,
+    ])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.positive).toEqual([LTXA.CROP_GUIDES, 0])
-    expect(wf[LTXA.ANCHOR]).toBeDefined()
+    expect(wf[LTXA.ANCHOR]!.inputs!.bypass).toBe(true)
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(findDependencyCycle(wf)).toBeNull()
   })
 
-  it('removes both toggle nodes together without breaking the graph', async () => {
+  it('bypasses both toggle nodes together without rewiring the graph', async () => {
     await updateSettings({
       'ltxa.anchor_enabled': 'false',
+      'ltxa.anchor_bypass': 'false',
       'ltxa.text_attention_enabled': 'false',
     })
 
@@ -822,11 +827,11 @@ describe('buildLtxaWorkflow', () => {
       referenceAudio: 'fake-reference.wav',
     })
 
-    expect(wf[LTXA.ANCHOR]).toBeUndefined()
-    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeUndefined()
-    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[LTXA.ANCHOR]!.inputs!.bypass).toBe(true)
+    expect(wf[TWO_PASS.TEXT_ATTENTION]!.inputs!.bypass).toBe(true)
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
-      DISTILLED_LORA.SECOND_PASS,
+      TWO_PASS.TEXT_ATTENTION,
       0,
     ])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.positive).toEqual([

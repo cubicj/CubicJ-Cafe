@@ -183,17 +183,13 @@ function configureGuide(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
 }
 
 function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  if (!settings.anchorEnabled) {
-    delete workflow[LTXA.ANCHOR];
-    return;
-  }
   setAnchorNode(workflow, LTXA.ANCHOR, {
     strength: settings.anchorStrength,
     cacheAtStep: settings.anchorCacheAtStep,
     similarityThreshold: settings.anchorSimilarityThreshold,
     decayWithDistance: settings.anchorDecayWithDistance,
     energyThreshold: settings.anchorEnergyThreshold,
-    bypass: settings.anchorBypass,
+    bypass: settings.anchorEnabled ? settings.anchorBypass : true,
     debug: settings.anchorDebug,
     advancedMode: settings.anchorAdvancedMode,
     cacheMode: settings.anchorCacheMode,
@@ -218,18 +214,16 @@ function configureMultimodalCfg(
 }
 
 function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  if (settings.textAttentionEnabled) {
-    setNode(workflow, LTXA.TEXT_ATTENTION, {
-      text_amplification: settings.textAttentionAmplification,
-    });
-  } else {
-    delete workflow[LTXA.TEXT_ATTENTION];
-  }
+  setNode(workflow, LTXA.TEXT_ATTENTION, {
+    text_amplification: settings.textAttentionAmplification,
+    bypass: !settings.textAttentionEnabled,
+  });
   setNode(workflow, LTXA.LATENT_UPSCALE_MODEL, {
     model_name: settings.latentUpscaleModel,
   });
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
+    model: [LTXA.TEXT_ATTENTION, 0],
     positive: [LTXA.CROP_GUIDES, 0],
     negative: [LTXA.CROP_GUIDES, 1],
   });
@@ -287,27 +281,12 @@ function configureDistilledLoras(
     model: secondPassModel,
     title: '2 Pass Distilled LoRA',
   });
-  if (settings.anchorEnabled) {
-    setNode(workflow, LTXA.ANCHOR, {
-      model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
-    });
-  } else {
-    setNode(workflow, LTXA.MULTIMODAL_CFG, {
-      model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
-    });
-  }
-  if (settings.textAttentionEnabled) {
-    setNode(workflow, LTXA.TEXT_ATTENTION, {
-      model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
-    });
-    setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
-      model: [LTXA.TEXT_ATTENTION, 0],
-    });
-  } else {
-    setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
-      model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
-    });
-  }
+  setNode(workflow, LTXA.ANCHOR, {
+    model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
+  });
+  setNode(workflow, LTXA.TEXT_ATTENTION, {
+    model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
+  });
 }
 
 function setDistilledLoraNode(
