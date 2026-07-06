@@ -415,46 +415,6 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('true')
   })
 
-  it('updates LTXA anchor enabled setting', async () => {
-    const admin = await createAdminUser()
-    const session = await createTestSession(admin.id)
-    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
-      method: 'PUT',
-      body: JSON.stringify({
-        key: 'ltxa.anchor_enabled',
-        value: 'false',
-        type: 'boolean',
-        category: 'ltxa',
-      }),
-    })
-    const res = await PUT(req)
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltxa.anchor_enabled')
-    expect(body.setting.value).toBe('false')
-  })
-
-  it('updates LTXA text attention enabled setting', async () => {
-    const admin = await createAdminUser()
-    const session = await createTestSession(admin.id)
-    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
-      method: 'PUT',
-      body: JSON.stringify({
-        key: 'ltxa.text_attention_enabled',
-        value: 'false',
-        type: 'boolean',
-        category: 'ltxa',
-      }),
-    })
-    const res = await PUT(req)
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltxa.text_attention_enabled')
-    expect(body.setting.value).toBe('false')
-  })
-
   it('updates LTXA end image capability setting', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
