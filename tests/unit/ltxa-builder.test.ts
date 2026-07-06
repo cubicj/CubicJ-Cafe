@@ -787,6 +787,51 @@ describe('buildLtxaWorkflow', () => {
     expect(findDependencyCycle(wf)).toBeNull()
   })
 
+  it('removes the text attention amplifier when disabled', async () => {
+    await updateSettings({ 'ltxa.text_attention_enabled': 'false' })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeUndefined()
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+      DISTILLED_LORA.SECOND_PASS,
+      0,
+    ])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.positive).toEqual([LTXA.CROP_GUIDES, 0])
+    expect(wf[LTXA.ANCHOR]).toBeDefined()
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.ANCHOR, 0])
+    expect(findDependencyCycle(wf)).toBeNull()
+  })
+
+  it('removes both toggle nodes together without breaking the graph', async () => {
+    await updateSettings({
+      'ltxa.anchor_enabled': 'false',
+      'ltxa.text_attention_enabled': 'false',
+    })
+
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+      referenceAudio: 'fake-reference.wav',
+    })
+
+    expect(wf[LTXA.ANCHOR]).toBeUndefined()
+    expect(wf[TWO_PASS.TEXT_ATTENTION]).toBeUndefined()
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs!.model).toEqual([
+      DISTILLED_LORA.SECOND_PASS,
+      0,
+    ])
+    expect(findDependencyCycle(wf)).toBeNull()
+  })
+
   it('injects end image nodes when endImage provided', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
