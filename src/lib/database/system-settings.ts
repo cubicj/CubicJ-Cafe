@@ -177,6 +177,7 @@ export interface LtxaSettings {
   guideBlurRadius: number;
   guideInterpolation: string;
   guideCrop: string;
+  anchorEnabled: boolean;
   anchorStrength: number;
   anchorCacheAtStep: number;
   anchorSimilarityThreshold: number;
@@ -192,6 +193,7 @@ export interface LtxaSettings {
   anchorDepthCurve: string;
   anchorBlockIndexFilter: string;
   latentUpscaleModel: string;
+  textAttentionEnabled: boolean;
   textAttentionAmplification: number;
   multimodalVideoCfg: number;
   multimodalAudioCfg: number;
@@ -246,6 +248,8 @@ export type LtxrSettings = Omit<
   | 'secondPassDistilledLoraName'
   | 'secondPassDistilledLoraStrength'
   | 'forceFullUnloadVerbose'
+  | 'anchorEnabled'
+  | 'textAttentionEnabled'
   | 'nsfwLoraChain'
 > & {
   secondPassAnchor: LtxAnchorSettings;
@@ -340,6 +344,7 @@ export const LTXA_KEYS = {
   guideBlurRadius: 'ltxa.guide_blur_radius',
   guideInterpolation: 'ltxa.guide_interpolation',
   guideCrop: 'ltxa.guide_crop',
+  anchorEnabled: 'ltxa.anchor_enabled',
   anchorStrength: 'ltxa.anchor_strength',
   anchorCacheAtStep: 'ltxa.anchor_cache_at_step',
   anchorSimilarityThreshold: 'ltxa.anchor_similarity_threshold',
@@ -355,6 +360,7 @@ export const LTXA_KEYS = {
   anchorDepthCurve: 'ltxa.anchor_depth_curve',
   anchorBlockIndexFilter: 'ltxa.anchor_block_index_filter',
   latentUpscaleModel: 'ltxa.latent_upscale_model',
+  textAttentionEnabled: 'ltxa.text_attention_enabled',
   textAttentionAmplification: 'ltxa.text_attention_amplification',
   multimodalVideoCfg: 'ltxa.multimodal_video_cfg',
   multimodalAudioCfg: 'ltxa.multimodal_audio_cfg',
@@ -768,6 +774,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     guideBlurRadius: parseLtxInteger(map, k.guideBlurRadius),
     guideInterpolation: map.get(k.guideInterpolation)!,
     guideCrop: map.get(k.guideCrop)!,
+    anchorEnabled: map.get(k.anchorEnabled)! === 'true',
     anchorStrength: parseLtxNumber(map, k.anchorStrength),
     anchorCacheAtStep: parseLtxInteger(map, k.anchorCacheAtStep),
     anchorSimilarityThreshold: parseLtxNumber(map, k.anchorSimilarityThreshold),
@@ -783,6 +790,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     anchorDepthCurve: map.get(k.anchorDepthCurve)!,
     anchorBlockIndexFilter: map.get(k.anchorBlockIndexFilter)!,
     latentUpscaleModel: map.get(k.latentUpscaleModel)!,
+    textAttentionEnabled: map.get(k.textAttentionEnabled)! === 'true',
     textAttentionAmplification: parseLtxNumber(map, k.textAttentionAmplification),
     multimodalVideoCfg: parseLtxNumber(map, k.multimodalVideoCfg),
     multimodalAudioCfg: parseLtxNumber(map, k.multimodalAudioCfg),
