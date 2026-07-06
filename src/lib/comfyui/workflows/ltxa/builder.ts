@@ -1,7 +1,6 @@
 import type { LtxaGenerationParams } from '../types';
 import type { ComfyUIWorkflow } from '@/types';
 import type {
-  LtxAnchorSettings,
   LtxLoraChainItem,
   LtxaSettings,
 } from '@/lib/database/system-settings';
@@ -40,7 +39,6 @@ export async function buildLtxaWorkflow(
   configureScheduler(workflow, settings);
   configureNag(workflow, settings);
   configureGuide(workflow, settings);
-  configureAnchor(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
   configureModelPatchChain(workflow, settings);
@@ -182,25 +180,6 @@ function configureGuide(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
   setNode(workflow, LTXA.ADD_GUIDE, guideInputs);
 }
 
-function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  setAnchorNode(workflow, LTXA.ANCHOR, {
-    strength: settings.anchorStrength,
-    cacheAtStep: settings.anchorCacheAtStep,
-    similarityThreshold: settings.anchorSimilarityThreshold,
-    decayWithDistance: settings.anchorDecayWithDistance,
-    energyThreshold: settings.anchorEnergyThreshold,
-    bypass: settings.anchorEnabled ? settings.anchorBypass : true,
-    debug: settings.anchorDebug,
-    advancedMode: settings.anchorAdvancedMode,
-    cacheMode: settings.anchorCacheMode,
-    forwardsPerStep: settings.anchorForwardsPerStep,
-    cacheWarmup: settings.anchorCacheWarmup,
-    anchorFrame: settings.anchorFrame,
-    depthCurve: settings.anchorDepthCurve,
-    blockIndexFilter: settings.anchorBlockIndexFilter,
-  });
-}
-
 function configureMultimodalCfg(
   workflow: ComfyUIWorkflow,
   settings: LtxaSettings
@@ -214,16 +193,11 @@ function configureMultimodalCfg(
 }
 
 function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  setNode(workflow, LTXA.TEXT_ATTENTION, {
-    text_amplification: settings.textAttentionAmplification,
-    bypass: !settings.textAttentionEnabled,
-  });
   setNode(workflow, LTXA.LATENT_UPSCALE_MODEL, {
     model_name: settings.latentUpscaleModel,
   });
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
-    model: [LTXA.TEXT_ATTENTION, 0],
     positive: [LTXA.CROP_GUIDES, 0],
     negative: [LTXA.CROP_GUIDES, 1],
   });
@@ -281,12 +255,6 @@ function configureDistilledLoras(
     model: secondPassModel,
     title: '2 Pass Distilled LoRA',
   });
-  setNode(workflow, LTXA.ANCHOR, {
-    model: [LTXA.FIRST_PASS_DISTILLED_LORA, 0],
-  });
-  setNode(workflow, LTXA.TEXT_ATTENTION, {
-    model: [LTXA.SECOND_PASS_DISTILLED_LORA, 0],
-  });
 }
 
 function setDistilledLoraNode(
@@ -313,29 +281,6 @@ function setDistilledLoraNode(
     class_type: 'LTX2LoraLoaderAdvanced',
     _meta: { title: lora.title },
   };
-}
-
-function setAnchorNode(
-  workflow: ComfyUIWorkflow,
-  nodeId: string,
-  settings: LtxAnchorSettings
-) {
-  setNode(workflow, nodeId, {
-    strength: settings.strength,
-    cache_at_step: settings.cacheAtStep,
-    similarity_threshold: settings.similarityThreshold,
-    decay_with_distance: settings.decayWithDistance,
-    energy_threshold: settings.energyThreshold,
-    bypass: settings.bypass,
-    debug: settings.debug,
-    advanced_mode: settings.advancedMode,
-    cache_mode: settings.cacheMode,
-    forwards_per_step: settings.forwardsPerStep,
-    cache_warmup: settings.cacheWarmup,
-    anchor_frame: settings.anchorFrame,
-    depth_curve: settings.depthCurve,
-    block_index_filter: settings.blockIndexFilter,
-  });
 }
 
 function configureLoraChain(

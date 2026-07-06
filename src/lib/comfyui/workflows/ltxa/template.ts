@@ -334,33 +334,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'LTXVCropGuides',
     },
   },
-  '511': {
-    inputs: {
-      strength: 0,
-      cache_at_step: 0,
-      similarity_threshold: 0,
-      decay_with_distance: 0,
-      energy_threshold: 0,
-      bypass: false,
-      debug: false,
-      advanced_mode: false,
-      cache_mode: 'PLACEHOLDER',
-      forwards_per_step: 0,
-      cache_warmup: 0,
-      anchor_frame: 0,
-      depth_curve: 'PLACEHOLDER',
-      block_index_filter: 'PLACEHOLDER',
-      model: ['680', 0],
-      reference_image: ['86', 0],
-      vae: ['504', 2],
-      energy_latent: ['508', 2],
-      sigmas: ['682', 0],
-    },
-    class_type: 'LTXLatentAnchorAware',
-    _meta: {
-      title: '🎯 LTX Latent Anchor Aware',
-    },
-  },
   '512': {
     inputs: {
       text: 'PLACEHOLDER',
@@ -379,20 +352,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'CLIPTextEncode',
     _meta: {
       title: 'audio',
-    },
-  },
-  '534': {
-    inputs: {
-      text_amplification: 0,
-      spatial_focus: 0,
-      block_index_filter: '',
-      bypass: false,
-      debug: false,
-      model: ['681', 0],
-    },
-    class_type: 'LTXTextAttentionAmplifier',
-    _meta: {
-      title: '🔊 LTX Text Attention Amplifier',
     },
   },
   '536': {
@@ -447,7 +406,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       cross_attn: true,
       skip_blocks: '',
       debug: false,
-      model: ['511', 0],
+      model: ['680', 0],
       positive: ['508', 0],
       negative: ['508', 1],
     },
@@ -484,7 +443,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '580': {
     inputs: {
       cfg: 0,
-      model: ['534', 0],
+      model: ['681', 0],
       positive: ['510', 0],
       negative: ['510', 1],
     },

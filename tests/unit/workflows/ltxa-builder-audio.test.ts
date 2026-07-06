@@ -70,7 +70,7 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.audio_vae).toEqual([SOURCE_PATCH.AUDIO_VAE, 0])
   })
 
-  it('routes reference audio through Add Guide and ANCHOR when audio provided', async () => {
+  it('routes reference audio through Add Guide and the first-pass guider when audio provided', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -82,7 +82,7 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.positive).toEqual([LTXA.REFERENCE_AUDIO, 1])
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.negative).toEqual([LTXA.REFERENCE_AUDIO, 2])
     expect(wf[LTXA.FIRST_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([LTXA.REFERENCE_AUDIO, 0])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
+    expect(wf[LTXA.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
     expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]!.inputs).toMatchObject({
       model: [LTXA.ID_LORA, 0],
       positive: [LTXA.CROP_GUIDES, 0],
@@ -119,7 +119,7 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).not.toEqual([LTXA.ID_LORA, 0])
     expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
     expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([LTXA.NAG, 0])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
+    expect(wf[LTXA.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
   })
 
   it('appends ID LoRA after dynamic LoRA and before reference audio when enabled and reference audio exists', async () => {
@@ -163,7 +163,7 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
   })
 
-  it('removes reference audio nodes and routes ANCHOR through first-pass distilled LoRA when audio absent', async () => {
+  it('removes reference audio nodes and routes the first-pass guider through distilled LoRA when audio absent', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -179,6 +179,6 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.ADD_GUIDE]!.inputs!.negative).toEqual([LTXA.CONDITIONING, 1])
     expect(wf[LTXA.FIRST_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
     expect(wf[LTXA.SECOND_PASS_DISTILLED_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
-    expect(wf[LTXA.ANCHOR]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
+    expect(wf[LTXA.MULTIMODAL_CFG]!.inputs!.model).toEqual([LTXA.FIRST_PASS_DISTILLED_LORA, 0])
   })
 })
