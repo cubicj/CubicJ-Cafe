@@ -17,6 +17,7 @@ import {
 
 const log = createLogger('comfyui');
 type NodeOutput = [string, number];
+type ConditionPair = { positive: NodeOutput; negative: NodeOutput };
 
 export async function buildLtxaWorkflow(
   params: LtxaGenerationParams
@@ -32,7 +33,6 @@ export async function buildLtxaWorkflow(
   configurePreprocess(workflow, settings);
   configureScheduler(workflow, settings);
   configureNag(workflow, settings);
-  configureGuide(workflow, settings);
   configureMultimodalCfg(workflow, settings);
   configureSecondPass(workflow, settings);
   configureModelPatchChain(workflow, settings);
@@ -68,6 +68,26 @@ export async function buildLtxaWorkflow(
     handleReferenceAudioBypass(workflow);
   }
   configureDistilledLoras(workflow, settings, firstPassDistilledBase, secondPassDistilledBase);
+
+  const baseConditions: ConditionPair = params.referenceAudio
+    ? {
+        positive: [LTXA.REFERENCE_AUDIO, 1],
+        negative: [LTXA.REFERENCE_AUDIO, 2],
+      }
+    : {
+        positive: [LTXA.CONDITIONING, 0],
+        negative: [LTXA.CONDITIONING, 1],
+      };
+  const twoPassConditions = configureFirstPassGuide(workflow, settings, baseConditions);
+  let secondPassGuideConditions = twoPassConditions;
+  if (params.referenceAudio) {
+    setNode(workflow, LTXA.SECOND_PASS_REFERENCE_AUDIO, twoPassConditions);
+    secondPassGuideConditions = {
+      positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
+      negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
+    };
+  }
+  configureSecondPassGuide(workflow, settings, secondPassGuideConditions);
 
   configureRtx(workflow, settings);
   configureOutput(workflow, params, settings);
@@ -155,16 +175,67 @@ function configureNag(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
   });
 }
 
-function configureGuide(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  const guideInputs = {
-    frame_idx: settings.guideFrameIndex,
-    strength: settings.guideStrength,
-    crf: settings.guideCrf,
-    blur_radius: settings.guideBlurRadius,
-    interpolation: settings.guideInterpolation,
-    crop: settings.guideCrop,
-  };
-  setNode(workflow, LTXA.ADD_GUIDE, guideInputs);
+function configureFirstPassGuide(
+  workflow: ComfyUIWorkflow,
+  settings: LtxaSettings,
+  conditions: ConditionPair
+): ConditionPair {
+  if (settings.guideEnabled) {
+    setNode(workflow, LTXA.ADD_GUIDE, {
+      frame_idx: settings.guideFrameIndex,
+      strength: settings.guideStrength,
+      crf: settings.guideCrf,
+      blur_radius: settings.guideBlurRadius,
+      interpolation: settings.guideInterpolation,
+      crop: settings.guideCrop,
+      positive: conditions.positive,
+      negative: conditions.negative,
+    });
+    return {
+      positive: [LTXA.CROP_GUIDES, 0],
+      negative: [LTXA.CROP_GUIDES, 1],
+    };
+  }
+
+  delete workflow[LTXA.ADD_GUIDE];
+  delete workflow[LTXA.CROP_GUIDES];
+  delete workflow[LTXA.FIRST_PASS_PREPROCESS];
+  setNode(workflow, LTXA.MULTIMODAL_CFG, conditions);
+  setNode(workflow, LTXA.CONCAT_AV, { video_latent: [LTXA.IMG_TO_VIDEO, 0] });
+  setNode(workflow, LTXA.LATENT_UPSAMPLER, { samples: [LTXA.SEPARATE_AV, 0] });
+  return conditions;
+}
+
+function configureSecondPassGuide(
+  workflow: ComfyUIWorkflow,
+  settings: LtxaSettings,
+  conditions: ConditionPair
+) {
+  if (settings.secondPassGuideEnabled) {
+    setNode(workflow, LTXA.SECOND_PASS_ADD_GUIDE, {
+      frame_idx: settings.secondPassGuideFrameIndex,
+      strength: settings.secondPassGuideStrength,
+      crf: settings.secondPassGuideCrf,
+      blur_radius: settings.secondPassGuideBlurRadius,
+      interpolation: settings.secondPassGuideInterpolation,
+      crop: settings.secondPassGuideCrop,
+      positive: conditions.positive,
+      negative: conditions.negative,
+    });
+    setNode(workflow, LTXA.SECOND_PASS_PREPROCESS, {
+      img_compression: settings.preprocessImgCompression,
+    });
+    return;
+  }
+
+  delete workflow[LTXA.SECOND_PASS_ADD_GUIDE];
+  delete workflow[LTXA.SECOND_PASS_CROP_GUIDES];
+  delete workflow[LTXA.SECOND_PASS_PREPROCESS];
+  setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, conditions);
+  setNode(workflow, LTXA.SECOND_PASS_CONCAT_AV, {
+    video_latent: [LTXA.SECOND_PASS_IMG_TO_VIDEO, 0],
+  });
+  setNode(workflow, LTXA.VAE_DECODE, { samples: [LTXA.FINAL_SEPARATE_AV, 0] });
 }
 
 function configureMultimodalCfg(
@@ -185,8 +256,6 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   });
   setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
     cfg: settings.secondPassCfg,
-    positive: [LTXA.CROP_GUIDES, 0],
-    negative: [LTXA.CROP_GUIDES, 1],
   });
   setNode(workflow, LTXA.SECOND_PASS_SIGMAS, {
     sigmas: settings.secondPassSigmas,
@@ -354,23 +423,13 @@ function handleReferenceAudio(
     positive: [LTXA.CONDITIONING, 0],
     negative: [LTXA.CONDITIONING, 1],
   });
-  setNode(workflow, LTXA.ADD_GUIDE, {
-    positive: [LTXA.REFERENCE_AUDIO, 1],
-    negative: [LTXA.REFERENCE_AUDIO, 2],
-  });
   setNode(workflow, LTXA.SECOND_PASS_REFERENCE_AUDIO, {
     identity_guidance_scale: settings.secondPassIdentityGuidanceScale,
     start_percent: 0,
     end_percent: 1,
     model: modelOutput,
-    positive: [LTXA.CROP_GUIDES, 0],
-    negative: [LTXA.CROP_GUIDES, 1],
     reference_audio: [LTXA.LOAD_AUDIO, 0],
     audio_vae: [LTXA.AUDIO_VAE, 0],
-  });
-  setNode(workflow, LTXA.SECOND_PASS_CFG_GUIDER, {
-    positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
-    negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
   });
   return {
     firstPassModel: [LTXA.REFERENCE_AUDIO, 0],
@@ -383,10 +442,6 @@ function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
   delete workflow[LTXA.REFERENCE_AUDIO];
   delete workflow[LTXA.ID_LORA];
   delete workflow[LTXA.SECOND_PASS_REFERENCE_AUDIO];
-  setNode(workflow, LTXA.ADD_GUIDE, {
-    positive: [LTXA.CONDITIONING, 0],
-    negative: [LTXA.CONDITIONING, 1],
-  });
 }
 
 function configureRtx(workflow: ComfyUIWorkflow, settings: LtxaSettings) {

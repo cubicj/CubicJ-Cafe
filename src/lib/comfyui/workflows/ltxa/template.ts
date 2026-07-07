@@ -146,7 +146,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '333': {
     inputs: {
-      samples: ['539', 0],
+      samples: ['713', 2],
       vae: ['504', 2],
     },
     class_type: 'VAEDecode',
@@ -385,7 +385,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   },
   '543': {
     inputs: {
-      video_latent: ['572', 0],
+      video_latent: ['712', 2],
       audio_latent: ['384', 1],
     },
     class_type: 'LTXVConcatAVLatent',
@@ -444,8 +444,8 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       cfg: 0,
       model: ['681', 0],
-      positive: ['510', 0],
-      negative: ['510', 1],
+      positive: ['712', 0],
+      negative: ['712', 1],
     },
     class_type: 'CFGGuider',
     _meta: {
@@ -623,6 +623,46 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVReferenceAudio',
     _meta: {
       title: '2 Pass Conditions',
+    },
+  },
+  '712': {
+    inputs: {
+      frame_idx: 0,
+      strength: 0,
+      crf: 0,
+      blur_radius: 0,
+      interpolation: 'PLACEHOLDER',
+      crop: 'PLACEHOLDER',
+      positive: ['684', 1],
+      negative: ['684', 2],
+      vae: ['504', 2],
+      latent: ['572', 0],
+      image: ['714', 0],
+    },
+    class_type: 'LTXVAddGuideAdvanced',
+    _meta: {
+      title: '2 pass LTXV Add Guide Advanced',
+    },
+  },
+  '713': {
+    inputs: {
+      positive: ['712', 0],
+      negative: ['712', 1],
+      latent: ['539', 0],
+    },
+    class_type: 'LTXVCropGuides',
+    _meta: {
+      title: '2 Pass LTXVCropGuides',
+    },
+  },
+  '714': {
+    inputs: {
+      img_compression: 0,
+      image: ['575', 0],
+    },
+    class_type: 'LTXVPreprocess',
+    _meta: {
+      title: '2 Pass Preprocess',
     },
   },
 } as ComfyUIWorkflow;

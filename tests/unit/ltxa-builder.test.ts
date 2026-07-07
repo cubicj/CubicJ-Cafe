@@ -318,15 +318,12 @@ describe('buildLtxaWorkflow', () => {
       sigmas: [TWO_PASS.SECOND_PASS_SIGMAS, 0],
       latent_image: [TWO_PASS.SECOND_PASS_CONCAT_AV, 0],
     })
-    expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual([
-      TWO_PASS.SECOND_PASS_IMG_TO_VIDEO,
-      0,
-    ])
+    expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual(['712', 2])
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [DISTILLED_LORA.SECOND_PASS, 0],
-      positive: [LTXA.CROP_GUIDES, 0],
-      negative: [LTXA.CROP_GUIDES, 1],
+      positive: ['712', 0],
+      negative: ['712', 1],
     })
     expect(wf['511']).toBeUndefined()
     expect(wf['534']).toBeUndefined()
@@ -335,7 +332,7 @@ describe('buildLtxaWorkflow', () => {
     expect(wf['608']).toBeUndefined()
     expect(wf['708']).toBeUndefined()
     expect(wf['490']).toBeUndefined()
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual(['713', 2])
     expect(wf[TWO_PASS.FINAL_SEPARATE_AV]!.inputs!.av_latent).toEqual([
       TWO_PASS.SECOND_PASS_SAMPLER,
       0,
@@ -710,11 +707,11 @@ describe('buildLtxaWorkflow', () => {
     ])
     expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
       model: [DISTILLED_LORA.SECOND_PASS, 0],
-      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
-      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
+      positive: ['712', 0],
+      negative: ['712', 1],
     })
     expect(wf['708']).toBeUndefined()
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual(['713', 2])
   })
 
   it('removes RTX upscale when disabled', async () => {
@@ -731,6 +728,154 @@ describe('buildLtxaWorkflow', () => {
 
     expect(wf[LTXA.RTX_SUPER_RES]).toBeUndefined()
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
+  })
+
+  it('wires the 2-pass guide chain with dedicated settings', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf['714']).toMatchObject({
+      class_type: 'LTXVPreprocess',
+      inputs: { img_compression: 19, image: [TWO_PASS.SECOND_PASS_IMAGE_SCALE, 0] },
+    })
+    expect(wf['712']).toMatchObject({
+      class_type: 'LTXVAddGuideAdvanced',
+      inputs: {
+        frame_idx: 2,
+        strength: 0.83,
+        crf: 13,
+        blur_radius: 4,
+        interpolation: 'fake-2pass-guide-interp',
+        crop: 'fake-2pass-guide-crop',
+        positive: [LTXA.CROP_GUIDES, 0],
+        negative: [LTXA.CROP_GUIDES, 1],
+        latent: [TWO_PASS.SECOND_PASS_IMG_TO_VIDEO, 0],
+        image: ['714', 0],
+      },
+    })
+    expect(wf['713']).toMatchObject({
+      class_type: 'LTXVCropGuides',
+      inputs: { positive: ['712', 0], negative: ['712', 1], latent: [TWO_PASS.FINAL_SEPARATE_AV, 0] },
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual(['712', 2])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      positive: ['712', 0],
+      negative: ['712', 1],
+    })
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual(['713', 2])
+  })
+
+  it('feeds the 2-pass guide from 2-pass reference audio conditions when audio provided', async () => {
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      referenceAudio: 'fake-reference.wav',
+      videoDuration: 4,
+    })
+
+    expect(wf[DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO]!.inputs).toMatchObject({
+      positive: [LTXA.CROP_GUIDES, 0],
+      negative: [LTXA.CROP_GUIDES, 1],
+    })
+    expect(wf['712']!.inputs).toMatchObject({
+      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
+      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      positive: ['712', 0],
+      negative: ['712', 1],
+    })
+  })
+
+  it('bypasses the 1-pass guide when disabled', async () => {
+    await updateSettings({ 'ltxa.guide_enabled': 'false' })
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.ADD_GUIDE]).toBeUndefined()
+    expect(wf[LTXA.CROP_GUIDES]).toBeUndefined()
+    expect(wf[REFRESH.FIRST_PASS_PREPROCESS]).toBeUndefined()
+    expect(wf[LTXA.CONCAT_AV]!.inputs!.video_latent).toEqual([LTXA.IMG_TO_VIDEO, 0])
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs).toMatchObject({
+      positive: [LTXA.CONDITIONING, 0],
+      negative: [LTXA.CONDITIONING, 1],
+    })
+    expect(wf[TWO_PASS.LATENT_UPSAMPLER]!.inputs!.samples).toEqual([LTXA.SEPARATE_AV, 0])
+    expect(wf['712']!.inputs).toMatchObject({
+      positive: [LTXA.CONDITIONING, 0],
+      negative: [LTXA.CONDITIONING, 1],
+    })
+  })
+
+  it('bypasses the 1-pass guide with reference audio conditions when disabled', async () => {
+    await updateSettings({ 'ltxa.guide_enabled': 'false' })
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      referenceAudio: 'fake-reference.wav',
+      videoDuration: 4,
+    })
+
+    expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs).toMatchObject({
+      positive: [LTXA.REFERENCE_AUDIO, 1],
+      negative: [LTXA.REFERENCE_AUDIO, 2],
+    })
+    expect(wf[DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO]!.inputs).toMatchObject({
+      positive: [LTXA.REFERENCE_AUDIO, 1],
+      negative: [LTXA.REFERENCE_AUDIO, 2],
+    })
+  })
+
+  it('bypasses the 2-pass guide when disabled', async () => {
+    await updateSettings({ 'ltxa.second_pass_guide_enabled': 'false' })
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    expect(wf['712']).toBeUndefined()
+    expect(wf['713']).toBeUndefined()
+    expect(wf['714']).toBeUndefined()
+    expect(wf[TWO_PASS.SECOND_PASS_CONCAT_AV]!.inputs!.video_latent).toEqual([TWO_PASS.SECOND_PASS_IMG_TO_VIDEO, 0])
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      positive: [LTXA.CROP_GUIDES, 0],
+      negative: [LTXA.CROP_GUIDES, 1],
+    })
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([TWO_PASS.FINAL_SEPARATE_AV, 0])
+  })
+
+  it('bypasses both guides with reference audio', async () => {
+    await updateSettings({ 'ltxa.guide_enabled': 'false', 'ltxa.second_pass_guide_enabled': 'false' })
+    const wf = await buildLtxaWorkflow({
+      model: 'ltxa',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      referenceAudio: 'fake-reference.wav',
+      videoDuration: 4,
+    })
+
+    expect(wf[LTXA.ADD_GUIDE]).toBeUndefined()
+    expect(wf['712']).toBeUndefined()
+    expect(wf[DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO]!.inputs).toMatchObject({
+      positive: [LTXA.REFERENCE_AUDIO, 1],
+      negative: [LTXA.REFERENCE_AUDIO, 2],
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      positive: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 1],
+      negative: [DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO, 2],
+    })
   })
 
   it('keeps both img-to-video nodes single-image with no end image nodes', async () => {

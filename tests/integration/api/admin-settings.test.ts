@@ -27,6 +27,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260705_ltxa_force_full_unload_verbose',
       '20260706_ltxa_anchor_amplifier_toggles',
       '20260707_ltxa_second_pass_id_scale_end_image_removal',
+      '20260707_zz_ltxa_second_pass_guide',
     ]
       .map((migration) =>
         readFileSync(

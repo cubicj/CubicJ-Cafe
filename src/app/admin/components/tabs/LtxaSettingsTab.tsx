@@ -64,6 +64,7 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.identity_start_percent', label: 'ID Start Percent', type: 'number', step: 0.01, group: 'LTXA - Reference Audio' },
   { key: 'ltxa.identity_end_percent', label: 'ID End Percent', type: 'number', step: 0.01, group: 'LTXA - Reference Audio' },
 
+  { key: 'ltxa.guide_enabled', label: 'Enabled', type: 'boolean', group: 'LTXA - Guide' },
   { key: 'ltxa.guide_frame_index', label: 'Frame Index', type: 'number', step: 1, group: 'LTXA - Guide' },
   { key: 'ltxa.guide_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTXA - Guide' },
   { key: 'ltxa.guide_crf', label: 'CRF', type: 'number', step: 1, group: 'LTXA - Guide' },
@@ -93,6 +94,14 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.second_pass_sigmas', label: 'Second Pass Sigmas', type: 'string', group: 'LTXA - 2-Pass', monoFont: true },
   { key: 'ltxa.second_pass_upscale_method', label: 'Second Pass Upscale Method', type: 'nodeOption', group: 'LTXA - 2-Pass', nodeQuery: 'second_pass_upscale_method:ImageScaleBy:upscale_method' },
   { key: 'ltxa.second_pass_upscale_by', label: 'Second Pass Upscale By', type: 'number', step: 0.01, group: 'LTXA - 2-Pass' },
+
+  { key: 'ltxa.second_pass_guide_enabled', label: 'Enabled', type: 'boolean', group: 'LTXA - 2-Pass Guide' },
+  { key: 'ltxa.second_pass_guide_frame_index', label: 'Frame Index', type: 'number', step: 1, group: 'LTXA - 2-Pass Guide' },
+  { key: 'ltxa.second_pass_guide_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTXA - 2-Pass Guide' },
+  { key: 'ltxa.second_pass_guide_crf', label: 'CRF', type: 'number', step: 1, group: 'LTXA - 2-Pass Guide' },
+  { key: 'ltxa.second_pass_guide_blur_radius', label: 'Blur Radius', type: 'number', step: 1, group: 'LTXA - 2-Pass Guide' },
+  { key: 'ltxa.second_pass_guide_interpolation', label: 'Interpolation', type: 'nodeOption', group: 'LTXA - 2-Pass Guide', nodeQuery: 'second_pass_guide_interpolation:LTXVAddGuideAdvanced:interpolation' },
+  { key: 'ltxa.second_pass_guide_crop', label: 'Crop', type: 'nodeOption', group: 'LTXA - 2-Pass Guide', nodeQuery: 'second_pass_guide_crop:LTXVAddGuideAdvanced:crop' },
 
   { key: 'ltxa.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXA - RTX Postprocess' },
   { key: 'ltxa.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXA - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },

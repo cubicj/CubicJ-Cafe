@@ -178,6 +178,14 @@ export interface LtxaSettings {
   guideBlurRadius: number;
   guideInterpolation: string;
   guideCrop: string;
+  guideEnabled: boolean;
+  secondPassGuideEnabled: boolean;
+  secondPassGuideFrameIndex: number;
+  secondPassGuideStrength: number;
+  secondPassGuideCrf: number;
+  secondPassGuideBlurRadius: number;
+  secondPassGuideInterpolation: string;
+  secondPassGuideCrop: string;
   anchorStrength: number;
   anchorCacheAtStep: number;
   anchorSimilarityThreshold: number;
@@ -234,6 +242,14 @@ export type LtxrSettings = Omit<
   LtxaSettings,
   | 'audioVae'
   | 'secondPassIdentityGuidanceScale'
+  | 'guideEnabled'
+  | 'secondPassGuideEnabled'
+  | 'secondPassGuideFrameIndex'
+  | 'secondPassGuideStrength'
+  | 'secondPassGuideCrf'
+  | 'secondPassGuideBlurRadius'
+  | 'secondPassGuideInterpolation'
+  | 'secondPassGuideCrop'
   | 'memorySageTritonKernels'
   | 'torchFp16Accumulation'
   | 'chunkFeedForwardDimThreshold'
@@ -342,6 +358,14 @@ export const LTXA_KEYS = {
   guideBlurRadius: 'ltxa.guide_blur_radius',
   guideInterpolation: 'ltxa.guide_interpolation',
   guideCrop: 'ltxa.guide_crop',
+  guideEnabled: 'ltxa.guide_enabled',
+  secondPassGuideEnabled: 'ltxa.second_pass_guide_enabled',
+  secondPassGuideFrameIndex: 'ltxa.second_pass_guide_frame_index',
+  secondPassGuideStrength: 'ltxa.second_pass_guide_strength',
+  secondPassGuideCrf: 'ltxa.second_pass_guide_crf',
+  secondPassGuideBlurRadius: 'ltxa.second_pass_guide_blur_radius',
+  secondPassGuideInterpolation: 'ltxa.second_pass_guide_interpolation',
+  secondPassGuideCrop: 'ltxa.second_pass_guide_crop',
   anchorStrength: 'ltxa.anchor_strength',
   anchorCacheAtStep: 'ltxa.anchor_cache_at_step',
   anchorSimilarityThreshold: 'ltxa.anchor_similarity_threshold',
@@ -771,6 +795,14 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     guideBlurRadius: parseLtxInteger(map, k.guideBlurRadius),
     guideInterpolation: map.get(k.guideInterpolation)!,
     guideCrop: map.get(k.guideCrop)!,
+    guideEnabled: map.get(k.guideEnabled)! === 'true',
+    secondPassGuideEnabled: map.get(k.secondPassGuideEnabled)! === 'true',
+    secondPassGuideFrameIndex: parseLtxInteger(map, k.secondPassGuideFrameIndex),
+    secondPassGuideStrength: parseLtxNumber(map, k.secondPassGuideStrength),
+    secondPassGuideCrf: parseLtxInteger(map, k.secondPassGuideCrf),
+    secondPassGuideBlurRadius: parseLtxInteger(map, k.secondPassGuideBlurRadius),
+    secondPassGuideInterpolation: map.get(k.secondPassGuideInterpolation)!,
+    secondPassGuideCrop: map.get(k.secondPassGuideCrop)!,
     anchorStrength: parseLtxNumber(map, k.anchorStrength),
     anchorCacheAtStep: parseLtxInteger(map, k.anchorCacheAtStep),
     anchorSimilarityThreshold: parseLtxNumber(map, k.anchorSimilarityThreshold),

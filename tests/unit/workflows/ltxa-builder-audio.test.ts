@@ -95,11 +95,15 @@ describe('buildLtxaWorkflow reference audio', () => {
       0,
     ])
     expect(wf['708']).toBeUndefined()
-    expect(wf[LTXA.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+    expect(wf[LTXA.SECOND_PASS_ADD_GUIDE]!.inputs).toMatchObject({
       positive: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 1],
       negative: [LTXA.SECOND_PASS_REFERENCE_AUDIO, 2],
     })
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual(['539', 0])
+    expect(wf[LTXA.SECOND_PASS_CFG_GUIDER]!.inputs).toMatchObject({
+      positive: [LTXA.SECOND_PASS_ADD_GUIDE, 0],
+      negative: [LTXA.SECOND_PASS_ADD_GUIDE, 1],
+    })
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([LTXA.SECOND_PASS_CROP_GUIDES, 2])
   })
 
   it('omits ID LoRA when reference audio is absent', async () => {
@@ -115,7 +119,7 @@ describe('buildLtxaWorkflow reference audio', () => {
     expect(wf[LTXA.REFERENCE_AUDIO]).toBeUndefined()
     expect(wf[LTXA.SECOND_PASS_REFERENCE_AUDIO]).toBeUndefined()
     expect(wf['708']).toBeUndefined()
-    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual(['539', 0])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.samples).toEqual([LTXA.SECOND_PASS_CROP_GUIDES, 2])
     expect(wf[DYNAMIC_LORA.SECOND]!.inputs!.model).not.toEqual([LTXA.ID_LORA, 0])
     expect(wf[LTXA.NAG]!.inputs!.model).toEqual([SOURCE_PATCH.ATTENTION_TUNER, 0])
     expect(wf[DYNAMIC_LORA.FIRST]!.inputs!.model).toEqual([LTXA.NAG, 0])
