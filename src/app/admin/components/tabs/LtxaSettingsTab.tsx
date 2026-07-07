@@ -16,8 +16,6 @@ import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 import LtxLoraChainDialog from '@/app/admin/components/ltx/LtxLoraChainDialog';
 
 const LTXA_FIELDS: SettingsField[] = [
-  { key: 'ltxa.end_image_enabled', label: 'End Image / Loop', type: 'boolean', group: '활성화' },
-
   { key: 'ltxa.checkpoint', label: 'Checkpoint', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'checkpoint:CheckpointLoaderSimple:ckpt_name' },
   { key: 'ltxa.text_encoder', label: 'Text Encoder', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'text_encoder:LTXAVTextEncoderLoader:text_encoder' },
   { key: 'ltxa.audio_vae', label: 'Audio VAE', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'audio_vae:LTXVAudioVAELoader:ckpt_name' },
@@ -45,7 +43,8 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'LTXA - NAG' },
   { key: 'ltxa.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'LTXA - NAG' },
 
-  { key: 'ltxa.identity_guidance_scale', label: 'ID Guidance Scale', type: 'number', step: 0.1, group: 'LTXA - Reference Audio' },
+  { key: 'ltxa.identity_guidance_scale', label: '1-Pass ID Guidance Scale', type: 'number', step: 0.1, group: 'LTXA - Reference Audio' },
+  { key: 'ltxa.second_pass_identity_guidance_scale', label: '2-Pass ID Guidance Scale', type: 'number', step: 0.1, group: 'LTXA - Reference Audio' },
   { key: 'ltxa.identity_start_percent', label: 'ID Start Percent', type: 'number', step: 0.01, group: 'LTXA - Reference Audio' },
   { key: 'ltxa.identity_end_percent', label: 'ID End Percent', type: 'number', step: 0.01, group: 'LTXA - Reference Audio' },
 

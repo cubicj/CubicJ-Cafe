@@ -66,7 +66,6 @@ const fakeNsfwLoraChain = JSON.stringify([
 export const LTXA_SEED: Array<{ key: string; value: string; type: SeedType }> = [
   { key: 'ltxa.enabled', value: 'true', type: 'boolean' },
   { key: 'ltxa.lora_enabled', value: 'false', type: 'boolean' },
-  { key: 'ltxa.end_image_enabled', value: 'false', type: 'boolean' },
   { key: 'ltxa.checkpoint', value: 'fake-ltxa-checkpoint-q7m.safetensors', type: 'string' },
   { key: 'ltxa.text_encoder', value: 'fake-ltxa-text-encoder-p4v.safetensors', type: 'string' },
   { key: 'ltxa.audio_vae', value: 'fake-ltxa-audio-vae-b2m.safetensors', type: 'string' },
@@ -94,6 +93,7 @@ export const LTXA_SEED: Array<{ key: string; value: string; type: SeedType }> = 
   { key: 'ltxa.identity_guidance_scale', value: '2.7', type: 'number' },
   { key: 'ltxa.identity_start_percent', value: '0.12', type: 'number' },
   { key: 'ltxa.identity_end_percent', value: '0.86', type: 'number' },
+  { key: 'ltxa.second_pass_identity_guidance_scale', value: '1.3', type: 'number' },
   { key: 'ltxa.guide_frame_index', value: '3', type: 'number' },
   { key: 'ltxa.guide_strength', value: '0.46', type: 'number' },
   { key: 'ltxa.guide_crf', value: '27', type: 'number' },

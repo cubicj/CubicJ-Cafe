@@ -216,21 +216,7 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.capabilities.ltxa.endImage).toBe(false)
   })
 
-  it('disables LTXA end image capability from admin setting', async () => {
-    await seedSettings({ 'ltxa.end_image_enabled': 'false' })
-    const user = await createUser()
-    const session = await createTestSession(user.id)
-
-    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.capabilities.wan.endImage).toBe(true)
-    expect(body.capabilities.ltxa.endImage).toBe(false)
-    expect(body.capabilities['ltx-wan'].endImage).toBe(true)
-  })
-
-  it('enables LTXA end image capability from admin setting', async () => {
+  it('always reports LTXA end image capability as disabled', async () => {
     await seedSettings({ 'ltxa.end_image_enabled': 'true' })
     const user = await createUser()
     const session = await createTestSession(user.id)
@@ -239,6 +225,8 @@ describe('GET /api/i2v/capabilities', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.capabilities.ltxa.endImage).toBe(true)
+    expect(body.capabilities.ltxa.endImage).toBe(false)
+    expect(body.capabilities.wan.endImage).toBe(true)
+    expect(body.capabilities['ltx-wan'].endImage).toBe(true)
   })
 })

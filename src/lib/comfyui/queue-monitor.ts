@@ -450,7 +450,6 @@ class QueueMonitor {
           inputImage,
           videoDuration: request.videoDuration,
           isNSFW: effectiveIsNSFW,
-          endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
         };
       } else if (videoModel === 'ltxr') {

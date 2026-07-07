@@ -26,6 +26,7 @@ describe('LTX 2.3 rebuild migration parity', () => {
       '20260621_zz_ltxa_distilled_lora_settings',
       '20260705_ltxa_force_full_unload_verbose',
       '20260706_ltxa_anchor_amplifier_toggles',
+      '20260707_ltxa_second_pass_id_scale_end_image_removal',
     ]
       .map((migration) =>
         readFileSync(
@@ -415,15 +416,15 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('true')
   })
 
-  it('updates LTXA end image capability setting', async () => {
+  it('updates LTXA second pass identity guidance scale setting', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
     const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
       method: 'PUT',
       body: JSON.stringify({
-        key: 'ltxa.end_image_enabled',
-        value: 'true',
-        type: 'boolean',
+        key: 'ltxa.second_pass_identity_guidance_scale',
+        value: '1.7',
+        type: 'number',
         category: 'ltxa',
       }),
     })
@@ -431,7 +432,7 @@ describe('PUT /api/admin/settings', () => {
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.setting.key).toBe('ltxa.end_image_enabled')
-    expect(body.setting.value).toBe('true')
+    expect(body.setting.key).toBe('ltxa.second_pass_identity_guidance_scale')
+    expect(body.setting.value).toBe('1.7')
   })
 })

@@ -5,12 +5,6 @@ import { cleanTables } from '../helpers/db'
 import type { ComfyUIWorkflow } from '@/types'
 import { LTXA } from '@/lib/comfyui/workflows/ltxa/nodes'
 
-const END_IMAGE = {
-  LOAD_IMAGE: '260',
-  FRAME_INDEX: '261',
-  RESIZE: '264',
-} as const
-
 const DYNAMIC_LORA = {
   FIRST: '7000',
   SECOND: '7001',
@@ -689,12 +683,20 @@ describe('buildLtxaWorkflow', () => {
       },
     })
     expect(wf[LTXA.ID_LORA]!.inputs!.model).toEqual([DYNAMIC_LORA.SECOND, 0])
-    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs!.model).toEqual([LTXA.ID_LORA, 0])
+    expect(wf[LTXA.REFERENCE_AUDIO]!.inputs).toMatchObject({
+      identity_guidance_scale: 2.7,
+      start_percent: 0.12,
+      end_percent: 0.86,
+      model: [LTXA.ID_LORA, 0],
+    })
     expect(wf[DISTILLED_LORA.FIRST_PASS]!.inputs!.model).toEqual([LTXA.REFERENCE_AUDIO, 0])
     expect(wf[TWO_PASS.MULTIMODAL_CFG]!.inputs!.model).toEqual([DISTILLED_LORA.FIRST_PASS, 0])
     expect(wf[DISTILLED_LORA.SECOND_PASS_REFERENCE_AUDIO]).toMatchObject({
       class_type: 'LTXVReferenceAudio',
       inputs: {
+        identity_guidance_scale: 1.3,
+        start_percent: 0,
+        end_percent: 1,
         model: [LTXA.ID_LORA, 0],
         positive: [LTXA.CROP_GUIDES, 0],
         negative: [LTXA.CROP_GUIDES, 1],
@@ -731,40 +733,7 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.VAE_DECODE, 0])
   })
 
-  it('injects end image nodes when endImage provided', async () => {
-    const wf = await buildLtxaWorkflow({
-      model: 'ltxa',
-      prompt: 'p',
-      inputImage: 'fake-start.png',
-      videoDuration: 4,
-      endImage: 'fake-end.png',
-    })
-
-    expect(wf[END_IMAGE.LOAD_IMAGE]).toMatchObject({
-      inputs: { image: 'fake-end.png' },
-      class_type: 'LoadImage',
-    })
-    expect(wf[END_IMAGE.FRAME_INDEX]!.inputs).toMatchObject({
-      expression: 'a - 1',
-      a: [LTXA.FRAME_COUNT_MATH, 0],
-    })
-    expect(wf[END_IMAGE.RESIZE]!.inputs).toMatchObject({
-      megapixels: 0.73,
-      multiple_of: 24,
-      upscale_method: 'fake-resize-method',
-      image: [END_IMAGE.LOAD_IMAGE, 0],
-    })
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('2')
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toEqual([END_IMAGE.RESIZE, 0])
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toEqual([END_IMAGE.FRAME_INDEX, 0])
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBe(1)
-  })
-
-  it('removes end image nodes when endImage absent', async () => {
+  it('keeps both img-to-video nodes single-image with no end image nodes', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',
       prompt: 'p',
@@ -772,17 +741,15 @@ describe('buildLtxaWorkflow', () => {
       videoDuration: 4,
     })
 
-    expect(wf[END_IMAGE.LOAD_IMAGE]).toBeUndefined()
-    expect(wf[END_IMAGE.FRAME_INDEX]).toBeUndefined()
-    expect(wf[END_IMAGE.RESIZE]).toBeUndefined()
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
-    expect(wf[LTXA.IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images']).toBe('1')
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.image_2']).toBeUndefined()
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.index_2']).toBeUndefined()
-    expect(wf[TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]!.inputs!['num_images.strength_2']).toBeUndefined()
+    expect(wf['260']).toBeUndefined()
+    expect(wf['261']).toBeUndefined()
+    expect(wf['264']).toBeUndefined()
+    for (const nodeId of [LTXA.IMG_TO_VIDEO, TWO_PASS.SECOND_PASS_IMG_TO_VIDEO]) {
+      expect(wf[nodeId]!.inputs!['num_images']).toBe('1')
+      expect(wf[nodeId]!.inputs!['num_images.image_2']).toBeUndefined()
+      expect(wf[nodeId]!.inputs!['num_images.index_2']).toBeUndefined()
+      expect(wf[nodeId]!.inputs!['num_images.strength_2']).toBeUndefined()
+    }
   })
 
   it('injects output settings', async () => {

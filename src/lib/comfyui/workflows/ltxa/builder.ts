@@ -18,12 +18,6 @@ import {
 const log = createLogger('comfyui');
 type NodeOutput = [string, number];
 
-const END_IMAGE = {
-  LOAD_IMAGE: '260',
-  FRAME_INDEX: '261',
-  RESIZE: '264',
-} as const;
-
 export async function buildLtxaWorkflow(
   params: LtxaGenerationParams
 ): Promise<ComfyUIWorkflow> {
@@ -75,12 +69,6 @@ export async function buildLtxaWorkflow(
   }
   configureDistilledLoras(workflow, settings, firstPassDistilledBase, secondPassDistilledBase);
 
-  if (params.endImage) {
-    handleEndImage(workflow, params.endImage, settings);
-  } else {
-    handleEndImageBypass(workflow);
-  }
-
   configureRtx(workflow, settings);
   configureOutput(workflow, params, settings);
   configureForceFullUnloadVerbose(workflow, settings);
@@ -89,7 +77,6 @@ export async function buildLtxaWorkflow(
 
   log.info('LTXA workflow built', {
     prompt: params.prompt.substring(0, 50),
-    hasEndImage: !!params.endImage,
     videoDuration: params.videoDuration,
     hasReferenceAudio: !!params.referenceAudio,
     isNSFW: !!params.isNSFW,
@@ -372,7 +359,7 @@ function handleReferenceAudio(
     negative: [LTXA.REFERENCE_AUDIO, 2],
   });
   setNode(workflow, LTXA.SECOND_PASS_REFERENCE_AUDIO, {
-    identity_guidance_scale: 0,
+    identity_guidance_scale: settings.secondPassIdentityGuidanceScale,
     start_percent: 0,
     end_percent: 1,
     model: modelOutput,
@@ -400,60 +387,6 @@ function handleReferenceAudioBypass(workflow: ComfyUIWorkflow) {
     positive: [LTXA.CONDITIONING, 0],
     negative: [LTXA.CONDITIONING, 1],
   });
-}
-
-function handleEndImage(
-  workflow: ComfyUIWorkflow,
-  endImage: string,
-  settings: LtxaSettings
-) {
-  workflow[END_IMAGE.LOAD_IMAGE] = {
-    inputs: { image: endImage },
-    class_type: 'LoadImage',
-    _meta: { title: 'End Image' },
-  };
-  workflow[END_IMAGE.FRAME_INDEX] = {
-    inputs: { expression: 'a - 1', a: [LTXA.FRAME_COUNT_MATH, 0] },
-    class_type: 'MathExpression|pysssss',
-    _meta: { title: 'End Frame Index' },
-  };
-  workflow[END_IMAGE.RESIZE] = {
-    inputs: {
-      megapixels: settings.megapixels,
-      multiple_of: settings.resizeMultipleOf,
-      upscale_method: settings.resizeUpscaleMethod,
-      image: [END_IMAGE.LOAD_IMAGE, 0],
-    },
-    class_type: 'ResizeImageToMegapixels',
-    _meta: { title: 'Resize End Image' },
-  };
-  setNode(workflow, LTXA.IMG_TO_VIDEO, {
-    num_images: '2',
-    'num_images.image_2': [END_IMAGE.RESIZE, 0],
-    'num_images.index_2': [END_IMAGE.FRAME_INDEX, 0],
-    'num_images.strength_2': 1,
-  });
-  setNode(workflow, LTXA.SECOND_PASS_IMG_TO_VIDEO, {
-    num_images: '2',
-    'num_images.image_2': [END_IMAGE.RESIZE, 0],
-    'num_images.index_2': [END_IMAGE.FRAME_INDEX, 0],
-    'num_images.strength_2': 1,
-  });
-}
-
-function handleEndImageBypass(workflow: ComfyUIWorkflow) {
-  for (const nodeId of [LTXA.IMG_TO_VIDEO, LTXA.SECOND_PASS_IMG_TO_VIDEO]) {
-    const imgToVideo = workflow[nodeId];
-    if (imgToVideo?.inputs) {
-      imgToVideo.inputs['num_images'] = '1';
-      delete imgToVideo.inputs['num_images.image_2'];
-      delete imgToVideo.inputs['num_images.index_2'];
-      delete imgToVideo.inputs['num_images.strength_2'];
-    }
-  }
-  delete workflow[END_IMAGE.LOAD_IMAGE];
-  delete workflow[END_IMAGE.FRAME_INDEX];
-  delete workflow[END_IMAGE.RESIZE];
 }
 
 function configureRtx(workflow: ComfyUIWorkflow, settings: LtxaSettings) {

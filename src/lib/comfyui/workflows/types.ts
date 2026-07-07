@@ -29,7 +29,6 @@ export interface WanGenerationParams extends BaseGenerationParams {
 
 export interface LtxaGenerationParams extends BaseGenerationParams {
   model: 'ltxa'
-  endImage?: string
   referenceAudio?: string
 }
 

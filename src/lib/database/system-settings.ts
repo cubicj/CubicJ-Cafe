@@ -171,6 +171,7 @@ export interface LtxaSettings {
   identityGuidanceScale: number;
   identityStartPercent: number;
   identityEndPercent: number;
+  secondPassIdentityGuidanceScale: number;
   guideFrameIndex: number;
   guideStrength: number;
   guideCrf: number;
@@ -232,6 +233,7 @@ export interface LtxaSettings {
 export type LtxrSettings = Omit<
   LtxaSettings,
   | 'audioVae'
+  | 'secondPassIdentityGuidanceScale'
   | 'memorySageTritonKernels'
   | 'torchFp16Accumulation'
   | 'chunkFeedForwardDimThreshold'
@@ -306,7 +308,6 @@ export const WAN_KEYS = {
 } as const;
 
 export const LTXA_KEYS = {
-  endImageEnabled: 'ltxa.end_image_enabled',
   checkpoint: 'ltxa.checkpoint',
   textEncoder: 'ltxa.text_encoder',
   audioVae: 'ltxa.audio_vae',
@@ -334,6 +335,7 @@ export const LTXA_KEYS = {
   identityGuidanceScale: 'ltxa.identity_guidance_scale',
   identityStartPercent: 'ltxa.identity_start_percent',
   identityEndPercent: 'ltxa.identity_end_percent',
+  secondPassIdentityGuidanceScale: 'ltxa.second_pass_identity_guidance_scale',
   guideFrameIndex: 'ltxa.guide_frame_index',
   guideStrength: 'ltxa.guide_strength',
   guideCrf: 'ltxa.guide_crf',
@@ -762,6 +764,7 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
     identityGuidanceScale: parseLtxNumber(map, k.identityGuidanceScale),
     identityStartPercent: parseLtxNumber(map, k.identityStartPercent),
     identityEndPercent: parseLtxNumber(map, k.identityEndPercent),
+    secondPassIdentityGuidanceScale: parseLtxNumber(map, k.secondPassIdentityGuidanceScale),
     guideFrameIndex: parseLtxInteger(map, k.guideFrameIndex),
     guideStrength: parseLtxNumber(map, k.guideStrength),
     guideCrf: parseLtxInteger(map, k.guideCrf),

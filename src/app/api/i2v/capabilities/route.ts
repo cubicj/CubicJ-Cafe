@@ -20,7 +20,6 @@ export const GET = createRouteHandler(
               'ltx-wan.duration_options',
               'ltxa.frame_base',
               'ltxa.frame_rate',
-              'ltxa.end_image_enabled',
               'ltxr.frame_base',
               'ltxr.frame_rate',
               'ltxr.end_image_enabled',
@@ -54,7 +53,7 @@ export const GET = createRouteHandler(
       const videoModel = model as VideoModel
       capabilities[model as VideoModel] = {
         ...config.capabilities,
-        endImage: videoModel === 'ltxa' || videoModel === 'ltxr'
+        endImage: videoModel === 'ltxr'
           ? settingsMap.get(`${videoModel}.end_image_enabled`) === 'true'
           : config.capabilities.endImage,
         loraPresets: config.capabilities.loraPresets && loraEnabledMap[videoModel],
