@@ -16,8 +16,11 @@ import AudioPresetAdminManager from '@/components/audio/AudioPresetAdminManager'
 import LtxLoraChainDialog from '@/app/admin/components/ltx/LtxLoraChainDialog';
 
 const LTXA_FIELDS: SettingsField[] = [
-  { key: 'ltxa.checkpoint', label: 'Checkpoint', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'checkpoint:CheckpointLoaderSimple:ckpt_name' },
-  { key: 'ltxa.text_encoder', label: 'Text Encoder', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'text_encoder:LTXAVTextEncoderLoader:text_encoder' },
+  { key: 'ltxa.unet', label: 'UNet', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'unet:UNETLoader:unet_name' },
+  { key: 'ltxa.unet_weight_dtype', label: 'Weight DType', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'unet_weight_dtype:UNETLoader:weight_dtype' },
+  { key: 'ltxa.clip_name_1', label: 'CLIP 1', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'clip_name_1:DualCLIPLoader:clip_name1' },
+  { key: 'ltxa.clip_name_2', label: 'CLIP 2', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'clip_name_2:DualCLIPLoader:clip_name2' },
+  { key: 'ltxa.video_vae', label: 'Video VAE', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'video_vae:VAELoader:vae_name' },
   { key: 'ltxa.audio_vae', label: 'Audio VAE', type: 'nodeOption', group: 'LTXA - Model', nodeQuery: 'audio_vae:LTXVAudioVAELoader:ckpt_name' },
 
   { key: 'ltxa.negative_prompt', label: 'Negative Prompt', type: 'textarea', group: 'LTXA - Prompts', monoFont: true },
@@ -82,7 +85,8 @@ const LTXA_FIELDS: SettingsField[] = [
   { key: 'ltxa.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTXA - Multimodal CFG' },
   { key: 'ltxa.multimodal_active_steps', label: 'Active Steps', type: 'number', step: 1, group: 'LTXA - Multimodal CFG' },
 
-  { key: 'ltxa.sampler', label: 'Sampler', type: 'nodeOption', group: 'LTXA - Sampler', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
+  { key: 'ltxa.sampler', label: '1-Pass Sampler', type: 'nodeOption', group: 'LTXA - Sampler', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
+  { key: 'ltxa.second_pass_sampler', label: '2-Pass Sampler', type: 'nodeOption', group: 'LTXA - Sampler', nodeQuery: 'second_pass_sampler:KSamplerSelect:sampler_name' },
   { key: 'ltxa.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTXA - Scheduler' },
   { key: 'ltxa.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTXA - Scheduler' },
   { key: 'ltxa.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTXA - Scheduler' },

@@ -153,14 +153,30 @@ describe('buildLtxaWorkflow', () => {
     })
     expect(wf[LTXA.VIDEO_COMBINE]!.inputs!.images).toEqual([LTXA.RTX_SUPER_RES, 0])
     expect(wf[LTXA.LOAD_IMAGE_START]!.inputs!.image).toBe('fake-start.png')
-    expect(wf[LTXA.CHECKPOINT]!.inputs!.ckpt_name).toBe('fake-ltxa-checkpoint-q7m.safetensors')
+    expect(wf[LTXA.UNET_LOADER]).toMatchObject({
+      class_type: 'UNETLoader',
+      inputs: {
+        unet_name: 'fake-ltxa-unet-k3d.safetensors',
+        weight_dtype: 'fake-dtype-w2q',
+      },
+    })
+    expect(wf[LTXA.VIDEO_VAE]).toMatchObject({
+      class_type: 'VAELoader',
+      inputs: { vae_name: 'fake-ltxa-video-vae-m9r.safetensors' },
+    })
+    expect(wf[LTXA.DUAL_CLIP]).toMatchObject({
+      class_type: 'DualCLIPLoader',
+      inputs: {
+        clip_name1: 'fake-ltxa-clip1-h8s.safetensors',
+        clip_name2: 'fake-ltxa-clip2-t5n.safetensors',
+        type: 'ltxv',
+      },
+    })
     expect(wf[SOURCE_PATCH.AUDIO_VAE]!.inputs!.ckpt_name).toBe(
       'fake-ltxa-audio-vae-b2m.safetensors'
     )
-    expect(wf[LTXA.TEXT_ENCODER]!.inputs).toMatchObject({
-      text_encoder: 'fake-ltxa-text-encoder-p4v.safetensors',
-      ckpt_name: 'fake-ltxa-checkpoint-q7m.safetensors',
-    })
+    expect(wf[LTXA.POSITIVE_PROMPT]!.inputs!.clip).toEqual([LTXA.DUAL_CLIP, 0])
+    expect(wf[LTXA.VAE_DECODE]!.inputs!.vae).toEqual([LTXA.VIDEO_VAE, 0])
     expect(wf[LTXA.RESIZE_START_IMAGE]!.inputs).toMatchObject({
       megapixels: 0.73,
       multiple_of: 24,
@@ -208,7 +224,7 @@ describe('buildLtxaWorkflow', () => {
     expect(wf[SOURCE_PATCH.MODEL_SAGE_PATCH]).toMatchObject({
       class_type: 'PathchSageAttentionKJ',
       inputs: {
-        model: [LTXA.CHECKPOINT, 0],
+        model: [LTXA.UNET_LOADER, 0],
         sage_attention: 'fake-sage-backend',
         allow_compile: true,
       },
@@ -454,10 +470,11 @@ describe('buildLtxaWorkflow', () => {
       inputs: { sampler_name: 'fake-sampler-r6d' },
     })
     expect(wf[LTXA.SAMPLER_ADVANCED]!.inputs!.sampler).toEqual([REFRESH.SAMPLER_SELECT, 0])
-    expect(wf[TWO_PASS.SECOND_PASS_SAMPLER]!.inputs!.sampler).toEqual([
-      REFRESH.SAMPLER_SELECT,
-      0,
-    ])
+    expect(wf['715']).toMatchObject({
+      class_type: 'KSamplerSelect',
+      inputs: { sampler_name: 'fake-2pass-sampler-e1z' },
+    })
+    expect(wf[TWO_PASS.SECOND_PASS_SAMPLER]!.inputs!.sampler).toEqual(['715', 0])
   })
 
   it('uses refreshed preprocess nodes before first and second pass guides', async () => {

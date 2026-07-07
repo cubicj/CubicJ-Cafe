@@ -4,7 +4,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '5': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['506', 0],
+      clip: ['722', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -14,7 +14,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '6': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['506', 0],
+      clip: ['722', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -123,7 +123,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       num_images: '1',
       'num_images.strength_1': 1,
       'num_images.index_1': 0,
-      vae: ['504', 2],
+      vae: ['718', 0],
       latent: ['90', 0],
       'num_images.image_1': ['86', 0],
     },
@@ -147,7 +147,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '333': {
     inputs: {
       samples: ['713', 2],
-      vae: ['504', 2],
+      vae: ['718', 0],
     },
     class_type: 'VAEDecode',
     _meta: {
@@ -234,7 +234,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       nag_tau: 0,
       inplace: true,
       debug: false,
-      model: ['504', 0],
+      model: ['677', 0],
       nag_cond_video: ['512', 0],
       nag_cond_audio: ['513', 0],
     },
@@ -275,15 +275,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       title: 'Base',
     },
   },
-  '504': {
-    inputs: {
-      ckpt_name: 'PLACEHOLDER',
-    },
-    class_type: 'CheckpointLoaderSimple',
-    _meta: {
-      title: 'Load Checkpoint',
-    },
-  },
   '611': {
     inputs: {
       ckpt_name: 'PLACEHOLDER',
@@ -291,17 +282,6 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVAudioVAELoader',
     _meta: {
       title: 'LTXV Audio VAE Loader',
-    },
-  },
-  '506': {
-    inputs: {
-      text_encoder: 'PLACEHOLDER',
-      ckpt_name: 'PLACEHOLDER',
-      device: 'default',
-    },
-    class_type: 'LTXAVTextEncoderLoader',
-    _meta: {
-      title: 'LTXV Audio Text Encoder Loader',
     },
   },
   '508': {
@@ -314,7 +294,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       crop: 'PLACEHOLDER',
       positive: ['348', 1],
       negative: ['348', 2],
-      vae: ['504', 2],
+      vae: ['718', 0],
       latent: ['265', 0],
       image: ['660', 0],
     },
@@ -337,7 +317,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '512': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['506', 0],
+      clip: ['722', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -347,7 +327,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
   '513': {
     inputs: {
       text: 'PLACEHOLDER',
-      clip: ['506', 0],
+      clip: ['722', 0],
     },
     class_type: 'CLIPTextEncode',
     _meta: {
@@ -376,7 +356,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       samples: ['510', 2],
       upscale_model: ['536', 0],
-      vae: ['504', 2],
+      vae: ['718', 0],
     },
     class_type: 'LTXVLatentUpsampler',
     _meta: {
@@ -420,7 +400,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       num_images: '1',
       'num_images.strength_1': 1,
       'num_images.index_1': 0,
-      vae: ['504', 2],
+      vae: ['718', 0],
       latent: ['540', 0],
       'num_images.image_1': ['575', 0],
     },
@@ -465,7 +445,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       noise: ['16', 0],
       guider: ['580', 0],
-      sampler: ['654', 0],
+      sampler: ['715', 0],
       sigmas: ['582', 0],
       latent_image: ['543', 0],
     },
@@ -488,7 +468,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     inputs: {
       sage_attention: 'PLACEHOLDER',
       allow_compile: false,
-      model: ['504', 0],
+      model: ['716', 0],
     },
     class_type: 'PathchSageAttentionKJ',
     _meta: {
@@ -635,7 +615,7 @@ export const LTXA_WORKFLOW_TEMPLATE = {
       crop: 'PLACEHOLDER',
       positive: ['684', 1],
       negative: ['684', 2],
-      vae: ['504', 2],
+      vae: ['718', 0],
       latent: ['572', 0],
       image: ['714', 0],
     },
@@ -663,6 +643,46 @@ export const LTXA_WORKFLOW_TEMPLATE = {
     class_type: 'LTXVPreprocess',
     _meta: {
       title: '2 Pass Preprocess',
+    },
+  },
+  '715': {
+    inputs: {
+      sampler_name: 'PLACEHOLDER',
+    },
+    class_type: 'KSamplerSelect',
+    _meta: {
+      title: '2 pass KSamplerSelect',
+    },
+  },
+  '716': {
+    inputs: {
+      unet_name: 'PLACEHOLDER',
+      weight_dtype: 'PLACEHOLDER',
+    },
+    class_type: 'UNETLoader',
+    _meta: {
+      title: 'Load Diffusion Model',
+    },
+  },
+  '718': {
+    inputs: {
+      vae_name: 'PLACEHOLDER',
+    },
+    class_type: 'VAELoader',
+    _meta: {
+      title: 'Load VAE',
+    },
+  },
+  '722': {
+    inputs: {
+      clip_name1: 'PLACEHOLDER',
+      clip_name2: 'PLACEHOLDER',
+      type: 'ltxv',
+      device: 'default',
+    },
+    class_type: 'DualCLIPLoader',
+    _meta: {
+      title: 'DualCLIPLoader',
     },
   },
 } as ComfyUIWorkflow;

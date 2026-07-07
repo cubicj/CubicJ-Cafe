@@ -107,12 +107,16 @@ export async function buildLtxaWorkflow(
 }
 
 function configureModels(workflow: ComfyUIWorkflow, settings: LtxaSettings) {
-  setNode(workflow, LTXA.CHECKPOINT, { ckpt_name: settings.checkpoint });
-  setNode(workflow, LTXA.AUDIO_VAE, { ckpt_name: settings.audioVae });
-  setNode(workflow, LTXA.TEXT_ENCODER, {
-    text_encoder: settings.textEncoder,
-    ckpt_name: settings.checkpoint,
+  setNode(workflow, LTXA.UNET_LOADER, {
+    unet_name: settings.unet,
+    weight_dtype: settings.unetWeightDtype,
   });
+  setNode(workflow, LTXA.VIDEO_VAE, { vae_name: settings.videoVae });
+  setNode(workflow, LTXA.DUAL_CLIP, {
+    clip_name1: settings.clipName1,
+    clip_name2: settings.clipName2,
+  });
+  setNode(workflow, LTXA.AUDIO_VAE, { ckpt_name: settings.audioVae });
 }
 
 function configurePrompts(
@@ -259,6 +263,9 @@ function configureSecondPass(workflow: ComfyUIWorkflow, settings: LtxaSettings) 
   });
   setNode(workflow, LTXA.SECOND_PASS_SIGMAS, {
     sigmas: settings.secondPassSigmas,
+  });
+  setNode(workflow, LTXA.SECOND_PASS_SAMPLER_SELECT, {
+    sampler_name: settings.secondPassSampler,
   });
   setNode(workflow, LTXA.SECOND_PASS_IMAGE_SCALE, {
     upscale_method: settings.secondPassUpscaleMethod,

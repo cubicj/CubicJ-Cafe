@@ -134,6 +134,8 @@ async function seedLtxr() {
     data: [
       ...rows,
       { key: 'ltxr.end_image_enabled', value: 'true', type: 'boolean', category: 'ltxr' },
+      { key: 'ltxr.checkpoint', value: 'fake-ltxr-checkpoint-q7m.safetensors', type: 'string', category: 'ltxr' },
+      { key: 'ltxr.text_encoder', value: 'fake-ltxr-text-encoder-p4v.safetensors', type: 'string', category: 'ltxr' },
       { key: 'ltxr.second_pass_anchor_strength', value: '0.24', type: 'number', category: 'ltxr' },
       { key: 'ltxr.second_pass_anchor_cache_at_step', value: '7', type: 'number', category: 'ltxr' },
       { key: 'ltxr.second_pass_anchor_similarity_threshold', value: '0.58', type: 'number', category: 'ltxr' },

@@ -144,8 +144,12 @@ export interface LtxAnchorSettings {
 }
 
 export interface LtxaSettings {
-  checkpoint: string;
-  textEncoder: string;
+  unet: string;
+  unetWeightDtype: string;
+  clipName1: string;
+  clipName2: string;
+  videoVae: string;
+  secondPassSampler: string;
   audioVae: string;
   negativePrompt: string;
   videoConditioningPrompt: string;
@@ -241,6 +245,12 @@ export interface LtxaSettings {
 export type LtxrSettings = Omit<
   LtxaSettings,
   | 'audioVae'
+  | 'unet'
+  | 'unetWeightDtype'
+  | 'clipName1'
+  | 'clipName2'
+  | 'videoVae'
+  | 'secondPassSampler'
   | 'secondPassIdentityGuidanceScale'
   | 'guideEnabled'
   | 'secondPassGuideEnabled'
@@ -266,6 +276,8 @@ export type LtxrSettings = Omit<
   | 'forceFullUnloadVerbose'
   | 'nsfwLoraChain'
 > & {
+  checkpoint: string;
+  textEncoder: string;
   secondPassAnchor: LtxAnchorSettings;
   watermarkEnabled: boolean;
   watermarkImageAssetId: string | null;
@@ -324,8 +336,12 @@ export const WAN_KEYS = {
 } as const;
 
 export const LTXA_KEYS = {
-  checkpoint: 'ltxa.checkpoint',
-  textEncoder: 'ltxa.text_encoder',
+  unet: 'ltxa.unet',
+  unetWeightDtype: 'ltxa.unet_weight_dtype',
+  clipName1: 'ltxa.clip_name_1',
+  clipName2: 'ltxa.clip_name_2',
+  videoVae: 'ltxa.video_vae',
+  secondPassSampler: 'ltxa.second_pass_sampler',
   audioVae: 'ltxa.audio_vae',
   negativePrompt: 'ltxa.negative_prompt',
   videoConditioningPrompt: 'ltxa.video_conditioning_prompt',
@@ -761,8 +777,12 @@ export async function getLtxaSettings(): Promise<LtxaSettings> {
   ]);
   const k = LTXA_KEYS;
   return {
-    checkpoint: map.get(k.checkpoint)!,
-    textEncoder: map.get(k.textEncoder)!,
+    unet: map.get(k.unet)!,
+    unetWeightDtype: map.get(k.unetWeightDtype)!,
+    clipName1: map.get(k.clipName1)!,
+    clipName2: map.get(k.clipName2)!,
+    videoVae: map.get(k.videoVae)!,
+    secondPassSampler: map.get(k.secondPassSampler)!,
     audioVae: map.get(k.audioVae)!,
     negativePrompt: map.get(k.negativePrompt)!,
     videoConditioningPrompt: map.get(k.videoConditioningPrompt)!,
