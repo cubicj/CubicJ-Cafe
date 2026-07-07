@@ -48,16 +48,21 @@ const LTXR_FIELDS: SettingsField[] = [
   { key: 'ltxr.resize_upscale_method', label: 'Resize Method', type: 'nodeOption', group: 'LTXR - Generation', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'ltxr.preprocess_img_compression', label: 'Image Compression', type: 'number', step: 1, group: 'LTXR - Generation' },
 
-  { key: 'ltxr.sampler', label: 'Sampler', type: 'nodeOption', group: 'LTXR - Sampler', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
-  { key: 'ltxr.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTXR - Scheduler' },
-  { key: 'ltxr.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
-  { key: 'ltxr.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
-  { key: 'ltxr.scheduler_stretch', label: 'Stretch', type: 'boolean', group: 'LTXR - Scheduler' },
-  { key: 'ltxr.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
+  { key: 'ltxr.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXR - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
+  { key: 'ltxr.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXR - Sage Attention' },
 
   { key: 'ltxr.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'LTXR - NAG' },
   { key: 'ltxr.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'LTXR - NAG' },
   { key: 'ltxr.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'LTXR - NAG' },
+
+  { key: 'ltxr.id_lora_enabled', label: 'Enabled', type: 'boolean', group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTXR - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
+  { key: 'ltxr.id_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_video', label: 'Video', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_audio', label: 'Audio', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_audio_to_video', label: 'Audio To Video', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
+  { key: 'ltxr.id_lora_other', label: 'Other', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
 
   { key: 'ltxr.identity_guidance_scale', label: 'ID Guidance Scale', type: 'number', step: 0.1, group: 'LTXR - Reference Audio' },
   { key: 'ltxr.identity_start_percent', label: 'ID Start Percent', type: 'number', step: 0.01, group: 'LTXR - Reference Audio' },
@@ -85,6 +90,18 @@ const LTXR_FIELDS: SettingsField[] = [
   { key: 'ltxr.anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXR - Anchor', nodeQuery: 'anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltxr.anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXR - Anchor', monoFont: true },
 
+  { key: 'ltxr.multimodal_video_cfg', label: 'Video CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
+  { key: 'ltxr.multimodal_audio_cfg', label: 'Audio CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
+  { key: 'ltxr.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
+  { key: 'ltxr.multimodal_active_steps', label: 'Active Steps', type: 'number', step: 1, group: 'LTXR - Multimodal CFG' },
+
+  { key: 'ltxr.sampler', label: 'Sampler', type: 'nodeOption', group: 'LTXR - Sampler', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
+  { key: 'ltxr.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTXR - Scheduler' },
+  { key: 'ltxr.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
+  { key: 'ltxr.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
+  { key: 'ltxr.scheduler_stretch', label: 'Stretch', type: 'boolean', group: 'LTXR - Scheduler' },
+  { key: 'ltxr.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: 'LTXR - Scheduler' },
+
   { key: 'ltxr.latent_upscale_model', label: 'Latent Upscale Model', type: 'nodeOption', group: 'LTXR - 2-Pass', nodeQuery: 'latent_upscale_model:LatentUpscaleModelLoader:model_name' },
   { key: 'ltxr.text_attention_amplification', label: 'Text Attention Amplification', type: 'number', step: 0.01, group: 'LTXR - 2-Pass' },
   { key: 'ltxr.second_pass_cfg', label: 'Second Pass CFG', type: 'number', step: 0.01, group: 'LTXR - 2-Pass' },
@@ -106,36 +123,19 @@ const LTXR_FIELDS: SettingsField[] = [
   { key: 'ltxr.second_pass_anchor_depth_curve', label: 'Depth Curve', type: 'nodeOption', group: 'LTXR - 2-Pass Anchor', nodeQuery: 'second_pass_anchor_depth_curve:LTXLatentAnchorAware:depth_curve' },
   { key: 'ltxr.second_pass_anchor_block_index_filter', label: 'Block Index Filter', type: 'string', group: 'LTXR - 2-Pass Anchor', monoFont: true },
 
-  { key: 'ltxr.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'LTXR - Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
-  { key: 'ltxr.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'LTXR - Sage Attention' },
-
   { key: 'ltxr.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'LTXR - RTX Postprocess' },
   { key: 'ltxr.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'LTXR - RTX Postprocess', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },
   { key: 'ltxr.rtx_scale', label: 'Scale', type: 'number', step: 0.1, group: 'LTXR - RTX Postprocess' },
   { key: 'ltxr.rtx_quality', label: 'Quality', type: 'nodeOption', group: 'LTXR - RTX Postprocess', nodeQuery: 'rtx_quality:RTXVideoSuperResolution:quality' },
 
-  { key: 'ltxr.multimodal_video_cfg', label: 'Video CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
-  { key: 'ltxr.multimodal_audio_cfg', label: 'Audio CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
-  { key: 'ltxr.multimodal_inactive_cfg', label: 'Inactive CFG', type: 'number', step: 0.01, group: 'LTXR - Multimodal CFG' },
-  { key: 'ltxr.multimodal_active_steps', label: 'Active Steps', type: 'number', step: 1, group: 'LTXR - Multimodal CFG' },
-
-  { key: 'ltxr.id_lora_enabled', label: 'Enabled', type: 'boolean', group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_name', label: 'Name', type: 'nodeOption', group: 'LTXR - ID LoRA', nodeQuery: 'id_lora_name:LTX2LoraLoaderAdvanced:lora_name:LTX/' },
-  { key: 'ltxr.id_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_video', label: 'Video', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_video_to_audio', label: 'Video To Audio', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_audio', label: 'Audio', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_audio_to_video', label: 'Audio To Video', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-  { key: 'ltxr.id_lora_other', label: 'Other', type: 'number', step: 0.01, group: 'LTXR - ID LoRA' },
-
-  { key: 'ltxr.video_crf', label: 'CRF', type: 'number', step: 1, group: 'LTXR - Output' },
-  { key: 'ltxr.video_format', label: 'Format', type: 'nodeOption', group: 'LTXR - Output', nodeQuery: 'video_format:VHS_VideoCombine:format' },
-  { key: 'ltxr.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: 'LTXR - Output', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
-
   { key: 'ltxr.watermark_enabled', label: 'Enabled', type: 'boolean', group: 'LTXR - Watermark' },
   { key: 'ltxr.watermark_position', label: 'Position', type: 'nodeOption', group: 'LTXR - Watermark', nodeQuery: 'watermark_position:ImageCompositeWatermark:position' },
   { key: 'ltxr.watermark_scale', label: 'Scale', type: 'number', step: 1, group: 'LTXR - Watermark' },
   { key: 'ltxr.watermark_transparency', label: 'Transparency', type: 'number', step: 1, group: 'LTXR - Watermark' },
+
+  { key: 'ltxr.video_crf', label: 'CRF', type: 'number', step: 1, group: 'LTXR - Output' },
+  { key: 'ltxr.video_format', label: 'Format', type: 'nodeOption', group: 'LTXR - Output', nodeQuery: 'video_format:VHS_VideoCombine:format' },
+  { key: 'ltxr.video_pix_fmt', label: 'Pixel Format', type: 'nodeOption', group: 'LTXR - Output', nodeQuery: 'video_pix_fmt:VHS_VideoCombine:pix_fmt' },
 ];
 
 function formatBytes(size: number): string {

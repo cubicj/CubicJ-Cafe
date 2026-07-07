@@ -29,6 +29,18 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.vace_blocks_to_swap', label: 'VACE Blocks to Swap', type: 'number', step: 1, group: 'WAN — Block Swap' },
   { key: 'wan.prefetch_blocks', label: 'Prefetch Blocks', type: 'number', step: 1, group: 'WAN — Block Swap' },
 
+  { key: 'wan.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'WAN — 이미지' },
+  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'WAN — 이미지' },
+  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'WAN — 이미지', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
+
+  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'WAN — 생성' },
+  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: 'WAN — 생성', monoFont: true },
+  { key: 'wan.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'WAN — 생성', monoFont: true },
+
+  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
+  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
+  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
+
   { key: 'wan.sampler_steps', label: 'Steps', type: 'number', step: 1, group: 'WAN — 샘플러' },
   { key: 'wan.shift', label: 'Shift', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
   { key: 'wan.scheduler', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler:WanVideoSampler:scheduler' },
@@ -41,18 +53,6 @@ const WAN_FIELDS: SettingsField[] = [
   { key: 'wan.propagate_x0_strength_high', label: 'Propagate x0 Strength (High)', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
   { key: 'wan.propagate_x0_low', label: 'Propagate x0 (Low)', type: 'boolean', group: 'WAN — Context Refine' },
   { key: 'wan.propagate_x0_strength_low', label: 'Propagate x0 Strength (Low)', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
-
-  { key: 'wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
-  { key: 'wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
-  { key: 'wan.nag_tau', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
-
-  { key: 'wan.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'WAN — 이미지' },
-  { key: 'wan.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'WAN — 이미지' },
-  { key: 'wan.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'WAN — 이미지', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
-
-  { key: 'wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'WAN — 생성' },
-  { key: 'wan.negative_prompt', label: '네거티브 프롬프트', type: 'textarea', group: 'WAN — 생성', monoFont: true },
-  { key: 'wan.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'WAN — 생성', monoFont: true },
 
   { key: 'wan.rtx_enabled', label: 'RTX Upscale', type: 'boolean', group: 'WAN — RTX 후처리' },
   { key: 'wan.rtx_resize_type', label: 'Resize Type', type: 'nodeOption', group: 'WAN — RTX 후처리', nodeQuery: 'rtx_resize_type:RTXVideoSuperResolution:resize_type' },

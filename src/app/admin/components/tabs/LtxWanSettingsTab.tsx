@@ -18,6 +18,8 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.video_vae', label: 'Video VAE', type: 'model', group: 'LTX — 모델', modelCategory: 'vaes' as ModelCategory },
   { key: 'ltx-wan.audio_vae', label: 'Audio VAE', type: 'model', group: 'LTX — 모델', modelCategory: 'vaes' as ModelCategory },
 
+  { key: 'ltx-wan.negative_prompt_ltx', label: 'LTX 네거티브', type: 'textarea', group: 'LTX — 프롬프트' },
+
   { key: 'ltx-wan.sampler', label: '샘플러', type: 'nodeOption', group: 'LTX — 생성', nodeQuery: 'sampler:ClownSampler_Beta:sampler_name' },
   { key: 'ltx-wan.clown_eta', label: 'Eta', type: 'number', step: 0.01, group: 'LTX — 생성' },
   { key: 'ltx-wan.clown_bongmath', label: 'Bongmath', type: 'boolean', group: 'LTX — 생성' },
@@ -27,12 +29,6 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.img_compression', label: 'Image Compression', type: 'number', step: 1, group: 'LTX — 생성' },
   { key: 'ltx-wan.frame_rate', label: 'Frame Rate', type: 'number', step: 1, group: 'LTX — 생성' },
   { key: 'ltx-wan.duration_options', label: 'Duration Options (CSV)', type: 'string', group: 'LTX — 생성', monoFont: true },
-
-  { key: 'ltx-wan.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTX — 스케줄러' },
-  { key: 'ltx-wan.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
-  { key: 'ltx-wan.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
-  { key: 'ltx-wan.scheduler_stretch', label: 'Stretch', type: 'boolean', group: 'LTX — 스케줄러' },
-  { key: 'ltx-wan.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
 
   { key: 'ltx-wan.nag_scale', label: 'NAG Scale', type: 'number', step: 0.1, group: 'LTX — NAG' },
   { key: 'ltx-wan.nag_alpha', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'LTX — NAG' },
@@ -48,12 +44,22 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.distilled_lora_name', label: 'Distilled LoRA', type: 'nodeOption', group: 'LTX — Distilled LoRA', nodeQuery: 'distilled_lora_name:LoraLoaderModelOnly:lora_name:LTX/' },
   { key: 'ltx-wan.distilled_lora_strength', label: 'Strength', type: 'number', step: 0.01, group: 'LTX — Distilled LoRA' },
 
-  { key: 'ltx-wan.negative_prompt_ltx', label: 'LTX 네거티브', type: 'textarea', group: 'LTX — 프롬프트' },
+  { key: 'ltx-wan.scheduler_steps', label: 'Steps', type: 'number', step: 1, group: 'LTX — 스케줄러' },
+  { key: 'ltx-wan.scheduler_max_shift', label: 'Max Shift', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
+  { key: 'ltx-wan.scheduler_base_shift', label: 'Base Shift', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
+  { key: 'ltx-wan.scheduler_stretch', label: 'Stretch', type: 'boolean', group: 'LTX — 스케줄러' },
+  { key: 'ltx-wan.scheduler_terminal', label: 'Terminal', type: 'number', step: 0.01, group: 'LTX — 스케줄러' },
 
   { key: 'ltx-wan.unet_wan', label: 'WAN Model', type: 'model', group: 'WAN — 모델', modelCategory: 'diffusionModels' as ModelCategory },
   { key: 'ltx-wan.clip_wan', label: 'WAN T5 Encoder', type: 'model', group: 'WAN — 모델', modelCategory: 'textEncoders' as ModelCategory },
   { key: 'ltx-wan.vae_wan', label: 'WAN VAE', type: 'model', group: 'WAN — 모델', modelCategory: 'vaes' as ModelCategory },
   { key: 'ltx-wan.shift', label: 'Sampling Shift', type: 'number', step: 0.1, group: 'WAN — 모델' },
+
+  { key: 'ltx-wan.negative_prompt_wan', label: 'WAN 네거티브', type: 'textarea', group: 'WAN — 프롬프트' },
+
+  { key: 'ltx-wan.nag_scale_wan', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
+  { key: 'ltx-wan.nag_alpha_wan', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
+  { key: 'ltx-wan.nag_tau_wan', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
 
   { key: 'ltx-wan.cfg_wan', label: 'CFG', type: 'number', step: 0.1, group: 'WAN — 샘플러' },
   { key: 'ltx-wan.scheduler_wan', label: 'Scheduler', type: 'nodeOption', group: 'WAN — 샘플러', nodeQuery: 'scheduler_wan:WanVideoSampler:scheduler' },
@@ -66,12 +72,6 @@ const LTX_WAN_FIELDS: SettingsField[] = [
   { key: 'ltx-wan.disable_window_reinject', label: 'Disable Window Reinject', type: 'boolean', group: 'WAN — Context Refine' },
   { key: 'ltx-wan.propagate_x0', label: 'Propagate x0', type: 'boolean', group: 'WAN — Context Refine' },
   { key: 'ltx-wan.propagate_x0_strength', label: 'Propagate x0 Strength', type: 'number', step: 0.01, group: 'WAN — Context Refine' },
-
-  { key: 'ltx-wan.nag_scale_wan', label: 'NAG Scale', type: 'number', step: 0.1, group: 'WAN — NAG' },
-  { key: 'ltx-wan.nag_alpha_wan', label: 'NAG Alpha', type: 'number', step: 0.01, group: 'WAN — NAG' },
-  { key: 'ltx-wan.nag_tau_wan', label: 'NAG Tau', type: 'number', step: 0.001, group: 'WAN — NAG' },
-
-  { key: 'ltx-wan.negative_prompt_wan', label: 'WAN 네거티브', type: 'textarea', group: 'WAN — 프롬프트' },
 
   { key: 'ltx-wan.vfi_method', label: 'VFI 방식', type: 'select', group: '후처리 — VFI', options: [{ label: 'RIFE (TensorRT)', value: 'rife' }, { label: 'GMFSS Fortuna', value: 'gmfss' }] },
   { key: 'ltx-wan.vfi_multiplier', label: 'Multiplier', type: 'number', step: 1, group: '후처리 — VFI' },
