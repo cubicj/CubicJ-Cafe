@@ -18,7 +18,7 @@ import { getLtxWanSettings } from '@/lib/database/system-settings'
 import { LTX_WAN } from '@/lib/comfyui/workflows/ltx-wan/nodes'
 import type { LtxWanGenerationParams } from '@/lib/comfyui/workflows/types'
 import type { ComfyUIWorkflow } from '@/types'
-import { assertNoPlaceholders } from '../helpers/workflow-assertions'
+import { assertNoDanglingLinks, assertNoPlaceholders } from '../helpers/workflow-assertions'
 
 const mockSettings = vi.mocked(getLtxWanSettings)
 
@@ -137,6 +137,22 @@ describe('buildLtxWanWorkflow', () => {
   beforeEach(() => {
     mockSettings.mockResolvedValue(makeSettings())
   })
+
+  it.each([
+    { rifeResolutionProfile: 'custom', rtxEnabled: true },
+    { rifeResolutionProfile: 'custom', rtxEnabled: false },
+    { rifeResolutionProfile: '720p', rtxEnabled: true },
+    { rifeResolutionProfile: '720p', rtxEnabled: false },
+  ])(
+    'has no dangling links for vfiEnabled=true rifeResolutionProfile=$rifeResolutionProfile rtxEnabled=$rtxEnabled',
+    async ({ rifeResolutionProfile, rtxEnabled }) => {
+      mockSettings.mockResolvedValueOnce(makeSettings({ vfiEnabled: true, rifeResolutionProfile, rtxEnabled }))
+
+      const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
+
+      assertNoDanglingLinks(workflow)
+    }
+  )
 
   it('builds default workflow with all nodes', async () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)

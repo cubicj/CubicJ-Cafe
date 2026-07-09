@@ -2,7 +2,7 @@ import { buildLtxrWorkflow as rawBuilder } from '@/lib/comfyui/workflows/ltxr/bu
 import { LTXR } from '@/lib/comfyui/workflows/ltxr/nodes'
 import { prisma } from '@/lib/database/prisma'
 import { LTXA_SEED } from '../helpers/ltxa-seed'
-import { assertNoPlaceholders } from '../helpers/workflow-assertions'
+import { assertNoDanglingLinks, assertNoPlaceholders } from '../helpers/workflow-assertions'
 import { cleanTables } from '../helpers/db'
 import type { ComfyUIWorkflow } from '@/types'
 
@@ -39,6 +39,17 @@ afterEach(() => {
 })
 
 describe('buildLtxrWorkflow', () => {
+  it('has no dangling links for the default workflow', async () => {
+    const wf = await buildLtxrWorkflow({
+      model: 'ltxr',
+      prompt: 'p',
+      inputImage: 'fake-start.png',
+      videoDuration: 4,
+    })
+
+    assertNoDanglingLinks(wf)
+  })
+
   it('builds base workflow with LTXR settings, output prefix, and no watermark when disabled', async () => {
     const wf = await buildLtxrWorkflow({
       model: 'ltxr',

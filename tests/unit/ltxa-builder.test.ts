@@ -1,6 +1,6 @@
 import { buildLtxaWorkflow as rawBuilder } from '@/lib/comfyui/workflows/ltxa/builder'
 import { prisma } from '@/lib/database/prisma'
-import { assertNoPlaceholders } from '../helpers/workflow-assertions'
+import { assertNoDanglingLinks, assertNoPlaceholders } from '../helpers/workflow-assertions'
 import { cleanTables } from '../helpers/db'
 import type { ComfyUIWorkflow } from '@/types'
 import { LTXA } from '@/lib/comfyui/workflows/ltxa/nodes'
@@ -127,6 +127,35 @@ afterEach(() => {
 })
 
 describe('buildLtxaWorkflow', () => {
+  it.each([
+    { guideEnabled: true, secondPassGuideEnabled: true, referenceAudio: undefined },
+    { guideEnabled: true, secondPassGuideEnabled: true, referenceAudio: 'fake-reference.wav' },
+    { guideEnabled: false, secondPassGuideEnabled: true, referenceAudio: undefined },
+    { guideEnabled: false, secondPassGuideEnabled: true, referenceAudio: 'fake-reference.wav' },
+    { guideEnabled: true, secondPassGuideEnabled: false, referenceAudio: undefined },
+    { guideEnabled: true, secondPassGuideEnabled: false, referenceAudio: 'fake-reference.wav' },
+    { guideEnabled: false, secondPassGuideEnabled: false, referenceAudio: undefined },
+    { guideEnabled: false, secondPassGuideEnabled: false, referenceAudio: 'fake-reference.wav' },
+  ])(
+    'has no dangling links for guideEnabled=$guideEnabled secondPassGuideEnabled=$secondPassGuideEnabled referenceAudio=$referenceAudio',
+    async ({ guideEnabled, secondPassGuideEnabled, referenceAudio }) => {
+      await updateSettings({
+        'ltxa.guide_enabled': String(guideEnabled),
+        'ltxa.second_pass_guide_enabled': String(secondPassGuideEnabled),
+      })
+
+      const wf = await buildLtxaWorkflow({
+        model: 'ltxa',
+        prompt: 'p',
+        inputImage: 'fake-start.png',
+        videoDuration: 4,
+        referenceAudio,
+      })
+
+      assertNoDanglingLinks(wf)
+    }
+  )
+
   it('builds base workflow with prompt, input image, models, duration, and conditioning prompts', async () => {
     const wf = await buildLtxaWorkflow({
       model: 'ltxa',

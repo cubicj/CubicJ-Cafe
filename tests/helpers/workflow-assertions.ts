@@ -12,3 +12,25 @@ import type { ComfyUIWorkflow } from '@/types'
 export function assertNoPlaceholders(workflow: ComfyUIWorkflow): void {
   expect(JSON.stringify(workflow)).not.toContain('PLACEHOLDER')
 }
+
+export function assertNoDanglingLinks(workflow: ComfyUIWorkflow): void {
+  const offenders: string[] = []
+
+  for (const [nodeId, node] of Object.entries(workflow)) {
+    for (const [inputKey, value] of Object.entries(node.inputs ?? {})) {
+      if (
+        Array.isArray(value) &&
+        value.length === 2 &&
+        typeof value[0] === 'string' &&
+        typeof value[1] === 'number' &&
+        !workflow[value[0]]
+      ) {
+        offenders.push(`node ${nodeId} input ${inputKey} targets missing node ${value[0]}`)
+      }
+    }
+  }
+
+  if (offenders.length > 0) {
+    throw new Error(`Dangling workflow links:\n${offenders.join('\n')}`)
+  }
+}

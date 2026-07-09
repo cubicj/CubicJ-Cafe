@@ -1,6 +1,6 @@
 import { buildWanWorkflow as rawBuilder } from '@/lib/comfyui/workflows/wan/builder'
 import { prisma } from '@/lib/database/prisma'
-import { assertNoPlaceholders } from '../helpers/workflow-assertions'
+import { assertNoDanglingLinks, assertNoPlaceholders } from '../helpers/workflow-assertions'
 import { cleanTables } from '../helpers/db'
 import { WAN } from '@/lib/comfyui/workflows/wan/nodes'
 import type { ComfyUIWorkflow } from '@/types'
@@ -22,6 +22,27 @@ afterEach(() => {
 })
 
 describe('buildWanWorkflow', () => {
+  it.each([
+    { endImage: undefined, rtxEnabled: true },
+    { endImage: 'end.png', rtxEnabled: true },
+    { endImage: undefined, rtxEnabled: false },
+    { endImage: 'end.png', rtxEnabled: false },
+  ])('has no dangling links for endImage=$endImage rtxEnabled=$rtxEnabled', async ({ endImage, rtxEnabled }) => {
+    if (!rtxEnabled) {
+      await prisma.systemSetting.update({ where: { key: 'wan.rtx_enabled' }, data: { value: 'false' } })
+    }
+
+    const wf = await buildWanWorkflow({
+      model: 'wan',
+      prompt: 'p',
+      inputImage: 'img.png',
+      videoDuration: 5,
+      endImage,
+    })
+
+    assertNoDanglingLinks(wf)
+  })
+
   it('builds base workflow with only input image', async () => {
     const wf = await buildWanWorkflow({
       model: 'wan',
