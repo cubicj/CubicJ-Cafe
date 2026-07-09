@@ -21,7 +21,7 @@ beforeAll(async () => {
     await prisma.queueRequest.create({
       data: {
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: `bench prompt ${i}`,
         status: i < 8 ? QueueStatus.PENDING : QueueStatus.COMPLETED,
         position: i + 1,

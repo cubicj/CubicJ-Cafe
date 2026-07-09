@@ -8,7 +8,7 @@ const log = createLogger('database');
 export interface CreateUserData {
   discordId: string;
   discordUsername: string;
-  nickname: string;
+  nickname: string | null;
   avatar?: string;
 }
 

@@ -11,7 +11,7 @@ model User {
   id              Int            @id @default(autoincrement())
   discordId       String         @unique @map("discord_id")
   discordUsername String         @map("discord_username")
-  nickname        String         @unique
+  nickname        String?        @unique
   avatar          String?
   createdAt       DateTime       @default(now()) @map("created_at")
   lastActiveAt    DateTime       @default(now()) @map("last_active_at")

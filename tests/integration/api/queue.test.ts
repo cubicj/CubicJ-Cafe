@@ -25,7 +25,7 @@ describe('GET /api/queue', () => {
       await prisma.queueRequest.create({
         data: {
           userId: user.id,
-          nickname: user.nickname,
+          nickname: user.nickname ?? '',
           prompt: 'test prompt',
           status: QueueStatus.PENDING,
           position: 1,
@@ -46,7 +46,7 @@ describe('GET /api/queue', () => {
       await prisma.queueRequest.create({
         data: {
           userId: user.id,
-          nickname: user.nickname,
+          nickname: user.nickname ?? '',
           prompt: 'test prompt',
           status: QueueStatus.PENDING,
           position: 1,
@@ -129,7 +129,7 @@ describe('POST /api/queue', () => {
       const queueItem = await prisma.queueRequest.create({
         data: {
           userId: user.id,
-          nickname: user.nickname,
+          nickname: user.nickname ?? '',
           prompt: 'cancel me',
           status: QueueStatus.PENDING,
           position: 1,
@@ -160,7 +160,7 @@ describe('POST /api/queue', () => {
       const queueItem = await prisma.queueRequest.create({
         data: {
           userId: owner.id,
-          nickname: owner.nickname,
+          nickname: owner.nickname ?? '',
           prompt: 'not yours',
           status: QueueStatus.PENDING,
           position: 1,
@@ -186,7 +186,7 @@ describe('POST /api/queue', () => {
       const queueItem = await prisma.queueRequest.create({
         data: {
           userId: owner.id,
-          nickname: owner.nickname,
+          nickname: owner.nickname ?? '',
           prompt: 'admin cancel',
           status: QueueStatus.PENDING,
           position: 1,

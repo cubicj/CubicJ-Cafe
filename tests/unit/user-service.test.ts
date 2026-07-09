@@ -51,7 +51,7 @@ it('returns null on duplicate discordId', async () => {
   describe('findByNickname', () => {
     it('returns user when exists', async () => {
       const created = await UserService.create(makeUserData())
-      const found = await UserService.findByNickname(created!.nickname)
+      const found = await UserService.findByNickname(created!.nickname ?? '')
 
       expect(found).not.toBeNull()
       expect(found!.id).toBe(created!.id)

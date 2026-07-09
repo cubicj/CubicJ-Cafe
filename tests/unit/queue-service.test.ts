@@ -15,12 +15,12 @@ describe('QueueService', () => {
 
       const id1 = await QueueService.createRequest({
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: 'first',
       })
       const id2 = await QueueService.createRequest({
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: 'second',
       })
 
@@ -41,7 +41,7 @@ describe('QueueService', () => {
       await expect(
         QueueService.createRequest({
           userId: user.id,
-          nickname: user.nickname,
+          nickname: user.nickname ?? '',
           prompt: 'third',
         })
       ).rejects.toThrow('이미 2개')
@@ -56,7 +56,7 @@ describe('QueueService', () => {
 
       const id = await QueueService.createRequest({
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: 'new one',
       })
 
@@ -256,7 +256,7 @@ describe('QueueService', () => {
 
       const id = await QueueService.createRequest({
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: 'blob test',
         imageFile: 'test.png',
         imageBlob: testBlob,
@@ -335,7 +335,7 @@ describe('QueueService', () => {
 
       await QueueService.createRequest({
         userId: user.id,
-        nickname: user.nickname,
+        nickname: user.nickname ?? '',
         prompt: 'new',
       })
 

@@ -122,7 +122,7 @@ export const GET = createRouteHandler(
           await UserService.create({
             discordId: discordUser.id,
             discordUsername: discordUser.username,
-            nickname: '',
+            nickname: null,
             avatar: discordUser.avatar,
           });
 
