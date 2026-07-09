@@ -419,20 +419,25 @@ export function useI2VForm(): UseI2VFormReturn {
   }, [isLoadingAuth, user]);
 
   useEffect(() => {
+    let ignore = false;
+
     const reloadPresets = async () => {
       if (isLoadingAuth || !user) {
-        setPresets([]);
+        if (!ignore) setPresets([]);
         return;
       }
 
       if (capabilities.loraPresets) {
         const allPresets = await fetchPresets(activeModel);
-        setPresets(allPresets);
+        if (!ignore) setPresets(allPresets);
       } else {
-        setPresets([]);
+        if (!ignore) setPresets([]);
       }
     };
     reloadPresets();
+    return () => {
+      ignore = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- capabilities and fetchPresets derived from activeModel
   }, [activeModel, isLoadingAuth, user]);
 

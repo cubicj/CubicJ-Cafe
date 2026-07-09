@@ -22,18 +22,18 @@ export function useLoRAPresets(model: string = 'wan') {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPresets = async () => {
+  const fetchPresets = async (shouldApply = () => true) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const data = await apiClient.get<{ presets: LoRAPreset[] }>(`/api/lora-presets?model=${model}`);
-      setPresets(data.presets || []);
+      if (shouldApply()) setPresets(data.presets || []);
     } catch (err) {
       log.error('Failed to fetch presets', { error: err instanceof Error ? err.message : String(err) });
-      setError(err instanceof Error ? err.message : '프리셋 조회 실패');
+      if (shouldApply()) setError(err instanceof Error ? err.message : '프리셋 조회 실패');
     } finally {
-      setIsLoading(false);
+      if (shouldApply()) setIsLoading(false);
     }
   };
 
@@ -85,7 +85,11 @@ export function useLoRAPresets(model: string = 'wan') {
   };
 
   useEffect(() => {
-    fetchPresets();
+    let ignore = false;
+    fetchPresets(() => !ignore);
+    return () => {
+      ignore = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchPresets is stable, only re-fetch on model change
   }, [model]);
 
