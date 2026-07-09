@@ -247,14 +247,21 @@ class DiscordBot {
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
+    const { channel, attachment, resultMessage } = await this.withRetry(() => this.prepareVideoMessage(params));
+
+    await this.withRetry(() => channel.send({ ...resultMessage }));
+    await this.withRetry(() => channel.send({ files: [attachment] }));
+
+    log.info('Video sent to Discord successfully');
+  }
+
+  private async withRetry<T>(op: () => Promise<T>): Promise<T> {
     let lastError: Error | null = null;
     
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         log.debug('Discord send attempt', { attempt, maxAttempts: 3 });
-        await this.sendVideoToDiscordInternal(params);
-
-        return;
+        return await op();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         log.error('Discord send failed', { attempt, maxAttempts: 3, error: lastError.message });
@@ -306,7 +313,7 @@ class DiscordBot {
     log.info('Discord debug result message sent');
   }
   
-  private async sendVideoToDiscordInternal(params: {
+  private async prepareVideoMessage(params: {
     videoPath?: string;
     filename?: string;
     subfolder?: string;
@@ -321,7 +328,11 @@ class DiscordBot {
     requestId: string;
     comfyUIServerUrl?: string;
     videoModel?: string;
-  }): Promise<void> {
+  }): Promise<{
+    channel: TextChannel;
+    attachment: AttachmentBuilder;
+    resultMessage: MessageCreateOptions;
+  }> {
     if (!this.isInitialized || !this.client.isReady()) {
       log.debug('Discord Bot not ready, attempting initialization');
       await this.initialize();
@@ -391,15 +402,7 @@ class DiscordBot {
         processingTime: params.processingTime,
       });
 
-      await channel.send({
-        ...resultMessage,
-      });
-
-      await channel.send({
-        files: [attachment]
-      });
-
-      log.info('Video sent to Discord successfully');
+      return { channel, attachment, resultMessage };
     } catch (error) {
       log.error('Failed to send video to Discord', { error: error instanceof Error ? error.message : String(error) });
       throw error;

@@ -80,6 +80,7 @@ describe('discordBot singleton', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.unstubAllEnvs()
     vi.resetModules()
     delete globalThis.__discordBot
@@ -133,6 +134,46 @@ describe('discordBot singleton', () => {
     const section = container.sectionComponents[0]
     expect(section.textComponents[0].content).toBe('> <@user-1> · 60초')
     expect(section.buttonAccessory.customId).toBe('show_prompt:request-1')
+  })
+
+  it('does not resend the result card when the video file send retries', async () => {
+    vi.useFakeTimers()
+    const { discordBot } = await import('@/lib/discord-bot')
+    let fileSendAttempts = 0
+    const send = vi.fn((message: { files?: unknown[] }) => {
+      if (message.files) {
+        fileSendAttempts += 1
+        if (fileSendAttempts === 1) {
+          return Promise.reject(new Error('payload too large'))
+        }
+      }
+
+      return Promise.resolve(undefined)
+    })
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send })
+
+    const sendPromise = bot.sendVideoToDiscord({
+      videoPath: '/tmp/video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+    })
+
+    await vi.runAllTimersAsync()
+    await sendPromise
+
+    const cardSends = send.mock.calls.filter(([message]) => !message.files)
+    const fileSends = send.mock.calls.filter(([message]) => message.files)
+    expect(cardSends).toHaveLength(1)
+    expect(fileSends).toHaveLength(2)
   })
 
   it('includes request metadata when replying with a short prompt', async () => {
