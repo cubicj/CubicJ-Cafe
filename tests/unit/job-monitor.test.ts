@@ -50,6 +50,7 @@ vi.mock('@/lib/comfyui/video-result-sender', () => ({
 const mockOnExecuted = vi.fn()
 const mockOnExecutionError = vi.fn()
 const mockRemoveCallbacks = vi.fn()
+const mockInterruptProcessing = vi.fn()
 const mockGetServerById = vi.fn()
 const mockGetClient = vi.fn()
 vi.mock('@/lib/comfyui/server-manager', () => ({
@@ -86,10 +87,12 @@ describe('ComfyUIJobMonitor', () => {
       onExecuted: mockOnExecuted,
       onExecutionError: mockOnExecutionError,
       removeCallbacks: mockRemoveCallbacks,
+      interruptProcessing: mockInterruptProcessing,
       isWebSocketConnected: () => true,
     })
     mockUpdateRequest.mockResolvedValue(undefined)
     mockSendVideoToDiscord.mockResolvedValue(undefined)
+    mockInterruptProcessing.mockResolvedValue(undefined)
 
     const module = await import('@/lib/comfyui/job-monitor')
     jobMonitor = module.jobMonitor
@@ -191,6 +194,8 @@ describe('ComfyUIJobMonitor', () => {
 
     await vi.advanceTimersByTimeAsync(30 * 60 * 1000)
 
+    expect(mockInterruptProcessing).toHaveBeenCalledTimes(1)
+    expect(mockInterruptProcessing.mock.invocationCallOrder[0]).toBeLessThan(mockUpdateRequest.mock.invocationCallOrder[0])
     expect(mockUpdateRequest).toHaveBeenCalledWith('job-1', expect.objectContaining({ status: 'FAILED' }))
     expect(mockRemoveCallbacks).toHaveBeenCalledWith('prompt-1')
   })

@@ -61,10 +61,11 @@ export class ComfyUIClient {
     options: RequestInit = {},
     retries = 0
   ): Promise<T> {
+    const method = (options.method || 'GET').toUpperCase()
     try {
       return await comfyuiFetch<T>(this.baseURL, endpoint, options, this.timeout)
     } catch (error) {
-      if (retries < this.maxRetries) {
+      if ((method === 'GET' || method === 'HEAD') && retries < this.maxRetries) {
         await new Promise(resolve => setTimeout(resolve, 1000 * (retries + 1)))
         return this.makeRequest<T>(endpoint, options, retries + 1)
       }
@@ -222,6 +223,9 @@ export class ComfyUIClient {
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       log.error('WebSocket reconnect exhausted', { attempts: this.reconnectAttempts })
+      this.ws?.removeAllListeners()
+      this.ws = null
+      this.reconnectAttempts = 0
       return
     }
 

@@ -76,6 +76,11 @@ class ComfyUIJobMonitor {
     const timer = setTimeout(async () => {
       const minutes = Math.round(timeoutMs / 60000)
       log.warn('Monitoring timeout', { minutes, promptId: job.promptId })
+      try {
+        await client.interruptProcessing()
+      } catch (e) {
+        log.warn('Interrupt on monitoring timeout failed', { promptId: job.promptId, error: e instanceof Error ? e.message : String(e) })
+      }
       await this.failJob(job, `모니터링 시간 초과 (${minutes}분)`, client)
     }, timeoutMs)
 

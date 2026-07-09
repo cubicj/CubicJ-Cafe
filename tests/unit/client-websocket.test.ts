@@ -134,6 +134,18 @@ describe('ComfyUIClient WebSocket', () => {
     expect(url).toMatch(/^ws:\/\/127\.0\.0\.1:8188\/ws\?clientId=cubicj-cafe-/)
   })
 
+  it('clears dead socket after reconnect exhaustion', () => {
+    const removeAllListeners = vi.fn()
+    client['ws'] = { removeAllListeners } as never
+    client['reconnectAttempts'] = client['maxReconnectAttempts']
+
+    client['attemptReconnect']()
+
+    expect(removeAllListeners).toHaveBeenCalled()
+    expect(client['ws']).toBeNull()
+    expect(client['reconnectAttempts']).toBe(0)
+  })
+
   it('preserves executed callbacks across disconnect', () => {
     const callback = vi.fn()
     client.onExecuted('prompt-1', callback)

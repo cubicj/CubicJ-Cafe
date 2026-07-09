@@ -18,33 +18,35 @@ export async function comfyuiFetch<T>(
 
   const fullUrl = `${baseURL}${endpoint}`
 
-  const response = await fetch(fullUrl, {
-    ...options,
-    signal: controller.signal,
-    headers,
-  })
-
-  clearTimeout(timeoutId)
-
-  if (!response.ok) {
-    throw new Error(
-      `ComfyUI API 오류: ${response.status} ${response.statusText}`
-    )
-  }
-
-  const responseText = await response.text()
-  if (!responseText || responseText.trim() === '') {
-    throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
-  }
-
   try {
-    return JSON.parse(responseText)
-  } catch (parseError) {
-    log.error('ComfyUI JSON parse error', {
-      endpoint,
-      responseText: responseText.substring(0, 200),
-      error: parseError instanceof Error ? parseError.message : String(parseError)
+    const response = await fetch(fullUrl, {
+      ...options,
+      signal: controller.signal,
+      headers,
     })
-    throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
+
+    if (!response.ok) {
+      throw new Error(
+        `ComfyUI API 오류: ${response.status} ${response.statusText}`
+      )
+    }
+
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('ComfyUI 서버에서 빈 응답을 받았습니다.')
+    }
+
+    try {
+      return JSON.parse(responseText)
+    } catch (parseError) {
+      log.error('ComfyUI JSON parse error', {
+        endpoint,
+        responseText: responseText.substring(0, 200),
+        error: parseError instanceof Error ? parseError.message : String(parseError)
+      })
+      throw new Error('ComfyUI 서버 응답을 파싱할 수 없습니다.')
+    }
+  } finally {
+    clearTimeout(timeoutId)
   }
 }
