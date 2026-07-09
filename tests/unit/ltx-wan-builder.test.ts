@@ -251,6 +251,7 @@ describe('buildLtxWanWorkflow', () => {
     const workflow = await buildLtxWanWorkflow(DEFAULT_PARAMS)
 
     expect(workflow[LTX_WAN.RIFE_CUSTOM_CONFIG]).toBeUndefined()
+    expect(workflow[LTX_WAN.RIFE_MODEL_LOADER]!.inputs!.custom_config).toBeUndefined()
   })
 
   it('wires reference-audio positive through FORCE_UNLOAD_CONDITIONING (197)', async () => {

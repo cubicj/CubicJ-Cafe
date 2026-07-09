@@ -211,7 +211,8 @@ export const LTXR_WORKFLOW_TEMPLATE = {
   },
   '416': {
     inputs: {
-      value: 0,
+      number: 0,
+      number_type: 'integer',
     },
     class_type: 'Constant Number',
     _meta: {

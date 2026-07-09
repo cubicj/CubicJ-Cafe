@@ -131,7 +131,10 @@ function configureGeneration(
   });
   setNode(workflow, LTXR.DURATION, { value: params.videoDuration });
   setNode(workflow, LTXR.FRAME_BASE, { value: settings.frameBase });
-  setNode(workflow, LTXR.FRAME_RATE, { value: Math.round(settings.frameRate) });
+  setNode(workflow, LTXR.FRAME_RATE, {
+    number: Math.round(settings.frameRate),
+    number_type: 'integer',
+  });
   setNode(workflow, LTXR.RESIZE_START_IMAGE, {
     megapixels: settings.megapixels,
     multiple_of: settings.resizeMultipleOf,

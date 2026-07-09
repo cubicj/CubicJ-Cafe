@@ -59,6 +59,11 @@ describe('buildLtxrWorkflow', () => {
     })
     expect(wf[LTXR.TEXT_ENCODER]!.class_type).toBe('LTXAVTextEncoderLoader')
     expect(wf[LTXR.DURATION]!.inputs!.value).toBe(8)
+    expect(wf[LTXR.FRAME_RATE]!.inputs).toEqual({
+      number: 18,
+      number_type: 'integer',
+    })
+    expect(wf[LTXR.FRAME_RATE]!.inputs!.value).toBeUndefined()
     expect(wf[LTXR.FIRST_PASS_SAGE_ATTN_PATCH]).toMatchObject({
       class_type: 'PathchSageAttentionKJ',
       inputs: {

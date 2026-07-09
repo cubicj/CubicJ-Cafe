@@ -301,6 +301,7 @@ function configurePostProcessing(workflow: ComfyUIWorkflow, settings: LtxWanSett
       })
     } else {
       delete workflow[LTX_WAN.RIFE_CUSTOM_CONFIG]
+      delete workflow[LTX_WAN.RIFE_MODEL_LOADER]!.inputs!.custom_config
     }
     lastOutput = LTX_WAN.VFI
   } else {
