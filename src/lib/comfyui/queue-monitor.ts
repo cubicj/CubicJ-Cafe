@@ -33,6 +33,8 @@ class QueueMonitor {
   private checkInterval = 5000;
   private currentlyProcessing = new Set<string>();
   private pauseLoggedOnce = false;
+  private processingInFlight = false;
+  private processQueueRerun = false;
   private activeServers: Array<{ client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }> = [];
   private lastModelByServer = new Map<string, string>();
 
@@ -200,98 +202,113 @@ class QueueMonitor {
   }
 
   private async processQueue(): Promise<void> {
-    if (!isComfyUIEnabled()) return;
-    // 1. 활성 서버 목록 업데이트 (주기적으로)
-    await this.updateActiveServers();
-
-    const maxConcurrent = this.getMaxConcurrentProcessing();
-    
-    // 2. 사용 가능한 서버 개수 확인 (실제 서버 상태 기반)
-    const availableServerCount = this.activeServers.filter(server => !server.currentJobId).length;
-    
-    // 3. 메모리와 데이터베이스 모두에서 처리 중인 요청 수 확인
-    const actualProcessingCount = await QueueService.getProcessingCount();
-    const memoryProcessingCount = this.currentlyProcessing.size;
-    
-    // 더 큰 값을 사용 (Race Condition 방지)
-    const currentProcessingCount = Math.max(actualProcessingCount, memoryProcessingCount);
-
-    // 활성 서버가 없으면 처리 불가
-    if (maxConcurrent === 0 || availableServerCount === 0) {
+    if (this.processingInFlight) {
+      this.processQueueRerun = true;
       return;
     }
 
-    // 4. 서버별 상태와 전체 처리량 모두 체크
-    const actualAvailableSlots = Math.min(
-      availableServerCount, // 사용 가능한 서버 수
-      maxConcurrent - currentProcessingCount // 전체 처리 가능 슬롯
-    );
-    
-    if (actualAvailableSlots <= 0) {
-      return;
-    }
+    this.processingInFlight = true;
 
-    // 디버깅: 동시 처리 현황 로그 완전 제거
+    try {
+      if (!isComfyUIEnabled()) return;
+      // 1. 활성 서버 목록 업데이트 (주기적으로)
+      await this.updateActiveServers();
 
-    // 5. 사용 가능한 서버 수만큼만 요청 처리
-    const promises: Promise<void>[] = [];
+      const maxConcurrent = this.getMaxConcurrentProcessing();
 
-    for (let i = 0; i < actualAvailableSlots; i++) {
-      const pauseAfterPosition = getQueuePauseAfterPosition();
-      if (pauseAfterPosition !== null) {
-        const nextPendingPosition = await QueueService.peekNextPendingPosition();
-        if (nextPendingPosition === null || nextPendingPosition > pauseAfterPosition) {
-          if (!this.pauseLoggedOnce) {
-            log.info('Queue paused by reservation', { pauseAfterPosition });
-            this.pauseLoggedOnce = true;
+      // 2. 사용 가능한 서버 개수 확인 (실제 서버 상태 기반)
+      const availableServerCount = this.activeServers.filter(server => !server.currentJobId).length;
+
+      // 3. 메모리와 데이터베이스 모두에서 처리 중인 요청 수 확인
+      const actualProcessingCount = await QueueService.getProcessingCount();
+      const memoryProcessingCount = this.currentlyProcessing.size;
+
+      // 더 큰 값을 사용 (Race Condition 방지)
+      const currentProcessingCount = Math.max(actualProcessingCount, memoryProcessingCount);
+
+      // 활성 서버가 없으면 처리 불가
+      if (maxConcurrent === 0 || availableServerCount === 0) {
+        return;
+      }
+
+      // 4. 서버별 상태와 전체 처리량 모두 체크
+      const actualAvailableSlots = Math.min(
+        availableServerCount, // 사용 가능한 서버 수
+        maxConcurrent - currentProcessingCount // 전체 처리 가능 슬롯
+      );
+      
+      if (actualAvailableSlots <= 0) {
+        return;
+      }
+
+      // 디버깅: 동시 처리 현황 로그 완전 제거
+
+      // 5. 사용 가능한 서버 수만큼만 요청 처리
+      const promises: Promise<void>[] = [];
+
+      for (let i = 0; i < actualAvailableSlots; i++) {
+        const pauseAfterPosition = getQueuePauseAfterPosition();
+        if (pauseAfterPosition !== null) {
+          const nextPendingPosition = await QueueService.peekNextPendingPosition();
+          if (nextPendingPosition === null || nextPendingPosition > pauseAfterPosition) {
+            if (!this.pauseLoggedOnce) {
+              log.info('Queue paused by reservation', { pauseAfterPosition });
+              this.pauseLoggedOnce = true;
+            }
+            break;
           }
+        } else {
+          this.pauseLoggedOnce = false;
+        }
+
+        const selectedServer = this.selectAvailableServer();
+        if (!selectedServer) {
           break;
         }
-      } else {
-        this.pauseLoggedOnce = false;
-      }
 
-      const selectedServer = this.selectAvailableServer();
-      if (!selectedServer) {
-        break;
-      }
+        // 원자적으로 다음 요청을 가져와서 PROCESSING 상태로 변경
+        const claimedRequest = await QueueService.getAndClaimNextPendingRequest();
 
-      // 원자적으로 다음 요청을 가져와서 PROCESSING 상태로 변경
-      const claimedRequest = await QueueService.getAndClaimNextPendingRequest();
-      
-      if (!claimedRequest) {
-        // 디버깅: 처리할 요청 없음 로그 제거 (정상 상황)
-        break;
-      }
+        if (!claimedRequest) {
+          // 디버깅: 처리할 요청 없음 로그 제거 (정상 상황)
+          break;
+        }
 
-      log.info('Request assigned to server', {
-        requestId: claimedRequest.id,
-        server: selectedServer.name,
-        slot: i + 1
-      });
-
-      // 즉시 서버에 할당 (race condition 방지)
-      this.assignJobToServer(selectedServer, claimedRequest.id);
-
-      // 병렬 처리 시작
-      this.currentlyProcessing.add(claimedRequest.id);
-      const promise = this.processQueueRequestWithServer(claimedRequest.id, selectedServer)
-        .catch(error => {
-          log.error('Queue request processing failed', {
-            requestId: claimedRequest.id,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        })
-        .finally(() => {
-          this.currentlyProcessing.delete(claimedRequest.id);
+        log.info('Request assigned to server', {
+          requestId: claimedRequest.id,
+          server: selectedServer.name,
+          slot: i + 1
         });
-      
-      promises.push(promise);
-    }
 
-    // 모든 병렬 처리 시작 (await하지 않음 - 비동기 실행)
-    if (promises.length > 0) {
-      log.debug('Parallel processing started', { count: promises.length });
+        // 즉시 서버에 할당 (race condition 방지)
+        this.assignJobToServer(selectedServer, claimedRequest.id);
+
+        // 병렬 처리 시작
+        this.currentlyProcessing.add(claimedRequest.id);
+        const promise = this.processQueueRequestWithServer(claimedRequest.id, selectedServer)
+          .catch(error => {
+            log.error('Queue request processing failed', {
+              requestId: claimedRequest.id,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          })
+          .finally(() => {
+            this.currentlyProcessing.delete(claimedRequest.id);
+          });
+
+        promises.push(promise);
+      }
+
+      // 모든 병렬 처리 시작 (await하지 않음 - 비동기 실행)
+      if (promises.length > 0) {
+        log.debug('Parallel processing started', { count: promises.length });
+      }
+    } finally {
+      this.processingInFlight = false;
+      if (this.processQueueRerun) {
+        this.processQueueRerun = false;
+        void this.processQueue();
+      }
     }
   }
 

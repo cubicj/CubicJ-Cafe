@@ -189,12 +189,13 @@ export class QueueService {
   }
 
   static async updateRequest(requestId: string, updates: QueueRequestUpdate) {
-    QueueService.invalidateCache();
-
-    return await prisma.queueRequest.update({
+    const updated = await prisma.queueRequest.update({
       where: { id: requestId },
       data: updates
     });
+
+    QueueService.invalidateCache();
+    return updated;
   }
 
   static async clearImageBlobs(requestId: string) {
@@ -293,32 +294,38 @@ export class QueueService {
           }
         };
 
-    const request = await prisma.queueRequest.findFirst({
-      where: whereCondition
-    });
+    const cancelled = await prisma.$transaction(
+      async (tx) => {
+        const request = await tx.queueRequest.findFirst({
+          where: whereCondition
+        });
 
-    if (!request) {
-      throw new Error('취소할 수 있는 요청을 찾을 수 없습니다.');
-    }
+        if (!request) {
+          throw new Error('취소할 수 있는 요청을 찾을 수 없습니다.');
+        }
 
-    const wasProcessing = request.status === QueueStatus.PROCESSING;
-    const { jobId, serverId } = request;
+        const wasProcessing = request.status === QueueStatus.PROCESSING;
+        const { jobId, serverId } = request;
+
+        const updated = await tx.queueRequest.update({
+          where: { id: requestId },
+          data: {
+            status: QueueStatus.CANCELLED,
+            failedAt: new Date(),
+            error: isAdmin ? '관리자가 취소함' : '사용자가 취소함',
+            imageBlob: null,
+            endImageBlob: null,
+            audioBlob: null,
+          }
+        });
+
+        return { ...updated, wasProcessing, cancelledJobId: jobId, cancelledServerId: serverId };
+      },
+      { isolationLevel: 'Serializable', timeout: 15000 },
+    );
 
     QueueService.invalidateCache();
-
-    const updated = await prisma.queueRequest.update({
-      where: { id: requestId },
-      data: {
-        status: QueueStatus.CANCELLED,
-        failedAt: new Date(),
-        error: isAdmin ? '관리자가 취소함' : '사용자가 취소함',
-        imageBlob: null,
-        endImageBlob: null,
-        audioBlob: null,
-      }
-    });
-
-    return { ...updated, wasProcessing, cancelledJobId: jobId, cancelledServerId: serverId };
+    return cancelled;
   }
 
   static async peekNextPendingPosition(): Promise<number | null> {
@@ -418,7 +425,7 @@ export class QueueService {
 
   static async getAndClaimNextPendingRequest(): Promise<QueueRequestWithUser | null> {
     try {
-      return await prisma.$transaction(async (tx) => {
+      const claimedRequest = await prisma.$transaction(async (tx) => {
         const nextRequest = await tx.queueRequest.findFirst({
           where: {
             status: QueueStatus.PENDING
@@ -471,6 +478,12 @@ export class QueueService {
       }, {
         isolationLevel: 'Serializable'
       });
+
+      if (claimedRequest) {
+        QueueService.invalidateCache();
+      }
+
+      return claimedRequest;
     } catch (error) {
       log.warn('Atomic next request claim failed', { error: error instanceof Error ? error.message : String(error) });
       return null;
