@@ -213,21 +213,6 @@ export class QueueService {
     statsCache.invalidate();
   }
 
-  static async updateRequestIfPending(requestId: string, updates: QueueRequestUpdate) {
-    try {
-      return await prisma.queueRequest.update({
-        where: {
-          id: requestId,
-          status: QueueStatus.PENDING
-        },
-        data: updates
-      });
-    } catch (error) {
-      log.debug('updateRequestIfPending: request not in PENDING state or not found', { requestId, error: error instanceof Error ? error.message : String(error) });
-      return null;
-    }
-  }
-
   static async getRequestById(requestId: string) {
     return await prisma.queueRequest.findUnique({
       where: { id: requestId },

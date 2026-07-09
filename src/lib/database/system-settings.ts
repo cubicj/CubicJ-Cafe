@@ -4,45 +4,6 @@ import type { VideoModel } from '@/lib/comfyui/workflows/types';
 
 const log = createLogger('database');
 
-export async function getSystemSetting(key: string, defaultValue: string = ''): Promise<string> {
-  try {
-    const setting = await prisma.systemSetting.findUnique({
-      where: { key }
-    });
-    return setting?.value || defaultValue;
-  } catch (error) {
-    log.error('System setting fetch error', { key, error: error instanceof Error ? error.message : String(error) });
-    return defaultValue;
-  }
-}
-
-export async function getSystemSettingAsNumber(key: string, defaultValue: number = 0): Promise<number> {
-  try {
-    const value = await getSystemSetting(key, defaultValue.toString());
-    const parsed = parseInt(value, 10);
-    return isNaN(parsed) ? defaultValue : parsed;
-  } catch {
-    return defaultValue;
-  }
-}
-
-export async function getSystemSettingRequired(key: string): Promise<string> {
-  const setting = await prisma.systemSetting.findUnique({ where: { key } });
-  if (!setting || !setting.value) {
-    throw new Error(`필수 설정값 누락: ${key}`);
-  }
-  return setting.value;
-}
-
-export async function getSystemSettingAsFloat(key: string): Promise<number> {
-  const value = await getSystemSettingRequired(key);
-  const parsed = parseFloat(value);
-  if (isNaN(parsed)) {
-    throw new Error(`유효하지 않은 숫자 설정값: ${key} = "${value}"`);
-  }
-  return parsed;
-}
-
 export async function setSystemSetting(
   key: string,
   value: string,

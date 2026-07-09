@@ -88,20 +88,8 @@ export function middleware(request: NextRequest) {
     ))
   }
 
-  const sessionCookie = request.cookies.get('session_id');
+  const response = NextResponse.next();
 
-  const newHeaders = new Headers(request.headers);
-  
-  if (sessionCookie) {
-    newHeaders.set('x-session-id', sessionCookie.value);
-  }
-
-  const response = NextResponse.next({
-    request: {
-      headers: newHeaders,
-    },
-  });
-  
   return applySecurityHeaders(response);
 }
 
