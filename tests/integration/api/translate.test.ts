@@ -51,6 +51,13 @@ describe('POST /api/translate', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 400 for invalid language code', async () => {
+    const req = authReq({ text: 'hello', sourceLang: 'en&dt=bd', targetLang: 'ko' })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('translates with google', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(JSON.stringify([[['translated text', 'original text']]]), { status: 200 })

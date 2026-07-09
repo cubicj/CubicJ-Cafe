@@ -61,6 +61,27 @@ describe('i2vSchema image validation', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects malformed loraPreset without throwing', () => {
+    const file = new File(['fake content'], 'photo.jpg', { type: 'image/jpeg' })
+    const fd = makeFormData(file)
+    fd.set('loraPreset', '{')
+    const result = i2vSchema.safeParse(Object.fromEntries(fd.entries()))
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts well-formed loraPreset', () => {
+    const file = new File(['fake content'], 'photo.jpg', { type: 'image/jpeg' })
+    const fd = makeFormData(file)
+    fd.set('loraPreset', JSON.stringify({
+      presetId: 'preset-1',
+      presetName: 'Preset 1',
+      loraItems: [],
+    }))
+    const result = i2vSchema.safeParse(Object.fromEntries(fd.entries()))
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.loraPreset?.presetName).toBe('Preset 1')
+  })
+
   it('rejects legacy ltx model id', () => {
     const form = new FormData()
     form.set('prompt', 'test prompt')

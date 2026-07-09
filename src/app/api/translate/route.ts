@@ -30,9 +30,9 @@ export const POST = createRouteHandler(
 );
 
 async function translateWithGoogle(text: string, sourceLang: string, targetLang: string): Promise<string> {
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sourceLang)}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
 
   if (!response.ok) {
     throw new Error('Google 번역 API 호출 실패');

@@ -17,6 +17,7 @@ const rateLimitRules: RateLimitRule[] = [
 ]
 
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>()
+let lastBucketSweep = 0
 
 const csp = [
   "default-src 'self'",
@@ -48,6 +49,13 @@ function checkRateLimit(request: NextRequest) {
   if (!rule) return null
 
   const now = Date.now()
+  if (now - lastBucketSweep >= 60_000) {
+    for (const [key, bucket] of rateLimitBuckets) {
+      if (bucket.resetAt <= now) rateLimitBuckets.delete(key)
+    }
+    lastBucketSweep = now
+  }
+
   const key = `${getClientKey(request)}:${request.method}:${request.nextUrl.pathname}`
   const bucket = rateLimitBuckets.get(key)
 
@@ -72,6 +80,7 @@ function applySecurityHeaders(response: NextResponse) {
 
 export function resetRateLimitForTests() {
   rateLimitBuckets.clear()
+  lastBucketSweep = 0
 }
 
 export function middleware(request: NextRequest) {

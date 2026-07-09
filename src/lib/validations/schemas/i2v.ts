@@ -40,7 +40,14 @@ export const i2vSchema = z.object({
   endImage: optionalImageSchema,
   audioPresetId: z.string().min(1).optional(),
   model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('wan'),
-  loraPreset: z.string().transform((s) => JSON.parse(s)).pipe(i2vLoraPresetDataSchema).optional(),
+  loraPreset: z.string().transform((s, ctx) => {
+    try {
+      return JSON.parse(s)
+    } catch {
+      ctx.addIssue({ code: 'custom', message: '유효하지 않은 loraPreset 형식입니다' })
+      return z.NEVER
+    }
+  }).pipe(i2vLoraPresetDataSchema).optional(),
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   isLoop: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   videoDuration: z.coerce.number().int().positive().default(5),
