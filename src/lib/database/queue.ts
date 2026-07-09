@@ -362,24 +362,6 @@ export class QueueService {
     return result.count;
   }
 
-  static async cleanupExpiredRequests() {
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-    return await prisma.queueRequest.updateMany({
-      where: {
-        status: QueueStatus.PROCESSING,
-        startedAt: {
-          lt: oneDayAgo
-        }
-      },
-      data: {
-        status: QueueStatus.FAILED,
-        failedAt: new Date(),
-        error: '처리 시간 초과로 자동 실패 처리됨'
-      }
-    });
-  }
-
   static async resetStaleProcessingRequests() {
     const result = await prisma.queueRequest.updateMany({
       where: {
