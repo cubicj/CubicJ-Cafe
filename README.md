@@ -2,14 +2,34 @@
 
 AI Image-to-Video generation web frontend powered by ComfyUI.
 
+Upload an image, write a prompt, and get a generated video delivered to Discord — with a queue, multi-model routing, and a full admin dashboard on top.
+
+## Screenshots
+
+![Home](.github/images/home.png)
+
+| Generation | Admin Dashboard |
+|------------|-----------------|
+| ![Generation page](.github/images/i2v.png) | ![Admin dashboard](.github/images/admin.png) |
+
 ## Features
 
 - **Image-to-Video** — Upload an image with a prompt, get a generated video
-- **Multi-Model** — WAN 2.2 (LoRA support, end image, variable duration) / LTX 2.3 (audio support)
-- **LoRA Presets** — Create and manage style presets with drag-and-drop ordering
-- **Queue System** — Serializable queue with real-time status tracking
-- **Discord Integration** — OAuth2 auth + bot delivery of completed videos
-- **Admin Dashboard** — Live log viewer (SSE), queue control, ComfyUI monitoring, DB tools
+- **Multi-Model** — Four workflow pipelines dispatched through a single capability-driven registry
+
+  | Model | End Image | Audio | Duration |
+  |-------|:---------:|:-----:|----------|
+  | WAN 2.2 | ✓ | — | 5–7s |
+  | LTX (Anime) | — | ✓ | 5–7s |
+  | LTX (Real) | ✓ | ✓ | 5–7s |
+  | L+W (LTX + WAN hybrid) | ✓ | ✓ | 5–8s |
+
+- **Queue System** — Serializable queue with atomic position assignment and real-time status tracking
+- **LoRA Presets & Bundles** — Drag-and-drop preset management, per-model availability gated by capability flags
+- **Audio Presets** — Upload and reuse audio clips for audio-capable models
+- **Prompt Translation** — Built-in translation endpoint for non-English prompts
+- **Discord Integration** — OAuth2 auth + in-process bot delivery of completed videos
+- **Admin Dashboard** — Model activation toggles, queue control and pause scheduling, live log viewer (SSE), ComfyUI monitoring, DB browser
 - **Multi-Server** — Auto-selects between local and cloud (RunPod) ComfyUI instances
 
 ## Tech Stack
@@ -31,16 +51,18 @@ AI Image-to-Video generation web frontend powered by ComfyUI.
 ```
 src/
 ├── app/
-│   ├── api/          # 33 API route handlers
+│   ├── api/          # 46 API route handlers
 │   │   ├── i2v/      # Video generation endpoint
 │   │   ├── queue/    # Queue management + monitoring
 │   │   ├── admin/    # Protected admin routes
 │   │   └── auth/     # Discord OAuth2 flow
 │   ├── i2v/          # Generation page
-│   └── admin/        # Admin dashboard
+│   ├── admin/        # Admin dashboard
+│   ├── profile/      # User profile
+│   └── settings/     # User settings
 ├── lib/
-│   ├── comfyui/      # Workflow builders, queue/job monitors, server management
-│   │   └── workflows/  # Per-model builders (WAN, LTX) + registry
+│   ├── comfyui/      # Queue/job monitors, server management
+│   │   └── workflows/  # Per-model builders (wan, ltxa, ltxr, ltx-wan) + registry
 │   ├── database/     # Prisma service layer
 │   ├── auth/         # Session management, withAuth/withAdmin HOF
 │   ├── validations/  # Zod schemas + parse helpers
@@ -59,7 +81,7 @@ tests/
 npm install
 npm run prisma:migrate    # Set up database
 npm run dev               # Dev server
-npm test                  # 324 tests
+npm test                  # 515 tests
 npm run type-check        # tsc --noEmit
 npm run lint              # ESLint
 ```
@@ -80,6 +102,7 @@ npm run build
 ## Architecture Notes
 
 - ComfyUI workflows are JSON node graphs — each model has a completely different structure, dispatched via `workflow-router.ts`
+- Model capabilities (end image, audio, duration, LoRA) live in a single registry that gates both UI and API validation
 - Queue uses Serializable isolation for atomic position assignment
 - Logger is split: `logger.ts` stays client-safe (no `fs`), file I/O in `logger-file.ts` connected via `instrumentation.ts`
 - Discord bot runs in-process (not a separate service)
