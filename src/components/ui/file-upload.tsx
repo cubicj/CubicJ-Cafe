@@ -22,47 +22,49 @@ export function FileUpload({
   className,
   maxSize = 10 * 1024 * 1024,
 }: FileUploadProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(
+  const [internalSelectedFile, setInternalSelectedFile] = useState<File | null>(
     externalSelectedFile ?? null
   );
-  const [preview, setPreview] = useState<string | null>(null);
+  const [previewState, setPreviewState] = useState<{ file: File; dataUrl: string } | null>(null);
+  const selectedFile = externalSelectedFile !== undefined
+    ? externalSelectedFile
+    : internalSelectedFile;
+  const preview = previewState?.file === selectedFile ? previewState.dataUrl : null;
 
   useEffect(() => {
     let cancelled = false;
 
-    if (externalSelectedFile === null) {
-      setSelectedFile(null);
-      setPreview(null);
-    } else if (externalSelectedFile) {
-      setSelectedFile(externalSelectedFile);
-      createImagePreview(externalSelectedFile).then(dataUrl => {
-        if (!cancelled) setPreview(dataUrl);
-      }).catch(() => {
-        if (!cancelled) setPreview(null);
-      });
-    }
+    if (!selectedFile) return;
+
+    createImagePreview(selectedFile).then(dataUrl => {
+      if (!cancelled) setPreviewState({ file: selectedFile, dataUrl });
+    }).catch(() => {
+      if (!cancelled) setPreviewState(null);
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [externalSelectedFile]);
+  }, [selectedFile]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (file) {
-        setSelectedFile(file);
+        setInternalSelectedFile(file);
         onFileSelect(file);
 
-        createImagePreview(file).then(setPreview).catch(() => setPreview(null));
+        createImagePreview(file)
+          .then((dataUrl) => setPreviewState({ file, dataUrl }))
+          .catch(() => setPreviewState(null));
       }
     },
     [onFileSelect]
   );
 
   const removeFile = () => {
-    setSelectedFile(null);
-    setPreview(null);
+    setInternalSelectedFile(null);
+    setPreviewState(null);
     onFileSelect(null);
   };
 

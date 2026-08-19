@@ -20,6 +20,11 @@ import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state'
 
 let sessionId: string
 
+interface ServerStatus {
+  type: 'local' | 'runpod'
+  name: string
+}
+
 beforeEach(async () => {
   await cleanTables()
   const user = await createUser()
@@ -60,8 +65,8 @@ describe('GET /api/comfyui/status', () => {
     const res = await GET(buildAuthenticatedRequest('/api/comfyui/status', sessionId), noContext)
     const body = await res.json()
 
-    const localServer = body.servers.find((s: any) => s.type === 'local')
+    const localServer = (body.servers as ServerStatus[]).find((server) => server.type === 'local')
     expect(localServer).toBeDefined()
-    expect(localServer.name).toBe('로컬 서버')
+    expect(localServer!.name).toBe('로컬 서버')
   })
 })

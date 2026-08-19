@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/logger';
 import { apiClient, ApiError } from '@/lib/api-client';
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   const [queueRefreshMessage, setQueueRefreshMessage] = useState('');
   const [activeTab, setActiveTab] = useState('database');
 
-  const fetchComfyUIState = async (): Promise<boolean> => {
+  const fetchComfyUIState = useCallback(async (): Promise<boolean> => {
     try {
       const data = await apiClient.get<{ enabled: boolean }>('/api/admin/comfyui-toggle');
       setComfyuiEnabled(data.enabled);
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
     } finally {
       setComfyuiLoading(false);
     }
-  };
+  }, []);
 
   const toggleComfyUI = async (enabled: boolean) => {
     try {
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchModelEnabledState = async () => {
+  const fetchModelEnabledState = useCallback(async () => {
     setModelEnabledLoading(true);
     try {
       const data = await apiClient.get<Record<string, Record<string, AdminSettingEntry>>>('/api/admin/settings');
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     } finally {
       setModelEnabledLoading(false);
     }
-  };
+  }, []);
 
   const toggleModelEnabled = async (key: ModelEnabledKey, enabled: boolean) => {
     const item = MODEL_ENABLE_TOGGLES.find((toggle) => toggle.key === key);
@@ -145,12 +145,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchPauseState = async () => {
+  const fetchPauseState = useCallback(async () => {
     try {
       const data = await apiClient.get<{ pauseAfterPosition?: number }>('/api/queue?action=list');
       setCurrentPause(data.pauseAfterPosition ?? null);
     } catch {}
-  };
+  }, []);
 
   const handleSetPause = async () => {
     const position = parseInt(pausePosition);
@@ -233,8 +233,7 @@ export default function AdminDashboard() {
     };
 
     checkAdminPermission();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount check only
-  }, []);
+  }, [fetchComfyUIState, fetchModelEnabledState, fetchPauseState, router]);
 
   if (!isAuthorized && authError) {
     return (

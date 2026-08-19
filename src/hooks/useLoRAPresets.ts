@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LoRAPresetItem } from '@/types';
 import { createLogger } from '@/lib/logger';
 import { apiClient } from '@/lib/api-client';
@@ -19,11 +19,13 @@ interface LoRAPreset {
 
 export function useLoRAPresets(model: string = 'wan') {
   const [presets, setPresets] = useState<LoRAPreset[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadedModel, setLoadedModel] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isLoading = loadedModel !== model || isRefreshing;
 
-  const fetchPresets = async (shouldApply = () => true) => {
-    setIsLoading(true);
+  const fetchPresets = useCallback(async (shouldApply = () => true) => {
+    setIsRefreshing(true);
     setError(null);
 
     try {
@@ -33,9 +35,12 @@ export function useLoRAPresets(model: string = 'wan') {
       log.error('Failed to fetch presets', { error: err instanceof Error ? err.message : String(err) });
       if (shouldApply()) setError(err instanceof Error ? err.message : '프리셋 조회 실패');
     } finally {
-      if (shouldApply()) setIsLoading(false);
+      if (shouldApply()) {
+        setLoadedModel(model);
+        setIsRefreshing(false);
+      }
     }
-  };
+  }, [model]);
 
   const reorderPresets = async (presetIds: string[]) => {
     try {
@@ -86,11 +91,28 @@ export function useLoRAPresets(model: string = 'wan') {
 
   useEffect(() => {
     let ignore = false;
-    fetchPresets(() => !ignore);
+
+    apiClient.get<{ presets: LoRAPreset[] }>(`/api/lora-presets?model=${model}`)
+      .then((data) => {
+        if (!ignore) {
+          setPresets(data.presets || []);
+          setError(null);
+        }
+      })
+      .catch((err: unknown) => {
+        log.error('Failed to fetch presets', { error: err instanceof Error ? err.message : String(err) });
+        if (!ignore) setError(err instanceof Error ? err.message : '프리셋 조회 실패');
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoadedModel(model);
+          setIsRefreshing(false);
+        }
+      });
+
     return () => {
       ignore = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchPresets is stable, only re-fetch on model change
   }, [model]);
 
   return {

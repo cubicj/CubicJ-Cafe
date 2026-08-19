@@ -13,6 +13,23 @@ interface LoRAPresetsTableProps {
   onToggleExpand: (itemId: string) => void;
 }
 
+interface LoRAPresetRow extends Record<string, unknown> {
+  name: string;
+  isDefault: boolean;
+  isPublic: boolean;
+  createdAt: string;
+  user?: { nickname: string };
+  _count?: { loraItems: number };
+  loraItems?: LoRAPresetItemRow[];
+}
+
+interface LoRAPresetItemRow {
+  loraFilename?: string;
+  loraName?: string;
+  strength: number;
+  group: string;
+}
+
 export function LoRAPresetsTable({ data, sort, expandedItems, onSort, onToggleExpand }: LoRAPresetsTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -33,8 +50,7 @@ export function LoRAPresetsTable({ data, sort, expandedItems, onSort, onToggleEx
       </div>
 
       <div className="divide-y">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic DB viewer renders arbitrary Prisma rows */}
-        {data.map((preset: any, index: number) => {
+        {(data as LoRAPresetRow[]).map((preset, index) => {
           const itemId = `preset-${index}`;
           const isExpanded = expandedItems.has(itemId);
 
@@ -69,8 +85,7 @@ export function LoRAPresetsTable({ data, sort, expandedItems, onSort, onToggleEx
                 <div className="px-4 py-3 bg-muted/20 border-t">
                   <div className="font-medium text-sm mb-2">LoRA 아이템들:</div>
                   <div className="space-y-2">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- nested LoRA items from JSON parse */}
-                    {preset.loraItems.map((item: any, itemIndex: number) => {
+                    {preset.loraItems.map((item, itemIndex) => {
                       const displayName = item.loraName || item.loraFilename || '알 수 없는 LoRA';
 
                       return (

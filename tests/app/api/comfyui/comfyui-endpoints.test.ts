@@ -2,6 +2,8 @@ import { vi } from 'vitest'
 import { cleanTables } from '@tests/helpers/db'
 import { createUser } from '@tests/helpers/fixtures'
 import { createTestSession, buildAuthenticatedRequest, noContext } from '@tests/helpers/auth'
+import type { ComfyUIClient } from '@/lib/comfyui/client'
+import type { ComfyUIServer } from '@/lib/comfyui/server-manager'
 
 vi.mock('@/lib/comfyui/comfyui-state', () => ({
   isComfyUIEnabled: vi.fn(() => true),
@@ -47,6 +49,20 @@ import { serverManager } from '@/lib/comfyui/server-manager'
 
 let sessionId: string
 
+const testServer: ComfyUIServer = {
+  id: 'local',
+  type: 'LOCAL',
+  url: 'http://127.0.0.1:8188',
+  isActive: true,
+  activeJobs: 0,
+  maxJobs: 1,
+  priority: 1,
+}
+
+function createMockClient(getLoRAList: ComfyUIClient['getLoRAList']): ComfyUIClient {
+  return { getLoRAList } as Pick<ComfyUIClient, 'getLoRAList'> as ComfyUIClient
+}
+
 beforeEach(async () => {
   await cleanTables()
   const user = await createUser()
@@ -67,11 +83,11 @@ beforeEach(async () => {
     rifeModels: [],
   })
   vi.mocked(serverManager.selectBestServer).mockReturnValue(
-    { id: 'local', type: 'local', url: 'http://127.0.0.1:8188', healthy: true } as any
+    testServer
   )
-  vi.mocked(serverManager.getClient).mockReturnValue({
-    getLoRAList: vi.fn(() => Promise.resolve(['WAN\\High\\lora1.safetensors', 'WAN\\Low\\lora2.safetensors'])),
-  } as any)
+  vi.mocked(serverManager.getClient).mockReturnValue(createMockClient(
+    vi.fn(() => Promise.resolve(['WAN\\High\\lora1.safetensors', 'WAN\\Low\\lora2.safetensors']))
+  ))
 })
 
 describe('GET /api/comfyui/samplers', () => {
@@ -169,7 +185,7 @@ describe('GET /api/comfyui/loras', () => {
   })
 
   it('returns 503 when no server available', async () => {
-    vi.mocked(serverManager.selectBestServer).mockReturnValue(null as any)
+    vi.mocked(serverManager.selectBestServer).mockReturnValue(null)
 
     const res = await getLoras(buildAuthenticatedRequest('/api/comfyui/loras', sessionId), noContext)
     const body = await res.json()
@@ -181,9 +197,7 @@ describe('GET /api/comfyui/loras', () => {
 
   it('passes model query param correctly', async () => {
     const mockGetLoRAList = vi.fn(() => Promise.resolve([]))
-    vi.mocked(serverManager.getClient).mockReturnValue({
-      getLoRAList: mockGetLoRAList,
-    } as any)
+    vi.mocked(serverManager.getClient).mockReturnValue(createMockClient(mockGetLoRAList))
 
     await getLoras(buildAuthenticatedRequest('/api/comfyui/loras?model=ltxa', sessionId), noContext)
 

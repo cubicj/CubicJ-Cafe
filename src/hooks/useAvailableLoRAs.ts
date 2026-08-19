@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createLogger } from '@/lib/logger';
 import { apiClient, ApiError } from '@/lib/api-client';
 
@@ -9,7 +9,7 @@ export function useAvailableLoRAs(model: string = 'wan') {
   const [isRefreshingLoRAs, setIsRefreshingLoRAs] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAvailableLoRAs = async (showLoading = false) => {
+  const fetchAvailableLoRAs = useCallback(async (showLoading = false) => {
     if (showLoading) {
       setIsRefreshingLoRAs(true);
     }
@@ -34,18 +34,36 @@ export function useAvailableLoRAs(model: string = 'wan') {
         setIsRefreshingLoRAs(false);
       }
     }
-  };
+  }, [model]);
 
-  const isLoRAAvailable = (loraFilename: string | null | undefined) => {
+  const isLoRAAvailable = useCallback((loraFilename: string | null | undefined) => {
     if (!loraFilename) return false;
     return availableLoRAs.some(lora =>
       lora && (lora.includes(loraFilename) || loraFilename.includes(lora))
     );
-  };
+  }, [availableLoRAs]);
 
   useEffect(() => {
-    fetchAvailableLoRAs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAvailableLoRAs is stable, only re-fetch on model change
+    let ignore = false;
+
+    apiClient.get<{ loras: string[] }>(`/api/comfyui/loras?model=${model}`)
+      .then((data) => {
+        if (!ignore) setAvailableLoRAs(data.loras || []);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status === 503) {
+          if (!ignore) setAvailableLoRAs([]);
+          return;
+        }
+        if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
+          log.error('Failed to fetch LoRA list', { error: err.message });
+        }
+        if (!ignore) setAvailableLoRAs([]);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [model]);
 
   return {

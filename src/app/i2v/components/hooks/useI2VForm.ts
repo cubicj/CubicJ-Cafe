@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createLogger } from '@/lib/logger';
 import { apiClient, ApiError } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
@@ -117,7 +117,7 @@ export function useI2VForm(): UseI2VFormReturn {
     clearForm,
   } = useI2VFormContext();
 
-  const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>(() => {
+  const [selectedPresetIds, setSelectedPresetIdsState] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('selectedPresetIds');
@@ -128,6 +128,11 @@ export function useI2VForm(): UseI2VFormReturn {
     }
     return [];
   });
+  const selectedPresetIdsRef = useRef(selectedPresetIds);
+  const setSelectedPresetIds = useCallback((ids: string[]) => {
+    selectedPresetIdsRef.current = ids;
+    setSelectedPresetIdsState(ids);
+  }, []);
 
   const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
   const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
@@ -164,8 +169,13 @@ export function useI2VForm(): UseI2VFormReturn {
   const [durationLabelsMap, setDurationLabelsMap] = useState<Record<VideoModel, Record<number, string>> | null>(null);
   const [enabledModels, setEnabledModels] = useState<VideoModel[]>((Object.keys(MODEL_REGISTRY) as VideoModel[]));
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
+  const capabilitiesRef = useRef(capabilities);
   const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;
   const durationLabels: Record<number, string> = durationLabelsMap?.[activeModel] ?? Object.fromEntries(durationOptions.map(duration => [duration, `${duration}초`]));
+
+  useEffect(() => {
+    capabilitiesRef.current = capabilities;
+  }, [capabilities]);
 
   useEffect(() => {
     if (isLoadingAuth || !user) return;
@@ -250,7 +260,7 @@ export function useI2VForm(): UseI2VFormReturn {
     }
   }, [selectedPresetIds]);
 
-  const fetchServerStatus = async () => {
+  const fetchServerStatus = useCallback(async () => {
     if (isLoadingAuth || !user) {
       setIsLoadingServerStatus(false);
       return;
@@ -268,9 +278,9 @@ export function useI2VForm(): UseI2VFormReturn {
     } finally {
       setIsLoadingServerStatus(false);
     }
-  };
+  }, [isLoadingAuth, user]);
 
-  const fetchPresets = async (model?: string) => {
+  const fetchPresets = useCallback(async (model?: string) => {
     if (isLoadingAuth || !user) return [];
 
     try {
@@ -281,7 +291,7 @@ export function useI2VForm(): UseI2VFormReturn {
       log.error('Failed to fetch LoRA preset list', { error: err instanceof Error ? err.message : String(err) });
     }
     return [];
-  };
+  }, [activeModel, isLoadingAuth, user]);
 
   const handleSubmit = async () => {
     if (!enabledModels.includes(activeModel)) {
@@ -410,12 +420,17 @@ export function useI2VForm(): UseI2VFormReturn {
   };
 
   useEffect(() => {
-    if (isLoadingAuth || !user) {
-      setIsLoadingServerStatus(false);
-      return;
-    }
+    if (isLoadingAuth || !user) return;
 
-    fetchServerStatus();
+    apiClient.get<ComfyUIStatus>('/api/comfyui/status')
+      .then(setServerStatus)
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 503) return;
+        if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
+          log.error('Failed to fetch server status', { error: error.message });
+        }
+      })
+      .finally(() => setIsLoadingServerStatus(false));
   }, [isLoadingAuth, user]);
 
   useEffect(() => {
@@ -427,32 +442,27 @@ export function useI2VForm(): UseI2VFormReturn {
         return;
       }
 
-      if (capabilities.loraPresets) {
+      if (capabilitiesRef.current.loraPresets) {
         const allPresets = await fetchPresets(activeModel);
-        if (!ignore) setPresets(allPresets);
+        if (!ignore) {
+          setPresets(allPresets);
+          const restoredPresets = allPresets.filter((preset) =>
+            selectedPresetIdsRef.current.includes(preset.id)
+          );
+          if (restoredPresets.length > 0) setCurrentPresets(restoredPresets);
+        }
       } else {
-        if (!ignore) setPresets([]);
+        if (!ignore) {
+          setPresets([]);
+          setCurrentPresets([]);
+        }
       }
     };
     reloadPresets();
     return () => {
       ignore = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- capabilities and fetchPresets derived from activeModel
-  }, [activeModel, isLoadingAuth, user]);
-
-  useEffect(() => {
-    if (presets.length > 0 && selectedPresetIds.length > 0) {
-      const restoredPresets = presets.filter(preset =>
-        selectedPresetIds.includes(preset.id)
-      );
-      if (restoredPresets.length > 0) {
-        setCurrentPresets(restoredPresets);
-      }
-    } else if (selectedPresetIds.length === 0) {
-      setCurrentPresets([]);
-    }
-  }, [presets, selectedPresetIds]);
+  }, [activeModel, fetchPresets, isLoadingAuth, user]);
 
   const isFormValid = enabledModels.includes(activeModel) && !!selectedFile && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
 
@@ -488,7 +498,7 @@ export function useI2VForm(): UseI2VFormReturn {
     setServerStatus,
     isRefreshing,
     setIsRefreshing,
-    isLoadingServerStatus,
+    isLoadingServerStatus: user ? isLoadingServerStatus : false,
     setIsLoadingServerStatus,
     activeModel,
     setActiveModel,

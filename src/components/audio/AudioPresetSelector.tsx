@@ -56,7 +56,22 @@ export default function AudioPresetSelector({
   }
 
   useEffect(() => {
-    fetchPresets()
+    let ignore = false
+
+    apiClient.get<{ presets: AudioPreset[] }>('/api/audio-presets')
+      .then((data) => {
+        if (!ignore) setPresets(data.presets)
+      })
+      .catch(() => {
+        if (!ignore) setPresets([])
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false)
+      })
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const togglePreset = (presetId: string) => {

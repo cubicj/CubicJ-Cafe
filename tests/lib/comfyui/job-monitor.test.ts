@@ -94,8 +94,8 @@ describe('ComfyUIJobMonitor', () => {
     mockSendVideoToDiscord.mockResolvedValue(undefined)
     mockInterruptProcessing.mockResolvedValue(undefined)
 
-    const module = await import('@/lib/comfyui/job-monitor')
-    jobMonitor = module.jobMonitor
+    const jobMonitorModule = await import('@/lib/comfyui/job-monitor')
+    jobMonitor = jobMonitorModule.jobMonitor
   })
 
   afterEach(() => {

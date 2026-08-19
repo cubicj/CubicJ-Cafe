@@ -4,8 +4,7 @@ import { buildRequest } from '@tests/helpers/auth'
 
 describe('POST /api/auth/discord', () => {
   it('returns Discord auth URL with state parameter', async () => {
-    const req = buildRequest('/api/auth/discord', { method: 'POST' })
-    const res = await POST(req)
+    const res = await POST()
     const body = await res.json()
 
     expect(res.status).toBe(200)
@@ -16,8 +15,7 @@ describe('POST /api/auth/discord', () => {
   })
 
   it('sets oauth_state HttpOnly cookie', async () => {
-    const req = buildRequest('/api/auth/discord', { method: 'POST' })
-    const res = await POST(req)
+    const res = await POST()
     const setCookie = res.headers.get('set-cookie')
 
     expect(setCookie).toContain('oauth_state=')
@@ -28,8 +26,7 @@ describe('POST /api/auth/discord', () => {
   })
 
   it('state in URL matches state in cookie', async () => {
-    const req = buildRequest('/api/auth/discord', { method: 'POST' })
-    const res = await POST(req)
+    const res = await POST()
     const body = await res.json()
     const setCookie = res.headers.get('set-cookie')!
 

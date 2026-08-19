@@ -49,8 +49,24 @@ export default function AudioPresetAdminManager() {
   }, [filterUserId])
 
   useEffect(() => {
-    fetchPresets()
-  }, [fetchPresets])
+    let ignore = false
+    const query = filterUserId !== 'all' ? `?userId=${filterUserId}` : ''
+
+    apiClient.get<{ presets: AudioPresetAdmin[] }>(`/api/admin/audio-presets${query}`)
+      .then((data) => {
+        if (!ignore) setPresets(data.presets)
+      })
+      .catch(() => {
+        if (!ignore) setPresets([])
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false)
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [filterUserId])
 
   const handleDelete = async (presetId: string) => {
     try {
@@ -67,7 +83,10 @@ export default function AudioPresetAdminManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <Select value={filterUserId} onValueChange={setFilterUserId}>
+        <Select value={filterUserId} onValueChange={(userId) => {
+          setIsLoading(true)
+          setFilterUserId(userId)
+        }}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="유저 필터" />
           </SelectTrigger>

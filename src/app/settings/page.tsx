@@ -7,16 +7,8 @@ import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Loader2, BarChart3 } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
+import { useSession } from '@/contexts/SessionContext';
 import Image from 'next/image';
-
-interface SessionUser {
-  id: string;
-  discordId: string;
-  discordUsername: string;
-  nickname: string;
-  avatar?: string;
-  name?: string;
-}
 
 interface UserStats {
   totalQueueRequests: number;
@@ -28,43 +20,34 @@ const log = createLogger('page');
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const { user, isLoading } = useSession();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isStatsLoading, setIsStatsLoading] = useState(false);
+  const [statsLoadComplete, setStatsLoadComplete] = useState(false);
+  const isStatsLoading = !!user && !statsLoadComplete;
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const data = await apiClient.get<{ user: SessionUser | null }>('/api/auth/session');
-        if (data.user) {
-          setUser(data.user);
-          loadUserStats();
-        } else {
-          router.push('/');
-        }
-      } catch (error) {
-        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
-        router.push('/');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [router]);
-
-  const loadUserStats = async () => {
-    setIsStatsLoading(true);
-    try {
-      const stats = await apiClient.get<UserStats>('/api/user/stats');
-      setUserStats(stats);
-    } catch (error) {
-      log.error('Failed to load user stats', { error: error instanceof Error ? error.message : String(error) });
-    } finally {
-      setIsStatsLoading(false);
+    if (isLoading) return;
+    if (!user) {
+      router.push('/');
+      return;
     }
-  };
+
+    let ignore = false;
+    apiClient.get<UserStats>('/api/user/stats')
+      .then((stats) => {
+        if (!ignore) setUserStats(stats);
+      })
+      .catch((error: unknown) => {
+        log.error('Failed to load user stats', { error: error instanceof Error ? error.message : String(error) });
+      })
+      .finally(() => {
+        if (!ignore) setStatsLoadComplete(true);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isLoading, router, user]);
 
   if (isLoading) {
     return (

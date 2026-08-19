@@ -36,17 +36,6 @@ export function useDatabaseTable({ pageSize = 25 }: UseDatabaseTableOptions = {}
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<SortState>({ orderBy: null, orderDirection: 'desc' });
 
-  const fetchTables = useCallback(async () => {
-    try {
-      const data = await apiClient.get<{ tables: Table[] }>('/api/admin/db');
-      setTables(data.tables);
-    } catch {
-      setError('테이블 목록을 불러올 수 없습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   const fetchTableData = useCallback(async (
     tableName: string,
     page: number = 1,
@@ -122,8 +111,23 @@ export function useDatabaseTable({ pageSize = 25 }: UseDatabaseTableOptions = {}
   }, []);
 
   useEffect(() => {
-    fetchTables();
-  }, [fetchTables]);
+    let ignore = false;
+
+    apiClient.get<{ tables: Table[] }>('/api/admin/db')
+      .then((data) => {
+        if (!ignore) setTables(data.tables);
+      })
+      .catch(() => {
+        if (!ignore) setError('테이블 목록을 불러올 수 없습니다.');
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return {
     tables,

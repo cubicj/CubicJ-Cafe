@@ -34,7 +34,7 @@ export function LoRABundleManager() {
     high: string[];
     low: string[];
   }>({ high: [], low: [] });
-  const [isLoadingLoRAs, setIsLoadingLoRAs] = useState(false);
+  const [isLoadingLoRAs, setIsLoadingLoRAs] = useState(true);
   
   const [copySuccess, setCopySuccess] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -182,8 +182,44 @@ export function LoRABundleManager() {
   };
 
   useEffect(() => {
-    fetchBundles();
-    fetchAvailableLoRAs();
+    let ignore = false;
+
+    apiClient.get<{ bundles: LoRABundle[]; count: number }>('/api/admin/lora-bundles')
+      .then((data) => {
+        if (ignore) return;
+        setBundles(data.bundles || []);
+        log.info('LoRA bundle list fetched', { count: data.count });
+      })
+      .catch((err: unknown) => {
+        log.error('Failed to fetch LoRA bundle list', { error: err instanceof Error ? err.message : String(err) });
+        if (!ignore) setError(err instanceof Error ? err.message : '번들 목록 조회 실패');
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    apiClient.get<{ categorized: { high: string[]; low: string[] } }>('/api/comfyui/loras')
+      .then((data) => {
+        if (ignore) return;
+        setAvailableLoRAs({
+          high: data.categorized?.high || [],
+          low: data.categorized?.low || [],
+        });
+        log.info('LoRA file list fetched', { high: data.categorized?.high?.length || 0, low: data.categorized?.low?.length || 0 });
+      })
+      .catch((err: unknown) => {
+        if (err instanceof Error && !err.message.includes('503') && !err.message.includes('Service Unavailable')) {
+          log.error('Failed to fetch LoRA file list', { error: err.message });
+        }
+        if (!ignore) setError(err instanceof Error ? err.message : 'LoRA 파일 목록 조회 실패');
+      })
+      .finally(() => {
+        if (!ignore) setIsLoadingLoRAs(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   if (isLoading) {

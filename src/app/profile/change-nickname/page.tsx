@@ -112,7 +112,7 @@ export default function NicknameChangeePage() {
 
     try {
       await apiClient.post('/api/setup/nickname', { nickname: nickname.trim() });
-      window.location.href = '/';
+      window.location.assign(new URL('/', window.location.origin));
     } catch (error) {
       if (error instanceof ApiError) {
         setError(error.errorMessage || '닉네임 변경에 실패했습니다.');
