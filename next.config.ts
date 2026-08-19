@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [],
   experimental: {
     optimizePackageImports: [
-      '@radix-ui/react-icons',
       '@radix-ui/react-slot',
       '@radix-ui/react-label',
       '@radix-ui/react-progress',
@@ -17,15 +16,6 @@ const nextConfig: NextConfig = {
       'lucide-react'
     ],
     optimizeCss: true,
-  },
-
-  turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
   },
 
   images: {
@@ -79,10 +69,6 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
           },
         ],
       },
@@ -163,16 +149,7 @@ const nextConfig: NextConfig = {
       };
     }
 
-    config.module.rules.push({
-      test: /\.node$/,
-      use: 'node-loader',
-    });
-
     return config;
-  },
-
-  env: {
-    CUSTOM_KEY: process.env.NODE_ENV,
   },
 
   output: 'standalone',
