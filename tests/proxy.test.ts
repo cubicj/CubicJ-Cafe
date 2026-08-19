@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import type { RequestInit as NextRequestInit } from 'next/dist/server/web/spec-extension/request'
-import { middleware, resetRateLimitForTests } from '@/middleware'
+import { proxy, resetRateLimitForTests } from '@/proxy'
 
 function createRequest(path: string, init?: NextRequestInit) {
   return new NextRequest(new URL(path, 'http://localhost:3000'), init)
@@ -10,9 +10,9 @@ beforeEach(() => {
   resetRateLimitForTests()
 })
 
-describe('middleware', () => {
+describe('proxy', () => {
   it('adds security headers', () => {
-    const res = middleware(createRequest('/'))
+    const res = proxy(createRequest('/'))
 
     expect(res.headers.get('Content-Security-Policy')).toContain("default-src 'self'")
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
@@ -20,13 +20,13 @@ describe('middleware', () => {
   })
 
   it('rate limits configured API routes', async () => {
-    let res = middleware(createRequest('/api/i2v', {
+    let res = proxy(createRequest('/api/i2v', {
       method: 'POST',
       headers: { 'x-forwarded-for': '203.0.113.10' },
     }))
 
     for (let i = 0; i < 10; i += 1) {
-      res = middleware(createRequest('/api/i2v', {
+      res = proxy(createRequest('/api/i2v', {
         method: 'POST',
         headers: { 'x-forwarded-for': '203.0.113.10' },
       }))
@@ -38,13 +38,13 @@ describe('middleware', () => {
   })
 
   it('does not rate limit unrelated routes', () => {
-    let res = middleware(createRequest('/api/health', {
+    let res = proxy(createRequest('/api/health', {
       method: 'GET',
       headers: { 'x-forwarded-for': '203.0.113.20' },
     }))
 
     for (let i = 0; i < 200; i += 1) {
-      res = middleware(createRequest('/api/health', {
+      res = proxy(createRequest('/api/health', {
         method: 'GET',
         headers: { 'x-forwarded-for': '203.0.113.20' },
       }))
