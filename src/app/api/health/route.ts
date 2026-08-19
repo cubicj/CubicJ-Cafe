@@ -119,7 +119,7 @@ async function checkFilesystemService(): Promise<ServiceStatus> {
     const tempDir = process.env.UPLOAD_TEMP_DIR || './public/temp';
     await fs.access(tempDir);
 
-    const stats = await fs.stat(tempDir);
+    const stats = await fs.stat(/* turbopackIgnore: true */ tempDir);
     if (!stats.isDirectory()) {
       throw new Error('Temp directory is not a directory');
     }

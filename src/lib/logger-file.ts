@@ -5,8 +5,8 @@ import { getOpsSetting } from './database/ops-settings';
 
 const LOG_DIR = process.env.LOG_DIR || './logs';
 
-const logDir = path.resolve(LOG_DIR);
-if (!fs.existsSync(logDir)) {
+const logDir = path.resolve(/* turbopackIgnore: true */ LOG_DIR);
+if (!fs.existsSync(/* turbopackIgnore: true */ logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
@@ -66,9 +66,9 @@ export function initFileLogging(): void {
 
 export function cleanOldFiles(): void {
   try {
-    const files = fs.readdirSync(logDir)
+    const files = fs.readdirSync(/* turbopackIgnore: true */ logDir)
       .filter((f: string) => f.endsWith('.log'))
-      .map((f: string) => ({ name: f, fullPath: path.join(logDir, f), mtime: fs.statSync(path.join(logDir, f)).mtimeMs }))
+      .map((f: string) => ({ name: f, fullPath: path.join(/* turbopackIgnore: true */ logDir, f), mtime: fs.statSync(/* turbopackIgnore: true */ path.join(/* turbopackIgnore: true */ logDir, f)).mtimeMs }))
       .sort((a: { mtime: number }, b: { mtime: number }) => b.mtime - a.mtime);
 
     const cutoff = Date.now() - getOpsSetting('ops.log_file_retention_days') * 24 * 60 * 60 * 1000;
