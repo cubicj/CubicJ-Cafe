@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import type { Session, User } from '@prisma/client';
+import type { SessionModel as Session } from '@/generated/prisma/models/Session';
+import type { UserModel as User } from '@/generated/prisma/models/User';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 
@@ -162,4 +163,3 @@ export class SessionService {
     }
   }
 }
-

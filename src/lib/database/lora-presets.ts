@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import type { LoRAPreset, LoRAPresetItem } from '@prisma/client';
+import type { LoRAPresetModel as LoRAPreset } from '@/generated/prisma/models/LoRAPreset';
+import type { LoRAPresetItemModel as LoRAPresetItem } from '@/generated/prisma/models/LoRAPresetItem';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');

@@ -1,5 +1,5 @@
 import { QueueService } from '@/lib/database/queue';
-import { QueueStatus } from '@prisma/client';
+import { QueueStatus } from '@/generated/prisma/enums';
 import { ComfyUIClient } from './client';
 import { buildWorkflow } from './workflow-router';
 import { MODEL_REGISTRY } from './workflows/registry';

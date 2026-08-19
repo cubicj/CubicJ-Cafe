@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { GenerationMode, QueueStatus } from '@prisma/client'
+import { GenerationMode, QueueStatus } from '@/generated/prisma/enums'
 import { createRouteHandler } from '@/lib/api/route-handler'
 import { prisma } from '@/lib/database/prisma'
 import { QueueService } from '@/lib/database/queue'

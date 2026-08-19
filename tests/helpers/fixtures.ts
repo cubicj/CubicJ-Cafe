@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database/prisma'
 import { QueueService } from '@/lib/database/queue'
-import { QueueStatus, type User } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
+import type { UserModel as User } from '@/generated/prisma/models/User'
 
 export const TEST_USER = {
   discordId: 'test-user-123',

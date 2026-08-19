@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { QueueStatus } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
 import { prisma } from '@/lib/database/prisma'
 import { cleanTables } from '@tests/helpers/db'
 import { createAdminUser, createUser } from '@tests/helpers/fixtures'

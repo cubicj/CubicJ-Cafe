@@ -2,7 +2,7 @@ import { cleanTables } from '@tests/helpers/db'
 import { createUser, createAdminUser } from '@tests/helpers/fixtures'
 import { createTestSession, buildAuthenticatedRequest, buildRequest } from '@tests/helpers/auth'
 import { prisma } from '@/lib/database/prisma'
-import { QueueStatus } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
 import { GET, POST } from '@/app/api/queue/route'
 
 beforeEach(async () => {

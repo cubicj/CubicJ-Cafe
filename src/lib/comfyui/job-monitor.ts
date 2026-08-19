@@ -1,6 +1,6 @@
 import { generationStore } from '../generation-store'
 import { QueueService } from '@/lib/database/queue'
-import { QueueStatus } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
 import { GenerationJob } from '@/types'
 import { serverManager } from './server-manager'
 import { queueMonitor } from './queue-monitor'
