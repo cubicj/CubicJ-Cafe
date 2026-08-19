@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import type { RequestInit as NextRequestInit } from 'next/dist/server/web/spec-extension/request'
-import { middleware, resetRateLimitForTests } from '../../middleware'
+import { middleware, resetRateLimitForTests } from '@/middleware'
 
 function createRequest(path: string, init?: NextRequestInit) {
   return new NextRequest(new URL(path, 'http://localhost:3000'), init)
