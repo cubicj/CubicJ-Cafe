@@ -1,4 +1,3 @@
-import { setupGlobalErrorHandlers } from './lib/error-handler';
 import { createLogger } from './lib/logger';
 
 const log = createLogger('system');
@@ -53,6 +52,7 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     validateEnv();
 
+    const { setupGlobalErrorHandlers } = await import('./lib/error-handler');
     const { loadOpsSettings } = await import('./lib/database/ops-settings');
     await loadOpsSettings();
 

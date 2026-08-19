@@ -83,7 +83,7 @@ export function resetRateLimitForTests() {
   lastBucketSweep = 0
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const retryAfter = checkRateLimit(request)
   if (retryAfter !== null) {
     return applySecurityHeaders(NextResponse.json(

@@ -1,11 +1,12 @@
 import type { NextConfig } from 'next';
 
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
 const nextConfig: NextConfig = {
-  serverExternalPackages: [],
+  serverExternalPackages: [
+    '@discordjs/ws',
+    'zlib-sync',
+    'bufferutil',
+    'utf-8-validate',
+  ],
   experimental: {
     optimizePackageImports: [
       '@radix-ui/react-slot',
@@ -19,6 +20,7 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    dangerouslyAllowLocalIP: true,
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -93,65 +95,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          default: false,
-          vendors: false,
-          framework: {
-            chunks: 'all',
-            name: 'framework',
-            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
-            priority: 40,
-            enforce: true,
-          },
-          lib: {
-            test: /[\\/]node_modules[\\/]/,
-            name(module: any) {
-              const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1];
-              return `npm.${packageName?.replace('@', '')}`;
-            },
-            priority: 30,
-            minChunks: 1,
-            reuseExistingChunk: true,
-          },
-          commons: {
-            name: 'commons',
-            priority: 20,
-            minChunks: 2,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-    }
-
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, 'src'),
-    };
-
-    config.externals = config.externals || [];
-    
-    if (isServer) {
-      config.externals.push({
-        'zlib-sync': 'commonjs zlib-sync',
-        'bufferutil': 'commonjs bufferutil',
-        'utf-8-validate': 'commonjs utf-8-validate',
-      });
-    } else {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        'zlib-sync': false,
-        'bufferutil': false,
-        'utf-8-validate': false,
-      };
-    }
-
-    return config;
-  },
-
   output: 'standalone',
 
   outputFileTracingExcludes: {
@@ -159,4 +102,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;
