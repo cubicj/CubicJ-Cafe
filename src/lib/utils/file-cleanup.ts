@@ -38,13 +38,13 @@ export async function cleanupTempFiles(
   };
 
   try {
-    const fullTempDir = join(process.cwd(), tempDir);
+    const fullTempDir = join(/* turbopackIgnore: true */ process.cwd(), tempDir);
     const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
     const activeFiles = await getActiveQueueFileNames();
 
     log.info('Temp file cleanup started', { tempDir, maxAgeHours, activeFiles: activeFiles.size });
 
-    const files = await readdir(fullTempDir);
+    const files = await readdir(/* turbopackIgnore: true */ fullTempDir);
 
     for (const file of files) {
       try {
@@ -53,7 +53,7 @@ export async function cleanupTempFiles(
           continue;
         }
 
-        const filePath = join(fullTempDir, file);
+        const filePath = join(/* turbopackIgnore: true */ fullTempDir, file);
         const stats = await stat(filePath);
 
         if (stats.isFile() && stats.mtime.getTime() < cutoffTime) {
