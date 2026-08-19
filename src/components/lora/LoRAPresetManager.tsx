@@ -7,7 +7,7 @@ const log = createLogger('ui');
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useLoRAPresets, useLoRABundles, useAvailableLoRAs, useDragAndDrop } from "@/hooks";
-import { LoRAPresetManagerProps, LoRAPreset, EditForm, NewLoRAForm } from "@/types/lora";
+import { LoRAPresetManagerProps, LoRAPreset, LoRAPresetItem, EditForm, NewLoRAForm } from "@/types/lora";
 import { LoRAPresetList } from "./LoRAPresetList";
 import { LoRAPresetEditor } from "./LoRAPresetEditor";
 import { LoRABundleSelector } from "./LoRABundleSelector";
@@ -162,8 +162,7 @@ export function LoRAPresetManager({
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bundle items built dynamically with mixed optional fields
-    const newItems: any[] = [];
+    const newItems: LoRAPresetItem[] = [];
     const selectedBundle = availableBundles.find(bundle => bundle.id === newLoRAForm.selectedBundleId);
     
     if (selectedBundle) {

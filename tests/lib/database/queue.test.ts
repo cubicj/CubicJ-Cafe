@@ -293,7 +293,7 @@ describe('QueueService', () => {
 
       const list = await QueueService.getQueueList()
       expect(list).toHaveLength(1)
-      expect((list[0] as any).imageBlob).toBeUndefined()
+      expect(list[0]).not.toHaveProperty('imageBlob')
     })
   })
 
@@ -307,7 +307,7 @@ describe('QueueService', () => {
 
       const requests = await QueueService.getUserRequests(user.id)
       expect(requests).toHaveLength(1)
-      expect((requests[0] as any).imageBlob).toBeUndefined()
+      expect(requests[0]).not.toHaveProperty('imageBlob')
     })
   })
 

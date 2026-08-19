@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { createLogger } from '@/lib/logger';
 
@@ -17,7 +17,6 @@ interface TranslationControlsProps {
 interface TranslationState {
   isTranslating: boolean;
   originalText: string;
-  currentText: string;
   isTranslated: boolean;
   targetLang: string | null;
 }
@@ -30,20 +29,9 @@ export function TranslationControls({
   const [state, setState] = useState<TranslationState>({
     isTranslating: false,
     originalText: text,
-    currentText: text,
     isTranslated: false,
     targetLang: null,
   });
-
-  useEffect(() => {
-    if (!state.isTranslated && text !== state.currentText) {
-      setState(prev => ({
-        ...prev,
-        originalText: text,
-        currentText: text,
-      }));
-    }
-  }, [text, state.isTranslated, state.currentText]);
 
   const handleTranslate = async (targetLang: 'en' | 'zh') => {
     if (!text.trim() || state.isTranslating) return;
@@ -65,7 +53,6 @@ export function TranslationControls({
       setState(prev => ({
         ...prev,
         originalText: text,
-        currentText: translatedText,
         isTranslated: true,
         targetLang,
       }));
@@ -86,7 +73,6 @@ export function TranslationControls({
   const handleRestore = () => {
     setState(prev => ({
       ...prev,
-      currentText: prev.originalText,
       isTranslated: false,
       targetLang: null,
     }));

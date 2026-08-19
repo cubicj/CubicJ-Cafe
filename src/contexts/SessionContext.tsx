@@ -43,9 +43,29 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchSession();
+    let ignore = false;
+
+    apiClient.get<{ user: User | null; isAdmin: boolean }>('/api/auth/session')
+      .then((data) => {
+        if (ignore) return;
+        setUser(data.user || null);
+        setIsAdmin(data.isAdmin ?? false);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setUser(null);
+        setIsAdmin(false);
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
     restoreClientLogTransport();
-  }, [fetchSession]);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <SessionContext.Provider value={{ user, isLoading, isAdmin, refreshSession: fetchSession }}>

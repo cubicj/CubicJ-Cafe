@@ -13,6 +13,19 @@ interface UsersTableProps {
   onToggleExpand: (itemId: string) => void;
 }
 
+interface UserRow extends Record<string, unknown> {
+  nickname: string;
+  discordUsername: string;
+  discordId: string;
+  createdAt: string;
+  updatedAt: string;
+  lastActiveAt: string;
+  _count?: {
+    queueRequests: number;
+    loraPresets: number;
+  };
+}
+
 export function UsersTable({ data, sort, expandedItems, onSort, onToggleExpand }: UsersTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -35,8 +48,7 @@ export function UsersTable({ data, sort, expandedItems, onSort, onToggleExpand }
       </div>
 
       <div className="divide-y">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic DB viewer renders arbitrary Prisma rows */}
-        {data.map((user: any, index: number) => {
+        {(data as UserRow[]).map((user, index) => {
           const itemId = `user-${index}`;
           const isExpanded = expandedItems.has(itemId);
 

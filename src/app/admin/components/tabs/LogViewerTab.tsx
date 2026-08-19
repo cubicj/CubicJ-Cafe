@@ -121,6 +121,7 @@ export default function LogViewerTab() {
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
   const [connected, setConnected] = useState(false);
+  const [reconnectAttempt, setReconnectAttempt] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,7 +171,7 @@ export default function LogViewerTab() {
       es.close();
       setConnected(false);
       reconnectTimerRef.current = setTimeout(() => {
-        connectSSE();
+        setReconnectAttempt((attempt) => attempt + 1);
       }, 3000);
     };
   }, [level, selectedCategories]);
@@ -188,7 +189,7 @@ export default function LogViewerTab() {
         reconnectTimerRef.current = null;
       }
     };
-  }, [mode, connectSSE]);
+  }, [mode, connectSSE, reconnectAttempt]);
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {
@@ -197,6 +198,7 @@ export default function LogViewerTab() {
   }, [entries, autoScroll]);
 
   const toggleCategory = (cat: string) => {
+    if (mode === 'history') setHistoryLoading(true);
     setSelectedCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
@@ -210,38 +212,49 @@ export default function LogViewerTab() {
     return true;
   });
 
-  const fetchHistory = useCallback(
-    async (page: number) => {
-      setHistoryLoading(true);
-      try {
-        const params = new URLSearchParams({
-          date: historyDate,
-          page: String(page),
-          limit: '100',
-        });
-        if (level !== 'all') params.set('level', level);
-        if (selectedCategories.length > 0)
-          params.set('category', selectedCategories.join(','));
-        if (search) params.set('search', search);
+  const requestHistory = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams({
+        date: historyDate,
+        page: String(page),
+        limit: '100',
+      });
+      if (level !== 'all') params.set('level', level);
+      if (selectedCategories.length > 0)
+        params.set('category', selectedCategories.join(','));
+      if (search) params.set('search', search);
 
-        const data = await apiClient.get<{ entries: LogEntry[]; total: number }>(`/api/admin/logs?${params}`);
-        setHistoryEntries(data.entries || []);
-        setHistoryTotal(data.total || 0);
-        setHistoryPage(page);
-      } catch {
-        setHistoryEntries([]);
-      } finally {
-        setHistoryLoading(false);
-      }
+      return apiClient.get<{ entries: LogEntry[]; total: number }>(`/api/admin/logs?${params}`);
     },
     [historyDate, level, selectedCategories, search]
   );
 
+  const fetchHistory = useCallback(async (page: number) => {
+    setHistoryLoading(true);
+    try {
+      const data = await requestHistory(page);
+      setHistoryEntries(data.entries || []);
+      setHistoryTotal(data.total || 0);
+      setHistoryPage(page);
+    } catch {
+      setHistoryEntries([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [requestHistory]);
+
   useEffect(() => {
     if (mode === 'history') {
-      fetchHistory(1);
+      requestHistory(1)
+        .then((data) => {
+          setHistoryEntries(data.entries || []);
+          setHistoryTotal(data.total || 0);
+          setHistoryPage(1);
+        })
+        .catch(() => setHistoryEntries([]))
+        .finally(() => setHistoryLoading(false));
     }
-  }, [mode, fetchHistory]);
+  }, [mode, requestHistory]);
 
   const totalPages = Math.max(1, Math.ceil(historyTotal / 100));
 
@@ -260,6 +273,7 @@ export default function LogViewerTab() {
               variant="outline"
               size="sm"
               onClick={() => {
+                if (mode === 'realtime') setHistoryLoading(true);
                 setMode((m) => (m === 'realtime' ? 'history' : 'realtime'));
               }}
             >
@@ -280,7 +294,10 @@ export default function LogViewerTab() {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={level} onValueChange={setLevel}>
+          <Select value={level} onValueChange={(nextLevel) => {
+            if (mode === 'history') setHistoryLoading(true);
+            setLevel(nextLevel);
+          }}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -311,7 +328,10 @@ export default function LogViewerTab() {
           <Input
             placeholder="검색..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              if (mode === 'history') setHistoryLoading(true);
+              setSearch(e.target.value);
+            }}
             className="w-[180px]"
           />
 
@@ -368,7 +388,10 @@ export default function LogViewerTab() {
             <Input
               type="date"
               value={historyDate}
-              onChange={(e) => setHistoryDate(e.target.value)}
+              onChange={(e) => {
+                setHistoryLoading(true);
+                setHistoryDate(e.target.value);
+              }}
               className="w-[160px]"
             />
           )}

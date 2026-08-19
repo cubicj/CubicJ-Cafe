@@ -1,19 +1,11 @@
 import { prisma } from "./prisma";
 import { GenerationMode, QueueStatus, ServerType } from '@/generated/prisma/enums';
-import type { QueueRequestModel as QueueRequest } from '@/generated/prisma/models/QueueRequest';
+import type { QueueRequestGetPayload } from '@/generated/prisma/models/QueueRequest';
 import type { LoRAPresetData } from "@/types";
 import { createLogger } from '@/lib/logger';
 import { ExpiringCache } from '@/lib/utils/expiring-cache';
 
 const log = createLogger('queue');
-
-type QueueRequestWithUser = QueueRequest & {
-  user: {
-    nickname: string;
-    avatar: string | null;
-    discordId?: string;
-  };
-};
 
 type QueueStatsData = {
   pending: number;
@@ -82,7 +74,31 @@ const QUEUE_SELECT_BASE = {
   videoDurationSeconds: true,
 } as const;
 
-const queueListCache = new ExpiringCache<QueueRequestWithUser[]>(15000);
+const QUEUE_LIST_SELECT = {
+  ...QUEUE_SELECT_BASE,
+  user: {
+    select: {
+      nickname: true,
+      avatar: true,
+    },
+  },
+} as const;
+
+const QUEUE_CLAIM_SELECT = {
+  ...QUEUE_SELECT_BASE,
+  user: {
+    select: {
+      nickname: true,
+      discordId: true,
+      avatar: true,
+    },
+  },
+} as const;
+
+type QueueListItem = QueueRequestGetPayload<{ select: typeof QUEUE_LIST_SELECT }>;
+type ClaimedQueueRequest = QueueRequestGetPayload<{ select: typeof QUEUE_CLAIM_SELECT }>;
+
+const queueListCache = new ExpiringCache<QueueListItem[]>(15000);
 const statsCache = new ExpiringCache<QueueStatsData>(30000);
 
 export class QueueService {
@@ -153,19 +169,10 @@ export class QueueService {
         { status: 'desc' },
         { position: 'asc' }
       ],
-      select: {
-        ...QUEUE_SELECT_BASE,
-        user: {
-          select: {
-            nickname: true,
-            avatar: true
-          }
-        }
-      }
+      select: QUEUE_LIST_SELECT
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma select return type doesn't match cache generic
-    queueListCache.set(queueList as any);
+    queueListCache.set(queueList);
     return queueList;
   }
 
@@ -406,7 +413,7 @@ export class QueueService {
     return requests.map(request => request.id);
   }
 
-  static async getAndClaimNextPendingRequest(): Promise<QueueRequestWithUser | null> {
+  static async getAndClaimNextPendingRequest(): Promise<ClaimedQueueRequest | null> {
     try {
       const claimedRequest = await prisma.$transaction(async (tx) => {
         const nextRequest = await tx.queueRequest.findFirst({
@@ -417,16 +424,7 @@ export class QueueService {
             { position: 'asc' },
             { createdAt: 'asc' }
           ],
-          select: {
-            ...QUEUE_SELECT_BASE,
-            user: {
-              select: {
-                nickname: true,
-                discordId: true,
-                avatar: true
-              }
-            }
-          }
+          select: QUEUE_CLAIM_SELECT
         });
 
         if (!nextRequest) {
@@ -444,20 +442,10 @@ export class QueueService {
             status: QueueStatus.PROCESSING,
             startedAt: new Date()
           },
-          select: {
-            ...QUEUE_SELECT_BASE,
-            user: {
-              select: {
-                nickname: true,
-                discordId: true,
-                avatar: true
-              }
-            }
-          }
+          select: QUEUE_CLAIM_SELECT
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma transaction return type doesn't match include shape
-        return updatedRequest as any;
+        return updatedRequest;
       }, {
         isolationLevel: 'Serializable'
       });

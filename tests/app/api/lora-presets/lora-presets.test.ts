@@ -14,6 +14,13 @@ const LORA_ITEMS = [
   { loraFilename: 'test-lora-2.safetensors', loraName: 'Test LoRA 2', strength: 0.6, group: 'LOW' as const },
 ]
 
+interface PresetSummary {
+  name: string
+  model: string
+  isDefault: boolean
+  isPublic: boolean
+}
+
 let sessionId: string
 
 async function createPresetViaAPI(name: string, loraItems = LORA_ITEMS, model?: string) {
@@ -179,14 +186,14 @@ describe('model-scoped presets', () => {
 
     const wanRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=wan', sessionId))
     const wanData = await wanRes.json()
-    const userWanPresets = wanData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
-    expect(userWanPresets.every((p: any) => p.model === 'wan')).toBe(true)
+    const userWanPresets = (wanData.presets as PresetSummary[]).filter((preset) => !preset.isDefault && !preset.isPublic)
+    expect(userWanPresets.every((preset) => preset.model === 'wan')).toBe(true)
 
     const ltxRes = await GET(buildAuthenticatedRequest('/api/lora-presets?model=ltxa', sessionId))
     const ltxData = await ltxRes.json()
-    const userLtxaPresets = ltxData.presets.filter((p: any) => !p.isDefault && !p.isPublic)
-    expect(userLtxaPresets.map((p: any) => p.name)).toEqual(['LTXA Preset'])
-    expect(userLtxaPresets.every((p: any) => p.model === 'ltxa')).toBe(true)
+    const userLtxaPresets = (ltxData.presets as PresetSummary[]).filter((preset) => !preset.isDefault && !preset.isPublic)
+    expect(userLtxaPresets.map((preset) => preset.name)).toEqual(['LTXA Preset'])
+    expect(userLtxaPresets.every((preset) => preset.model === 'ltxa')).toBe(true)
   })
 
   it('GET defaults to wan when no model param', async () => {

@@ -22,7 +22,7 @@ export default function Header() {
       if (window.location.pathname.startsWith('/settings') ||
           window.location.pathname.startsWith('/i2v') ||
           window.location.pathname.startsWith('/profile')) {
-        window.location.href = '/';
+        window.location.assign(new URL('/', window.location.origin));
       } else {
         window.location.reload();
       }

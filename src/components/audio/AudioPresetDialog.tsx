@@ -26,29 +26,37 @@ export default function AudioPresetDialog({
   onSubmit,
   preset,
 }: AudioPresetDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open && <AudioPresetDialogContent onSubmit={onSubmit} preset={preset} />}
+    </Dialog>
+  )
+}
+
+function AudioPresetDialogContent({
+  onSubmit,
+  preset,
+}: Pick<AudioPresetDialogProps, 'onSubmit' | 'preset'>) {
   const isEdit = !!preset
-  const [name, setName] = useState('')
+  const [name, setName] = useState(preset?.name ?? '')
   const [file, setFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const objectUrlRef = useRef<string | null>(null)
+  const [audioSrc, setAudioSrc] = useState<string | null>(
+    preset ? `/api/audio-presets/${preset.id}/stream` : null
+  )
 
   useEffect(() => {
-    if (open) {
-      setName(preset?.name ?? '')
-      setFile(null)
-      setIsPlaying(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
     return () => {
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = null
       }
     }
-  }, [open, preset])
+  }, [])
 
   const handleFileChange = (f: File | null) => {
     if (objectUrlRef.current) {
@@ -57,29 +65,22 @@ export default function AudioPresetDialog({
     }
     setFile(f)
     setIsPlaying(false)
+    if (f) {
+      const objectUrl = URL.createObjectURL(f)
+      objectUrlRef.current = objectUrl
+      setAudioSrc(objectUrl)
+    } else {
+      setAudioSrc(preset ? `/api/audio-presets/${preset.id}/stream` : null)
+    }
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
   }
 
-  const getAudioSrc = (): string | null => {
-    if (file) {
-      if (!objectUrlRef.current) {
-        objectUrlRef.current = URL.createObjectURL(file)
-      }
-      return objectUrlRef.current
-    }
-    if (isEdit && preset) {
-      return `/api/audio-presets/${preset.id}/stream`
-    }
-    return null
-  }
-
   const handlePlayToggle = () => {
     const audio = audioRef.current
-    const src = getAudioSrc()
-    if (!audio || !src) return
+    if (!audio || !audioSrc) return
 
     if (isPlaying) {
       audio.pause()
@@ -88,7 +89,7 @@ export default function AudioPresetDialog({
       return
     }
 
-    audio.src = src
+    audio.src = audioSrc
     audio.play()
     setIsPlaying(true)
   }
@@ -104,7 +105,6 @@ export default function AudioPresetDialog({
     }
   }
 
-  const audioSrc = getAudioSrc()
   const canSubmit = isEdit ? !!name.trim() : !!name.trim() && !!file
   const currentFileInfo = file
     ? `${file.name} (${formatFileSize(file.size)})`
@@ -113,8 +113,7 @@ export default function AudioPresetDialog({
       : null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEdit ? '오디오 프리셋 수정' : '오디오 프리셋 추가'}</DialogTitle>
         </DialogHeader>
@@ -187,7 +186,6 @@ export default function AudioPresetDialog({
           onEnded={() => setIsPlaying(false)}
           onError={() => setIsPlaying(false)}
         />
-      </DialogContent>
-    </Dialog>
+    </DialogContent>
   )
 }

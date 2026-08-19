@@ -27,6 +27,29 @@ interface QueueTableProps {
   onToggleExpand: (itemId: string) => void;
 }
 
+interface QueueRow extends Record<string, unknown> {
+  id: string;
+  position: number;
+  nickname: string;
+  status: string;
+  prompt: string;
+  videoDuration?: number;
+  videoDurationSeconds?: number;
+  videoModel?: string;
+  isNSFW?: boolean;
+  generationMode?: string;
+  imageFile?: string;
+  audioFile?: string;
+  audioPresetName?: string;
+  loraPresetData?: string;
+  createdAt?: string;
+  startedAt?: string;
+  completedAt?: string;
+  jobId?: string;
+  error?: string;
+  hasWorkflow?: boolean;
+}
+
 export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }: QueueTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -48,8 +71,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
       </div>
 
       <div className="divide-y">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic DB viewer renders arbitrary Prisma rows */}
-        {data.map((request: any, index: number) => {
+        {(data as QueueRow[]).map((request, index) => {
           const itemId = `queue-${index}`;
           const isExpanded = expandedItems.has(itemId);
 
@@ -118,7 +140,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                   {request.loraPresetData && (
                     <div>
                       <span className="font-medium">LoRA 프리셋:</span>
-                      <LoRAPresetDisplay loraPresetData={request.loraPresetData} videoModel={request.videoModel as string} />
+                      <LoRAPresetDisplay loraPresetData={request.loraPresetData} videoModel={request.videoModel} />
                     </div>
                   )}
 

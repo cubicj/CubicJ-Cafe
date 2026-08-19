@@ -60,15 +60,12 @@ export function QueueMonitor() {
   const [removingPause, setRemovingPause] = useState(false);
 
 
-  const fetchQueueData = useCallback(async () => {
-    try {
-      setError(null);
-
-      const [queueResult, statsResult] = await Promise.all([
+  const fetchQueueData = useCallback(() => {
+    return Promise.all([
         apiClient.get<{ data: QueueRequest[]; pauseAfterPosition?: number }>('/api/queue?action=list').catch(() => null),
         apiClient.get<{ data: QueueStatsData }>('/api/queue?action=stats').catch(() => null),
-      ]);
-
+      ])
+      .then(([queueResult, statsResult]) => {
       if (queueResult) {
         setQueueList(queueResult.data || []);
         const pause = queueResult.pauseAfterPosition ?? null;
@@ -82,13 +79,12 @@ export function QueueMonitor() {
       if (statsResult) {
         setStats(statsResult.data);
       }
-
-    } catch (err) {
-      log.error('Queue data fetch failed', { error: err instanceof Error ? err.message : String(err) });
-      setError('큐 정보를 불러오는데 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
+      })
+      .catch((err: unknown) => {
+        log.error('Queue data fetch failed', { error: err instanceof Error ? err.message : String(err) });
+        setError('큐 정보를 불러오는데 실패했습니다.');
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const handleDeleteQueue = async (requestId: string, nickname: string) => {
@@ -130,7 +126,10 @@ export function QueueMonitor() {
 
   useEffect(() => {
     fetchQueueData();
-    const interval = setInterval(fetchQueueData, 5000);
+    const interval = setInterval(() => {
+      setError(null);
+      fetchQueueData();
+    }, 5000);
     return () => clearInterval(interval);
   }, [fetchQueueData]);
 
@@ -156,7 +155,10 @@ export function QueueMonitor() {
             <BarChart3 className="h-5 w-5" />
             실행 큐 현황
           </h2>
-          <Button variant="outline" size="sm" onClick={fetchQueueData} className="flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={() => {
+            setError(null);
+            fetchQueueData();
+          }} className="flex items-center gap-1">
             <RefreshCw className="h-3 w-3" />
             새로고침
           </Button>
