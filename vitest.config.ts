@@ -9,8 +9,8 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     include: ['tests/**/*.test.ts'],
-    globalSetup: ['tests/setup.ts'],
-    setupFiles: ['tests/setup-mocks.ts'],
+    globalSetup: ['tests/helpers/setup.ts'],
+    setupFiles: ['tests/helpers/setup-mocks.ts'],
     env: {
       DATABASE_URL: `file:${path.resolve(__dirname, 'tests/.test.db')}`,
       ADMIN_DISCORD_IDS: 'admin-discord-123',
