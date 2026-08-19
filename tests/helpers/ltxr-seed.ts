@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '@/generated/prisma/client'
 
 type SeedValue = string | number | boolean | Array<unknown>
 type SeedType = 'string' | 'number' | 'boolean' | 'json'

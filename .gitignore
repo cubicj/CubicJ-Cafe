@@ -19,6 +19,7 @@ out/
 # database
 prisma/dev.db*
 prisma/*.db*
+src/generated/prisma/
 
 # logs
 *.log

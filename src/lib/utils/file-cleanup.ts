@@ -1,7 +1,7 @@
 import { readdir, stat, unlink } from 'fs/promises';
 import { join } from 'path';
 import { prisma } from '@/lib/database/prisma';
-import { QueueStatus } from '@prisma/client';
+import { QueueStatus } from '@/generated/prisma/enums';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('system');

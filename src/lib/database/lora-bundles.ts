@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import type { LoRABundle } from '@prisma/client';
+import type { LoRABundleModel as LoRABundle } from '@/generated/prisma/models/LoRABundle';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');

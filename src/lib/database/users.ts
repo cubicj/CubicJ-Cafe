@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import type { User } from '@prisma/client';
+import type { UserModel as User } from '@/generated/prisma/models/User';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');

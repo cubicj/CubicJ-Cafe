@@ -9,8 +9,16 @@ const TEST_DB_PATH = path.resolve(__dirname, '..', '.test.db')
 export function setup() {
   fs.closeSync(fs.openSync(TEST_DB_PATH, 'a'))
 
+  const env = { ...process.env, DATABASE_URL: `file:${TEST_DB_PATH}` }
+
+  execFileSync('npx', ['prisma', 'generate'], {
+    env,
+    stdio: 'pipe',
+    shell: true,
+  })
+
   execFileSync('npx', ['prisma', 'migrate', 'deploy'], {
-    env: { ...process.env, DATABASE_URL: `file:${TEST_DB_PATH}` },
+    env,
     stdio: 'pipe',
     shell: true,
   })

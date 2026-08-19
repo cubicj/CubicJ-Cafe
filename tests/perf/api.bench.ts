@@ -3,7 +3,7 @@ import { cleanTables } from '@tests/helpers/db'
 import { createUser } from '@tests/helpers/fixtures'
 import { createTestSession, buildRequest, buildAuthenticatedRequest } from '@tests/helpers/auth'
 import { prisma } from '@/lib/database/prisma'
-import { QueueStatus } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
 import { GET as getQueue, POST as postQueue } from '@/app/api/queue/route'
 import { GET as getSession } from '@/app/api/auth/session/route'
 

@@ -5,7 +5,7 @@ import nextTs from 'eslint-config-next/typescript';
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores(['.next/**', 'next-env.d.ts']),
+  globalIgnores(['.next/**', 'next-env.d.ts', 'src/generated/prisma/**']),
   {
     files: ['next.config.ts'],
     rules: {

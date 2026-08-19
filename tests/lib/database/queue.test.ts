@@ -2,7 +2,7 @@ import { cleanTables } from '@tests/helpers/db'
 import { createUser, createAdminUser, createQueueRequest } from '@tests/helpers/fixtures'
 import { QueueService } from '@/lib/database/queue'
 import { prisma } from '@/lib/database/prisma'
-import { QueueStatus } from '@prisma/client'
+import { QueueStatus } from '@/generated/prisma/enums'
 
 beforeEach(async () => {
   await cleanTables()

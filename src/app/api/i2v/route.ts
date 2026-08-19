@@ -3,7 +3,7 @@ import { createRouteHandler } from '@/lib/api/route-handler';
 import { QueueService } from '@/lib/database/queue';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { randomUUID } from 'crypto';
-import { ServerType, GenerationMode } from '@prisma/client';
+import { GenerationMode, ServerType } from '@/generated/prisma/enums';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';

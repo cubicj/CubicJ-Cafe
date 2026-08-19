@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
-import { QueueStatus, ServerType, GenerationMode, type QueueRequest } from "@prisma/client";
+import { GenerationMode, QueueStatus, ServerType } from '@/generated/prisma/enums';
+import type { QueueRequestModel as QueueRequest } from '@/generated/prisma/models/QueueRequest';
 import type { LoRAPresetData } from "@/types";
 import { createLogger } from '@/lib/logger';
 import { ExpiringCache } from '@/lib/utils/expiring-cache';
