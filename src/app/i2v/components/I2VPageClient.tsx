@@ -2,8 +2,8 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LoRAPresetManager } from '@/components/ui/lora-preset-manager';
-import { QueueMonitor } from '@/components/ui/queue-monitor';
+import { LoRAPresetManager } from '@/components/lora/lora-preset-manager';
+import { QueueMonitor } from '@/components/queue/queue-monitor';
 import { Sparkles, Bot, XCircle, Film } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { ServerStatusSection } from './sections/ServerStatusSection';

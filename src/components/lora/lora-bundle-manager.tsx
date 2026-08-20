@@ -5,13 +5,13 @@ import { createLogger } from '@/lib/logger';
 import { apiClient } from '@/lib/api-client';
 
 const log = createLogger('ui');
-import { Card, CardContent } from "./card";
-import { Button } from "./button";
-import { Input } from "./input";
-import { Label } from "./label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { Alert, AlertDescription } from "./alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Edit, Trash2, RefreshCw, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 

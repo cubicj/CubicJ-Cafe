@@ -2,8 +2,8 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Card } from './card';
-import { Button } from './button';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FileUpload } from "@/components/ui/file-upload";
+import { FileUpload } from "@/components/i2v/file-upload";
 import AudioPresetSelector from "@/components/audio/AudioPresetSelector";
-import { PromptInput } from "@/components/ui/prompt-input";
+import { PromptInput } from "@/components/i2v/prompt-input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Bot, MessageSquare, Music, ChevronDown } from "lucide-react";
