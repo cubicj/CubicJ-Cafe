@@ -3,7 +3,6 @@ import { QueueService } from '@/lib/database/queue'
 import { QueueStatus } from '@/generated/prisma/enums'
 import { GenerationJob } from '@/types'
 import { serverManager } from './server-manager'
-import { queueMonitor } from './queue-monitor'
 import { sendVideoToDiscord } from './video-result-sender'
 import type { WsExecutedData, WsExecutionErrorData, VideoFileInfo } from './client-types'
 import type { ComfyUIClient } from './client-core'
@@ -154,7 +153,7 @@ class ComfyUIJobMonitor {
     const queueRequest = await QueueService.getRequestById(job.id)
     if (queueRequest?.status === 'CANCELLED') {
       log.info('Cancelled job monitoring stopped', { jobId: job.id })
-      queueMonitor.releaseServerJob(job.id)
+      serverManager.releaseServer(job.id)
       this.cleanup(job.promptId!, client)
       return
     }
@@ -171,7 +170,7 @@ class ComfyUIJobMonitor {
         updatedAt: new Date(),
       })
 
-      queueMonitor.releaseServerJob(job.id)
+      serverManager.releaseServer(job.id)
       const completedQueueRequest = queueRequest
         ? { ...queueRequest, status: QueueStatus.COMPLETED, completedAt }
         : null
@@ -206,7 +205,7 @@ class ComfyUIJobMonitor {
         updatedAt: new Date(),
       })
 
-      queueMonitor.releaseServerJob(job.id)
+      serverManager.releaseServer(job.id)
     }
 
     this.cleanup(job.promptId!, client)
@@ -232,7 +231,7 @@ class ComfyUIJobMonitor {
       updatedAt: new Date(),
     })
 
-    queueMonitor.releaseServerJob(job.id)
+    serverManager.releaseServer(job.id)
     this.cleanup(job.promptId!, client)
   }
 
