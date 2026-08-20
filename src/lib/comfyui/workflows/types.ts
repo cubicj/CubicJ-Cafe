@@ -1,4 +1,4 @@
-export const VIDEO_MODELS = ['wan', 'ltxa', 'ltxr', 'ltx-wan'] as const
+export const VIDEO_MODELS = ['wan', 'ltxa', 'ltxr', 'ltx-wan', 'h3-fl2va'] as const
 
 export type VideoModel = (typeof VIDEO_MODELS)[number]
 
@@ -8,6 +8,7 @@ export interface ModelCapabilities {
   videoDuration: boolean
   audio: boolean
   nsfw: boolean
+  startImageOptional: boolean
 }
 
 export interface ModelConfig {

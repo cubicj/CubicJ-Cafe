@@ -15,7 +15,7 @@ interface ParamRequest {
 
 interface PrepareParamsInput {
   request: ParamRequest
-  inputImage: string
+  inputImage?: string
   endImage?: string
   referenceAudio?: string
   client: ComfyUIClient
@@ -43,11 +43,18 @@ async function uploadLtxrWatermark(
   return client.uploadImage(file)
 }
 
+function requireInputImage(inputImage: string | undefined): string {
+  if (!inputImage) {
+    throw new Error('Start image is required for this model')
+  }
+  return inputImage
+}
+
 const PARAM_PREPARERS: Record<VideoModel, ParamPreparer> = {
   wan: async ({ request, inputImage, endImage }) => ({
     model: 'wan',
     prompt: request.prompt,
-    inputImage,
+    inputImage: requireInputImage(inputImage),
     videoDuration: request.videoDuration,
     isNSFW: request.isNSFW,
     endImage,
@@ -55,7 +62,7 @@ const PARAM_PREPARERS: Record<VideoModel, ParamPreparer> = {
   ltxa: async ({ request, inputImage, referenceAudio }) => ({
     model: 'ltxa',
     prompt: request.prompt,
-    inputImage,
+    inputImage: requireInputImage(inputImage),
     videoDuration: request.videoDuration,
     isNSFW: request.isNSFW,
     referenceAudio,
@@ -69,7 +76,7 @@ const PARAM_PREPARERS: Record<VideoModel, ParamPreparer> = {
     return {
       model: 'ltxr',
       prompt: request.prompt,
-      inputImage,
+      inputImage: requireInputImage(inputImage),
       videoDuration: request.videoDuration,
       isNSFW: request.isNSFW,
       endImage,
@@ -81,12 +88,25 @@ const PARAM_PREPARERS: Record<VideoModel, ParamPreparer> = {
   'ltx-wan': async ({ request, inputImage, endImage, referenceAudio }) => ({
     model: 'ltx-wan',
     prompt: request.prompt,
-    inputImage,
+    inputImage: requireInputImage(inputImage),
     videoDuration: request.videoDuration,
     isNSFW: request.isNSFW,
     endImage,
     referenceAudio,
   }),
+  'h3-fl2va': async ({ request, inputImage, endImage }) => {
+    if (!inputImage && !endImage) {
+      throw new Error('H3 FL2VA requires at least one image')
+    }
+    return {
+      model: 'h3-fl2va',
+      prompt: request.prompt,
+      videoDuration: request.videoDuration,
+      isNSFW: request.isNSFW,
+      inputImage,
+      endImage,
+    }
+  },
 }
 
 export async function prepareGenerationParams(

@@ -102,16 +102,22 @@ export const POST = createRouteHandler(
     const videoDurationSeconds = getVideoDurationSeconds(activeModel, videoDuration, modelSettings);
     const imageFile = validated.image;
 
-    const generationMode = isLoop
+    if (!imageFile && !endImageFile) {
+      return NextResponse.json({ error: '이미지를 1장 이상 업로드해주세요' }, { status: 400 });
+    }
+
+    const generationMode = isLoop && imageFile
       ? GenerationMode.LOOP
-      : endImageFile
+      : imageFile && endImageFile
         ? GenerationMode.START_END
-        : GenerationMode.START_ONLY;
+        : !imageFile
+          ? GenerationMode.END_ONLY
+          : GenerationMode.START_ONLY;
 
     log.debug('FormData parsed', {
       model: activeModel,
       prompt: prompt.substring(0, 50) + '...',
-      imageFile: `${imageFile.name} (${imageFile.size} bytes)`,
+      imageFile: imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'null',
       endImageFile: endImageFile ? `${endImageFile.name} (${endImageFile.size} bytes)` : 'null',
       audioPresetId: validated.audioPresetId || 'null',
       hasLoraPreset: !!loraPresetData,
@@ -119,7 +125,13 @@ export const POST = createRouteHandler(
     });
 
     try {
-      const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+      let imageBuffer = null;
+      let tempFileName = null;
+      if (imageFile) {
+        imageBuffer = Buffer.from(await imageFile.arrayBuffer());
+        const fileExtension = imageFile.name.split('.').pop() || 'png';
+        tempFileName = `${randomUUID()}_${req.user!.id}_${Date.now()}.${fileExtension}`;
+      }
 
       let endImageBuffer = null;
       if (capabilities.endImage && endImageFile) {
@@ -142,9 +154,6 @@ export const POST = createRouteHandler(
         }
       }
 
-      const fileExtension = imageFile.name.split('.').pop() || 'png';
-      const tempFileName = `${randomUUID()}_${req.user!.id}_${Date.now()}.${fileExtension}`;
-
       let endTempFileName = null;
       if (endImageBuffer && endImageFile) {
         const endFileExtension = endImageFile.name.split('.').pop() || 'png';
@@ -155,8 +164,8 @@ export const POST = createRouteHandler(
         userId: parseInt(req.user!.id),
         nickname: req.user!.nickname,
         prompt: prompt.trim(),
-        imageFile: tempFileName,
-        imageBlob: imageBuffer,
+        imageFile: tempFileName || undefined,
+        imageBlob: imageBuffer || undefined,
         endImageFile: endTempFileName || undefined,
         endImageBlob: endImageBuffer || undefined,
         audioFile: audioTempFileName || undefined,

@@ -34,6 +34,7 @@ vi.mock('@/lib/database/system-settings', () => ({
   getLtxaSettings: vi.fn(() => ({ loraEnabled: false, durationOptions: [5, 6, 7] })),
   getLtxrSettings: vi.fn(() => ({ loraEnabled: false, durationOptions: [5, 6, 7], frameBase: 11, frameRate: 19 })),
   getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false, durationOptions: [5, 6, 7, 8] })),
+  getH3Fl2vaSettings: vi.fn(() => ({ durationOptions: [5, 7], framesPerStep: 10, frameBase: 3, frameRate: 10 })),
   getEnabledModels: vi.fn(() => ['wan', 'ltxa', 'ltx-wan']),
 }))
 
@@ -292,5 +293,70 @@ describe('POST /api/i2v', () => {
       videoModel: 'ltxr',
       isNSFW: false,
     })
+  })
+
+  it('accepts an h3-fl2va request with only an end image and stores END_ONLY', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['h3-fl2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = new FormData()
+    form.set('prompt', 'ending scene')
+    form.set('model', 'h3-fl2va')
+    form.set('isNSFW', 'false')
+    form.set('videoDuration', '5')
+    form.set('endImage', new File(['fake-end-image'], 'end.png', { type: 'image/png' }))
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const res = await POST(new NextRequest(req))
+    const body = await res.json()
+    expect(res.status).toBe(200)
+
+    const row = await prisma.queueRequest.findUnique({
+      where: { id: body.requestId },
+      select: { generationMode: true, imageFile: true, endImageFile: true, videoDuration: true, videoDurationSeconds: true },
+    })
+    expect(row?.generationMode).toBe('END_ONLY')
+    expect(row?.imageFile).toBeNull()
+    expect(row?.endImageFile).not.toBeNull()
+    expect(row?.videoDuration).toBe(5)
+    expect(row?.videoDurationSeconds).toBe(5.3)
+  })
+
+  it('rejects an h3-fl2va request with no images', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['h3-fl2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = new FormData()
+    form.set('prompt', 'no images')
+    form.set('model', 'h3-fl2va')
+    form.set('isNSFW', 'false')
+    form.set('videoDuration', '5')
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const res = await POST(new NextRequest(req))
+    expect(res.status).toBe(400)
+  })
+
+  it('stores START_ONLY for h3-fl2va with only a start image', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['h3-fl2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ model: 'h3-fl2va' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const res = await POST(new NextRequest(req))
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    const row = await prisma.queueRequest.findUnique({
+      where: { id: body.requestId },
+      select: { generationMode: true },
+    })
+    expect(row?.generationMode).toBe('START_ONLY')
   })
 })

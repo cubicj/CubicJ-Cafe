@@ -6,6 +6,7 @@ export const MODEL_ENABLED_KEYS = {
   ltxa: 'ltxa.enabled',
   ltxr: 'ltxr.enabled',
   'ltx-wan': 'ltx-wan.enabled',
+  'h3-fl2va': 'h3-fl2va.enabled',
 } as const
 
 export async function getEnabledModels(): Promise<VideoModel[]> {
@@ -27,7 +28,10 @@ export function resolveEnabledModels(values: ReadonlyMap<string, string>): Video
     ['ltxa', MODEL_ENABLED_KEYS.ltxa],
     ['ltxr', MODEL_ENABLED_KEYS.ltxr],
     ['ltx-wan', MODEL_ENABLED_KEYS['ltx-wan']],
+    ['h3-fl2va', MODEL_ENABLED_KEYS['h3-fl2va']],
   ] as const)
-    .filter(([model, key]) => model === 'ltxr' ? values.get(key) === 'true' : values.get(key) !== 'false')
+    .filter(([model, key]) =>
+      model === 'ltxr' || model === 'h3-fl2va' ? values.get(key) === 'true' : values.get(key) !== 'false'
+    )
     .map(([model]) => model)
 }

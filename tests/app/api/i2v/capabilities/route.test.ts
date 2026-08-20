@@ -3,6 +3,7 @@ import { createUser } from '@tests/helpers/fixtures'
 import { buildRequest, buildAuthenticatedRequest } from '@tests/helpers/auth'
 import { createTestSession } from '@tests/helpers/auth'
 import { seedLtxrSettings } from '@tests/helpers/ltxr-seed'
+import { seedH3Fl2va } from '@tests/helpers/h3-fl2va-seed'
 import { prisma } from '@/lib/database/prisma'
 
 import { GET } from '@/app/api/i2v/capabilities/route'
@@ -121,6 +122,7 @@ describe('GET /api/i2v/capabilities', () => {
       videoDuration: true,
       audio: true,
       nsfw: false,
+      startImageOptional: false,
     })
     expect(enabledBody.durationOptions.ltxr).toEqual([5, 6, 7])
     expect(MODEL_REGISTRY.ltxr).toMatchObject({
@@ -187,6 +189,20 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.durationOptions.ltxa).toEqual([24])
     expect(body.durationLabels.ltxa['24']).toBe('7.7초')
     expect(body.durationLabels.wan['5']).toBe('5초')
+  })
+
+  it('returns H3 FL2VA capabilities and duration labels from frame settings', async () => {
+    await seedH3Fl2va()
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+
+    const res = await GET(buildAuthenticatedRequest('/api/i2v/capabilities', session.id))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.capabilities).toHaveProperty('h3-fl2va')
+    expect(body.capabilities['h3-fl2va'].startImageOptional).toBe(true)
+    expect(body.durationLabels['h3-fl2va']).toEqual({ 5: '5.3초', 7: '7.3초' })
   })
 
   it('falls back to registry durations when a model setting is missing', async () => {

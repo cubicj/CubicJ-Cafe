@@ -1,17 +1,12 @@
 import { z } from 'zod'
 import { loraItemSchema } from './lora-preset'
 import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'] as const
 
 const hasAllowedImageExtension = (f: File): boolean =>
   IMAGE_EXTENSIONS.some((ext) => f.name.toLowerCase().endsWith(ext))
-
-const imageSchema = z.instanceof(File)
-  .refine((f) => f.size > 0, '이미지를 업로드해주세요')
-  .refine((f) => f.size <= 10 * 1024 * 1024, '이미지 파일이 너무 큽니다 (최대 10MB)')
-  .refine((f) => f.type.startsWith('image/'), '이미지 형식이어야 합니다')
-  .refine(hasAllowedImageExtension, `이미지 확장자는 ${IMAGE_EXTENSIONS.join(', ')} 중 하나여야 합니다`)
 
 const optionalImageSchema = z.instanceof(File)
   .transform((f) => (f.size === 0 ? undefined : f))
@@ -37,7 +32,7 @@ const i2vLoraPresetDataSchema = z.object({
 
 export const i2vSchema = z.object({
   prompt: z.string().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)').transform((s) => s.trim()),
-  image: imageSchema,
+  image: optionalImageSchema,
   endImage: optionalImageSchema,
   audioPresetId: z.string().min(1).optional(),
   model: z.enum(VIDEO_MODELS).default('wan'),
@@ -52,6 +47,16 @@ export const i2vSchema = z.object({
   isNSFW: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   isLoop: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   videoDuration: z.coerce.number().int().positive().default(5),
+}).superRefine((data, ctx) => {
+  if (MODEL_REGISTRY[data.model].capabilities.startImageOptional) {
+    if (!data.image && !data.endImage) {
+      ctx.addIssue({ code: 'custom', path: ['image'], message: '이미지를 1장 이상 업로드해주세요' })
+    }
+    return
+  }
+  if (!data.image) {
+    ctx.addIssue({ code: 'custom', path: ['image'], message: '이미지를 업로드해주세요' })
+  }
 })
 
 export const i2vStatusQuerySchema = z.object({
