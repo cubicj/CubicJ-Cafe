@@ -105,7 +105,7 @@ describe('buildH3Fl2vaWorkflow', () => {
     expect(wf[H3_FL2VA.CLIP_LOADER]!.inputs).toMatchObject({ clip_name: 'test-h3-clip.safetensors', type: 'test-clip-type', device: 'fake-clip-device' })
     expect(wf[H3_FL2VA.VIDEO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3-video-vae.safetensors')
     expect(wf[H3_FL2VA.AUDIO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3-audio-vae.safetensors')
-    expect(wf[H3_FL2VA.TURBO_LORA]!.inputs).toMatchObject({ lora_name: 'test-h3-lora.safetensors', strength_model: 0.9 })
+    expect(wf[H3_FL2VA.TURBO_LORA]!.inputs).toMatchObject({ lora_name: 'test-h3-lora.safetensors', strength: 0.9 })
     expect(wf[H3_FL2VA.SIGMA_SHIFT]!.inputs).toMatchObject({ shift_video: 7, shift_audio: 2 })
     expect(wf[H3_FL2VA.ATTENTION_BACKEND]!.inputs!.attention).toBe('test attention')
     expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.enabled).toBe(true)

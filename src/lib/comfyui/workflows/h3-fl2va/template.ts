@@ -7,7 +7,7 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'Resize Image (Megapixels + Alignment)' },
   },
   '3': {
-    inputs: { shift_video: 0, shift_audio: 0, model: ['56', 0] },
+    inputs: { shift_video: 0, shift_audio: 0, model: ['65', 0] },
     class_type: 'MiniMaxH3SigmaShift',
     _meta: { title: 'ModelSamplingMiniMaxH3' },
   },
@@ -154,11 +154,6 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     class_type: 'RTXVideoSuperResolution',
     _meta: { title: 'RTX Video Super Resolution' },
   },
-  '56': {
-    inputs: { lora_name: 'PLACEHOLDER', strength_model: 0, model: ['15', 0] },
-    class_type: 'LoraLoaderModelOnly',
-    _meta: { title: 'Load LoRA' },
-  },
   '57': {
     inputs: { image: 'PLACEHOLDER' },
     class_type: 'LoadImage',
@@ -188,5 +183,10 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     inputs: { verbose: true, release_pinned_ram: true, aimdo_analyze: true, passthrough: ['29', 0] },
     class_type: 'ForceFullUnload',
     _meta: { title: 'Force Full Unload (VRAM+Pinned)' },
+  },
+  '65': {
+    inputs: { lora_name: 'PLACEHOLDER', strength: 0, low_vram: false, model: ['15', 0] },
+    class_type: 'MiniMaxH3TurboLoRA',
+    _meta: { title: 'MiniMax-H3 Turbo LoRA' },
   },
 } satisfies ComfyUIWorkflow
