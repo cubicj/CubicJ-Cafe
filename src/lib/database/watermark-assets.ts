@@ -2,7 +2,7 @@ import { prisma } from '@/lib/database/prisma'
 
 const WATERMARK_SETTING_KEY = 'ltxr.watermark_image'
 
-export interface WatermarkAssetMetadata {
+interface WatermarkAssetMetadata {
   id: string
   filename: string
   mimeType: string

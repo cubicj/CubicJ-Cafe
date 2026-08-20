@@ -48,7 +48,7 @@ class ComfyUIJobMonitor {
 
     const client = serverManager.getClient(server)
 
-    log.info('ComfyUI job monitoring started', { promptId: job.promptId })
+    log.debug('ComfyUI job monitoring started', { promptId: job.promptId })
     this.monitoringJobs.add(job.promptId)
 
     client.onExecuted(job.promptId, async (data: WsExecutedData) => {

@@ -1,6 +1,6 @@
 import { logBuffer } from './log-buffer';
 
-export interface CategoryLogger {
+interface CategoryLogger {
   info: (message: string, meta?: Record<string, unknown>) => void;
   warn: (message: string, meta?: Record<string, unknown>) => void;
   error: (message: string, meta?: Record<string, unknown>) => void;

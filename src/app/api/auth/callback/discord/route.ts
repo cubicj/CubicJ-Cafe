@@ -9,7 +9,7 @@ const log = createLogger('auth');
 export const GET = createRouteHandler(
   { auth: 'none', category: 'auth' },
   async (req) => {
-    log.info('Discord callback called', {
+    log.debug('Discord callback called', {
       origin: req.nextUrl.origin,
     });
 
@@ -17,7 +17,7 @@ export const GET = createRouteHandler(
     const error = searchParams.get('error');
     const code = searchParams.get('code');
 
-    log.info('Discord callback params', {
+    log.debug('Discord callback params', {
       error,
       code: code ? code.substring(0, 10) + '...' : null,
     });
@@ -45,7 +45,7 @@ export const GET = createRouteHandler(
 
     if (code) {
       try {
-        log.info('Starting token exchange with Discord');
+        log.debug('Starting token exchange with Discord');
 
         let tokenResponse;
         try {
@@ -84,7 +84,7 @@ export const GET = createRouteHandler(
 
         const tokens = await tokenResponse.json();
 
-        log.info('Token exchange successful, fetching user info');
+        log.debug('Token exchange successful, fetching user info');
 
         const userResponse = await fetch('https://discord.com/api/users/@me', {
           headers: {
@@ -98,7 +98,7 @@ export const GET = createRouteHandler(
 
         const discordUser = await userResponse.json();
 
-        log.info('User info fetched', { username: discordUser.username });
+        log.debug('User info fetched', { username: discordUser.username });
 
         const existingUser = await UserService.findByDiscordId(discordUser.id);
 
@@ -117,7 +117,6 @@ export const GET = createRouteHandler(
             redirectUrl = '/initial-setup/nickname';
           }
 
-          log.info('Existing user login', { nickname: existingUser.nickname });
         } else {
           await UserService.create({
             discordId: discordUser.id,
@@ -128,15 +127,12 @@ export const GET = createRouteHandler(
 
           sessionData = await sessionManager.createSession(discordUser.id);
           redirectUrl = '/initial-setup/nickname';
-          log.info('New user registration required', {
-            username: discordUser.username,
-          });
         }
 
         const baseUrl = process.env.APP_URL || req.nextUrl.origin;
         const response = NextResponse.redirect(new URL(redirectUrl, baseUrl));
 
-        log.info('Setting session cookie', {
+        log.debug('Setting session cookie', {
           sessionId: sessionData.sessionId.substring(0, 8) + '...',
           expires: sessionData.expiresAt,
           secure: (process.env.NODE_ENV || 'development') === 'production',
@@ -152,6 +148,10 @@ export const GET = createRouteHandler(
           sessionData.expiresAt
         );
         result.cookies.delete('oauth_state');
+        log.info('Discord OAuth completed', {
+          userStatus: existingUser ? 'known' : 'new',
+          redirectTarget: redirectUrl,
+        });
         return result;
       } catch (error) {
         log.error('Discord OAuth error', {

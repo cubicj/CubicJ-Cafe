@@ -26,7 +26,7 @@ export function formatDate(dateString: string) {
 }
 
 
-export function getSortIcon(field: string, sort: SortState) {
+function getSortIcon(field: string, sort: SortState) {
   if (sort.orderBy !== field) {
     return <ArrowUpDown className="w-3 h-3 text-muted-foreground" />;
   }

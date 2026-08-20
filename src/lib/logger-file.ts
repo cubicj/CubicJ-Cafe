@@ -31,7 +31,7 @@ function rotateIfNeeded(filePath: string): void {
 
 let writeQueue: Promise<void> = Promise.resolve();
 
-export function writeLogEntry(entry: { timestamp: string; level: string; category: string; message: string; meta?: Record<string, unknown> }): void {
+function writeLogEntry(entry: { timestamp: string; level: string; category: string; message: string; meta?: Record<string, unknown> }): void {
   const line = JSON.stringify(entry) + '\n';
   const appFile = getLogFilePath('application');
   const errorFile = getLogFilePath('error');
@@ -64,7 +64,7 @@ export function initFileLogging(): void {
   setTimeout(cleanOldFiles, 5000);
 }
 
-export function cleanOldFiles(): void {
+function cleanOldFiles(): void {
   try {
     const files = fs.readdirSync(/* turbopackIgnore: true */ logDir)
       .filter((f: string) => f.endsWith('.log'))

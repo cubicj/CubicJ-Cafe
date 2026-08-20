@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 
-export const OPS_KEYS = [
+const OPS_KEYS = [
   'ops.discord_channel_cache_ms',
   'ops.generation_sweep_interval_ms',
   'ops.generation_sweep_max_age_ms',
@@ -12,7 +12,7 @@ export const OPS_KEYS = [
   'ops.ws_history_poll_interval_ms',
 ] as const
 
-export type OpsSettingKey = (typeof OPS_KEYS)[number]
+type OpsSettingKey = (typeof OPS_KEYS)[number]
 
 type OpsState = { cache: Map<OpsSettingKey, number>; loaded: boolean }
 

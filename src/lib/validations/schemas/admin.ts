@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTXR_KEYS, LTX_WAN_KEYS } from '@/lib/database/system-settings'
 
-export const ALLOWED_SETTING_KEYS = new Set([
+const ALLOWED_SETTING_KEYS = new Set([
   ...Object.values(WAN_KEYS),
   ...Object.values(LTXA_KEYS),
   ...Object.values(LTXR_KEYS),
@@ -22,11 +22,11 @@ const settingItemSchema = z.object({
   category: z.string().default('general'),
 })
 
-export const settingsBatchSchema = z.object({
+const settingsBatchSchema = z.object({
   settings: z.array(settingItemSchema).min(1),
 })
 
-export const settingSingleSchema = settingItemSchema
+const settingSingleSchema = settingItemSchema
 
 export const settingsPutSchema = z.union([settingsBatchSchema, settingSingleSchema])
 
@@ -96,13 +96,3 @@ export const dbQuerySchema = paginationSchema.extend({
   orderBy: z.string().optional(),
   orderDirection: z.enum(['asc', 'desc']).default('desc'),
 })
-
-export type SettingItem = z.infer<typeof settingItemSchema>
-export type CleanupInput = z.infer<typeof cleanupSchema>
-export type ComfyuiToggleInput = z.infer<typeof comfyuiToggleSchema>
-export type QueuePauseInput = z.infer<typeof queuePauseSchema>
-export type DiscordDebugMessageInput = z.infer<typeof discordDebugMessageSchema>
-export type LogsQueryInput = z.infer<typeof logsQuerySchema>
-export type LoraBundleCreateInput = z.infer<typeof loraBundleCreateSchema>
-export type LoraBundleUpdateInput = z.infer<typeof loraBundleUpdateSchema>
-export type DbQueryInput = z.infer<typeof dbQuerySchema>

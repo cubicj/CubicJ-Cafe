@@ -56,5 +56,3 @@ export const i2vSchema = z.object({
 export const i2vStatusQuerySchema = z.object({
   jobId: z.string().min(1, 'Job ID is required'),
 })
-
-export type I2VInput = z.infer<typeof i2vSchema>

@@ -31,7 +31,3 @@ export const loraPresetDataSchema = z.object({
   presetName: z.string(),
   loraItems: z.array(loraItemSchema),
 })
-
-export type CreateLoraPresetInput = z.infer<typeof createLoraPresetSchema>
-export type UpdateLoraPresetInput = z.infer<typeof updateLoraPresetSchema>
-export type LoraItemInput = z.infer<typeof loraItemSchema>

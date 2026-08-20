@@ -12,7 +12,6 @@ import {
   generateSeed,
   extractBaseImageName,
   setNode,
-  dumpWorkflow,
 } from '../shared';
 
 const log = createLogger('comfyui');
@@ -95,14 +94,13 @@ export async function buildLtxaWorkflow(
 
   setNode(workflow, LTXA.NOISE_SEED, { noise_seed: generateSeed() });
 
-  log.info('LTXA workflow built', {
+  log.debug('LTXA workflow built', {
     prompt: params.prompt.substring(0, 50),
     videoDuration: params.videoDuration,
     hasReferenceAudio: !!params.referenceAudio,
     isNSFW: !!params.isNSFW,
   });
 
-  dumpWorkflow('ltxa', workflow);
   return workflow;
 }
 

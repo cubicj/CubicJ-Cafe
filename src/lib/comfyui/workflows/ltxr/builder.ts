@@ -13,7 +13,6 @@ import {
   generateSeed,
   extractBaseImageName,
   setNode,
-  dumpWorkflow,
 } from '../shared';
 
 const log = createLogger('comfyui');
@@ -84,7 +83,7 @@ export async function buildLtxrWorkflow(
 
   setNode(workflow, LTXR.NOISE_SEED, { noise_seed: generateSeed() });
 
-  log.info('LTXR workflow built', {
+  log.debug('LTXR workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
     videoDuration: params.videoDuration,
@@ -93,7 +92,6 @@ export async function buildLtxrWorkflow(
     hasWatermark: settings.watermarkEnabled,
   });
 
-  dumpWorkflow('ltxr', workflow);
   return workflow;
 }
 

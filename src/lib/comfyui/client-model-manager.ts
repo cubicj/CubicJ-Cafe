@@ -312,14 +312,6 @@ export class ComfyUIModelManager {
     try {
       const objectInfo = await this.getObjectInfoWithRunpodFallback()
       const result = extractModels(objectInfo.data)
-      log.info('Models fetched', {
-        source: objectInfo.source,
-        diffusionModels: result.diffusionModels.length,
-        textEncoders: result.textEncoders.length,
-        vaes: result.vaes.length,
-        upscaleModels: result.upscaleModels.length,
-        clipVisions: result.clipVisions.length
-      })
       return result
     } catch (error) {
       log.error('Failed to fetch model list', { error: error instanceof Error ? error.message : String(error) })

@@ -1,6 +1,6 @@
 import type { BadgeProps } from '@/components/ui/badge';
 
-export interface QueueDetailTag {
+interface QueueDetailTag {
   key: string;
   label: string;
   variant?: BadgeProps['variant'];

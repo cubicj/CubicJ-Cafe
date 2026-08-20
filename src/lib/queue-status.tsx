@@ -7,7 +7,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export type QueueStatusType =
+type QueueStatusType =
   | 'PENDING'
   | 'PROCESSING'
   | 'COMPLETED'

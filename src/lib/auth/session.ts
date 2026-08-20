@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/lib/database/sessions';
 import { UserService } from '@/lib/database/users';
 
-export interface SessionUser {
+interface SessionUser {
   id: string;
   discordId: string;
   discordUsername: string;
@@ -21,7 +21,7 @@ export interface SessionData {
 const SESSION_COOKIE_NAME = 'session_id';
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30일
 
-export class SessionManager {
+class SessionManager {
 
   async createSession(discordId: string): Promise<SessionData> {
     const user = await UserService.findByDiscordId(discordId);

@@ -18,7 +18,7 @@ export async function setComfyUIEnabled(enabled: boolean): Promise<void> {
     update: { value: String(enabled) },
     create: { key: 'comfyui_enabled', value: String(enabled), type: 'boolean', category: 'system' }
   });
-  log.info('ComfyUI state changed', { enabled });
+  log.debug('ComfyUI state changed', { enabled });
 }
 
 export async function initComfyUIState(): Promise<void> {

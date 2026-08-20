@@ -5,7 +5,7 @@ import { LTX_WAN_WORKFLOW_TEMPLATE } from './template'
 import { LTX_WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getLtxWanSettings } from '@/lib/database/system-settings'
-import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
+import { generateSeed, extractBaseImageName, setNode } from '../shared'
 import { computeWanContextOptions } from '../wan/context-options'
 
 const log = createLogger('comfyui')
@@ -47,7 +47,7 @@ export async function buildLtxWanWorkflow(
   setNode(workflow, LTX_WAN.NOISE_SEED_LTX, { noise_seed: generateSeed() })
   setNode(workflow, LTX_WAN.CLOWN_SAMPLER_LTX, { seed: generateSeed() })
 
-  log.info('LTX-WAN workflow built', {
+  log.debug('LTX-WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
     hasReferenceAudio: !!params.referenceAudio,
@@ -57,7 +57,6 @@ export async function buildLtxWanWorkflow(
     rtxEnabled: settings.rtxEnabled,
   })
 
-  dumpWorkflow('ltx-wan', workflow)
   return workflow
 }
 

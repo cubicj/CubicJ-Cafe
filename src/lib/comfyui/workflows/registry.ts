@@ -9,7 +9,6 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
       videoDuration: true,
       audio: false,
     },
-    defaultSubfolder: 'WAN',
     durationOptions: [5, 6, 7],
     defaultDuration: 5,
   },
@@ -21,7 +20,6 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
       videoDuration: true,
       audio: true,
     },
-    defaultSubfolder: 'LTXA',
     durationOptions: [5, 6, 7],
     defaultDuration: 5,
   },
@@ -33,7 +31,6 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
       videoDuration: true,
       audio: true,
     },
-    defaultSubfolder: 'LTXR',
     durationOptions: [5, 6, 7],
     defaultDuration: 5,
   },
@@ -45,21 +42,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
       videoDuration: true,
       audio: true,
     },
-    defaultSubfolder: 'LTX-WAN',
     durationOptions: [5, 6, 7, 8],
     defaultDuration: 5,
   },
-};
-
-export const VIDEO_OUTPUT_TYPES: Record<
-  VideoModel,
-  {
-    classTypes: string[];
-    outputField: string;
-  }
-> = {
-  wan: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
-  ltxa: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
-  ltxr: { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
-  'ltx-wan': { classTypes: ['VHS_VideoCombine'], outputField: 'gifs' },
 };

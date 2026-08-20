@@ -14,7 +14,7 @@ type QueueStatsData = {
   total: number;
 };
 
-export interface QueueRequestData {
+interface QueueRequestData {
   userId: number;
   nickname: string;
   prompt: string;
@@ -35,7 +35,7 @@ export interface QueueRequestData {
   videoDurationSeconds?: number;
 }
 
-export interface QueueRequestUpdate {
+interface QueueRequestUpdate {
   status?: QueueStatus;
   jobId?: string;
   serverType?: ServerType;
@@ -431,7 +431,7 @@ export class QueueService {
           return null;
         }
 
-        log.info('Atomic claim target', { id: nextRequest.id, position: nextRequest.position, nickname: nextRequest.nickname });
+        log.debug('Atomic claim target', { id: nextRequest.id, position: nextRequest.position, nickname: nextRequest.nickname });
 
         const updatedRequest = await tx.queueRequest.update({
           where: {

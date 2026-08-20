@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
 
-export interface Table {
+interface Table {
   name: string;
   displayName: string;
   count: number;
 }
 
-export interface DatabaseData {
+interface DatabaseData {
   data: Record<string, unknown>[];
   totalCount: number;
   page: number;

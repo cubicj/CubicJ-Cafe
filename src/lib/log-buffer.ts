@@ -1,4 +1,4 @@
-export interface LogEntry {
+interface LogEntry {
   id: number;
   timestamp: string;
   level: string;
@@ -8,7 +8,7 @@ export interface LogEntry {
   meta?: Record<string, unknown>;
 }
 
-export interface LogSubscriber {
+interface LogSubscriber {
   id: string;
   controller: ReadableStreamDefaultController;
   filters?: {
@@ -17,7 +17,7 @@ export interface LogSubscriber {
   };
 }
 
-export type LogListener = (entry: LogEntry) => void;
+type LogListener = (entry: LogEntry) => void;
 
 class LogBuffer {
   private buffer: LogEntry[] = [];

@@ -3,7 +3,7 @@ import { z } from 'zod'
 const AUDIO_MIME_TYPES = ['audio/wav', 'audio/mpeg', 'audio/flac', 'audio/ogg', 'audio/x-wav']
 const MAX_AUDIO_SIZE = 20 * 1024 * 1024
 
-export const audioFileSchema = z
+const audioFileSchema = z
   .instanceof(File)
   .refine((f) => f.size > 0, '오디오 파일을 업로드해주세요')
   .refine((f) => f.size <= MAX_AUDIO_SIZE, '오디오 파일이 너무 큽니다 (최대 20MB)')

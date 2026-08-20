@@ -64,7 +64,7 @@ export interface WanSettings {
   disableWindowReinjectLow: boolean;
 }
 
-export interface LtxLoraSlotSettings {
+interface LtxLoraSlotSettings {
   enabled: boolean;
   name: string;
   strength: number;

@@ -26,12 +26,6 @@ export interface LoRAPresetData {
   loraItems: LoRAPresetItem[];
 }
 
-export interface LoraConfig {
-  name: string;
-  strength: number;
-  enabled: boolean;
-}
-
 export interface LoRABundle {
   id: string;
   displayName: string;

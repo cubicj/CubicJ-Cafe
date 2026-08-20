@@ -5,5 +5,3 @@ export const translateSchema = z.object({
   sourceLang: z.string().min(2).max(10).regex(/^[a-zA-Z-]{2,10}$/, 'sourceLang 형식이 올바르지 않습니다'),
   targetLang: z.string().min(2).max(10).regex(/^[a-zA-Z-]{2,10}$/, 'targetLang 형식이 올바르지 않습니다'),
 })
-
-export type TranslateInput = z.infer<typeof translateSchema>
