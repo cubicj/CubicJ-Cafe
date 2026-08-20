@@ -225,4 +225,29 @@ export class LoRAPresetService {
       throw new Error(error instanceof Error ? error.message : '프리셋 삭제에 실패했습니다.');
     }
   }
+
+  static async reorderPresets(userId: number, presetIds: string[]): Promise<boolean> {
+    const userPresets = await prisma.loRAPreset.findMany({
+      where: {
+        userId,
+        id: { in: presetIds }
+      },
+      select: { id: true }
+    });
+
+    if (userPresets.length !== presetIds.length) {
+      return false;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      for (let i = 0; i < presetIds.length; i++) {
+        await tx.loRAPreset.update({
+          where: { id: presetIds[i] },
+          data: { order: i }
+        });
+      }
+    });
+
+    return true;
+  }
 }

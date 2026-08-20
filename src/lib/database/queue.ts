@@ -240,6 +240,17 @@ export class QueueService {
     });
   }
 
+  static async getWorkflowDownloadById(requestId: string) {
+    return await prisma.queueRequest.findUnique({
+      where: { id: requestId },
+      select: {
+        id: true,
+        workflowJson: true,
+        videoModel: true,
+      }
+    });
+  }
+
   static async getUserRequests(userId: number, limit: number = 10) {
     return await prisma.queueRequest.findMany({
       where: { userId },

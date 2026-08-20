@@ -318,6 +318,33 @@ describe('QueueService', () => {
     })
   })
 
+  describe('getWorkflowDownloadById', () => {
+    it('returns only workflow download fields', async () => {
+      const user = await createUser()
+      const request = await createQueueRequest(user.id, {
+        videoModel: 'ltxa',
+        imageBlob: Buffer.from('should-not-appear'),
+      })
+      const workflowJson = JSON.stringify({ prompt: { fake: true } })
+      await prisma.queueRequest.update({
+        where: { id: request.id },
+        data: { workflowJson },
+      })
+
+      const result = await QueueService.getWorkflowDownloadById(request.id)
+
+      expect(result).toEqual({
+        id: request.id,
+        workflowJson,
+        videoModel: 'ltxa',
+      })
+    })
+
+    it('returns null when the request does not exist', async () => {
+      await expect(QueueService.getWorkflowDownloadById('missing-request')).resolves.toBeNull()
+    })
+  })
+
   describe('cancelRequest clears blobs', () => {
     it('sets imageBlob to null on cancel', async () => {
       const user = await createUser()

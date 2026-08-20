@@ -1,5 +1,6 @@
-export { setSystemSetting } from './common';
-export type { LtxAnchorSettings, LtxLoraChainItem } from './common';
+export { setSystemSetting, setSystemSettings } from './common';
+export type { LtxAnchorSettings, LtxLoraChainItem, SystemSettingInput } from './common';
+export * from './capabilities';
 export * from './wan';
 export * from './ltxa';
 export * from './ltxr';

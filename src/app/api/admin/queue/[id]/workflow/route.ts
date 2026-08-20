@@ -1,22 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandler } from '@/lib/api/route-handler';
-import { prisma } from '@/lib/database/prisma';
+import { QueueService } from '@/lib/database/queue';
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
   async (_req, context) => {
     const { id } = await context!.params;
 
-    const request = await prisma.queueRequest.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        workflowJson: true,
-        videoModel: true,
-        prompt: true,
-        createdAt: true,
-      },
-    });
+    const request = await QueueService.getWorkflowDownloadById(id);
 
     if (!request) {
       return NextResponse.json({ error: 'Request not found' }, { status: 404 });
