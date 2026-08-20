@@ -1,110 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { createLogger } from '@/lib/logger';
-import { apiClient, ApiError } from '@/lib/api-client';
+import { useEffect } from 'react';
 import { useSession } from '@/contexts/SessionContext';
 import { useI2VFormContext } from '@/contexts/I2VFormContext';
-import { VIDEO_MODELS, type VideoModel, type ModelCapabilities } from "@/lib/comfyui/workflows/types";
-import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
-
-const log = createLogger('i2v');
-
-interface ServerInfo {
-  type: 'local' | 'runpod'
-  name: string
-  status: 'connected' | 'disconnected' | 'error'
-  queue?: {
-    remaining: number
-  }
-  error?: string
-}
-
-interface ComfyUIStatus {
-  servers: ServerInfo[]
-  summary: {
-    local: {
-      active: number
-      total: number
-    }
-    runpod: {
-      active: number
-      total: number
-    }
-    totalActive: number
-    totalServers: number
-  }
-  error?: string
-  timestamp: string
-}
-
-interface LoRAItemData {
-  loraFilename: string;
-  loraName: string;
-  strength: number;
-  group: string;
-  order: number;
-}
-
-interface PresetData {
-  id: string;
-  name: string;
-  loraItems: LoRAItemData[];
-}
-
-interface SubmitMessage {
-  type: 'success' | 'error';
-  message: string;
-  requestId?: string;
-}
-
-interface UseI2VFormReturn {
-  selectedFile: File | null;
-  setSelectedFile: (file: File | null) => void;
-  endImageFile: File | null;
-  setEndImageFile: (file: File | null) => void;
-  audioPresetId: string | null;
-  setAudioPresetId: (id: string | null) => void;
-  isLoopEnabled: boolean;
-  setIsLoopEnabled: (enabled: boolean) => void;
-  prompt: string;
-  setPrompt: (prompt: string) => void;
-  selectedPresetIds: string[];
-  setSelectedPresetIds: (ids: string[]) => void;
-  currentPresets: PresetData[];
-  setCurrentPresets: (presets: PresetData[]) => void;
-  presets: PresetData[];
-  setPresets: (presets: PresetData[]) => void;
-  isGenerating: boolean;
-  setIsGenerating: (generating: boolean) => void;
-  isNSFW: boolean;
-  setIsNSFW: (nsfw: boolean) => void;
-  videoDuration: number;
-  setVideoDuration: (duration: number) => void;
-  submitMessage: SubmitMessage | null;
-  setSubmitMessage: (message: SubmitMessage | null) => void;
-  serverStatus: ComfyUIStatus | null;
-  setServerStatus: (status: ComfyUIStatus | null) => void;
-  isRefreshing: boolean;
-  setIsRefreshing: (refreshing: boolean) => void;
-  isLoadingServerStatus: boolean;
-  setIsLoadingServerStatus: (loading: boolean) => void;
-  activeModel: VideoModel;
-  setActiveModel: (model: VideoModel) => void;
-  enabledModels: VideoModel[];
-  capabilities: ModelCapabilities;
-  durationOptions: number[];
-  durationLabels: Record<number, string>;
-  isLoadingAuth: boolean;
-  hasUnavailableLoRAs: boolean;
-  setHasUnavailableLoRAs: (has: boolean) => void;
-  isFormValid: boolean;
-  handleSubmit: () => Promise<void>;
-  handleReset: () => void;
-  handleRefreshStatus: () => Promise<void>;
-  fetchServerStatus: () => Promise<void>;
-  fetchPresets: () => Promise<PresetData[]>;
-}
+import { useI2VSubmission } from './useI2VSubmission';
+import type { UseI2VFormReturn } from './useI2VForm.types';
+import {
+  useLoraPresetData,
+  useLoraPresetSelection,
+  usePersistedLoraPresetSelection,
+} from './useLoraPresetSelection';
+import { useModelCapabilities } from './useModelCapabilities';
+import { useInitialServerStatus, useServerStatus } from './useServerStatus';
 
 export function useI2VForm(): UseI2VFormReturn {
   const {
@@ -116,137 +23,69 @@ export function useI2VForm(): UseI2VFormReturn {
     isNSFW, setIsNSFW,
     clearForm,
   } = useI2VFormContext();
-
-  const [selectedPresetIds, setSelectedPresetIdsState] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('selectedPresetIds');
-        return saved ? JSON.parse(saved) : [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-  const selectedPresetIdsRef = useRef(selectedPresetIds);
-  const setSelectedPresetIds = useCallback((ids: string[]) => {
-    selectedPresetIdsRef.current = ids;
-    setSelectedPresetIdsState(ids);
-  }, []);
-
-  const [currentPresets, setCurrentPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
-  const [presets, setPresets] = useState<Array<{ id: string; name: string; loraItems: Array<{ loraFilename: string; loraName: string; strength: number; group: string; order: number }> }>>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [hasUnavailableLoRAs, setHasUnavailableLoRAs] = useState(false);
-
-  const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
+  const {
+    selectedPresetIds,
+    selectedPresetIdsRef,
+    setSelectedPresetIds,
+    currentPresets,
+    setCurrentPresets,
+    presets,
+    setPresets,
+  } = useLoraPresetSelection();
   const { user, isLoading: isLoadingAuth } = useSession();
-  const [serverStatus, setServerStatus] = useState<ComfyUIStatus | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoadingServerStatus, setIsLoadingServerStatus] = useState(true);
-  const [activeModel, setActiveModelState] = useState<VideoModel>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('activeModel');
-        if (saved === 'ltx') {
-          localStorage.setItem('activeModel', 'ltxa');
-          return 'ltxa';
-        }
-        if (saved && (VIDEO_MODELS as readonly string[]).includes(saved)) return saved as VideoModel;
-      } catch { /* ignore */ }
-    }
-    return 'wan';
+  const {
+    serverStatus,
+    setServerStatus,
+    isRefreshing,
+    setIsRefreshing,
+    isLoadingServerStatus,
+    setIsLoadingServerStatus,
+    fetchServerStatus,
+    handleRefreshStatus,
+  } = useServerStatus({ isLoadingAuth, user });
+  const {
+    activeModel,
+    setActiveModel,
+    setFormIsNSFW,
+    videoDuration,
+    setVideoDuration,
+    enabledModels,
+    capabilities,
+    capabilitiesRef,
+    durationOptions,
+    durationLabels,
+  } = useModelCapabilities({
+    isLoadingAuth,
+    user,
+    isNSFW,
+    setIsNSFW,
+    setSelectedPresetIds,
+    setCurrentPresets,
   });
-  const [videoDuration, setVideoDuration] = useState<number>(
-    MODEL_REGISTRY[activeModel].defaultDuration
-  );
-  const initialModelRef = useRef(activeModel);
-  const initialDurationRef = useRef(videoDuration);
-  const previousActiveModelRef = useRef(activeModel);
-  const nonLtxrIsNSFWRef = useRef(isNSFW);
-  const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
-  const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
-  const [durationLabelsMap, setDurationLabelsMap] = useState<Record<VideoModel, Record<number, string>> | null>(null);
-  const [enabledModels, setEnabledModels] = useState<VideoModel[]>((Object.keys(MODEL_REGISTRY) as VideoModel[]));
-  const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
-  const capabilitiesRef = useRef(capabilities);
-  const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;
-  const durationLabels: Record<number, string> = durationLabelsMap?.[activeModel] ?? Object.fromEntries(durationOptions.map(duration => [duration, `${duration}초`]));
-
-  useEffect(() => {
-    capabilitiesRef.current = capabilities;
-  }, [capabilities]);
-
-  useEffect(() => {
-    if (isLoadingAuth || !user) return;
-
-    const fetchCapabilities = async () => {
-      try {
-        const data = await apiClient.get<{
-          capabilities: Record<VideoModel, ModelCapabilities>
-          durationOptions: Record<VideoModel, number[]>
-          durationLabels: Record<VideoModel, Record<number, string>>
-          enabledModels: VideoModel[]
-        }>('/api/i2v/capabilities');
-        setCapabilitiesMap(data.capabilities);
-        setDurationOptionsMap(data.durationOptions);
-        setDurationLabelsMap(data.durationLabels);
-        setEnabledModels(data.enabledModels);
-        const initialEnabledModel = data.enabledModels.includes(initialModelRef.current)
-          ? initialModelRef.current
-          : data.enabledModels[0];
-        if (initialEnabledModel && initialEnabledModel !== initialModelRef.current) {
-          setActiveModelState(initialEnabledModel);
-          localStorage.setItem('activeModel', initialEnabledModel);
-        }
-        const options = initialEnabledModel ? data.durationOptions[initialEnabledModel] : data.durationOptions[initialModelRef.current];
-        if (options && !options.includes(initialDurationRef.current)) {
-          setVideoDuration(options[0]);
-        }
-      } catch {
-        log.warn('Failed to fetch capabilities, using static defaults');
-      }
-    };
-    fetchCapabilities();
-  }, [isLoadingAuth, user]);
-
-  useEffect(() => {
-    const previousActiveModel = previousActiveModelRef.current;
-    const previousCapabilities = capabilitiesMap?.[previousActiveModel]
-      ?? MODEL_REGISTRY[previousActiveModel].capabilities;
-
-    if (!capabilities.nsfw) {
-      if (previousCapabilities.nsfw) {
-        nonLtxrIsNSFWRef.current = isNSFW;
-      }
-      previousActiveModelRef.current = activeModel;
-      if (isNSFW) {
-        setIsNSFW(false);
-      }
-      return;
-    }
-
-    if (!previousCapabilities.nsfw) {
-      previousActiveModelRef.current = activeModel;
-      if (isNSFW !== nonLtxrIsNSFWRef.current) {
-        setIsNSFW(nonLtxrIsNSFWRef.current);
-      }
-      return;
-    }
-
-    nonLtxrIsNSFWRef.current = isNSFW;
-    previousActiveModelRef.current = activeModel;
-  }, [activeModel, capabilities.nsfw, capabilitiesMap, isNSFW, setIsNSFW]);
-
-  const setFormIsNSFW = (nsfw: boolean) => {
-    if (!capabilities.nsfw) {
-      setIsNSFW(false);
-      return;
-    }
-
-    nonLtxrIsNSFWRef.current = nsfw;
-    setIsNSFW(nsfw);
-  };
+  const {
+    isGenerating,
+    setIsGenerating,
+    hasUnavailableLoRAs,
+    setHasUnavailableLoRAs,
+    submitMessage,
+    setSubmitMessage,
+    handleSubmit,
+    handleReset,
+  } = useI2VSubmission({
+    selectedFile,
+    endImageFile,
+    audioPresetId,
+    isLoopEnabled,
+    prompt,
+    isNSFW,
+    selectedPresetIds,
+    currentPresets,
+    activeModel,
+    enabledModels,
+    capabilities,
+    videoDuration,
+    clearForm,
+  });
 
   useEffect(() => {
     if (isLoopEnabled && selectedFile) {
@@ -256,215 +95,24 @@ export function useI2VForm(): UseI2VFormReturn {
     }
   }, [isLoopEnabled, selectedFile, setEndImageFile]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('selectedPresetIds', JSON.stringify(selectedPresetIds));
-    }
-  }, [selectedPresetIds]);
+  usePersistedLoraPresetSelection(selectedPresetIds);
 
-  const fetchServerStatus = useCallback(async () => {
-    if (isLoadingAuth || !user) {
-      setIsLoadingServerStatus(false);
-      return;
-    }
+  useInitialServerStatus({
+    isLoadingAuth,
+    user,
+    setServerStatus,
+    setIsLoadingServerStatus,
+  });
 
-    setIsLoadingServerStatus(true);
-    try {
-      const data = await apiClient.get<ComfyUIStatus>('/api/comfyui/status');
-      setServerStatus(data);
-    } catch (error) {
-      if (error instanceof ApiError && (error.status === 503)) return;
-      if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
-        log.error('Failed to fetch server status', { error: error instanceof Error ? error.message : String(error) });
-      }
-    } finally {
-      setIsLoadingServerStatus(false);
-    }
-  }, [isLoadingAuth, user]);
-
-  const fetchPresets = useCallback(async (model?: string) => {
-    if (isLoadingAuth || !user) return [];
-
-    try {
-      const m = model || activeModel;
-      const data = await apiClient.get<{ presets: PresetData[] }>(`/api/lora-presets?model=${m}`);
-      return data.presets || [];
-    } catch (err) {
-      log.error('Failed to fetch LoRA preset list', { error: err instanceof Error ? err.message : String(err) });
-    }
-    return [];
-  }, [activeModel, isLoadingAuth, user]);
-
-  const handleSubmit = async () => {
-    if (!enabledModels.includes(activeModel)) {
-      setSubmitMessage({ type: 'error', message: '선택 가능한 모델이 없습니다.' });
-      return;
-    }
-
-    if (!selectedFile) {
-      setSubmitMessage({ type: 'error', message: '이미지를 업로드해주세요.' });
-      return;
-    }
-
-    if (!prompt.trim()) {
-      setSubmitMessage({ type: 'error', message: '프롬프트를 입력해주세요.' });
-      return;
-    }
-
-    if (hasUnavailableLoRAs) {
-      setSubmitMessage({ type: 'error', message: '선택한 LoRA 프리셋에 서버에서 찾을 수 없는 LoRA가 포함되어 있습니다. 프리셋을 수정하거나 해제한 후 다시 시도해주세요.' });
-      return;
-    }
-
-    setIsGenerating(true);
-    setSubmitMessage(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-      if (endImageFile) {
-        formData.append('endImage', endImageFile);
-      }
-      formData.append('prompt', prompt.trim());
-      formData.append('model', activeModel);
-      const effectiveIsNSFW = capabilities.nsfw ? isNSFW : false;
-      formData.append('isNSFW', effectiveIsNSFW.toString());
-      formData.append('isLoop', isLoopEnabled.toString());
-      formData.append('videoDuration', videoDuration.toString());
-
-      if (audioPresetId) {
-        formData.append('audioPresetId', audioPresetId);
-      }
-
-      if (currentPresets && currentPresets.length > 0) {
-        const mergedLoRAMap = new Map();
-
-        currentPresets.forEach(preset => {
-          preset.loraItems.forEach((item, index) => {
-            mergedLoRAMap.set(item.loraFilename, {
-              loraFilename: item.loraFilename,
-              loraName: item.loraName,
-              strength: item.strength,
-              group: item.group,
-              order: item.order ?? index,
-            });
-          });
-        });
-
-        const mergedLoRAItems = Array.from(mergedLoRAMap.values());
-
-        if (mergedLoRAItems.length > 0) {
-          formData.append('loraPreset', JSON.stringify({
-            presetId: selectedPresetIds.join(','),
-            presetName: currentPresets.map(p => p.name).join(', '),
-            loraItems: mergedLoRAItems,
-          }));
-        }
-      }
-
-      await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
-
-      clearForm();
-
-    } catch (error) {
-      log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
-
-      if (error instanceof ApiError) {
-        if (error.status === 429) {
-          setSubmitMessage({
-            type: 'error',
-            message: error.errorMessage || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
-          });
-        } else {
-          setSubmitMessage({
-            type: 'error',
-            message: error.errorMessage || '요청 처리 중 오류가 발생했습니다.'
-          });
-        }
-        return;
-      }
-
-      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
-      const errorMessage = isNetworkError
-        ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
-        : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
-
-      setSubmitMessage({
-        type: 'error',
-        message: errorMessage
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleReset = () => {
-    clearForm();
-    setSubmitMessage(null);
-  };
-
-  const handleRefreshStatus = async () => {
-    setIsRefreshing(true);
-    await fetchServerStatus();
-    setIsRefreshing(false);
-  };
-
-  const setActiveModel = (model: VideoModel) => {
-    if (!enabledModels.includes(model)) return;
-    setActiveModelState(model);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('activeModel', model);
-    }
-    setSelectedPresetIds([]);
-    setCurrentPresets([]);
-    const options = durationOptionsMap?.[model] ?? MODEL_REGISTRY[model].durationOptions;
-    setVideoDuration(options[0]);
-  };
-
-  useEffect(() => {
-    if (isLoadingAuth || !user) return;
-
-    apiClient.get<ComfyUIStatus>('/api/comfyui/status')
-      .then(setServerStatus)
-      .catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 503) return;
-        if (error instanceof Error && !error.message.includes('503') && !error.message.includes('Service Unavailable')) {
-          log.error('Failed to fetch server status', { error: error.message });
-        }
-      })
-      .finally(() => setIsLoadingServerStatus(false));
-  }, [isLoadingAuth, user]);
-
-  useEffect(() => {
-    let ignore = false;
-
-    const reloadPresets = async () => {
-      if (isLoadingAuth || !user) {
-        if (!ignore) setPresets([]);
-        return;
-      }
-
-      if (capabilitiesRef.current.loraPresets) {
-        const allPresets = await fetchPresets(activeModel);
-        if (!ignore) {
-          setPresets(allPresets);
-          const restoredPresets = allPresets.filter((preset) =>
-            selectedPresetIdsRef.current.includes(preset.id)
-          );
-          if (restoredPresets.length > 0) setCurrentPresets(restoredPresets);
-        }
-      } else {
-        if (!ignore) {
-          setPresets([]);
-          setCurrentPresets([]);
-        }
-      }
-    };
-    reloadPresets();
-    return () => {
-      ignore = true;
-    };
-  }, [activeModel, fetchPresets, isLoadingAuth, user]);
+  const fetchPresets = useLoraPresetData({
+    activeModel,
+    isLoadingAuth,
+    user,
+    capabilitiesRef,
+    selectedPresetIdsRef,
+    setPresets,
+    setCurrentPresets,
+  });
 
   const isFormValid = enabledModels.includes(activeModel) && !!selectedFile && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
 
