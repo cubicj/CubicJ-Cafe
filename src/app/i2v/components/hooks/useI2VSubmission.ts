@@ -47,8 +47,12 @@ export function useI2VSubmission({
       return;
     }
 
-    if (!selectedFile) {
-      setSubmitMessage({ type: 'error', message: '이미지를 업로드해주세요.' });
+    const hasRequiredImages = capabilities.startImageOptional ? !!selectedFile || !!endImageFile : !!selectedFile;
+    if (!hasRequiredImages) {
+      setSubmitMessage({
+        type: 'error',
+        message: capabilities.startImageOptional ? '이미지를 1장 이상 업로드해주세요.' : '이미지를 업로드해주세요.',
+      });
       return;
     }
 
@@ -67,7 +71,9 @@ export function useI2VSubmission({
 
     try {
       const formData = new FormData();
-      formData.append('image', selectedFile);
+      if (selectedFile) {
+        formData.append('image', selectedFile);
+      }
       if (endImageFile) {
         formData.append('endImage', endImageFile);
       }

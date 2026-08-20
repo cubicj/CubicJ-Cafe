@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, Eye, ImagePlus, Repeat, Volume2, VolumeX } from 'lucide-react';
+import { Trash2, Eye, ImagePlus, ImageDown, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 import { cn } from '@/lib/utils';
@@ -49,6 +49,7 @@ const MODEL_CONFIG: Record<string, { label: string; className: string }> = {
   ltxr: { label: 'LTX(Real)', className: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
   ltx: { label: 'LTX(Anime)', className: 'bg-blue-100 text-blue-700 border-blue-300' },
   'ltx-wan': { label: 'LTX + WAN', className: 'bg-teal-100 text-teal-700 border-teal-300' },
+  'h3-fl2va': { label: 'H3 FL2VA', className: 'bg-rose-100 text-rose-700 border-rose-300' },
 };
 
 function getModelConfig(videoModel: string) {
@@ -94,6 +95,7 @@ function formatAbsoluteTime(dateString: string) {
 const MODE_CONFIG: Record<string, { label: string; className: string }> = {
   START_ONLY: { label: 'Base', className: 'bg-gray-100 text-gray-700 border-gray-300' },
   START_END: { label: 'Base+End', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  END_ONLY: { label: 'End', className: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
   LOOP: { label: 'Loop', className: 'bg-amber-100 text-amber-700 border-amber-300' },
 };
 
@@ -244,6 +246,9 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           </Badge>
           {request.generationMode === 'START_END' && (
             <ImagePlus className="h-4 w-4 text-muted-foreground" />
+          )}
+          {request.generationMode === 'END_ONLY' && (
+            <ImageDown className="h-4 w-4 text-muted-foreground" />
           )}
           {request.generationMode === 'LOOP' && (
             <Repeat className="h-4 w-4 text-muted-foreground" />
