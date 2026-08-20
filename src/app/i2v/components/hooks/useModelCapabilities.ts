@@ -48,7 +48,9 @@ export function useModelCapabilities({
   const [capabilitiesMap, setCapabilitiesMap] = useState<Record<VideoModel, ModelCapabilities> | null>(null);
   const [durationOptionsMap, setDurationOptionsMap] = useState<Record<VideoModel, number[]> | null>(null);
   const [durationLabelsMap, setDurationLabelsMap] = useState<Record<VideoModel, Record<number, string>> | null>(null);
-  const [enabledModels, setEnabledModels] = useState<VideoModel[]>((Object.keys(MODEL_REGISTRY) as VideoModel[]));
+  const [enabledModels, setEnabledModels] = useState<VideoModel[]>(
+    (Object.keys(MODEL_REGISTRY) as VideoModel[]).filter(model => !MODEL_REGISTRY[model].optIn)
+  );
   const capabilities: ModelCapabilities = capabilitiesMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].capabilities;
   const capabilitiesRef = useRef(capabilities);
   const durationOptions: number[] = durationOptionsMap?.[activeModel] ?? MODEL_REGISTRY[activeModel].durationOptions;

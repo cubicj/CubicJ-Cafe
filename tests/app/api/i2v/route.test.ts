@@ -359,4 +359,49 @@ describe('POST /api/i2v', () => {
     })
     expect(row?.generationMode).toBe('START_ONLY')
   })
+
+  it('rejects an h3-fl2va duration outside the configured options', async () => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['h3-fl2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = buildFormData({ model: 'h3-fl2va', videoDuration: '6' })
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const res = await POST(new NextRequest(req))
+
+    expect(res.status).toBe(400)
+  })
+
+  it.each([
+    { label: 'start and end images', start: true, end: true, expectedMode: 'LOOP' },
+    { label: 'only an end image', start: false, end: true, expectedMode: 'END_ONLY' },
+    { label: 'only a start image', start: true, end: false, expectedMode: 'START_ONLY' },
+  ])('derives $expectedMode for loop-marked h3-fl2va requests with $label', async ({ start, end, expectedMode }) => {
+    vi.mocked(getEnabledModels).mockResolvedValue(
+      ['h3-fl2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+    )
+    const user = await createUser()
+    const session = await createTestSession(user.id)
+    const form = new FormData()
+    form.set('prompt', 'fake loop prompt')
+    form.set('model', 'h3-fl2va')
+    form.set('isNSFW', 'false')
+    form.set('isLoop', 'true')
+    form.set('videoDuration', '5')
+    if (start) form.set('image', new File(['fake-start-data'], 'fake-start.png', { type: 'image/png' }))
+    if (end) form.set('endImage', new File(['fake-end-data'], 'fake-end.png', { type: 'image/png' }))
+    const req = buildFormDataRequest('/api/i2v', session.id, form)
+    const { NextRequest } = await import('next/server')
+    const res = await POST(new NextRequest(req))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    const row = await prisma.queueRequest.findUnique({
+      where: { id: body.requestId },
+      select: { generationMode: true },
+    })
+    expect(row?.generationMode).toBe(expectedMode)
+  })
 })

@@ -106,7 +106,7 @@ export const POST = createRouteHandler(
       return NextResponse.json({ error: '이미지를 1장 이상 업로드해주세요' }, { status: 400 });
     }
 
-    const generationMode = isLoop && imageFile
+    const generationMode = isLoop && imageFile && endImageFile
       ? GenerationMode.LOOP
       : imageFile && endImageFile
         ? GenerationMode.START_END

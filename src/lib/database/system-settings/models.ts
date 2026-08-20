@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 
 export const MODEL_ENABLED_KEYS = {
@@ -31,7 +32,7 @@ export function resolveEnabledModels(values: ReadonlyMap<string, string>): Video
     ['h3-fl2va', MODEL_ENABLED_KEYS['h3-fl2va']],
   ] as const)
     .filter(([model, key]) =>
-      model === 'ltxr' || model === 'h3-fl2va' ? values.get(key) === 'true' : values.get(key) !== 'false'
+      MODEL_REGISTRY[model].optIn ? values.get(key) === 'true' : values.get(key) !== 'false'
     )
     .map(([model]) => model)
 }

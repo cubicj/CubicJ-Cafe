@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSession } from '@/contexts/SessionContext';
 import { useI2VFormContext } from '@/contexts/I2VFormContext';
 import { useI2VSubmission } from './useI2VSubmission';
@@ -86,13 +86,15 @@ export function useI2VForm(): UseI2VFormReturn {
     videoDuration,
     clearForm,
   });
+  const previousIsLoopEnabledRef = useRef(isLoopEnabled);
 
   useEffect(() => {
-    if (isLoopEnabled && selectedFile) {
+    if (isLoopEnabled) {
       setEndImageFile(selectedFile);
-    } else if (!isLoopEnabled) {
+    } else if (previousIsLoopEnabledRef.current) {
       setEndImageFile(null);
     }
+    previousIsLoopEnabledRef.current = isLoopEnabled;
   }, [isLoopEnabled, selectedFile, setEndImageFile]);
 
   usePersistedLoraPresetSelection(selectedPresetIds);
