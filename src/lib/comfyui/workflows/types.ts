@@ -47,4 +47,13 @@ export interface LtxWanGenerationParams extends BaseGenerationParams {
   referenceAudio?: string
 }
 
-export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxrGenerationParams | LtxWanGenerationParams
+export interface H3Fl2vaGenerationParams {
+  model: 'h3-fl2va'
+  prompt: string
+  videoDuration: number
+  isNSFW?: boolean
+  inputImage?: string
+  endImage?: string
+}
+
+export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxrGenerationParams | LtxWanGenerationParams | H3Fl2vaGenerationParams
