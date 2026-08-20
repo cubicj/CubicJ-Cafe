@@ -10,51 +10,30 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Check, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-
-interface SessionUser {
-  id: string;
-  discordId: string;
-  discordUsername: string;
-  nickname: string;
-  avatar?: string;
-  name?: string;
-}
+import { useSession } from '@/contexts/SessionContext';
 
 const log = createLogger('page');
 
 export default function NicknameSettingsPage() {
   const router = useRouter();
-  const [nickname, setNickname] = useState('');
-  const [currentNickname, setCurrentNickname] = useState('');
+  const [editedNickname, setEditedNickname] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const { user, isLoading, refreshSession } = useSession();
+  const currentNickname = user?.nickname || user?.discordUsername || '';
+  const nickname = editedNickname ?? currentNickname;
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const data = await apiClient.get<{ user: SessionUser | null }>('/api/auth/session');
-        if (data.user) {
-          setUser(data.user);
-          setCurrentNickname(data.user.nickname || data.user.name || '');
-          setNickname(data.user.nickname || data.user.name || '');
-        } else {
-          router.push('/');
-        }
-      } catch (error) {
-        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
-        router.push('/');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (isLoading) return;
+    if (!user) {
+      router.push('/');
+      return;
+    }
 
-    checkAuthStatus();
-  }, [router]);
+  }, [isLoading, router, user]);
 
   useEffect(() => {
     return () => {
@@ -83,7 +62,7 @@ export default function NicknameSettingsPage() {
   };
 
   const handleNicknameChange = (value: string) => {
-    setNickname(value);
+    setEditedNickname(value);
     setError('');
     setIsAvailable(null);
     
@@ -114,6 +93,7 @@ export default function NicknameSettingsPage() {
 
     try {
       await apiClient.post('/api/setup/nickname', { nickname: nickname.trim() });
+      await refreshSession();
       router.push('/settings');
       window.location.reload();
     } catch (error) {

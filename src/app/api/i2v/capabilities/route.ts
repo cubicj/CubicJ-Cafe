@@ -1,36 +1,35 @@
 import { createRouteHandler } from '@/lib/api/route-handler'
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
 import { prisma } from '@/lib/database/prisma'
-import { getEnabledModels } from '@/lib/database/system-settings'
+import { MODEL_ENABLED_KEYS, resolveEnabledModels } from '@/lib/database/system-settings'
 import type { VideoModel, ModelCapabilities } from '@/lib/comfyui/workflows/types'
 
 export const GET = createRouteHandler(
   { auth: 'user' },
   async () => {
-    const [rows, enabledModels] = await Promise.all([
-      prisma.systemSetting.findMany({
-        where: {
-          key: {
-            in: [
-              'wan.lora_enabled',
-              'ltxa.lora_enabled',
-              'wan.duration_options',
-              'ltxa.duration_options',
-              'ltxr.duration_options',
-              'ltx-wan.duration_options',
-              'ltxa.frame_base',
-              'ltxa.frame_rate',
-              'ltxr.frame_base',
-              'ltxr.frame_rate',
-              'ltxr.end_image_enabled',
-            ],
-          },
+    const rows = await prisma.systemSetting.findMany({
+      where: {
+        key: {
+          in: [
+            'wan.lora_enabled',
+            'ltxa.lora_enabled',
+            'wan.duration_options',
+            'ltxa.duration_options',
+            'ltxr.duration_options',
+            'ltx-wan.duration_options',
+            'ltxa.frame_base',
+            'ltxa.frame_rate',
+            'ltxr.frame_base',
+            'ltxr.frame_rate',
+            'ltxr.end_image_enabled',
+            ...Object.values(MODEL_ENABLED_KEYS),
+          ],
         },
-      }),
-      getEnabledModels(),
-    ])
+      },
+    })
 
     const settingsMap = new Map(rows.map(r => [r.key, r.value]))
+    const enabledModels = resolveEnabledModels(settingsMap)
 
     const parseCsv = (v: string | undefined): number[] | null =>
       v ? v.split(',').map(n => parseInt(n.trim(), 10)).filter(n => Number.isFinite(n)) : null

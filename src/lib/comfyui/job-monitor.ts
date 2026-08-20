@@ -160,9 +160,10 @@ class ComfyUIJobMonitor {
     }
 
     try {
+      const completedAt = new Date()
       await QueueService.updateRequest(job.id, {
         status: QueueStatus.COMPLETED,
-        completedAt: new Date(),
+        completedAt,
       })
 
       generationStore.updateJob(job.promptId!, {
@@ -171,7 +172,18 @@ class ComfyUIJobMonitor {
       })
 
       queueMonitor.releaseServerJob(job.id)
-      await sendVideoToDiscord(job, videoInfo)
+      const completedQueueRequest = queueRequest
+        ? { ...queueRequest, status: QueueStatus.COMPLETED, completedAt }
+        : null
+      const server = queueRequest?.serverId
+        ? serverManager.getServerById(queueRequest.serverId)
+        : null
+      await sendVideoToDiscord(
+        job,
+        videoInfo,
+        completedQueueRequest,
+        server,
+      )
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       log.error('Discord send failed', {

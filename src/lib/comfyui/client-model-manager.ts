@@ -288,7 +288,7 @@ export class ComfyUIModelManager {
   async getLoRAList(model: string = 'wan'): Promise<string[]> {
     try {
       const objectInfo = await this.getObjectInfoWithRunpodFallback()
-      const normalizeRunpod = this.isRunpodServer || await this.isUsingRunpod()
+      const normalizeRunpod = this.isRunpodServer || objectInfo.source.startsWith('runpod:')
       const loras = extractLoRAs(objectInfo.data, model, normalizeRunpod)
       log.debug('LoRA list fetched', { source: objectInfo.source, model, count: loras.length })
       return loras
@@ -345,11 +345,6 @@ export class ComfyUIModelManager {
 
     const data = await this.getObjectInfo()
     return { data, source: 'local' }
-  }
-
-  private async isUsingRunpod(): Promise<boolean> {
-    const servers = await this.serverManager.checkActiveRunpodServers()
-    return servers.length > 0
   }
 
   private async makeRequest<T>(

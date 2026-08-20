@@ -18,21 +18,44 @@ function getLogFilePath(prefix: string): string {
   return path.resolve(LOG_DIR, `${prefix}-${getDateStr()}.log`);
 }
 
+const trackedFileSizes = new Map<string, number>();
+
 function rotateIfNeeded(filePath: string): void {
+  const hadTrackedSize = trackedFileSizes.has(filePath);
+  let size = trackedFileSizes.get(filePath);
+
   try {
-    if (fs.existsSync(filePath) && fs.statSync(filePath).size > getOpsSetting('ops.log_file_max_bytes')) {
+    if (size === undefined) {
+      size = fs.existsSync(filePath) ? fs.statSync(filePath).size : 0;
+    }
+
+    const maxFileSize = getOpsSetting('ops.log_file_max_bytes');
+    if (size > maxFileSize) {
+      if (hadTrackedSize) {
+        size = fs.existsSync(filePath) ? fs.statSync(filePath).size : 0;
+      }
+
+      if (size <= maxFileSize) {
+        trackedFileSizes.set(filePath, size);
+        return;
+      }
+
       const rotated = filePath.replace('.log', `-${Date.now()}.log`);
       fs.renameSync(filePath, rotated);
+      size = 0;
     }
   } catch {
     // non-critical
   }
+
+  trackedFileSizes.set(filePath, size ?? 0);
 }
 
 let writeQueue: Promise<void> = Promise.resolve();
 
 function writeLogEntry(entry: { timestamp: string; level: string; category: string; message: string; meta?: Record<string, unknown> }): void {
   const line = JSON.stringify(entry) + '\n';
+  const lineBytes = Buffer.byteLength(line, 'utf-8');
   const appFile = getLogFilePath('application');
   const errorFile = getLogFilePath('error');
 
@@ -40,10 +63,12 @@ function writeLogEntry(entry: { timestamp: string; level: string; category: stri
     try {
       rotateIfNeeded(appFile);
       await fs.promises.appendFile(appFile, line, 'utf-8');
+      trackedFileSizes.set(appFile, (trackedFileSizes.get(appFile) ?? 0) + lineBytes);
 
       if (entry.level === 'error') {
         rotateIfNeeded(errorFile);
         await fs.promises.appendFile(errorFile, line, 'utf-8');
+        trackedFileSizes.set(errorFile, (trackedFileSizes.get(errorFile) ?? 0) + lineBytes);
       }
     } catch {
       // file write failure

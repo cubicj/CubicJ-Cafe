@@ -18,20 +18,6 @@ vi.mock('@/lib/discord-bot', () => ({
   },
 }))
 
-const mockGetRequestById = vi.fn()
-vi.mock('@/lib/database/queue', () => ({
-  QueueService: {
-    getRequestById: (...args: unknown[]) => mockGetRequestById(...args),
-  },
-}))
-
-const mockGetServerById = vi.fn()
-vi.mock('@/lib/comfyui/server-manager', () => ({
-  serverManager: {
-    getServerById: (...args: unknown[]) => mockGetServerById(...args),
-  },
-}))
-
 describe('sendVideoToDiscord', () => {
   const baseJob: GenerationJob = {
     id: 'job-1',
@@ -51,14 +37,15 @@ describe('sendVideoToDiscord', () => {
     subfolder: 'wan',
     type: 'temp',
   }
+  const queueRequest = {
+    serverId: 'local',
+    startedAt: null,
+    completedAt: null,
+  }
+  const server = { url: 'http://127.0.0.1:8188' }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetRequestById.mockResolvedValue({ serverId: 'local' })
-    mockGetServerById.mockReturnValue({
-      id: 'local',
-      url: 'http://127.0.0.1:8188',
-    })
     mockSendVideoToDiscord.mockResolvedValue(undefined)
   })
 
@@ -66,7 +53,7 @@ describe('sendVideoToDiscord', () => {
     const { sendVideoToDiscord } = await import(
       '@/lib/comfyui/video-result-sender'
     )
-    await sendVideoToDiscord(baseJob, videoInfo)
+    await sendVideoToDiscord(baseJob, videoInfo, queueRequest, server)
 
     expect(mockSendVideoToDiscord).toHaveBeenCalledWith({
       filename: 'CubicJ_00001-audio.mp4',
@@ -88,17 +75,15 @@ describe('sendVideoToDiscord', () => {
     const { sendVideoToDiscord } = await import(
       '@/lib/comfyui/video-result-sender'
     )
-    mockGetRequestById.mockResolvedValue({
-      serverId: 'local',
-      startedAt: new Date('2026-03-29T10:01:00Z'),
-      completedAt: new Date('2026-03-29T10:06:00Z'),
-    })
-
     await sendVideoToDiscord({
       ...baseJob,
       createdAt: new Date('2026-03-29T10:00:00Z'),
       updatedAt: new Date('2026-03-29T10:00:00Z'),
-    }, videoInfo)
+    }, videoInfo, {
+      serverId: 'local',
+      startedAt: new Date('2026-03-29T10:01:00Z'),
+      completedAt: new Date('2026-03-29T10:06:00Z'),
+    }, server)
 
     expect(mockSendVideoToDiscord).toHaveBeenCalledWith(expect.objectContaining({
       processingTime: 300,
@@ -109,7 +94,7 @@ describe('sendVideoToDiscord', () => {
     const { sendVideoToDiscord } = await import(
       '@/lib/comfyui/video-result-sender'
     )
-    await sendVideoToDiscord({ ...baseJob, userInfo: undefined }, videoInfo)
+    await sendVideoToDiscord({ ...baseJob, userInfo: undefined }, videoInfo, queueRequest, server)
 
     expect(mockSendVideoToDiscord).not.toHaveBeenCalled()
   })
@@ -121,7 +106,7 @@ describe('sendVideoToDiscord', () => {
     )
 
     await expect(
-      sendVideoToDiscord(baseJob, videoInfo)
+      sendVideoToDiscord(baseJob, videoInfo, queueRequest, server)
     ).resolves.toBeUndefined()
   })
 })

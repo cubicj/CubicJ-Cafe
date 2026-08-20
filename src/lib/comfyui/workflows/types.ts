@@ -1,3 +1,5 @@
+import type { LtxrSettings } from '@/lib/database/system-settings'
+
 export type VideoModel = 'wan' | 'ltxa' | 'ltxr' | 'ltx-wan'
 
 export interface ModelCapabilities {
@@ -36,6 +38,7 @@ export interface LtxrGenerationParams extends BaseGenerationParams {
   endImage?: string
   referenceAudio?: string
   watermarkImage?: string
+  settings?: LtxrSettings
 }
 
 export interface LtxWanGenerationParams extends BaseGenerationParams {

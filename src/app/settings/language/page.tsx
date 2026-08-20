@@ -1,38 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createLogger } from '@/lib/logger';
-import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Languages, Loader2 } from 'lucide-react';
 import { ClientIcon } from '@/components/ui/client-icon';
-
-const log = createLogger('page');
+import { useSession } from '@/contexts/SessionContext';
 
 export default function LanguageSettingsPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useSession();
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const data = await apiClient.get<{ user: { id: string } | null }>('/api/auth/session');
-        if (!data.user) {
-          router.push('/');
-          return;
-        }
-      } catch (error) {
-        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
-        router.push('/');
-        return;
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [router]);
+    if (!isLoading && !user) {
+      router.push('/');
+    }
+  }, [isLoading, router, user]);
 
   if (isLoading) {
     return (

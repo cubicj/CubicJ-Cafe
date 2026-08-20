@@ -161,13 +161,20 @@ describe('QueueService', () => {
   describe('getAndClaimNextPendingRequest', () => {
     it('atomically claims the first pending request', async () => {
       const user = await createUser()
-      await createQueueRequest(user.id, { position: 1, status: QueueStatus.PENDING })
+      await createQueueRequest(user.id, {
+        position: 1,
+        status: QueueStatus.PENDING,
+        imageBlob: new Uint8Array([1, 2, 3]),
+        endImageBlob: new Uint8Array([4, 5, 6]),
+      })
 
       const claimed = await QueueService.getAndClaimNextPendingRequest()
 
       expect(claimed).not.toBeNull()
       expect(claimed!.status).toBe(QueueStatus.PROCESSING)
       expect(claimed!.startedAt).toBeTruthy()
+      expect(claimed!.imageBlob).toEqual(new Uint8Array([1, 2, 3]))
+      expect(claimed!.endImageBlob).toEqual(new Uint8Array([4, 5, 6]))
     })
 
     it('returns null when no pending requests exist', async () => {

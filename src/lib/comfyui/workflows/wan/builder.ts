@@ -12,7 +12,7 @@ const log = createLogger('comfyui')
 
 export async function buildWanWorkflow(params: WanGenerationParams): Promise<ComfyUIWorkflow> {
   const settings = await getWanSettings()
-  const workflow = JSON.parse(JSON.stringify(WAN_WORKFLOW_TEMPLATE)) as ComfyUIWorkflow
+  const workflow = structuredClone(WAN_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
 
   configureModels(workflow, settings)
   configureBlockSwap(workflow, settings)

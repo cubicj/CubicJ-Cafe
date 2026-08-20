@@ -133,7 +133,16 @@ describe('ComfyUIJobMonitor', () => {
     await executedCallback(eventData)
 
     expect(mockUpdateRequest).toHaveBeenCalledWith('job-1', expect.objectContaining({ status: 'COMPLETED' }))
-    expect(mockSendVideoToDiscord).toHaveBeenCalledWith(baseJob, { filename: 'test.mp4', subfolder: 'wan', type: 'temp' })
+    expect(mockSendVideoToDiscord).toHaveBeenCalledWith(
+      baseJob,
+      { filename: 'test.mp4', subfolder: 'wan', type: 'temp' },
+      expect.objectContaining({
+        serverId: 'local',
+        status: 'COMPLETED',
+        completedAt: expect.any(Date),
+      }),
+      expect.objectContaining({ id: 'local', url: 'http://127.0.0.1:8188' }),
+    )
     expect(mockReleaseServerJob).toHaveBeenCalledWith('job-1')
     expect(mockRemoveCallbacks).toHaveBeenCalledWith('prompt-1')
   })

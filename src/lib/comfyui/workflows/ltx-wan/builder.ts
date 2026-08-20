@@ -14,7 +14,7 @@ export async function buildLtxWanWorkflow(
   params: LtxWanGenerationParams
 ): Promise<ComfyUIWorkflow> {
   const settings = await getLtxWanSettings()
-  const workflow: ComfyUIWorkflow = JSON.parse(JSON.stringify(LTX_WAN_WORKFLOW_TEMPLATE))
+  const workflow: ComfyUIWorkflow = structuredClone(LTX_WAN_WORKFLOW_TEMPLATE)
 
   configureLtxModels(workflow, settings)
   configureLtxGeneration(workflow, params, settings)

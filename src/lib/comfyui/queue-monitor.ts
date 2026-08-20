@@ -13,6 +13,8 @@ import { getQueuePauseAfterPosition } from './queue-pause-state';
 import { serverManager } from './server-manager';
 import { getOpsSetting } from '@/lib/database/ops-settings';
 
+type ClaimedQueueRequest = NonNullable<Awaited<ReturnType<typeof QueueService.getAndClaimNextPendingRequest>>>;
+
 const log = createLogger('queue');
 
 async function uploadLtxrWatermark(assetId: string | null, client: ComfyUIClient): Promise<string> {
@@ -285,7 +287,7 @@ class QueueMonitor {
 
         // 병렬 처리 시작
         this.currentlyProcessing.add(claimedRequest.id);
-        const promise = this.processQueueRequestWithServer(claimedRequest.id, selectedServer)
+        const promise = this.processQueueRequestWithServer(claimedRequest, selectedServer)
           .catch(error => {
             log.error('Queue request processing failed', {
               requestId: claimedRequest.id,
@@ -370,10 +372,13 @@ class QueueMonitor {
 
   // 특정 서버로 요청 처리
   async processQueueRequestWithServer(
-    requestId: string, 
+    requestOrId: ClaimedQueueRequest | string,
     server: { client: ComfyUIClient; name: string; type: 'local' | 'runpod'; url: string; currentJobId?: string }
   ): Promise<void> {
-    const request = await QueueService.getRequestById(requestId);
+    const requestId = typeof requestOrId === 'string' ? requestOrId : requestOrId.id;
+    const request = typeof requestOrId === 'string'
+      ? await QueueService.getRequestById(requestOrId)
+      : requestOrId;
     if (!request) {
       log.error('Request not found', { requestId });
       return;
@@ -484,6 +489,7 @@ class QueueMonitor {
           endImage: uploadedEndImageName || undefined,
           referenceAudio: uploadedAudioName || undefined,
           watermarkImage,
+          settings,
         };
       } else {
         throw new Error(`Unsupported video model: ${videoModel}`);

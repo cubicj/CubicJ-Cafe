@@ -27,10 +27,8 @@ const END_IMAGE = {
 export async function buildLtxrWorkflow(
   params: LtxrGenerationParams
 ): Promise<ComfyUIWorkflow> {
-  const settings = await getLtxrSettings();
-  const workflow: ComfyUIWorkflow = JSON.parse(
-    JSON.stringify(LTXR_WORKFLOW_TEMPLATE)
-  );
+  const settings = params.settings ?? await getLtxrSettings();
+  const workflow: ComfyUIWorkflow = structuredClone(LTXR_WORKFLOW_TEMPLATE);
 
   configureModels(workflow, settings);
   configurePrompts(workflow, params, settings);

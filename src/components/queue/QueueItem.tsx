@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2, Eye, ImagePlus, Repeat, Volume2, VolumeX } from 'lucide-react';
@@ -36,6 +37,10 @@ interface QueueItemProps {
   canDelete: boolean;
   isDeleting: boolean;
   onDelete: (requestId: string, nickname: string) => void;
+}
+
+interface QueueDetailDialogProps extends QueueItemProps {
+  loraName: string | null;
 }
 
 const MODEL_CONFIG: Record<string, { label: string; className: string }> = {
@@ -114,10 +119,9 @@ function DeleteButton({ isDeleting, onClick }: { isDeleting: boolean; onClick: (
   );
 }
 
-function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
+function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDelete, loraName }: QueueDetailDialogProps) {
   const modelConfig = getModelConfig(request.videoModel);
   const modeConfig = getModeConfig(request.generationMode);
-  const loraName = parseLoraPresetName(request.loraPresetData);
   const detailTags = getQueueDetailTags({
     modelLabel: modelConfig.label,
     modelClassName: modelConfig.className,
@@ -206,6 +210,10 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
 
 export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
   const modelConfig = getModelConfig(request.videoModel);
+  const loraName = useMemo(
+    () => parseLoraPresetName(request.loraPresetData),
+    [request.loraPresetData]
+  );
 
   return (
     <>
@@ -270,6 +278,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
               canDelete={canDelete}
               isDeleting={isDeleting}
               onDelete={onDelete}
+              loraName={loraName}
             />
           </Dialog>
 
@@ -303,6 +312,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
             canDelete={canDelete}
             isDeleting={isDeleting}
             onDelete={onDelete}
+            loraName={loraName}
           />
         </Dialog>
 

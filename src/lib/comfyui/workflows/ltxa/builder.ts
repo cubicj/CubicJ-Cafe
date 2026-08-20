@@ -22,9 +22,7 @@ export async function buildLtxaWorkflow(
   params: LtxaGenerationParams
 ): Promise<ComfyUIWorkflow> {
   const settings = await getLtxaSettings();
-  const workflow: ComfyUIWorkflow = JSON.parse(
-    JSON.stringify(LTXA_WORKFLOW_TEMPLATE)
-  );
+  const workflow: ComfyUIWorkflow = structuredClone(LTXA_WORKFLOW_TEMPLATE);
 
   configureModels(workflow, settings);
   configurePrompts(workflow, params, settings);
