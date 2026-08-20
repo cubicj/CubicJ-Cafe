@@ -165,7 +165,7 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'Resize Image (Megapixels + Alignment)' },
   },
   '59': {
-    inputs: { enabled: false, model: ['16', 0] },
+    inputs: { enabled: false, model: ['66', 0] },
     class_type: 'MiniMaxH3FusedModulation',
     _meta: { title: 'MiniMax H3 Fused Modulation' },
   },
@@ -188,5 +188,24 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     inputs: { lora_name: 'PLACEHOLDER', strength: 0, low_vram: false, model: ['15', 0] },
     class_type: 'MiniMaxH3TurboLoRA',
     _meta: { title: 'MiniMax-H3 Turbo LoRA' },
+  },
+  '66': {
+    inputs: {
+      enabled: false,
+      tau_start: 0,
+      tau_end: 0,
+      curve: 'PLACEHOLDER',
+      min_tokens: 0,
+      strict: false,
+      dense_percent: 0,
+      thresh_type: 'PLACEHOLDER',
+      int8_qk: false,
+      int8_pv: false,
+      sink_conditioning: 'PLACEHOLDER',
+      dense_blocks: 'PLACEHOLDER',
+      model: ['16', 0],
+    },
+    class_type: 'MiniMaxH3ScheduledSolAttentionPatch',
+    _meta: { title: 'MiniMax H3 Scheduled Sol Attention Patch' },
   },
 } satisfies ComfyUIWorkflow

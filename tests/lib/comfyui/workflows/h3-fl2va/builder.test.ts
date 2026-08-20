@@ -118,6 +118,33 @@ describe('buildH3Fl2vaWorkflow', () => {
     expect(wf[H3_FL2VA.VIDEO_COMBINE]!.inputs).toMatchObject({ crf: 18, format: 'fake-video-format', pix_fmt: 'fake-pix-format', filename_prefix: 'H3FL2VA/first' })
   })
 
+  it('strips Sol Attention and restores the original model chain when disabled', async () => {
+    const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png' })
+    expect(wf[H3_FL2VA.SOL_ATTN]).toBeUndefined()
+    expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_FL2VA.ATTENTION_BACKEND, 0])
+  })
+
+  it('injects Sol Attention settings and keeps the patched model chain when enabled', async () => {
+    await prisma.systemSetting.update({ where: { key: 'h3-fl2va.sol_attn_enabled' }, data: { value: 'true' } })
+    const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png' })
+    expect(wf[H3_FL2VA.SOL_ATTN]!.inputs).toMatchObject({
+      enabled: true,
+      tau_start: 0.7,
+      tau_end: 0.3,
+      curve: 'test-curve',
+      min_tokens: 111,
+      strict: true,
+      dense_percent: 37.5,
+      thresh_type: 'test-thresh',
+      int8_qk: false,
+      int8_pv: true,
+      sink_conditioning: 'test-sink',
+      dense_blocks: '2,5,9',
+      model: [H3_FL2VA.ATTENTION_BACKEND, 0],
+    })
+    expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_FL2VA.SOL_ATTN, 0])
+  })
+
   it('keeps RTX node wired when enabled', async () => {
     const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png' })
     expect(wf[H3_FL2VA.RTX_SUPER_RES]!.inputs).toMatchObject({ resize_type: 'fake-resize-type', 'resize_type.scale': 1.7, quality: 'HIGH' })
