@@ -23,7 +23,7 @@ export async function sendVideoToDiscord(
     const { queueRequest, server } = await resolveServer(job.id)
     const processingTime = getProcessingTimeSeconds(job, queueRequest)
 
-    log.info('Discord video send attempt', {
+    log.debug('Discord video send attempt', {
       jobId: job.id,
       filename: videoInfo.filename,
       subfolder: videoInfo.subfolder,

@@ -4,14 +4,14 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');
 
-export interface CreateLoRABundleData {
+interface CreateLoRABundleData {
   displayName: string;
   highLoRAFilename?: string;
   lowLoRAFilename?: string;
   order?: number;
 }
 
-export interface UpdateLoRABundleData {
+interface UpdateLoRABundleData {
   displayName?: string;
   highLoRAFilename?: string;
   lowLoRAFilename?: string;

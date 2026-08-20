@@ -33,20 +33,11 @@ export interface GenerationJob {
   };
 }
 
-export interface GeneratedImage {
-  id: string;
-  jobId: string;
-  imageUrl: string;
-  filename: string;
-  fileSize: number;
-  createdAt: Date;
-}
-
 export interface ComfyUIWorkflow {
   [key: string]: ComfyUINode;
 }
 
-export interface ComfyUINode {
+interface ComfyUINode {
   inputs?: Record<string, unknown>;
   class_type: string;
   _meta?: {
@@ -60,41 +51,9 @@ export interface ComfyUIResponse {
   node_errors: Record<string, ComfyUINodeError>;
 }
 
-export interface ComfyUINodeError {
+interface ComfyUINodeError {
   type?: string;
   message: string;
   details?: string;
   traceback?: string[];
-}
-
-export type {
-  VideoModel,
-  ModelCapabilities,
-  ModelConfig,
-  GenerationParams,
-  WanGenerationParams,
-  LtxaGenerationParams,
-} from '@/lib/comfyui/workflows/types'
-
-export interface DiscordMessage {
-  content: string;
-  embeds?: Array<{
-    title?: string;
-    description?: string;
-    image?: {
-      url: string;
-    };
-    fields?: Array<{
-      name: string;
-      value: string;
-      inline?: boolean;
-    }>;
-  }>;
-}
-
-export interface DownloadedMedia {
-  filename: string;
-  localPath: string;
-  url: string;
-  type: 'image' | 'video';
 }

@@ -5,11 +5,11 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('database');
 
-export interface LoRAPresetWithItems extends LoRAPreset {
+interface LoRAPresetWithItems extends LoRAPreset {
   loraItems: LoRAPresetItem[];
 }
 
-export interface CreateLoRAPresetData {
+interface CreateLoRAPresetData {
   name: string;
   isDefault?: boolean;
   isPublic?: boolean;
@@ -24,7 +24,7 @@ export interface CreateLoRAPresetData {
   }>;
 }
 
-export interface UpdateLoRAPresetData {
+interface UpdateLoRAPresetData {
   name?: string;
   isDefault?: boolean;
   isPublic?: boolean;
@@ -94,7 +94,7 @@ export class LoRAPresetService {
       });
 
       if (preset) {
-        log.info('LoRA preset detail fetched', { presetId });
+        log.debug('LoRA preset detail fetched', { presetId });
       }
       return preset;
     } catch (error) {

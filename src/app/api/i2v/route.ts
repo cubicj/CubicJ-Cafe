@@ -101,8 +101,7 @@ export const POST = createRouteHandler(
           : await getLtxWanSettings();
     const loraEnabled = capabilities.loraPresets && 'loraEnabled' in modelSettings && modelSettings.loraEnabled;
 
-    const settingsDurations = (modelSettings as { durationOptions?: number[] } | undefined)?.durationOptions;
-    const allowedDurations = settingsDurations ?? MODEL_REGISTRY[activeModel].durationOptions;
+    const allowedDurations = modelSettings.durationOptions;
     if (!allowedDurations.includes(validated.videoDuration)) {
       return NextResponse.json(
         { error: `videoDuration must be one of ${allowedDurations.join(', ')}` },

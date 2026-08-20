@@ -1,6 +1,6 @@
-export type ReadFileAsDataURL = (file: File) => Promise<string>
+type ReadFileAsDataURL = (file: File) => Promise<string>
 
-export const readFileAsDataURL: ReadFileAsDataURL = file =>
+const readFileAsDataURL: ReadFileAsDataURL = file =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)

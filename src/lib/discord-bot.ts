@@ -501,31 +501,6 @@ function getDiscordBotSingleton(): DiscordBot {
 
 export const discordBot = getDiscordBotSingleton();
 
-export type SendImageParams = {
-  imagePath: string;
-  prompt: string;
-  username: string;
-  userAvatar?: string;
-  processingTime?: number;
-};
-
-export type SendVideoParams = {
-  videoPath?: string;
-  filename?: string;
-  subfolder?: string;
-  fileType?: string;
-  prompt: string;
-  username: string;
-  userAvatar?: string;
-  processingTime?: number;
-  inputImage?: string;
-  isNSFW?: boolean;
-  discordId?: string;
-  requestId: string;
-  comfyUIServerUrl?: string;
-  videoModel?: string;
-};
-
 function getVideoModelDisplayName(videoModel?: string): string {
   const discordModelNames: Partial<Record<VideoModel, string>> = {
     'ltx-wan': 'LTX 2.3 + WAN 2.2',

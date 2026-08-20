@@ -15,14 +15,12 @@ export const GET = createRouteHandler(
         samplers: []
       };
     }
-    log.info('ComfyUI sampler list API called')
-
     const client = new ComfyUIClient()
 
     try {
       const samplers = await client.getSamplerList()
 
-      log.info('Sampler list fetched', {
+      log.debug('Sampler list fetched', {
         count: samplers.length,
         samplers: samplers
       })

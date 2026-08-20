@@ -110,7 +110,7 @@ export class ComfyUIServerManager {
 
         if (response.ok) {
           activeServers.push(serverUrl)
-          log.info('Runpod server active', { server: serverUrl })
+          log.debug('Runpod server active', { server: serverUrl })
         } else {
           log.warn('Runpod server inactive', { server: serverUrl, status: response.status })
         }

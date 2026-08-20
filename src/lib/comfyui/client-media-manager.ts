@@ -26,7 +26,7 @@ export class ComfyUIMediaManager {
         body: formData,
       })
 
-      log.info('Image uploaded successfully', { filename: response.name, size: file.size })
+      log.debug('Image uploaded successfully', { filename: response.name, size: file.size })
       return response.name
     } catch (error) {
       log.error('ComfyUI image upload failed', { error: error instanceof Error ? error.message : String(error) })
@@ -44,7 +44,7 @@ export class ComfyUIMediaManager {
         body: formData,
       })
 
-      log.info('Audio uploaded successfully', { filename: response.name, size: file.size })
+      log.debug('Audio uploaded successfully', { filename: response.name, size: file.size })
       return response.name
     } catch (error) {
       log.error('ComfyUI audio upload failed', { error: error instanceof Error ? error.message : String(error) })

@@ -6,7 +6,7 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('system');
 
-export interface CleanupResult {
+interface CleanupResult {
   deletedFiles: number;
   skippedFiles: number;
   totalSize: number;
@@ -42,7 +42,7 @@ export async function cleanupTempFiles(
     const cutoffTime = Date.now() - (maxAgeHours * 60 * 60 * 1000);
     const activeFiles = await getActiveQueueFileNames();
 
-    log.info('Temp file cleanup started', { tempDir, maxAgeHours, activeFiles: activeFiles.size });
+    log.debug('Temp file cleanup started', { tempDir, maxAgeHours, activeFiles: activeFiles.size });
 
     const files = await readdir(/* turbopackIgnore: true */ fullTempDir);
 
@@ -81,18 +81,4 @@ export async function cleanupTempFiles(
   }
 
   return result;
-}
-
-export async function scheduleFileCleanup(
-  filePath: string,
-  delayMinutes: number = 60
-): Promise<void> {
-  setTimeout(async () => {
-    try {
-      await unlink(filePath);
-      log.info('Scheduled file deletion complete', { filePath });
-    } catch (error) {
-      log.warn('Scheduled file deletion failed', { filePath, error: String(error) });
-    }
-  }, delayMinutes * 60 * 1000);
 }

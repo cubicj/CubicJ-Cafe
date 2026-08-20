@@ -26,14 +26,12 @@ export const GET = createRouteHandler(
         }
       };
     }
-    log.info('ComfyUI model list API called')
-
     const client = new ComfyUIClient()
 
     try {
       const models = await client.getModelList()
 
-      log.info('Model list fetched', {
+      log.debug('Model list fetched', {
         diffusionModels: models.diffusionModels.length,
         textEncoders: models.textEncoders.length,
         vaes: models.vaes.length,

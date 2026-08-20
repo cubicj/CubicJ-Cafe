@@ -5,7 +5,7 @@ import { WAN_WORKFLOW_TEMPLATE } from './template'
 import { WAN } from './nodes'
 import { createLogger } from '@/lib/logger'
 import { getWanSettings } from '@/lib/database/system-settings'
-import { generateSeed, extractBaseImageName, setNode, dumpWorkflow } from '../shared'
+import { generateSeed, extractBaseImageName, setNode } from '../shared'
 import { computeWanContextOptions } from './context-options'
 
 const log = createLogger('comfyui')
@@ -34,13 +34,12 @@ export async function buildWanWorkflow(params: WanGenerationParams): Promise<Com
     handleEndImageBypass(workflow)
   }
 
-  log.info('WAN workflow built', {
+  log.debug('WAN workflow built', {
     prompt: params.prompt.substring(0, 50),
     hasEndImage: !!params.endImage,
     videoDuration: params.videoDuration,
   })
 
-  dumpWorkflow('wan', workflow)
   return workflow
 }
 

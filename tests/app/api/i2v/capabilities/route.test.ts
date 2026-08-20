@@ -124,7 +124,6 @@ describe('GET /api/i2v/capabilities', () => {
     expect(enabledBody.durationOptions.ltxr).toEqual([5, 6, 7])
     expect(MODEL_REGISTRY.ltxr).toMatchObject({
       displayName: 'LTX(Real)',
-      defaultSubfolder: 'LTXR',
       defaultDuration: 5,
     })
   })

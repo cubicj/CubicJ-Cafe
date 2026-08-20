@@ -13,5 +13,3 @@ export const createNicknameSchema = z.object({
 export const checkNicknameQuerySchema = z.object({
   check: z.string().optional(),
 })
-
-export type CreateNicknameInput = z.infer<typeof createNicknameSchema>

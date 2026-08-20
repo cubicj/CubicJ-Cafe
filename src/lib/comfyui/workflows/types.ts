@@ -10,12 +10,11 @@ export interface ModelCapabilities {
 export interface ModelConfig {
   displayName: string
   capabilities: ModelCapabilities
-  defaultSubfolder: string
   durationOptions: number[]
   defaultDuration: number
 }
 
-export interface BaseGenerationParams {
+interface BaseGenerationParams {
   prompt: string
   inputImage: string
   videoDuration: number

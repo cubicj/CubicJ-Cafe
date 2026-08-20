@@ -1,4 +1,4 @@
-export type WanContextOptions = {
+type WanContextOptions = {
   context_schedule: 'static_standard'
   context_frames: 81
   context_stride: 4

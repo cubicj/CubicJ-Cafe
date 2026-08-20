@@ -5,7 +5,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('database');
 
 // 사용자 생성 타입
-export interface CreateUserData {
+interface CreateUserData {
   discordId: string;
   discordUsername: string;
   nickname: string | null;
@@ -13,7 +13,7 @@ export interface CreateUserData {
 }
 
 // 사용자 업데이트 타입
-export interface UpdateUserData {
+interface UpdateUserData {
   discordUsername?: string;
   nickname?: string;
   avatar?: string;

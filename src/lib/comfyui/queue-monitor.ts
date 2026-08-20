@@ -274,7 +274,7 @@ class QueueMonitor {
           break;
         }
 
-        log.info('Request assigned to server', {
+        log.debug('Request assigned to server', {
           requestId: claimedRequest.id,
           server: selectedServer.name,
           slot: i + 1

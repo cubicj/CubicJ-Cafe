@@ -7,7 +7,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('database');
 
 // 세션과 사용자 정보를 포함한 타입
-export interface SessionWithUser extends Session {
+interface SessionWithUser extends Session {
   user: User;
 }
 

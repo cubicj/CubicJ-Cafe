@@ -1,4 +1,4 @@
-export interface SaveStateField {
+interface SaveStateField {
   key: string;
   type: string;
   allowEmpty?: boolean;

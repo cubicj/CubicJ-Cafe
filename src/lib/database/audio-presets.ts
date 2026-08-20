@@ -16,9 +16,7 @@ const PRESET_SELECT_WITHOUT_BLOB = {
   updatedAt: true,
 } as const
 
-export type AudioPresetListItem = Awaited<ReturnType<typeof AudioPresetService.getUserPresets>>[number]
-
-export interface CreateAudioPresetData {
+interface CreateAudioPresetData {
   name: string
   audioBlob: Uint8Array
   audioFilename: string

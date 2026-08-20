@@ -19,10 +19,10 @@ export async function setQueuePauseAfterPosition(position: number | null): Promi
       update: { value: String(position) },
       create: { key: 'queue_pause_after_position', value: String(position), type: 'number', category: 'system' }
     });
-    log.info('Queue pause set', { position });
+    log.debug('Queue pause set', { position });
   } else {
     await prisma.systemSetting.deleteMany({ where: { key: 'queue_pause_after_position' } });
-    log.info('Queue pause cleared');
+    log.debug('Queue pause cleared');
   }
 }
 
