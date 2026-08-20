@@ -1,4 +1,4 @@
-import { LoRAPreset } from './index';
+import { LoRAPreset } from './models';
 import type { DropResult } from '@hello-pangea/dnd';
 
 export interface LoRAPresetManagerProps {

@@ -1,4 +1,4 @@
-import { LoRABundle } from './index';
+import { LoRABundle } from './models';
 import { NewLoRAForm } from './editor.types';
 
 export interface LoRABundleSelectorProps {

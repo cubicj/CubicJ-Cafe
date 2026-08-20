@@ -1,4 +1,4 @@
-import { LoRAPreset, LoRAPresetItem } from './index';
+import { LoRAPreset, LoRAPresetItem } from './models';
 
 export interface LoRAPresetEditorProps {
   isOpen: boolean;
