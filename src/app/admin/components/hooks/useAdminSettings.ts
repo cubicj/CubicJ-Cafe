@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useAdminAuth } from './useAdminAuth';
 import { apiClient, ApiError } from '@/lib/api-client';
 
 interface SystemSettings {
@@ -11,8 +10,12 @@ interface SystemSettings {
   };
 }
 
-export function useAdminSettings() {
-  const { checkAdminResponse, setError } = useAdminAuth();
+interface AdminSettingsAuth {
+  checkAdminResponse: (response: Response) => Promise<boolean>;
+  setError: (message: string) => void;
+}
+
+export function useAdminSettings({ checkAdminResponse, setError }: AdminSettingsAuth) {
 
   const handleAdminError = useCallback((err: unknown): boolean => {
     if (err instanceof ApiError) {

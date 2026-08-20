@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Layers } from 'lucide-react';
-import { LoRABundleManager } from '@/components/ui/lora-bundle-manager';
+import { LoRABundleManager } from '@/components/lora/lora-bundle-manager';
 import ModelSettingsTab, { type SettingsField } from './ModelSettingsTab';
 
 type ModelCategory = 'diffusionModels' | 'textEncoders' | 'vaes';

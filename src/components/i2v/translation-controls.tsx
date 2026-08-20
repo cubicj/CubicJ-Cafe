@@ -5,7 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ui');
-import { Button } from './button';
+import { Button } from '@/components/ui/button';
 import { Loader2, RotateCcw, Languages } from 'lucide-react';
 
 interface TranslationControlsProps {

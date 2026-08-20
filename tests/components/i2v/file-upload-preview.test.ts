@@ -1,4 +1,4 @@
-import { createImagePreview } from '@/components/ui/file-upload-preview'
+import { createImagePreview } from '@/components/i2v/file-upload-preview'
 
 describe('createImagePreview', () => {
   it('reads a file as a data URL preview', async () => {

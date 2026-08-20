@@ -1,7 +1,7 @@
 "use client";
 
-import { Textarea } from "./textarea";
-import { Card } from "./card";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { TranslationControls } from "./translation-controls";
 import { cn } from "@/lib/utils";
 

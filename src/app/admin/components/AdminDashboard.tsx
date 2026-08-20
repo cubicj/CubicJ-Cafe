@@ -56,8 +56,8 @@ export default function AdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authError, setAuthError] = useState('');
   const initialized = useRef(false);
-  const { error } = useAdminAuth();
-  const adminSettings = useAdminSettings();
+  const { error, checkAdminResponse, setError } = useAdminAuth();
+  const adminSettings = useAdminSettings({ checkAdminResponse, setError });
   const [comfyuiEnabled, setComfyuiEnabled] = useState(false);
   const [comfyuiLoading, setComfyuiLoading] = useState(true);
   const [comfyuiMessage, setComfyuiMessage] = useState('');
