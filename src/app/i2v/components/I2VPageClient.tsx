@@ -54,8 +54,8 @@ export default function I2VPageClient() {
     videoDuration,
     setVideoDuration,
   } = useI2VForm();
-  const isLtxr = activeModel === 'ltxr';
-  const effectiveIsNSFW = isLtxr ? false : isNSFW;
+  const isSfwLocked = !capabilities.nsfw;
+  const effectiveIsNSFW = capabilities.nsfw ? isNSFW : false;
 
   const handleSignIn = async () => {
     try {
@@ -221,7 +221,7 @@ export default function I2VPageClient() {
               <ContentSettingsSection
                 isNSFW={effectiveIsNSFW}
                 onNSFWToggle={setIsNSFW}
-                isSfwLocked={isLtxr}
+                isSfwLocked={isSfwLocked}
               />
 
               <I2VControlsSection

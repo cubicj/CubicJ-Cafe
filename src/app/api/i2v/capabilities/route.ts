@@ -1,5 +1,6 @@
 import { createRouteHandler } from '@/lib/api/route-handler'
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry'
+import { getVideoDurationSeconds } from '@/lib/comfyui/workflows/model-settings'
 import { prisma } from '@/lib/database/prisma'
 import { MODEL_ENABLED_KEYS, resolveEnabledModels } from '@/lib/database/system-settings'
 import type { VideoModel, ModelCapabilities } from '@/lib/comfyui/workflows/types'
@@ -75,13 +76,13 @@ export const GET = createRouteHandler(
       ltxa: Object.fromEntries(durationOptions.ltxa.map(duration => [
         duration,
         ltxaFrameBase && ltxaFrameRate
-          ? `${(((ltxaFrameBase * duration) + 1) / ltxaFrameRate).toFixed(1)}초`
+          ? `${getVideoDurationSeconds('ltxa', duration, { frameBase: ltxaFrameBase, frameRate: ltxaFrameRate }).toFixed(1)}초`
           : `${duration}초`,
       ])),
       ltxr: Object.fromEntries(durationOptions.ltxr.map(duration => [
         duration,
         ltxrFrameBase && ltxrFrameRate
-          ? `${(((ltxrFrameBase * duration) + 1) / ltxrFrameRate).toFixed(1)}초`
+          ? `${getVideoDurationSeconds('ltxr', duration, { frameBase: ltxrFrameBase, frameRate: ltxrFrameRate }).toFixed(1)}초`
           : `${duration}초`,
       ])),
       'ltx-wan': buildSecondLabels(durationOptions['ltx-wan']),

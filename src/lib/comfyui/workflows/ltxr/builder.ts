@@ -15,6 +15,8 @@ import {
   setNode,
 } from '../shared';
 
+type LtxrWorkflowParams = LtxrGenerationParams & { settings?: LtxrSettings }
+
 const log = createLogger('comfyui');
 type NodeOutput = [string, number];
 
@@ -25,7 +27,7 @@ const END_IMAGE = {
 } as const;
 
 export async function buildLtxrWorkflow(
-  params: LtxrGenerationParams
+  params: LtxrWorkflowParams
 ): Promise<ComfyUIWorkflow> {
   const settings = params.settings ?? await getLtxrSettings();
   const workflow: ComfyUIWorkflow = structuredClone(LTXR_WORKFLOW_TEMPLATE);

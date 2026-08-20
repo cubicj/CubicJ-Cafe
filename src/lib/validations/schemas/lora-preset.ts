@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
 
 export const loraItemSchema = z.object({
   loraFilename: z.string().min(1),
@@ -13,7 +14,7 @@ export const createLoraPresetSchema = z.object({
   name: z.string().min(1, '프리셋 이름은 필수입니다').max(100).transform((s) => s.trim()),
   isPublic: z.boolean().default(false),
   loraItems: z.array(loraItemSchema).max(20).default([]),
-  model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('wan'),
+  model: z.enum(VIDEO_MODELS).default('wan'),
 })
 
 export const updateLoraPresetSchema = createLoraPresetSchema.partial()
@@ -23,7 +24,7 @@ export const reorderPresetsSchema = z.object({
 })
 
 export const loraPresetQuerySchema = z.object({
-  model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('wan'),
+  model: z.enum(VIDEO_MODELS).default('wan'),
 })
 
 export const loraPresetDataSchema = z.object({

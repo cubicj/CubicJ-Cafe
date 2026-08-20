@@ -1,12 +1,13 @@
-import type { LtxrSettings } from '@/lib/database/system-settings'
+export const VIDEO_MODELS = ['wan', 'ltxa', 'ltxr', 'ltx-wan'] as const
 
-export type VideoModel = 'wan' | 'ltxa' | 'ltxr' | 'ltx-wan'
+export type VideoModel = (typeof VIDEO_MODELS)[number]
 
 export interface ModelCapabilities {
   loraPresets: boolean
   endImage: boolean
   videoDuration: boolean
   audio: boolean
+  nsfw: boolean
 }
 
 export interface ModelConfig {
@@ -38,7 +39,6 @@ export interface LtxrGenerationParams extends BaseGenerationParams {
   endImage?: string
   referenceAudio?: string
   watermarkImage?: string
-  settings?: LtxrSettings
 }
 
 export interface LtxWanGenerationParams extends BaseGenerationParams {

@@ -1,9 +1,9 @@
 import { QueueService } from '@/lib/database/queue';
 import { QueueStatus } from '@/generated/prisma/enums';
-import { ComfyUIClient } from './client';
 import { buildWorkflow } from './workflow-router';
 import { MODEL_REGISTRY } from './workflows/registry';
-import type { GenerationParams, VideoModel } from './workflows/types';
+import type { VideoModel } from './workflows/types';
+import { prepareGenerationParams } from './workflows/prepare-params';
 import { jobMonitor } from './job-monitor';
 import type { LoRAPresetData } from '@/types';
 
@@ -15,18 +15,6 @@ import { serverManager, type ActiveServer } from './server-manager';
 type ClaimedQueueRequest = NonNullable<Awaited<ReturnType<typeof QueueService.getAndClaimNextPendingRequest>>>;
 
 const log = createLogger('queue');
-
-async function uploadLtxrWatermark(assetId: string | null, client: ComfyUIClient): Promise<string> {
-  if (!assetId) {
-    throw new Error('LTXR watermark is enabled but no watermark asset is configured.');
-  }
-
-  const { getWatermarkAssetBlob } = await import('@/lib/database/watermark-assets');
-  const asset = await getWatermarkAssetBlob(assetId);
-  const blob = new Blob([Buffer.from(asset.imageBlob)], { type: asset.mimeType });
-  const file = new File([blob], asset.filename, { type: asset.mimeType });
-  return client.uploadImage(file);
-}
 
 class QueueMonitor {
   private isRunning = false;
@@ -257,8 +245,12 @@ class QueueMonitor {
 
 
     try {
-      const videoModel = (request.videoModel as VideoModel) || 'wan';
-      const modelConfig = MODEL_REGISTRY[videoModel];
+      const requestedVideoModel = request.videoModel || 'wan';
+      const modelConfig = MODEL_REGISTRY[requestedVideoModel as VideoModel];
+      if (!modelConfig) {
+        throw new Error(`Unsupported video model: ${requestedVideoModel}`);
+      }
+      const videoModel = requestedVideoModel as VideoModel;
 
       const lastModel = this.lastModelByServer.get(server.url);
       if (lastModel && lastModel !== videoModel) {
@@ -314,57 +306,19 @@ class QueueMonitor {
       }
 
       const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
-      const effectiveIsNSFW = videoModel === 'ltxr' ? false : Boolean(request.isNSFW);
+      const effectiveIsNSFW = modelConfig.capabilities.nsfw ? Boolean(request.isNSFW) : false;
 
-      let params: GenerationParams;
-      if (videoModel === 'wan') {
-        params = {
-          model: 'wan',
+      const params = await prepareGenerationParams(videoModel, {
+        request: {
           prompt: request.prompt,
-          inputImage,
           videoDuration: request.videoDuration,
           isNSFW: effectiveIsNSFW,
-          endImage: uploadedEndImageName || undefined,
-        };
-      } else if (videoModel === 'ltx-wan') {
-        params = {
-          model: 'ltx-wan',
-          prompt: request.prompt,
-          inputImage,
-          videoDuration: request.videoDuration,
-          isNSFW: effectiveIsNSFW,
-          endImage: uploadedEndImageName || undefined,
-          referenceAudio: uploadedAudioName || undefined,
-        };
-      } else if (videoModel === 'ltxa') {
-        params = {
-          model: 'ltxa',
-          prompt: request.prompt,
-          inputImage,
-          videoDuration: request.videoDuration,
-          isNSFW: effectiveIsNSFW,
-          referenceAudio: uploadedAudioName || undefined,
-        };
-      } else if (videoModel === 'ltxr') {
-        const { getLtxrSettings } = await import('@/lib/database/system-settings');
-        const settings = await getLtxrSettings();
-        const watermarkImage = settings.watermarkEnabled
-          ? await uploadLtxrWatermark(settings.watermarkImageAssetId, server.client)
-          : undefined;
-        params = {
-          model: 'ltxr',
-          prompt: request.prompt,
-          inputImage,
-          videoDuration: request.videoDuration,
-          isNSFW: effectiveIsNSFW,
-          endImage: uploadedEndImageName || undefined,
-          referenceAudio: uploadedAudioName || undefined,
-          watermarkImage,
-          settings,
-        };
-      } else {
-        throw new Error(`Unsupported video model: ${videoModel}`);
-      }
+        },
+        inputImage,
+        endImage: uploadedEndImageName || undefined,
+        referenceAudio: uploadedAudioName || undefined,
+        client: server.client,
+      });
 
       const workflow = await buildWorkflow(params);
 
