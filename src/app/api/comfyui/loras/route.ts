@@ -3,12 +3,9 @@ import { serverManager } from '@/lib/comfyui/server-manager'
 import { createLogger } from '@/lib/logger';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { createRouteHandler, AuthenticatedRequest } from '@/lib/api/route-handler';
+import { isLtxLoraFamily } from '@/lib/comfyui/workflows/registry';
 
 const log = createLogger('comfyui');
-
-function isLtxLoraModel(model: string): boolean {
-  return model === 'ltx' || model === 'ltxa';
-}
 
 export const GET = createRouteHandler(
   { auth: 'user' },
@@ -64,7 +61,7 @@ export const GET = createRouteHandler(
 
     log.debug('LoRA list fetched', { model, count: loras.length })
 
-    const categorizedLoras = isLtxLoraModel(model)
+    const categorizedLoras = isLtxLoraFamily(model)
       ? {
           all: loras,
           safetensors: loras.filter(f => f.endsWith('.safetensors')),
