@@ -50,3 +50,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
     defaultDuration: 5,
   },
 };
+
+export function isLtxLoraFamily(model: string): boolean {
+  return model === 'ltx' || model === 'ltxa';
+}

@@ -1,5 +1,6 @@
 import { createLogger } from '@/lib/logger'
 import { comfyuiFetch } from './client-http'
+import { isLtxLoraFamily } from './workflows/registry'
 import type { ModelListResponse } from './client-types'
 
 const log = createLogger('comfyui')
@@ -105,7 +106,7 @@ function extractLoRAs(
     return []
   }
 
-  const filtered = (model === 'ltx' || model === 'ltxa')
+  const filtered = isLtxLoraFamily(model)
     ? filterLTXLoRAs(loras, normalizeRunpod)
     : filterWANLoRAs(loras, normalizeRunpod)
 

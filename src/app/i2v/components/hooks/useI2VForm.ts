@@ -5,7 +5,7 @@ import { createLogger } from '@/lib/logger';
 import { apiClient, ApiError } from '@/lib/api-client';
 import { useSession } from '@/contexts/SessionContext';
 import { useI2VFormContext } from '@/contexts/I2VFormContext';
-import type { VideoModel, ModelCapabilities } from "@/lib/comfyui/workflows/types";
+import { VIDEO_MODELS, type VideoModel, type ModelCapabilities } from "@/lib/comfyui/workflows/types";
 import { MODEL_REGISTRY } from "@/lib/comfyui/workflows/registry";
 
 const log = createLogger('i2v');
@@ -152,7 +152,7 @@ export function useI2VForm(): UseI2VFormReturn {
           localStorage.setItem('activeModel', 'ltxa');
           return 'ltxa';
         }
-        if (saved === 'wan' || saved === 'ltxa' || saved === 'ltxr' || saved === 'ltx-wan') return saved as VideoModel;
+        if (saved && (VIDEO_MODELS as readonly string[]).includes(saved)) return saved as VideoModel;
       } catch { /* ignore */ }
     }
     return 'wan';
