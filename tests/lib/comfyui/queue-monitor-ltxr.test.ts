@@ -49,6 +49,7 @@ vi.mock('@/lib/comfyui/server-manager', () => ({
     getClient: vi.fn(),
     checkServerHealth: vi.fn(),
     selectBestServer: vi.fn(),
+    releaseServer: vi.fn(),
   },
 }))
 
@@ -125,6 +126,7 @@ describe('QueueMonitor LTXR params', () => {
 
     const { queueMonitor } = await import('@/lib/comfyui/queue-monitor')
     await queueMonitor.processQueueRequestWithServer('request-ltxr-1', {
+      id: 'local',
       client: client as never,
       name: 'Local',
       type: 'local',
@@ -185,6 +187,7 @@ describe('QueueMonitor LTXR params', () => {
 
     const { queueMonitor } = await import('@/lib/comfyui/queue-monitor')
     await queueMonitor.processQueueRequestWithServer('request-ltxr-2', {
+      id: 'local',
       client: client as never,
       name: 'Local',
       type: 'local',

@@ -47,6 +47,7 @@ vi.mock('@/lib/comfyui/server-manager', () => ({
     getClient: vi.fn(),
     checkServerHealth: vi.fn(),
     selectBestServer: vi.fn(),
+    releaseServer: vi.fn(),
   },
 }))
 
@@ -101,6 +102,7 @@ describe('QueueMonitor LTXA params', () => {
 
     const { queueMonitor } = await import('@/lib/comfyui/queue-monitor')
     await queueMonitor.processQueueRequestWithServer('request-1', {
+      id: 'local',
       client: client as never,
       name: 'Local',
       type: 'local',
@@ -111,6 +113,9 @@ describe('QueueMonitor LTXA params', () => {
       model: 'ltxa',
       isNSFW: true,
       inputImage: 'uploaded-start.png',
+    }))
+    expect(mockUpdateRequest).toHaveBeenCalledWith('request-1', expect.objectContaining({
+      serverId: 'local',
     }))
   })
 })

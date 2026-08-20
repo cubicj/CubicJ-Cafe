@@ -37,11 +37,6 @@ vi.mock('@/lib/generation-store', () => ({
   generationStore: { updateJob: (...args: unknown[]) => mockUpdateJob(...args) },
 }))
 
-const mockReleaseServerJob = vi.fn()
-vi.mock('@/lib/comfyui/queue-monitor', () => ({
-  queueMonitor: { releaseServerJob: (...args: unknown[]) => mockReleaseServerJob(...args) },
-}))
-
 const mockSendVideoToDiscord = vi.fn()
 vi.mock('@/lib/comfyui/video-result-sender', () => ({
   sendVideoToDiscord: (...args: unknown[]) => mockSendVideoToDiscord(...args),
@@ -53,10 +48,12 @@ const mockRemoveCallbacks = vi.fn()
 const mockInterruptProcessing = vi.fn()
 const mockGetServerById = vi.fn()
 const mockGetClient = vi.fn()
+const mockReleaseServer = vi.fn()
 vi.mock('@/lib/comfyui/server-manager', () => ({
   serverManager: {
     getServerById: (...args: unknown[]) => mockGetServerById(...args),
     getClient: (...args: unknown[]) => mockGetClient(...args),
+    releaseServer: (...args: unknown[]) => mockReleaseServer(...args),
   },
 }))
 
@@ -143,7 +140,7 @@ describe('ComfyUIJobMonitor', () => {
       }),
       expect.objectContaining({ id: 'local', url: 'http://127.0.0.1:8188' }),
     )
-    expect(mockReleaseServerJob).toHaveBeenCalledWith('job-1')
+    expect(mockReleaseServer).toHaveBeenCalledWith('job-1')
     expect(mockRemoveCallbacks).toHaveBeenCalledWith('prompt-1')
   })
 
@@ -178,7 +175,7 @@ describe('ComfyUIJobMonitor', () => {
     await errorCallback(errorData)
 
     expect(mockUpdateRequest).toHaveBeenCalledWith('job-1', expect.objectContaining({ status: 'FAILED' }))
-    expect(mockReleaseServerJob).toHaveBeenCalledWith('job-1')
+    expect(mockReleaseServer).toHaveBeenCalledWith('job-1')
     expect(mockRemoveCallbacks).toHaveBeenCalledWith('prompt-1')
   })
 
@@ -193,7 +190,7 @@ describe('ComfyUIJobMonitor', () => {
       prompt_id: 'prompt-1',
     })
 
-    expect(mockReleaseServerJob).toHaveBeenCalledWith('job-1')
+    expect(mockReleaseServer).toHaveBeenCalledWith('job-1')
     expect(mockRemoveCallbacks).toHaveBeenCalledWith('prompt-1')
     expect(mockSendVideoToDiscord).not.toHaveBeenCalled()
   })
