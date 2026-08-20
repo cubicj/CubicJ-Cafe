@@ -31,6 +31,18 @@ describe('getH3Fl2vaSettings', () => {
       chunkFeedforwardEnabled: true,
       chunkFeedforwardChunks: 3,
       chunkFeedforwardMinTokens: 1024,
+      solAttnEnabled: false,
+      solAttnTauStart: 0.7,
+      solAttnTauEnd: 0.3,
+      solAttnCurve: 'test-curve',
+      solAttnMinTokens: 111,
+      solAttnStrict: true,
+      solAttnDensePercent: 37.5,
+      solAttnThreshType: 'test-thresh',
+      solAttnInt8Qk: false,
+      solAttnInt8Pv: true,
+      solAttnSinkConditioning: 'test-sink',
+      solAttnDenseBlocks: '2,5,9',
       megapixels: 0.5,
       megapixelsLast: 0.4,
       resizeMultipleOf: 16,
@@ -52,5 +64,11 @@ describe('getH3Fl2vaSettings', () => {
   it('throws when a required key is missing', async () => {
     await prisma.systemSetting.delete({ where: { key: 'h3-fl2va.unet' } })
     await expect(getH3Fl2vaSettings()).rejects.toThrow('h3-fl2va.unet')
+  })
+
+  it('accepts an empty Sol Attention dense blocks setting', async () => {
+    await prisma.systemSetting.update({ where: { key: 'h3-fl2va.sol_attn_dense_blocks' }, data: { value: '' } })
+    const settings = await getH3Fl2vaSettings()
+    expect(settings.solAttnDenseBlocks).toBe('')
   })
 })

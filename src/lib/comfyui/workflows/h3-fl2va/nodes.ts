@@ -31,4 +31,5 @@ export const H3_FL2VA = {
   CHUNK_FEEDFORWARD: '60',
   UNLOAD_POST_ENCODE: '63',
   UNLOAD_POST_SAMPLER: '64',
+  SOL_ATTN: '66',
 } as const
