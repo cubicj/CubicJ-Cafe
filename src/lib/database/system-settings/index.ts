@@ -5,4 +5,5 @@ export * from './wan';
 export * from './ltxa';
 export * from './ltxr';
 export * from './ltx-wan';
+export * from './h3-fl2va';
 export * from './models';

@@ -191,5 +191,6 @@ enum ServerType {
 enum GenerationMode {
   START_ONLY
   START_END
+  END_ONLY
   LOOP
 }
