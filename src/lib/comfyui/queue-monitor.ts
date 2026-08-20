@@ -284,7 +284,7 @@ class QueueMonitor {
           log.error('Image upload failed', { error: error instanceof Error ? error.message : String(error) });
           throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
-      } else {
+      } else if (!modelConfig.capabilities.startImageOptional || !request.endImageBlob) {
         log.warn('Image blob not found', { requestId: request.id, imageFile: request.imageFile });
         throw new Error('이미지 데이터가 없습니다.');
       }
@@ -305,7 +305,7 @@ class QueueMonitor {
         uploadedAudioName = await server.client.uploadAudio(audioFile);
       }
 
-      const inputImage = uploadedImageName || request.imageFile || 'input_image.png';
+      const inputImage = uploadedImageName || request.imageFile || undefined;
       const effectiveIsNSFW = modelConfig.capabilities.nsfw ? Boolean(request.isNSFW) : false;
 
       const params = await prepareGenerationParams(videoModel, {

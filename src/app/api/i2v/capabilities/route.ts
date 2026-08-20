@@ -39,6 +39,12 @@ export const GET = createRouteHandler(
           : `${duration}초`,
       ])),
       'ltx-wan': buildSecondLabels(durationOptions['ltx-wan']),
+      'h3-fl2va': Object.fromEntries(durationOptions['h3-fl2va'].map(duration => [
+        duration,
+        settings.h3Fl2vaFramesPerStep && settings.h3Fl2vaFrameRate
+          ? `${getVideoDurationSeconds('h3-fl2va', duration, { framesPerStep: settings.h3Fl2vaFramesPerStep, frameBase: settings.h3Fl2vaFrameBase ?? 0, frameRate: settings.h3Fl2vaFrameRate }).toFixed(1)}초`
+          : `${duration}초`,
+      ])),
     }
 
     return { capabilities, durationOptions, durationLabels, enabledModels: settings.enabledModels }

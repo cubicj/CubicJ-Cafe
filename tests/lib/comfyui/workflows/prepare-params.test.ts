@@ -123,4 +123,34 @@ describe('generation param preparation', () => {
       client: client as never,
     })).rejects.toThrow('Unsupported video model: unknown')
   })
+
+  it('prepares H3 FL2VA params with only an end image', async () => {
+    await expect(prepareGenerationParams('h3-fl2va', {
+      request,
+      endImage: 'end.png',
+      client: client as never,
+    })).resolves.toEqual({
+      model: 'h3-fl2va',
+      prompt: 'fake prompt',
+      inputImage: undefined,
+      videoDuration: 6,
+      isNSFW: true,
+      endImage: 'end.png',
+    })
+  })
+
+  it('rejects H3 FL2VA params without an image', async () => {
+    await expect(prepareGenerationParams('h3-fl2va', {
+      request,
+      client: client as never,
+    })).rejects.toThrow('H3 FL2VA requires at least one image')
+  })
+
+  it('rejects existing models without a start image', async () => {
+    await expect(prepareGenerationParams('wan', {
+      request,
+      inputImage: undefined,
+      client: client as never,
+    })).rejects.toThrow('Start image is required')
+  })
 })
