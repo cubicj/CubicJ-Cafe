@@ -15,7 +15,7 @@ Upload an image, write a prompt, and get a generated video delivered to Discord 
 ## Features
 
 - **Image-to-Video** — Upload an image with a prompt, get a generated video
-- **Multi-Model** — Four workflow pipelines dispatched through a single capability-driven registry
+- **Multi-Model** — Five workflow pipelines dispatched through a single capability-driven registry
 
   | Model | End Image | Audio | Duration |
   |-------|:---------:|:-----:|----------|
@@ -23,6 +23,9 @@ Upload an image, write a prompt, and get a generated video delivered to Discord 
   | LTX (Anime) | — | ✓ | 5–7s |
   | LTX (Real) | ✓ | ✓ | 5–7s |
   | L+W (LTX + WAN hybrid) | ✓ | ✓ | 5–8s |
+  | H3 FL2VA (MiniMax) | ✓ | ✓ | frame-count based |
+
+  H3 FL2VA takes a first frame, a last frame, or both — any single image is enough (F2VA / L2VA / FL2VA modes).
 
 - **Queue System** — Serializable queue with atomic position assignment and real-time status tracking
 - **LoRA Presets & Bundles** — Drag-and-drop preset management, per-model availability gated by capability flags
@@ -36,8 +39,8 @@ Upload an image, write a prompt, and get a generated video delivered to Discord 
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 15, React 19, TailwindCSS 4, Shadcn/ui |
-| Backend | Next.js API Routes, Prisma 6, SQLite |
+| Frontend | Next.js 16, React 19, TailwindCSS 4, Shadcn/ui |
+| Backend | Next.js API Routes, Prisma 7 (better-sqlite3 driver adapter), SQLite |
 | Auth | Custom Discord OAuth2 (HttpOnly cookie sessions) |
 | Validation | Zod v4 schemas across all route handlers |
 | AI Backend | ComfyUI API (JSON workflow graphs) |
@@ -62,7 +65,7 @@ src/
 │   └── settings/     # User settings
 ├── lib/
 │   ├── comfyui/      # Queue/job monitors, server management
-│   │   └── workflows/  # Per-model builders (wan, ltxa, ltxr, ltx-wan) + registry
+│   │   └── workflows/  # Per-model builders (wan, ltxa, ltxr, ltx-wan, h3-fl2va) + registry
 │   ├── database/     # Prisma service layer
 │   ├── auth/         # Session management, withAuth/withAdmin HOF
 │   ├── validations/  # Zod schemas + parse helpers
@@ -70,9 +73,11 @@ src/
 ├── components/       # Shadcn/ui base + domain components
 ├── contexts/         # React Context (session, form state)
 └── hooks/            # Custom React hooks
-tests/
-├── integration/api/  # Route handler tests (real DB sessions)
-└── unit/             # Module tests
+tests/                # Mirrors src/ (route handler tests hit real DB sessions)
+├── app/api/          # API route tests via direct handler invocation
+├── lib/              # Module tests
+├── helpers/          # Shared fixtures, seeds, auth builders
+└── perf/             # Benchmarks
 ```
 
 ## Development
@@ -81,7 +86,7 @@ tests/
 npm install
 npm run prisma:migrate    # Set up database
 npm run dev               # Dev server
-npm test                  # 515 tests
+npm test                  # 570 tests
 npm run type-check        # tsc --noEmit
 npm run lint              # ESLint
 ```
