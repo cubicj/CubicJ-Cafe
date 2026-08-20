@@ -24,7 +24,7 @@ export const H3_FL2VA = {
   STEPS: '52',
   SCHEDULER: '53',
   RTX_SUPER_RES: '54',
-  TURBO_LORA: '56',
+  TURBO_LORA: '65',
   LOAD_IMAGE_LAST: '57',
   RESIZE_LAST: '58',
   FUSED_MODULATION: '59',

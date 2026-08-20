@@ -39,7 +39,7 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
   setNode(workflow, H3_FL2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
   setNode(workflow, H3_FL2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
   setNode(workflow, H3_FL2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
-  setNode(workflow, H3_FL2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
+  setNode(workflow, H3_FL2VA.TURBO_LORA, { lora_name: settings.turboLora, strength: settings.turboLoraStrength })
 }
 
 function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
