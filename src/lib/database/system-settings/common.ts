@@ -1,24 +1,36 @@
 import { prisma } from '../prisma';
-import { createLogger } from '@/lib/logger';
+import type { SystemSettingModel as SystemSetting } from '@/generated/prisma/models/SystemSetting';
 
-const log = createLogger('database');
+export interface SystemSettingInput {
+  key: string;
+  value: string;
+  type: string;
+  category: string;
+}
 
 export async function setSystemSetting(
   key: string,
   value: string,
   type: string = 'string',
   category: string = 'general'
-): Promise<void> {
-  try {
-    await prisma.systemSetting.upsert({
-      where: { key },
-      update: { value, type, category },
-      create: { key, value, type, category }
-    });
-  } catch (error) {
-    log.error('System setting save error', { key, error: error instanceof Error ? error.message : String(error) });
-    throw error;
-  }
+): Promise<SystemSetting> {
+  return prisma.systemSetting.upsert({
+    where: { key },
+    update: { value, type, category },
+    create: { key, value, type, category }
+  });
+}
+
+export async function setSystemSettings(settings: SystemSettingInput[]): Promise<SystemSetting[]> {
+  return prisma.$transaction(
+    settings.map(({ key, value, type, category }) =>
+      prisma.systemSetting.upsert({
+        where: { key },
+        update: { value, type, category },
+        create: { key, value, type, category },
+      })
+    )
+  );
 }
 
 export interface LtxLoraSlotSettings {
