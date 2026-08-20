@@ -1,16 +1,23 @@
-import { QueueService } from '@/lib/database/queue'
 import { GenerationJob } from '@/types'
 import { discordBot } from '../discord-bot'
-import { serverManager } from './server-manager'
+import type { ComfyUIServer } from './server-manager'
 import type { VideoModel } from './workflows/types'
 import type { VideoFileInfo } from './client-types'
 import { createLogger } from '@/lib/logger'
 
 const log = createLogger('comfyui')
 
+interface QueueRequestContext {
+  serverId: string | null
+  startedAt: Date | null
+  completedAt: Date | null
+}
+
 export async function sendVideoToDiscord(
   job: GenerationJob,
-  videoInfo: VideoFileInfo
+  videoInfo: VideoFileInfo,
+  queueRequest: QueueRequestContext | null,
+  server: Pick<ComfyUIServer, 'url'> | null,
 ): Promise<void> {
   try {
     if (!job.userInfo) {
@@ -20,7 +27,12 @@ export async function sendVideoToDiscord(
 
     const videoModel = (job.videoModel as VideoModel) || 'wan'
 
-    const { queueRequest, server } = await resolveServer(job.id)
+    if (!queueRequest?.serverId) {
+      throw new Error('서버 정보를 찾을 수 없습니다')
+    }
+    if (!server) {
+      throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`)
+    }
     const processingTime = getProcessingTimeSeconds(job, queueRequest)
 
     log.debug('Discord video send attempt', {
@@ -56,23 +68,9 @@ export async function sendVideoToDiscord(
   }
 }
 
-async function resolveServer(jobId: string) {
-  const queueRequest = await QueueService.getRequestById(jobId)
-  if (!queueRequest?.serverId) {
-    throw new Error('서버 정보를 찾을 수 없습니다')
-  }
-
-  const server = serverManager.getServerById(queueRequest.serverId)
-  if (!server) {
-    throw new Error(`서버를 찾을 수 없습니다: ${queueRequest.serverId}`)
-  }
-
-  return { queueRequest, server }
-}
-
 function getProcessingTimeSeconds(
   job: GenerationJob,
-  queueRequest: Awaited<ReturnType<typeof QueueService.getRequestById>>
+  queueRequest: QueueRequestContext
 ): number | undefined {
   const startedAt = queueRequest?.startedAt ?? job.createdAt
   const completedAt = queueRequest?.completedAt ?? job.updatedAt

@@ -1245,6 +1245,10 @@ export async function getEnabledModels(): Promise<VideoModel[]> {
   })
   const values = new Map(rows.map(row => [row.key, row.value]))
 
+  return resolveEnabledModels(values)
+}
+
+export function resolveEnabledModels(values: ReadonlyMap<string, string>): VideoModel[] {
   return ([
     ['wan', MODEL_ENABLED_KEYS.wan],
     ['ltxa', MODEL_ENABLED_KEYS.ltxa],

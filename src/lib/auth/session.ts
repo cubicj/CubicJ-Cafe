@@ -34,7 +34,7 @@ class SessionManager {
       throw new Error('세션 생성에 실패했습니다');
     }
 
-    const updatedUser = await UserService.touchLastActive(user.discordId, 0);
+    const updatedUser = await UserService.touchLastActive(user.discordId, 0, user);
 
     return {
       sessionId: session.id,
@@ -57,7 +57,11 @@ class SessionManager {
       return null;
     }
 
-    UserService.touchLastActive(sessionWithUser.user.discordId).catch(() => {});
+    UserService.touchLastActive(
+      sessionWithUser.user.discordId,
+      undefined,
+      sessionWithUser.user
+    ).catch(() => {});
 
     return {
       sessionId: sessionWithUser.id,

@@ -86,6 +86,9 @@ const QUEUE_LIST_SELECT = {
 
 const QUEUE_CLAIM_SELECT = {
   ...QUEUE_SELECT_BASE,
+  imageBlob: true,
+  endImageBlob: true,
+  audioBlob: true,
   user: {
     select: {
       nickname: true,

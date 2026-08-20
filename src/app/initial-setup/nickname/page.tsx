@@ -10,15 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Check, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-
-interface SessionUser {
-  id: string;
-  discordId: string;
-  discordUsername: string;
-  nickname?: string;
-  avatar?: string;
-  name?: string;
-}
+import { useSession } from '@/contexts/SessionContext';
 
 const log = createLogger('page');
 
@@ -29,30 +21,15 @@ export default function NicknameSetupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<SessionUser | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const { user, isLoading, refreshSession } = useSession();
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const data = await apiClient.get<{ user: SessionUser | null }>('/api/auth/session');
-        if (data.user) {
-          if (data.user.nickname) {
-            router.push('/');
-            return;
-          }
-          setUser(data.user);
-        } else {
-          router.push('/');
-        }
-      } catch (error) {
-        log.error('Auth status check failed', { error: error instanceof Error ? error.message : String(error) });
-        router.push('/');
-      }
-    };
-
-    checkAuthStatus();
-  }, [router]);
+    if (isLoading) return;
+    if (!user || user.nickname) {
+      router.push('/');
+    }
+  }, [isLoading, router, user]);
 
   useEffect(() => {
     return () => {
@@ -108,6 +85,7 @@ export default function NicknameSetupPage() {
 
     try {
       await apiClient.post('/api/setup/nickname', { nickname: nickname.trim() });
+      await refreshSession();
       window.location.assign(new URL('/', window.location.origin));
     } catch (error) {
       if (error instanceof ApiError) {
@@ -121,7 +99,7 @@ export default function NicknameSetupPage() {
     }
   };
 
-  if (!user) {
+  if (!user || user.nickname) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200">
         <div className="text-center">
@@ -153,7 +131,7 @@ export default function NicknameSetupPage() {
           </div>
           <CardTitle className="text-2xl font-bold">환영합니다! 🎉</CardTitle>
           <p className="text-gray-600">
-            <strong>{user.name}</strong>님, CubicJ Cafe에 오신 것을 환영합니다!
+            <strong>{user.discordUsername}</strong>님, CubicJ Cafe에 오신 것을 환영합니다!
           </p>
           <p className="text-sm text-gray-500 mt-2">
             다른 사용자들이 볼 수 있는 닉네임을 설정해주세요.

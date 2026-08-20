@@ -91,9 +91,15 @@ export class UserService {
     }
   }
 
-  static async touchLastActive(discordId: string, throttleMs = 5 * 60 * 1000): Promise<User | null> {
+  static async touchLastActive(
+    discordId: string,
+    throttleMs = 5 * 60 * 1000,
+    knownUser?: User
+  ): Promise<User | null> {
     try {
-      const user = await prisma.user.findUnique({ where: { discordId } });
+      const user = knownUser
+        ? knownUser
+        : await prisma.user.findUnique({ where: { discordId } });
       if (!user) return null;
 
       const elapsed = Date.now() - user.lastActiveAt.getTime();

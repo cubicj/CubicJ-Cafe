@@ -201,6 +201,11 @@ describe('QueueMonitor LTXR params', () => {
       model: 'ltxr',
       inputImage: 'uploaded-start.png',
       watermarkImage: 'uploaded-watermark.png',
+      settings: expect.objectContaining({
+        watermarkEnabled: true,
+        watermarkImageAssetId: 'watermark-asset-1',
+      }),
     }))
+    expect(mockGetLtxrSettings).toHaveBeenCalledTimes(1)
   })
 })
