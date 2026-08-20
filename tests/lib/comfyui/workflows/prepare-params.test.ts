@@ -146,8 +146,12 @@ describe('generation param preparation', () => {
     })).rejects.toThrow('H3 FL2VA requires at least one image')
   })
 
-  it('rejects existing models without a start image', async () => {
-    await expect(prepareGenerationParams('wan', {
+  it.each(['wan', 'ltxa', 'ltxr', 'ltx-wan'] as const)('rejects %s without a start image', async model => {
+    mockGetLtxrSettings.mockResolvedValue({
+      watermarkEnabled: false,
+      watermarkImageAssetId: null,
+    })
+    await expect(prepareGenerationParams(model, {
       request,
       inputImage: undefined,
       client: client as never,

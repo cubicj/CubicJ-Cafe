@@ -29,6 +29,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   },
   ltxr: {
     displayName: 'LTX(Real)',
+    optIn: true,
     capabilities: {
       loraPresets: false,
       endImage: true,
@@ -55,6 +56,7 @@ export const MODEL_REGISTRY: Record<VideoModel, ModelConfig> = {
   },
   'h3-fl2va': {
     displayName: 'H3 FL2VA',
+    optIn: true,
     capabilities: {
       loraPresets: false,
       endImage: true,

@@ -39,6 +39,7 @@ interface QueueRow extends Record<string, unknown> {
   isNSFW?: boolean;
   generationMode?: string;
   imageFile?: string;
+  endImageFile?: string;
   audioFile?: string;
   audioPresetName?: string;
   loraPresetData?: string;
@@ -109,7 +110,7 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 <div className="col-span-4 flex items-center">
                   {request.generationMode && (
                     <Badge variant="outline" className="text-xs">
-                      {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : '기본'}{request.audioFile ? '+오디오' : ''}
+                      {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : request.generationMode === 'END_ONLY' ? '끝 이미지' : '기본'}{request.audioFile ? '+오디오' : ''}
                     </Badge>
                   )}
                   {isExpanded ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
@@ -123,10 +124,10 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <p className="mt-1 p-2 bg-background rounded">{request.prompt}</p>
                   </div>
 
-                  {request.imageFile && (
+                  {(request.imageFile || request.endImageFile) && (
                     <div>
                       <span className="font-medium">이미지 파일:</span>
-                      <span className="ml-2">{request.imageFile}</span>
+                      <span className="ml-2">{request.imageFile || request.endImageFile}</span>
                     </div>
                   )}
 

@@ -43,6 +43,24 @@ describe('buildH3Fl2vaWorkflow', () => {
     await expect(rawBuilder({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5 })).rejects.toThrow()
   })
 
+  it('excludes unused source workflow nodes', async () => {
+    const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'fake-start.png' })
+    expect(wf['4']).toBeUndefined()
+    expect(wf['51']).toBeUndefined()
+  })
+
+  it('wires loop input as FL2VA', async () => {
+    const wf = await buildH3Fl2vaWorkflow({
+      model: 'h3-fl2va',
+      prompt: 'p',
+      videoDuration: 5,
+      inputImage: 'fake-loop.png',
+      endImage: 'fake-loop.png',
+    })
+    expect(wf[H3_FL2VA.IMAGE_TO_VIDEO]!.inputs!.first_frame).toEqual(['2', 0])
+    expect(wf[H3_FL2VA.IMAGE_TO_VIDEO]!.inputs!.last_frame).toEqual(['58', 0])
+  })
+
   it('wires FL2VA mode with per-slot megapixels', async () => {
     const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png', endImage: 'last.png' })
     expect(wf[H3_FL2VA.LOAD_IMAGE_FIRST]!.inputs!.image).toBe('first.png')

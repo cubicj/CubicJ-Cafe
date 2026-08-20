@@ -13,6 +13,7 @@ export interface ModelCapabilities {
 
 export interface ModelConfig {
   displayName: string
+  optIn?: boolean
   capabilities: ModelCapabilities
   durationOptions: number[]
   defaultDuration: number

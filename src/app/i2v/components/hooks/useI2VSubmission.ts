@@ -47,6 +47,11 @@ export function useI2VSubmission({
       return;
     }
 
+    if (isLoopEnabled && !selectedFile) {
+      setSubmitMessage({ type: 'error', message: '루프 모드에는 시작 이미지가 필요합니다.' });
+      return;
+    }
+
     const hasRequiredImages = capabilities.startImageOptional ? !!selectedFile || !!endImageFile : !!selectedFile;
     if (!hasRequiredImages) {
       setSubmitMessage({
