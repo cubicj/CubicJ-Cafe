@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { loraItemSchema } from './lora-preset'
+import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'] as const
 
@@ -39,7 +40,7 @@ export const i2vSchema = z.object({
   image: imageSchema,
   endImage: optionalImageSchema,
   audioPresetId: z.string().min(1).optional(),
-  model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('wan'),
+  model: z.enum(VIDEO_MODELS).default('wan'),
   loraPreset: z.string().transform((s, ctx) => {
     try {
       return JSON.parse(s)

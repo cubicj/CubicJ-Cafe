@@ -6,8 +6,9 @@ import { randomUUID } from 'crypto';
 import { GenerationMode, ServerType } from '@/generated/prisma/enums';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
+import { getModelSettings, getVideoDurationSeconds } from '@/lib/comfyui/workflows/model-settings';
 import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
-import { getEnabledModels, getWanSettings, getLtxaSettings, getLtxrSettings, getLtxWanSettings } from '@/lib/database/system-settings';
+import { getEnabledModels } from '@/lib/database/system-settings';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
 import { AudioPresetService } from '@/lib/database/audio-presets';
@@ -15,15 +16,6 @@ import { AudioPresetService } from '@/lib/database/audio-presets';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api');
-
-function getVideoDurationSeconds(model: VideoModel, videoDuration: number, modelSettings: unknown): number {
-  if (model !== 'ltxa' && model !== 'ltxr') return videoDuration;
-
-  const settings = modelSettings as { frameBase?: number; frameRate?: number };
-  if (!settings.frameBase || !settings.frameRate) return videoDuration;
-
-  return Number((((settings.frameBase * videoDuration) + 1) / settings.frameRate).toFixed(1));
-}
 
 async function selectBestServer() {
   await serverManager.checkServerHealth();
@@ -92,13 +84,7 @@ export const POST = createRouteHandler(
 
     const capabilities = MODEL_REGISTRY[activeModel].capabilities;
 
-    const modelSettings = activeModel === 'wan'
-      ? await getWanSettings()
-      : activeModel === 'ltxa'
-        ? await getLtxaSettings()
-        : activeModel === 'ltxr'
-          ? await getLtxrSettings()
-          : await getLtxWanSettings();
+    const modelSettings = await getModelSettings(activeModel);
     const loraEnabled = capabilities.loraPresets && 'loraEnabled' in modelSettings && modelSettings.loraEnabled;
 
     const allowedDurations = modelSettings.durationOptions;
@@ -177,7 +163,7 @@ export const POST = createRouteHandler(
         audioBlob: audioBuffer || undefined,
         audioPresetName: audioPresetName || undefined,
         loraPreset: loraPresetData,
-        isNSFW: activeModel === 'ltxr' ? false : isNSFW,
+        isNSFW: capabilities.nsfw ? isNSFW : false,
         serverType: selectedServer.serverType,
         serverId: selectedServer.serverId,
         videoModel: activeModel,

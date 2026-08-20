@@ -120,6 +120,7 @@ describe('GET /api/i2v/capabilities', () => {
       endImage: true,
       videoDuration: true,
       audio: true,
+      nsfw: false,
     })
     expect(enabledBody.durationOptions.ltxr).toEqual([5, 6, 7])
     expect(MODEL_REGISTRY.ltxr).toMatchObject({
@@ -213,6 +214,10 @@ describe('GET /api/i2v/capabilities', () => {
     expect(body.capabilities.ltxa.audio).toBe(true)
     expect(body.capabilities.wan.endImage).toBe(true)
     expect(body.capabilities.ltxa.endImage).toBe(false)
+    expect(body.capabilities.wan.nsfw).toBe(true)
+    expect(body.capabilities.ltxa.nsfw).toBe(true)
+    expect(body.capabilities.ltxr.nsfw).toBe(false)
+    expect(body.capabilities['ltx-wan'].nsfw).toBe(true)
   })
 
   it('always reports LTXA end image capability as disabled', async () => {

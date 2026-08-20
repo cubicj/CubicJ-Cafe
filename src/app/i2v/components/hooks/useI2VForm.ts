@@ -212,9 +212,11 @@ export function useI2VForm(): UseI2VFormReturn {
 
   useEffect(() => {
     const previousActiveModel = previousActiveModelRef.current;
+    const previousCapabilities = capabilitiesMap?.[previousActiveModel]
+      ?? MODEL_REGISTRY[previousActiveModel].capabilities;
 
-    if (activeModel === 'ltxr') {
-      if (previousActiveModel !== 'ltxr') {
+    if (!capabilities.nsfw) {
+      if (previousCapabilities.nsfw) {
         nonLtxrIsNSFWRef.current = isNSFW;
       }
       previousActiveModelRef.current = activeModel;
@@ -224,7 +226,7 @@ export function useI2VForm(): UseI2VFormReturn {
       return;
     }
 
-    if (previousActiveModel === 'ltxr') {
+    if (!previousCapabilities.nsfw) {
       previousActiveModelRef.current = activeModel;
       if (isNSFW !== nonLtxrIsNSFWRef.current) {
         setIsNSFW(nonLtxrIsNSFWRef.current);
@@ -234,10 +236,10 @@ export function useI2VForm(): UseI2VFormReturn {
 
     nonLtxrIsNSFWRef.current = isNSFW;
     previousActiveModelRef.current = activeModel;
-  }, [activeModel, isNSFW, setIsNSFW]);
+  }, [activeModel, capabilities.nsfw, capabilitiesMap, isNSFW, setIsNSFW]);
 
   const setFormIsNSFW = (nsfw: boolean) => {
-    if (activeModel === 'ltxr') {
+    if (!capabilities.nsfw) {
       setIsNSFW(false);
       return;
     }
@@ -325,7 +327,7 @@ export function useI2VForm(): UseI2VFormReturn {
       }
       formData.append('prompt', prompt.trim());
       formData.append('model', activeModel);
-      const effectiveIsNSFW = activeModel === 'ltxr' ? false : isNSFW;
+      const effectiveIsNSFW = capabilities.nsfw ? isNSFW : false;
       formData.append('isNSFW', effectiveIsNSFW.toString());
       formData.append('isLoop', isLoopEnabled.toString());
       formData.append('videoDuration', videoDuration.toString());

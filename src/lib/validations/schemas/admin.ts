@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTXR_KEYS, LTX_WAN_KEYS } from '@/lib/database/system-settings'
+import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
 
 const ALLOWED_SETTING_KEYS = new Set([
   ...Object.values(WAN_KEYS),
@@ -44,7 +45,7 @@ export const queuePauseSchema = z.object({
 
 export const discordDebugMessageSchema = z.object({
   prompt: z.string().trim().min(1),
-  model: z.enum(['wan', 'ltxa', 'ltxr', 'ltx-wan']).default('ltxa'),
+  model: z.enum(VIDEO_MODELS).default('ltxa'),
   isNSFW: z.boolean().default(false),
   processingTime: z.number().int().min(0).optional(),
 })
