@@ -20,6 +20,7 @@ interface ImageUploadSectionProps {
   prompt: string;
   onPromptChange: (prompt: string) => void;
   showEndImage?: boolean;
+  startImageOptional?: boolean;
   audioPresetId: string | null;
   onAudioPresetChange: (id: string | null) => void;
   showAudio?: boolean;
@@ -35,6 +36,7 @@ export function ImageUploadSection({
   prompt,
   onPromptChange,
   showEndImage = true,
+  startImageOptional = false,
   audioPresetId,
   onAudioPresetChange,
   showAudio = false,
@@ -46,7 +48,12 @@ export function ImageUploadSection({
       <div className="space-y-2">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Bot className="h-4 w-4" />
-          시작 이미지 <span className="text-sm text-red-500 font-normal">(필수)</span>
+          시작 이미지{' '}
+          {startImageOptional ? (
+            <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
+          ) : (
+            <span className="text-sm text-red-500 font-normal">(필수)</span>
+          )}
         </h2>
         <FileUpload
           onFileSelect={onFileSelect}

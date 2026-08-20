@@ -114,7 +114,8 @@ export function useI2VForm(): UseI2VFormReturn {
     setCurrentPresets,
   });
 
-  const isFormValid = enabledModels.includes(activeModel) && !!selectedFile && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
+  const hasRequiredImages = capabilities.startImageOptional ? !!selectedFile || !!endImageFile : !!selectedFile;
+  const isFormValid = enabledModels.includes(activeModel) && hasRequiredImages && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
 
   return {
     selectedFile,

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTXR_KEYS, LTX_WAN_KEYS } from '@/lib/database/system-settings'
+import { MODEL_ENABLED_KEYS, WAN_KEYS, LTXA_KEYS, LTXR_KEYS, LTX_WAN_KEYS, H3_FL2VA_KEYS } from '@/lib/database/system-settings'
 import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
 
 const ALLOWED_SETTING_KEYS = new Set([
@@ -7,6 +7,7 @@ const ALLOWED_SETTING_KEYS = new Set([
   ...Object.values(LTXA_KEYS),
   ...Object.values(LTXR_KEYS),
   ...Object.values(LTX_WAN_KEYS),
+  ...Object.values(H3_FL2VA_KEYS),
   ...Object.values(MODEL_ENABLED_KEYS),
   'comfyui_enabled',
 ])

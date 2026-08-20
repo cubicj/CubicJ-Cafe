@@ -140,6 +140,7 @@ export default function I2VPageClient() {
               prompt={prompt}
               onPromptChange={setPrompt}
               showEndImage={capabilities.endImage}
+              startImageOptional={capabilities.startImageOptional}
               audioPresetId={audioPresetId}
               onAudioPresetChange={setAudioPresetId}
               showAudio={capabilities.audio}
