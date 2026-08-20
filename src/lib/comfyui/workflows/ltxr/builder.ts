@@ -2,7 +2,6 @@ import type { LtxrGenerationParams } from '../types';
 import type { ComfyUIWorkflow } from '@/types';
 import type {
   LtxAnchorSettings,
-  LtxLoraChainItem,
   LtxrSettings,
 } from '@/lib/database/system-settings';
 import { LTXR_WORKFLOW_TEMPLATE } from './template';
@@ -11,14 +10,40 @@ import { createLogger } from '@/lib/logger';
 import { getLtxrSettings } from '@/lib/database/system-settings';
 import {
   generateSeed,
-  extractBaseImageName,
   setNode,
 } from '../shared';
+import {
+  configureAdvancedLoraChain,
+  configureIdLora,
+  configureLtxMultimodalCfg,
+  configureLtxOutput,
+  configureLtxPromptAndGeneration,
+  configureLtxRtx,
+  configureLtxSchedulerAndNag,
+  type LtxNodeOutput,
+} from '../ltx-shared';
 
 type LtxrWorkflowParams = LtxrGenerationParams & { settings?: LtxrSettings }
 
 const log = createLogger('comfyui');
-type NodeOutput = [string, number];
+
+const LTXR_SHARED_NODES = {
+  positivePrompt: LTXR.POSITIVE_PROMPT,
+  negativePrompt: LTXR.NEGATIVE_PROMPT,
+  videoConditioningPrompt: LTXR.VIDEO_CONDITIONING_PROMPT,
+  audioConditioningPrompt: LTXR.AUDIO_CONDITIONING_PROMPT,
+  samplerSelect: LTXR.SAMPLER_SELECT,
+  duration: LTXR.DURATION,
+  frameBase: LTXR.FRAME_BASE,
+  frameRate: LTXR.FRAME_RATE,
+  resizeStartImage: LTXR.RESIZE_START_IMAGE,
+  loadImageStart: LTXR.LOAD_IMAGE_START,
+  scheduler: LTXR.SCHEDULER,
+  nag: LTXR.NAG,
+  rtxSuperRes: LTXR.RTX_SUPER_RES,
+  vaeDecode: LTXR.VAE_DECODE,
+  videoCombine: LTXR.VIDEO_COMBINE,
+} as const;
 
 const END_IMAGE = {
   LOAD_IMAGE: '260',
@@ -33,29 +58,29 @@ export async function buildLtxrWorkflow(
   const workflow: ComfyUIWorkflow = structuredClone(LTXR_WORKFLOW_TEMPLATE);
 
   configureModels(workflow, settings);
-  configurePrompts(workflow, params, settings);
-  configureGeneration(workflow, params, settings);
+  configureLtxPromptAndGeneration(workflow, LTXR_SHARED_NODES, params, settings);
   configurePreprocess(workflow, settings);
-  configureScheduler(workflow, settings);
-  configureNag(workflow, settings);
+  configureLtxSchedulerAndNag(workflow, LTXR_SHARED_NODES, settings);
   configureGuide(workflow, settings);
   configureAnchor(workflow, settings);
-  configureMultimodalCfg(workflow, settings);
+  configureLtxMultimodalCfg(workflow, LTXR.MULTIMODAL_CFG, settings);
   configureSecondPass(workflow, settings);
   configureSageAttention(workflow, settings);
-  const generalModelOutput = configureLoraChain(
+  const generalModelOutput = configureAdvancedLoraChain(
     workflow,
-    settings.sfwLoraChain
+    settings.sfwLoraChain,
+    [LTXR.CHECKPOINT, 0]
   );
   setNode(workflow, LTXR.NAG, {
     model: generalModelOutput,
     nag_cond_video: [LTXR.VIDEO_CONDITIONING_PROMPT, 0],
     nag_cond_audio: [LTXR.AUDIO_CONDITIONING_PROMPT, 0],
   });
-  const nagModelOutput: NodeOutput = [LTXR.NAG, 0];
+  const nagModelOutput: LtxNodeOutput = [LTXR.NAG, 0];
   const modelOutput = configureIdLora(
     workflow,
-    settings,
+    LTXR.ID_LORA,
+    settings.idLora,
     nagModelOutput,
     !!params.referenceAudio
   );
@@ -77,9 +102,9 @@ export async function buildLtxrWorkflow(
     handleEndImageBypass(workflow);
   }
 
-  configureRtx(workflow, settings);
+  configureLtxRtx(workflow, LTXR_SHARED_NODES, settings);
   configureWatermark(workflow, params, settings);
-  configureOutput(workflow, params, settings);
+  configureLtxOutput(workflow, LTXR.VIDEO_COMBINE, params.inputImage, 'LTXR', settings);
 
   setNode(workflow, LTXR.NOISE_SEED, { noise_seed: generateSeed() });
 
@@ -104,65 +129,10 @@ function configureModels(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
   });
 }
 
-function configurePrompts(
-  workflow: ComfyUIWorkflow,
-  params: LtxrGenerationParams,
-  settings: LtxrSettings
-) {
-  setNode(workflow, LTXR.POSITIVE_PROMPT, { text: params.prompt });
-  setNode(workflow, LTXR.NEGATIVE_PROMPT, { text: settings.negativePrompt });
-  setNode(workflow, LTXR.VIDEO_CONDITIONING_PROMPT, {
-    text: settings.videoConditioningPrompt,
-  });
-  setNode(workflow, LTXR.AUDIO_CONDITIONING_PROMPT, {
-    text: settings.audioConditioningPrompt,
-  });
-}
-
-function configureGeneration(
-  workflow: ComfyUIWorkflow,
-  params: LtxrGenerationParams,
-  settings: LtxrSettings
-) {
-  setNode(workflow, LTXR.SAMPLER_SELECT, {
-    sampler_name: settings.sampler,
-  });
-  setNode(workflow, LTXR.DURATION, { value: params.videoDuration });
-  setNode(workflow, LTXR.FRAME_BASE, { value: settings.frameBase });
-  setNode(workflow, LTXR.FRAME_RATE, {
-    number: Math.round(settings.frameRate),
-    number_type: 'integer',
-  });
-  setNode(workflow, LTXR.RESIZE_START_IMAGE, {
-    megapixels: settings.megapixels,
-    multiple_of: settings.resizeMultipleOf,
-    upscale_method: settings.resizeUpscaleMethod,
-  });
-  setNode(workflow, LTXR.LOAD_IMAGE_START, { image: params.inputImage });
-}
-
 function configurePreprocess(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
   const inputs = { img_compression: settings.preprocessImgCompression };
   setNode(workflow, LTXR.FIRST_PASS_PREPROCESS, inputs);
   setNode(workflow, LTXR.SECOND_PASS_PREPROCESS, inputs);
-}
-
-function configureScheduler(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
-  setNode(workflow, LTXR.SCHEDULER, {
-    steps: settings.schedulerSteps,
-    max_shift: settings.schedulerMaxShift,
-    base_shift: settings.schedulerBaseShift,
-    stretch: settings.schedulerStretch,
-    terminal: settings.schedulerTerminal,
-  });
-}
-
-function configureNag(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
-  setNode(workflow, LTXR.NAG, {
-    nag_scale: settings.nagScale,
-    nag_alpha: settings.nagAlpha,
-    nag_tau: settings.nagTau,
-  });
 }
 
 function configureGuide(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
@@ -194,18 +164,6 @@ function configureAnchor(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
     anchorFrame: settings.anchorFrame,
     depthCurve: settings.anchorDepthCurve,
     blockIndexFilter: settings.anchorBlockIndexFilter,
-  });
-}
-
-function configureMultimodalCfg(
-  workflow: ComfyUIWorkflow,
-  settings: LtxrSettings
-) {
-  setNode(workflow, LTXR.MULTIMODAL_CFG, {
-    video_cfg: settings.multimodalVideoCfg,
-    audio_cfg: settings.multimodalAudioCfg,
-    inactive_cfg: settings.multimodalInactiveCfg,
-    active_steps: settings.multimodalActiveSteps,
   });
 }
 
@@ -261,79 +219,11 @@ function setAnchorNode(
   });
 }
 
-function configureLoraChain(
-  workflow: ComfyUIWorkflow,
-  loras: LtxLoraChainItem[]
-): NodeOutput {
-  let model: NodeOutput = [LTXR.CHECKPOINT, 0];
-  let nextNodeId = 7000;
-
-  for (const slot of loras) {
-    if (!slot.enabled) {
-      continue;
-    }
-
-    const nodeId = String(nextNodeId);
-    workflow[nodeId] = {
-      inputs: {
-        lora_name: slot.name,
-        strength_model: slot.strength,
-        video: slot.video,
-        video_to_audio: slot.videoToAudio,
-        audio: slot.audio,
-        audio_to_video: slot.audioToVideo,
-        other: slot.other,
-        model,
-      },
-      class_type: 'LTX2LoraLoaderAdvanced',
-      _meta: { title: 'LTX2 LoRA Loader Advanced' },
-    };
-    model = [nodeId, 0];
-    nextNodeId += 1;
-  }
-
-  return model;
-}
-
-function configureIdLora(
-  workflow: ComfyUIWorkflow,
-  settings: LtxrSettings,
-  modelOutput: NodeOutput,
-  hasReferenceAudio: boolean
-): NodeOutput {
-  const slot = settings.idLora;
-  if (
-    !hasReferenceAudio ||
-    !slot.enabled ||
-    slot.name === 'CONFIGURE_IN_ADMIN'
-  ) {
-    delete workflow[LTXR.ID_LORA];
-    return modelOutput;
-  }
-
-  workflow[LTXR.ID_LORA] = {
-    inputs: {
-      lora_name: slot.name,
-      strength_model: slot.strength,
-      video: slot.video,
-      video_to_audio: slot.videoToAudio,
-      audio: slot.audio,
-      audio_to_video: slot.audioToVideo,
-      other: slot.other,
-      model: modelOutput,
-    },
-    class_type: 'LTX2LoraLoaderAdvanced',
-    _meta: { title: 'ID LoRA' },
-  };
-
-  return [LTXR.ID_LORA, 0];
-}
-
 function handleReferenceAudio(
   workflow: ComfyUIWorkflow,
   audioFile: string,
   settings: LtxrSettings,
-  modelOutput: NodeOutput
+  modelOutput: LtxNodeOutput
 ) {
   setNode(workflow, LTXR.LOAD_AUDIO, { audio: audioFile });
   setNode(workflow, LTXR.REFERENCE_AUDIO, {
@@ -416,28 +306,12 @@ function handleEndImageBypass(workflow: ComfyUIWorkflow) {
   delete workflow[END_IMAGE.RESIZE];
 }
 
-function configureRtx(workflow: ComfyUIWorkflow, settings: LtxrSettings) {
-  if (settings.rtxEnabled) {
-    setNode(workflow, LTXR.RTX_SUPER_RES, {
-      resize_type: settings.rtxResizeType,
-      'resize_type.scale': settings.rtxScale,
-      quality: settings.rtxQuality,
-      images: [LTXR.VAE_DECODE, 0],
-    });
-    setNode(workflow, LTXR.VIDEO_COMBINE, { images: [LTXR.RTX_SUPER_RES, 0] });
-    return;
-  }
-
-  delete workflow[LTXR.RTX_SUPER_RES];
-  setNode(workflow, LTXR.VIDEO_COMBINE, { images: [LTXR.VAE_DECODE, 0] });
-}
-
 function configureWatermark(
   workflow: ComfyUIWorkflow,
   params: LtxrGenerationParams,
   settings: LtxrSettings
 ) {
-  const imageSource: NodeOutput = settings.rtxEnabled
+  const imageSource: LtxNodeOutput = settings.rtxEnabled
     ? [LTXR.RTX_SUPER_RES, 0]
     : [LTXR.VAE_DECODE, 0];
 
@@ -459,17 +333,4 @@ function configureWatermark(
     image: imageSource,
   });
   setNode(workflow, LTXR.VIDEO_COMBINE, { images: [LTXR.WATERMARK, 0] });
-}
-
-function configureOutput(
-  workflow: ComfyUIWorkflow,
-  params: LtxrGenerationParams,
-  settings: LtxrSettings
-) {
-  setNode(workflow, LTXR.VIDEO_COMBINE, {
-    crf: settings.videoCrf,
-    format: settings.videoFormat,
-    pix_fmt: settings.videoPixFmt,
-    filename_prefix: `LTXR/${extractBaseImageName(params.inputImage)}`,
-  });
 }

@@ -7,8 +7,14 @@ import { createLogger } from '@/lib/logger'
 import { getLtxWanSettings } from '@/lib/database/system-settings'
 import { generateSeed, extractBaseImageName, setNode } from '../shared'
 import { computeWanContextOptions } from '../wan/context-options'
+import { configureLtxSchedulerAndNag } from '../ltx-shared'
 
 const log = createLogger('comfyui')
+
+const LTX_WAN_SCHEDULER_NAG_NODES = {
+  scheduler: LTX_WAN.SCHEDULER,
+  nag: LTX_WAN.NAG_LTX,
+} as const
 
 export async function buildLtxWanWorkflow(
   params: LtxWanGenerationParams
@@ -18,8 +24,7 @@ export async function buildLtxWanWorkflow(
 
   configureLtxModels(workflow, settings)
   configureLtxGeneration(workflow, params, settings)
-  configureLtxScheduler(workflow, settings)
-  configureLtxNag(workflow, settings)
+  configureLtxSchedulerAndNag(workflow, LTX_WAN_SCHEDULER_NAG_NODES, settings)
   configureAudioNorm(workflow, settings)
 
   if (settings.distilledLoraEnabled) {
@@ -95,24 +100,6 @@ function configureLtxGeneration(
   })
   setNode(workflow, LTX_WAN.LOAD_IMAGE_START, { image: params.inputImage })
   setNode(workflow, LTX_WAN.CFG_GUIDER, { cfg: 1 })
-}
-
-function configureLtxScheduler(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  setNode(workflow, LTX_WAN.SCHEDULER, {
-    steps: settings.schedulerSteps,
-    max_shift: settings.schedulerMaxShift,
-    base_shift: settings.schedulerBaseShift,
-    stretch: settings.schedulerStretch,
-    terminal: settings.schedulerTerminal,
-  })
-}
-
-function configureLtxNag(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
-  setNode(workflow, LTX_WAN.NAG_LTX, {
-    nag_scale: settings.nagScale,
-    nag_alpha: settings.nagAlpha,
-    nag_tau: settings.nagTau,
-  })
 }
 
 function configureAudioNorm(workflow: ComfyUIWorkflow, settings: LtxWanSettings) {
