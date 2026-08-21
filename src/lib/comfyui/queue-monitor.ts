@@ -1,5 +1,5 @@
 import { QueueService } from '@/lib/database/queue';
-import { QueueStatus } from '@/generated/prisma/enums';
+import { QueueStatus, ReferenceKind } from '@/generated/prisma/enums';
 import { buildWorkflow } from './workflow-router';
 import { MODEL_REGISTRY } from './workflows/registry';
 import type { VideoModel } from './workflows/types';
@@ -13,6 +13,20 @@ import { getQueuePauseAfterPosition } from './queue-pause-state';
 import { serverManager, type ActiveServer } from './server-manager';
 
 type ClaimedQueueRequest = NonNullable<Awaited<ReturnType<typeof QueueService.getAndClaimNextPendingRequest>>>;
+
+const REFERENCE_MIME_BY_EXTENSION: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  wav: 'audio/wav',
+  mp3: 'audio/mpeg',
+  flac: 'audio/flac',
+  ogg: 'audio/ogg',
+};
 
 const log = createLogger('queue');
 
@@ -284,7 +298,7 @@ class QueueMonitor {
           log.error('Image upload failed', { error: error instanceof Error ? error.message : String(error) });
           throw new Error(`이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
-      } else if (!modelConfig.capabilities.startImageOptional || !request.endImageBlob) {
+      } else if (!modelConfig.capabilities.referenceInputs && (!modelConfig.capabilities.startImageOptional || !request.endImageBlob)) {
         log.warn('Image blob not found', { requestId: request.id, imageFile: request.imageFile });
         throw new Error('이미지 데이터가 없습니다.');
       }
@@ -305,6 +319,16 @@ class QueueMonitor {
         uploadedAudioName = await server.client.uploadAudio(audioFile);
       }
 
+      let references;
+      let resolution;
+      if (modelConfig.capabilities.referenceInputs) {
+        const referenceRows = await QueueService.getReferenceFiles(request.id);
+        references = await this.uploadReferenceFiles(referenceRows, server.client);
+        resolution = request.resolutionMode === 'custom'
+          ? { mode: 'custom' as const, aspectWidth: request.aspectWidth!, aspectHeight: request.aspectHeight! }
+          : { mode: 'firstImage' as const };
+      }
+
       const inputImage = uploadedImageName || request.imageFile || undefined;
       const effectiveIsNSFW = modelConfig.capabilities.nsfw ? Boolean(request.isNSFW) : false;
 
@@ -317,6 +341,8 @@ class QueueMonitor {
         inputImage,
         endImage: uploadedEndImageName || undefined,
         referenceAudio: uploadedAudioName || undefined,
+        references,
+        resolution,
         client: server.client,
       });
 
@@ -381,6 +407,37 @@ class QueueMonitor {
         error: error instanceof Error ? error.message : '알 수 없는 오류'
       });
     }
+  }
+
+  private async uploadReferenceFiles(
+    rows: Awaited<ReturnType<typeof QueueService.getReferenceFiles>>,
+    client: ActiveServer['client']
+  ) {
+    if (rows.length === 0) {
+      throw new Error('Reference files not found for reference request');
+    }
+    const images: string[] = [];
+    const videos: { name: string; includeSoundtrack: boolean }[] = [];
+    const audios: string[] = [];
+
+    for (const row of rows) {
+      if (!row.blob) {
+        throw new Error(`Reference blob missing: ${row.filename}`);
+      }
+      const extension = row.filename.split('.').pop()?.toLowerCase() ?? '';
+      const mimeType = REFERENCE_MIME_BY_EXTENSION[extension] ?? 'application/octet-stream';
+      const file = new File([new Blob([row.blob], { type: mimeType })], row.filename, { type: mimeType });
+
+      if (row.kind === ReferenceKind.IMAGE) {
+        images.push(await client.uploadImage(file));
+      } else if (row.kind === ReferenceKind.VIDEO) {
+        videos.push({ name: await client.uploadVideo(file), includeSoundtrack: row.includeSoundtrack });
+      } else {
+        audios.push(await client.uploadAudio(file));
+      }
+    }
+
+    return { images, videos, audios };
   }
 
   getIsRunning(): boolean {
