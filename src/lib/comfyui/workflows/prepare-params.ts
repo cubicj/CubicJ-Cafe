@@ -3,6 +3,8 @@ import { getLtxrSettings, type LtxrSettings } from '@/lib/database/system-settin
 import { getWatermarkAssetBlob } from '@/lib/database/watermark-assets'
 import type {
   GenerationParams,
+  H3Ref2vaReferences,
+  H3Ref2vaResolution,
   LtxrGenerationParams,
   VideoModel,
 } from './types'
@@ -18,6 +20,8 @@ interface PrepareParamsInput {
   inputImage?: string
   endImage?: string
   referenceAudio?: string
+  references?: H3Ref2vaReferences
+  resolution?: H3Ref2vaResolution
   client: ComfyUIClient
 }
 
@@ -105,6 +109,27 @@ const PARAM_PREPARERS: Record<VideoModel, ParamPreparer> = {
       isNSFW: request.isNSFW,
       inputImage,
       endImage,
+    }
+  },
+  'h3-ref2va': async ({ request, references, resolution }) => {
+    if (!references || references.images.length + references.videos.length + references.audios.length === 0) {
+      throw new Error('H3 Ref2VA requires at least one reference')
+    }
+    if (!resolution) {
+      throw new Error('H3 Ref2VA requires resolution parameters')
+    }
+    if (resolution.mode === 'firstImage' && references.images.length === 0) {
+      throw new Error('H3 Ref2VA firstImage resolution requires at least one reference image')
+    }
+    return {
+      model: 'h3-ref2va',
+      prompt: request.prompt,
+      videoDuration: request.videoDuration,
+      isNSFW: request.isNSFW,
+      refImages: references.images,
+      refVideos: references.videos,
+      refAudios: references.audios,
+      resolution,
     }
   },
 }

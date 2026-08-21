@@ -1,10 +1,12 @@
 import {
   getH3Fl2vaSettings,
+  getH3Ref2vaSettings,
   getLtxaSettings,
   getLtxrSettings,
   getLtxWanSettings,
   getWanSettings,
   type H3Fl2vaSettings,
+  type H3Ref2vaSettings,
   type LtxaSettings,
   type LtxrSettings,
   type LtxWanSettings,
@@ -18,6 +20,7 @@ export interface ModelSettingsByModel {
   ltxr: LtxrSettings
   'ltx-wan': LtxWanSettings
   'h3-fl2va': H3Fl2vaSettings
+  'h3-ref2va': H3Ref2vaSettings
 }
 
 const MODEL_SETTINGS_LOADERS: {
@@ -28,6 +31,7 @@ const MODEL_SETTINGS_LOADERS: {
   ltxr: getLtxrSettings,
   'ltx-wan': getLtxWanSettings,
   'h3-fl2va': getH3Fl2vaSettings,
+  'h3-ref2va': getH3Ref2vaSettings,
 }
 
 export async function getModelSettings<Model extends VideoModel>(
@@ -42,7 +46,7 @@ export function getVideoDurationSeconds(
   videoDuration: number,
   settings: { frameBase?: number | null; frameRate?: number | null; framesPerStep?: number | null }
 ): number {
-  if (model === 'h3-fl2va') {
+  if (model === 'h3-fl2va' || model === 'h3-ref2va') {
     if (!settings.framesPerStep || settings.frameBase == null || !settings.frameRate) return videoDuration
     return Number((((settings.framesPerStep * videoDuration) + settings.frameBase) / settings.frameRate).toFixed(1))
   }

@@ -15,6 +15,9 @@ export interface CapabilitiesSettingsProjection {
   h3Fl2vaFramesPerStep: number | null;
   h3Fl2vaFrameBase: number | null;
   h3Fl2vaFrameRate: number | null;
+  h3Ref2vaFramesPerStep: number | null;
+  h3Ref2vaFrameBase: number | null;
+  h3Ref2vaFrameRate: number | null;
 }
 
 export async function getCapabilitiesSettingsProjection(): Promise<CapabilitiesSettingsProjection> {
@@ -37,6 +40,10 @@ export async function getCapabilitiesSettingsProjection(): Promise<CapabilitiesS
           'h3-fl2va.frames_per_step',
           'h3-fl2va.frame_base',
           'h3-fl2va.frame_rate',
+          'h3-ref2va.duration_options',
+          'h3-ref2va.frames_per_step',
+          'h3-ref2va.frame_base',
+          'h3-ref2va.frame_rate',
           ...Object.values(MODEL_ENABLED_KEYS),
         ],
       },
@@ -59,6 +66,7 @@ export async function getCapabilitiesSettingsProjection(): Promise<CapabilitiesS
       ltxr: false,
       'ltx-wan': false,
       'h3-fl2va': false,
+      'h3-ref2va': false,
     },
     durationOptions: {
       wan: parseCsv(settingsMap.get('wan.duration_options')) ?? MODEL_REGISTRY.wan.durationOptions,
@@ -66,6 +74,7 @@ export async function getCapabilitiesSettingsProjection(): Promise<CapabilitiesS
       ltxr: parseCsv(settingsMap.get('ltxr.duration_options')) ?? MODEL_REGISTRY.ltxr.durationOptions,
       'ltx-wan': parseCsv(settingsMap.get('ltx-wan.duration_options')) ?? MODEL_REGISTRY['ltx-wan'].durationOptions,
       'h3-fl2va': parseCsv(settingsMap.get('h3-fl2va.duration_options')) ?? MODEL_REGISTRY['h3-fl2va'].durationOptions,
+      'h3-ref2va': parseCsv(settingsMap.get('h3-ref2va.duration_options')) ?? MODEL_REGISTRY['h3-ref2va'].durationOptions,
     },
     ltxaFrameBase: parsePositiveNumber(settingsMap.get('ltxa.frame_base')),
     ltxaFrameRate: parsePositiveNumber(settingsMap.get('ltxa.frame_rate')),
@@ -75,5 +84,8 @@ export async function getCapabilitiesSettingsProjection(): Promise<CapabilitiesS
     h3Fl2vaFramesPerStep: parsePositiveNumber(settingsMap.get('h3-fl2va.frames_per_step')),
     h3Fl2vaFrameBase: parsePositiveNumber(settingsMap.get('h3-fl2va.frame_base')),
     h3Fl2vaFrameRate: parsePositiveNumber(settingsMap.get('h3-fl2va.frame_rate')),
+    h3Ref2vaFramesPerStep: parsePositiveNumber(settingsMap.get('h3-ref2va.frames_per_step')),
+    h3Ref2vaFrameBase: parsePositiveNumber(settingsMap.get('h3-ref2va.frame_base')),
+    h3Ref2vaFrameRate: parsePositiveNumber(settingsMap.get('h3-ref2va.frame_rate')),
   };
 }

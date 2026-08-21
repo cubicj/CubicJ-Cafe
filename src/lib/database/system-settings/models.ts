@@ -8,6 +8,7 @@ export const MODEL_ENABLED_KEYS = {
   ltxr: 'ltxr.enabled',
   'ltx-wan': 'ltx-wan.enabled',
   'h3-fl2va': 'h3-fl2va.enabled',
+  'h3-ref2va': 'h3-ref2va.enabled',
 } as const
 
 export async function getEnabledModels(): Promise<VideoModel[]> {
@@ -30,6 +31,7 @@ export function resolveEnabledModels(values: ReadonlyMap<string, string>): Video
     ['ltxr', MODEL_ENABLED_KEYS.ltxr],
     ['ltx-wan', MODEL_ENABLED_KEYS['ltx-wan']],
     ['h3-fl2va', MODEL_ENABLED_KEYS['h3-fl2va']],
+    ['h3-ref2va', MODEL_ENABLED_KEYS['h3-ref2va']],
   ] as const)
     .filter(([model, key]) =>
       MODEL_REGISTRY[model].optIn ? values.get(key) === 'true' : values.get(key) !== 'false'
