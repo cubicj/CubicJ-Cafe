@@ -28,7 +28,7 @@ export default function NicknameSetupPage() {
 
   if (!user || user.nickname) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>로딩 중...</p>
@@ -38,7 +38,7 @@ export default function NicknameSetupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -48,19 +48,19 @@ export default function NicknameSetupPage() {
                 alt={user.nickname || user.discordUsername}
                 width={80}
                 height={80}
-                className="rounded-full border-4 border-blue-100"
+                className="rounded-full border-4 border-border"
               />
             ) : (
-              <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="h-10 w-10 text-gray-600" />
+              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+                <User className="h-10 w-10 text-muted-foreground" />
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl font-bold">환영합니다! 🎉</CardTitle>
-          <p className="text-gray-600">
+          <CardTitle className="text-2xl font-bold">환영합니다!</CardTitle>
+          <p className="text-muted-foreground">
             <strong>{user.discordUsername}</strong>님, CubicJ Cafe에 오신 것을 환영합니다!
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             다른 사용자들이 볼 수 있는 닉네임을 설정해주세요.
           </p>
         </CardHeader>

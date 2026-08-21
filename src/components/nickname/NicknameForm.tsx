@@ -72,7 +72,7 @@ export function NicknameForm({
           />
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {isChecking ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             ) : nickname.length >= 2 ? (
               isAvailable === true ? (
                 <Check className="h-4 w-4 text-green-500" />
@@ -86,16 +86,16 @@ export function NicknameForm({
         <p
           className={`text-sm transition-colors duration-200 min-h-[20px] ${
             nickname.length < 2
-              ? 'text-gray-400'
+              ? 'text-muted-foreground'
               : isChecking
-                ? 'text-gray-500'
+                ? 'text-muted-foreground'
                 : isCurrentNickname
-                  ? 'text-blue-600'
+                  ? 'text-primary'
                   : isAvailable === true
                     ? 'text-green-600'
                     : isAvailable === false
-                      ? 'text-red-600'
-                      : 'text-gray-400'
+                      ? 'text-destructive'
+                      : 'text-muted-foreground'
           }`}
         >
           {nickname.length < 2
@@ -105,15 +105,15 @@ export function NicknameForm({
               : isCurrentNickname
                 ? '현재 닉네임과 동일합니다'
                 : isAvailable === true
-                  ? '✓ 사용 가능한 닉네임입니다'
+                  ? '사용 가능한 닉네임입니다'
                   : isAvailable === false
-                    ? '✗ 이미 사용 중인 닉네임입니다'
+                    ? '이미 사용 중인 닉네임입니다'
                     : '닉네임을 입력해주세요'}
         </p>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-muted-foreground">
           한글, 영문, 숫자, _, -, 공백만 사용 가능합니다.
         </p>
       </div>
