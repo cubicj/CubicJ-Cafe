@@ -5,6 +5,7 @@ import { seedOps } from '@tests/helpers/ops-seed'
 import { seedWan } from '@tests/helpers/wan-seed'
 
 export async function cleanTables() {
+  await prisma.queueReferenceFile.deleteMany()
   await prisma.loRAPresetItem.deleteMany()
   await prisma.loRAPreset.deleteMany()
   await prisma.audioPreset.deleteMany()
