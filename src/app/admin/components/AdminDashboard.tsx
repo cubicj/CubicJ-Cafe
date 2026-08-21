@@ -21,6 +21,7 @@ import LtxaSettingsTab from './tabs/LtxaSettingsTab';
 import LtxrSettingsTab from './tabs/LtxrSettingsTab';
 import LtxWanSettingsTab from './tabs/LtxWanSettingsTab';
 import H3Fl2vaSettingsTab from './tabs/H3Fl2vaSettingsTab';
+import H3Ref2vaSettingsTab from './tabs/H3Ref2vaSettingsTab';
 
 const log = createLogger('admin');
 
@@ -29,7 +30,7 @@ type AdminSettingEntry = {
   type: string;
 };
 
-type ModelEnabledKey = 'wan.enabled' | 'ltxa.enabled' | 'ltxr.enabled' | 'ltx-wan.enabled' | 'h3-fl2va.enabled';
+type ModelEnabledKey = 'wan.enabled' | 'ltxa.enabled' | 'ltxr.enabled' | 'ltx-wan.enabled' | 'h3-fl2va.enabled' | 'h3-ref2va.enabled';
 
 const MODEL_ENABLE_TOGGLES: Array<{
   key: ModelEnabledKey;
@@ -41,6 +42,7 @@ const MODEL_ENABLE_TOGGLES: Array<{
   { key: 'ltxr.enabled', label: 'LTX(Real)', category: 'ltxr' },
   { key: 'ltx-wan.enabled', label: 'L+W', category: 'ltx-wan' },
   { key: 'h3-fl2va.enabled', label: 'H3 FL2VA', category: 'h3-fl2va' },
+  { key: 'h3-ref2va.enabled', label: 'H3 Ref2VA', category: 'h3-ref2va' },
 ];
 
 const ADMIN_TABS = [
@@ -50,6 +52,7 @@ const ADMIN_TABS = [
   { value: 'ltxr-settings', label: 'LTX(Real)', icon: SlidersHorizontal },
   { value: 'ltx-wan-settings', label: 'L+W', icon: SlidersHorizontal },
   { value: 'h3-fl2va-settings', label: 'H3 FL2VA', icon: SlidersHorizontal },
+  { value: 'h3-ref2va-settings', label: 'H3 Ref2VA', icon: SlidersHorizontal },
   { value: 'logs', label: 'Logs', icon: ScrollText },
 ] as const;
 
@@ -70,6 +73,7 @@ export default function AdminDashboard() {
     'ltxr.enabled': true,
     'ltx-wan.enabled': true,
     'h3-fl2va.enabled': false,
+    'h3-ref2va.enabled': false,
   });
   const [modelEnabledLoading, setModelEnabledLoading] = useState(false);
   const [modelEnabledMessage, setModelEnabledMessage] = useState('');
@@ -116,6 +120,7 @@ export default function AdminDashboard() {
         'ltxr.enabled': data.ltxr?.['ltxr.enabled']?.value !== 'false',
         'ltx-wan.enabled': data['ltx-wan']?.['ltx-wan.enabled']?.value !== 'false',
         'h3-fl2va.enabled': data['h3-fl2va']?.['h3-fl2va.enabled']?.value === 'true',
+        'h3-ref2va.enabled': data['h3-ref2va']?.['h3-ref2va.enabled']?.value === 'true',
       });
     } catch {
       setModelEnabledMessage('모델 활성화 설정을 불러오지 못했습니다.');
@@ -372,7 +377,7 @@ export default function AdminDashboard() {
               활성화된 모델만 I2V 모델 선택에 표시됩니다
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
             {MODEL_ENABLE_TOGGLES.map((item) => (
               <div key={item.key} className="flex items-center justify-between rounded-md border px-3 py-2">
                 <span className="text-sm font-medium">{item.label}</span>
@@ -444,7 +449,7 @@ export default function AdminDashboard() {
           </Select>
         </div>
 
-        <TabsList className="hidden md:grid w-full grid-cols-7">
+        <TabsList className="hidden md:grid w-full grid-cols-8">
           {ADMIN_TABS.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center">
               <tab.icon className="w-4 h-4 mr-2" />
@@ -471,6 +476,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="h3-fl2va-settings" className="space-y-4">
           <H3Fl2vaSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="h3-ref2va-settings" className="space-y-4">
+          <H3Ref2vaSettingsTab />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">
