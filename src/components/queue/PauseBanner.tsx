@@ -13,8 +13,8 @@ interface PauseBannerProps {
 
 export function PauseBanner({ position, isInline, canManage, removing, onRemove }: PauseBannerProps) {
   return (
-    <div className={`flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 ${isInline ? '' : 'mb-3'}`}>
-      <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 text-sm font-medium">
+    <div className={`flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200 ${isInline ? '' : 'mb-3'}`}>
+      <div className="flex items-center gap-2 text-amber-700 text-sm font-medium">
         <Wrench className="h-4 w-4" />
         {isInline
           ? `#${position} 이후 패치 예정 — 큐 일시정지 예약됨`

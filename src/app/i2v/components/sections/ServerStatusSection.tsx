@@ -118,20 +118,20 @@ export function ServerStatusSection({
                 </div>
                 <div className="space-y-1">
                   {serverStatus.servers?.filter(s => s.type === 'local').map((server, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                       <div className="flex items-center gap-2">
                         <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
                           {getServerStatusIcon(server.status)}
                           {server.name}
                         </Badge>
                         {server.queue && server.queue.remaining > 0 && (
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="text-xs text-gray-600">
                             대기: {server.queue.remaining}개
                           </span>
                         )}
                       </div>
                       {server.error && (
-                        <span className="text-xs text-red-600 dark:text-red-400">{server.error}</span>
+                        <span className="text-xs text-red-600">{server.error}</span>
                       )}
                     </div>
                   ))}
@@ -149,20 +149,20 @@ export function ServerStatusSection({
                   </div>
                   <div className="space-y-1">
                     {serverStatus.servers?.filter(s => s.type === 'runpod').map((server, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm">
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                         <div className="flex items-center gap-2">
                           <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
                             {getServerStatusIcon(server.status)}
                             {server.name}
                           </Badge>
                           {server.queue && server.queue.remaining > 0 && (
-                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="text-xs text-gray-600">
                               대기: {server.queue.remaining}개
                             </span>
                           )}
                         </div>
                         {server.error && (
-                          <span className="text-xs text-red-600 dark:text-red-400">{server.error}</span>
+                          <span className="text-xs text-red-600">{server.error}</span>
                         )}
                       </div>
                     ))}
@@ -171,30 +171,30 @@ export function ServerStatusSection({
               )}
           </div>
 
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            <div className="text-xs text-gray-500 text-center">
               마지막 확인: {serverStatus.timestamp ? new Date(serverStatus.timestamp).toLocaleTimeString('ko-KR') : '알 수 없음'}
             </div>
 
             {(serverStatus.summary?.totalActive || 0) > 0 && (
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-sm text-green-700 dark:text-green-400">
+              <div className="p-3 bg-green-50 rounded-lg text-sm text-green-700">
                 ✓ {serverStatus.summary?.totalActive || 0}개의 서버가 활성화되어 있습니다. 비디오 생성이 가능합니다.
               </div>
             )}
             
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) > 0 && (
-              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-sm text-yellow-700 dark:text-yellow-400">
+              <div className="p-3 bg-yellow-50 rounded-lg text-sm text-yellow-700">
                 ⚠️ 모든 서버가 비활성 상태입니다. 비디오 생성이 일시적으로 불가능합니다.
               </div>
             )}
 
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) === 0 && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-700 dark:text-red-400">
+              <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
                 ❌ 사용 가능한 서버가 없습니다. 관리자에게 문의하세요.
               </div>
             )}
             
             {serverStatus?.error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-sm text-red-700 dark:text-red-400">
+              <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
                 ❌ 서버 상태 확인 중 오류가 발생했습니다.
               </div>
             )}

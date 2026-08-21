@@ -70,7 +70,7 @@ export default function I2VPageClient() {
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-center py-32">
@@ -87,7 +87,7 @@ export default function I2VPageClient() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-32">
@@ -114,7 +114,7 @@ export default function I2VPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 pt-8 pb-32">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
           <ServerStatusSection

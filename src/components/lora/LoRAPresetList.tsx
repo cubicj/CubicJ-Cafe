@@ -100,7 +100,7 @@ export function LoRAPresetList({
       </div>
       
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-md text-red-700 dark:text-red-400 text-sm">
+        <div className="flex items-center gap-2 p-3 bg-red-50 rounded-md text-red-700 text-sm">
           <AlertCircle className="h-4 w-4" />
           {error}
         </div>
@@ -222,7 +222,7 @@ export function LoRAPresetList({
                                             variant="outline"
                                             className={cn(
                                               "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                              !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                              !isAvailable && "border-red-500 text-red-700 bg-red-50"
                                             )}
                                             title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                                           >
@@ -249,7 +249,7 @@ export function LoRAPresetList({
                                                   variant="outline"
                                                   className={cn(
                                                     "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50"
                                                   )}
                                                   title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                                                 >
@@ -277,7 +277,7 @@ export function LoRAPresetList({
                                                   variant="secondary"
                                                   className={cn(
                                                     "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                                    !isAvailable && "border-red-500 text-red-700 bg-red-50"
                                                   )}
                                                   title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                                                 >
@@ -324,7 +324,7 @@ export function LoRAPresetList({
                         variant="outline"
                         className={cn(
                           "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                          !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                          !isAvailable && "border-red-500 text-red-700 bg-red-50"
                         )}
                         title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                       >
@@ -353,7 +353,7 @@ export function LoRAPresetList({
                               variant="outline"
                               className={cn(
                                 "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                !isAvailable && "border-red-500 text-red-700 bg-red-50"
                               )}
                               title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                             >
@@ -381,7 +381,7 @@ export function LoRAPresetList({
                               variant="secondary"
                               className={cn(
                                 "font-mono text-xs truncate cursor-help flex-1 min-w-0",
-                                !isAvailable && "border-red-500 text-red-700 bg-red-50 dark:border-red-400 dark:text-red-300 dark:bg-red-950"
+                                !isAvailable && "border-red-500 text-red-700 bg-red-50"
                               )}
                               title={`${item.loraName} (${item.loraFilename})${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                             >
