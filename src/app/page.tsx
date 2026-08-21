@@ -16,7 +16,7 @@ export default function Home() {
             CubicJ Cafe
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            ComfyUI 워크플로우를 위한 웹 프론트엔드
+            ComfyUI와 Discord를 연결하는 풀스택 AI 비디오 생성 플랫폼
           </p>
         </div>
       </section>

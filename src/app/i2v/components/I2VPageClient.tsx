@@ -4,11 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoRAPresetManager } from '@/components/lora/lora-preset-manager';
 import { QueueMonitor } from '@/components/queue/queue-monitor';
-import { Sparkles, Bot, XCircle, Film } from 'lucide-react';
+import { Sparkles, Bot, XCircle, Layers, Clock } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { ServerStatusSection } from './sections/ServerStatusSection';
 import { ImageUploadSection } from './sections/ImageUploadSection';
 import { ReferenceUploadSection } from './sections/ReferenceUploadSection';
+import { ResolutionSection } from './sections/ResolutionSection';
 import { ContentSettingsSection } from './sections/ContentSettingsSection';
 import { I2VControlsSection } from './sections/I2VControlsSection';
 import { useI2VForm } from './hooks/useI2VForm';
@@ -116,12 +117,6 @@ export default function I2VPageClient() {
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 overflow-x-hidden">
       <div className="container mx-auto px-4 sm:px-6 pt-8 pb-32">
         <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
-          <div className="text-center space-y-4 py-4">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              AI 이미지-비디오 변환
-            </h1>
-          </div>
-
           <ServerStatusSection
             serverStatus={serverStatus}
             isRefreshing={isRefreshing}
@@ -131,65 +126,67 @@ export default function I2VPageClient() {
 
           <QueueMonitor />
 
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 w-full max-w-full overflow-hidden">
-            {capabilities.referenceInputs ? (
-              <ReferenceUploadSection
-                referenceSet={referenceSet}
-                prompt={prompt}
-                onPromptChange={setPrompt}
-              />
-            ) : (
-              <ImageUploadSection
-                selectedFile={selectedFile}
-                onFileSelect={setSelectedFile}
-                endImageFile={endImageFile}
-                onEndImageSelect={setEndImageFile}
-                isLoopEnabled={isLoopEnabled}
-                onLoopToggle={setIsLoopEnabled}
-                prompt={prompt}
-                onPromptChange={setPrompt}
-                showEndImage={capabilities.endImage}
-                startImageOptional={capabilities.startImageOptional}
-                audioPresetId={audioPresetId}
-                onAudioPresetChange={setAudioPresetId}
-                showAudio={capabilities.audio}
-              />
-            )}
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:grid-rows-[auto_1fr] w-full max-w-full overflow-hidden">
+            <div className="space-y-2 lg:col-start-2 lg:row-start-1">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Layers className="h-4 w-4" />
+                모델 선택
+              </h2>
+              <Card className="p-4">
+                {enabledModels.length > 0 ? (
+                  <div className="flex gap-2">
+                    {enabledModels.map(
+                      model => (
+                        <button
+                          key={model}
+                          onClick={() => setActiveModel(model)}
+                          className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                            activeModel === model
+                              ? 'bg-violet-600 text-white shadow-md'
+                              : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          {MODEL_REGISTRY[model].displayName}
+                        </button>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">활성화된 모델이 없습니다.</p>
+                )}
+              </Card>
+            </div>
 
-            <div className="space-y-6 w-full max-w-full overflow-hidden">
+            <div className="w-full max-w-full overflow-hidden lg:col-start-1 lg:row-start-1 lg:row-span-2">
+              {capabilities.referenceInputs ? (
+                <ReferenceUploadSection
+                  referenceSet={referenceSet}
+                  prompt={prompt}
+                  onPromptChange={setPrompt}
+                />
+              ) : (
+                <ImageUploadSection
+                  selectedFile={selectedFile}
+                  onFileSelect={setSelectedFile}
+                  endImageFile={endImageFile}
+                  onEndImageSelect={setEndImageFile}
+                  isLoopEnabled={isLoopEnabled}
+                  onLoopToggle={setIsLoopEnabled}
+                  prompt={prompt}
+                  onPromptChange={setPrompt}
+                  showEndImage={capabilities.endImage}
+                  startImageOptional={capabilities.startImageOptional}
+                  audioPresetId={audioPresetId}
+                  onAudioPresetChange={setAudioPresetId}
+                  showAudio={capabilities.audio}
+                />
+              )}
+            </div>
+
+            <div className="space-y-6 w-full max-w-full overflow-hidden lg:col-start-2">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Film className="h-4 w-4" />
-                  모델 선택
-                </h2>
-                <Card className="p-4">
-                  {enabledModels.length > 0 ? (
-                    <div className="flex gap-2">
-                      {enabledModels.map(
-                        model => (
-                          <button
-                            key={model}
-                            onClick={() => setActiveModel(model)}
-                            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                              activeModel === model
-                                ? 'bg-violet-600 text-white shadow-md'
-                                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
-                            }`}
-                          >
-                            {MODEL_REGISTRY[model].displayName}
-                          </button>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">활성화된 모델이 없습니다.</p>
-                  )}
-                </Card>
-              </div>
-
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Film className="h-4 w-4" />
+                  <Clock className="h-4 w-4" />
                   영상 길이
                 </h2>
                 <Card className="p-4">
@@ -212,6 +209,10 @@ export default function I2VPageClient() {
                   </div>
                 </Card>
               </div>
+
+              {capabilities.referenceInputs && (
+                <ResolutionSection referenceSet={referenceSet} />
+              )}
 
               {capabilities.loraPresets && (
                 <div className="space-y-2">
