@@ -18,7 +18,7 @@ export function ContentSettingsSection({
 }: ContentSettingsSectionProps) {
   return (
     <div className="space-y-2">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
         <ShieldAlert className="h-4 w-4" />
         콘텐츠 설정
       </h2>

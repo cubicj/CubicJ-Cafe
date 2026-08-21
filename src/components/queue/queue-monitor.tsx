@@ -151,8 +151,8 @@ export function QueueMonitor() {
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+          <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
             실행 큐 현황
           </h2>
           <Button variant="outline" size="sm" onClick={() => {
@@ -173,8 +173,8 @@ export function QueueMonitor() {
       )}
 
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <List className="h-5 w-5" />
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+          <List className="h-4 w-4" />
           전체 실행 큐
         </h2>
         <Card className="p-6">

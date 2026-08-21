@@ -67,7 +67,7 @@ export function ServerStatusSection({
   return (
     <div className="space-y-2 mb-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <Server className="h-4 w-4" />
           ComfyUI 서버 상태
         </h2>

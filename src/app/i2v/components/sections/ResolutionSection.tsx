@@ -22,7 +22,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
   const { images, effectiveResolutionMode, aspectWidth, aspectHeight, setResolutionMode, setAspect } = referenceSet;
   return (
     <div className="space-y-2">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
         <Ruler className="h-4 w-4" />
         해상도 비율
       </h2>
@@ -33,7 +33,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
             disabled={images.length === 0}
             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 ${
               effectiveResolutionMode === 'first_image'
-                ? 'bg-violet-600 text-white shadow-md'
+                ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                 : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
             }`}
           >
@@ -43,7 +43,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
             onClick={() => setResolutionMode('custom')}
             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               effectiveResolutionMode === 'custom'
-                ? 'bg-violet-600 text-white shadow-md'
+                ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                 : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
             }`}
           >

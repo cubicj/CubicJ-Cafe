@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2 } from "lucide-react";
+import { Clapperboard } from "lucide-react";
 
 interface I2VControlsSectionProps {
   isFormValid: boolean;
@@ -19,8 +19,8 @@ export function I2VControlsSection({
 }: I2VControlsSectionProps) {
   return (
     <div className="space-y-2">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
-        <Wand2 className="h-4 w-4" />
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+        <Clapperboard className="h-4 w-4" />
         비디오 생성
       </h2>
       <Card className="p-4 space-y-4">
@@ -38,7 +38,7 @@ export function I2VControlsSection({
             </>
           ) : (
             <>
-              <Wand2 className="h-4 w-4 mr-2" />
+              <Clapperboard className="h-4 w-4 mr-2" />
               {isNSFW ? 'NSFW 비디오 생성하기' : 'SFW 비디오 생성하기'}
             </>
           )}

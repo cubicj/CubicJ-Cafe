@@ -6,7 +6,7 @@ import AudioPresetSelector from "@/components/audio/AudioPresetSelector";
 import { PromptInput } from "@/components/i2v/prompt-input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bot, MessageSquare, Music, ChevronDown } from "lucide-react";
+import { Image as ImageIcon, ImageDown, MessageSquare, Music, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,8 @@ export function ImageUploadSection({
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Bot className="h-4 w-4" />
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+          <ImageIcon className="h-4 w-4" />
           시작 이미지{' '}
           {startImageOptional ? (
             <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
@@ -82,9 +82,9 @@ export function ImageUploadSection({
           <button
             type="button"
             onClick={() => setEndImageOpen(!endImageOpen)}
-            className="flex items-center gap-2 text-lg font-semibold w-full text-left py-2 -my-1"
+            className="text-sm font-semibold text-muted-foreground flex items-center gap-2 w-full text-left py-2 -my-1"
           >
-            <Bot className="h-4 w-4 shrink-0" />
+            <ImageDown className="h-4 w-4 shrink-0" />
             <span className="truncate">끝 이미지 <span className="text-sm text-gray-500 font-normal">(선택사항)</span></span>
             <ChevronDown className={cn("h-4 w-4 ml-auto shrink-0 transition-transform", endImageOpen && "rotate-180")} />
           </button>
@@ -100,7 +100,7 @@ export function ImageUploadSection({
 
       {showAudio && (
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
             <Music className="h-4 w-4" />
             레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(선택사항)</span>
           </h2>
@@ -114,7 +114,7 @@ export function ImageUploadSection({
       )}
 
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           동작 프롬프트
         </h2>

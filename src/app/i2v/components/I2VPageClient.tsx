@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoRAPresetManager } from '@/components/lora/lora-preset-manager';
 import { QueueMonitor } from '@/components/queue/queue-monitor';
-import { Sparkles, Bot, XCircle, Layers, Clock } from 'lucide-react';
+import { XCircle, Layers, Clock, SlidersHorizontal } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { ServerStatusSection } from './sections/ServerStatusSection';
 import { ImageUploadSection } from './sections/ImageUploadSection';
@@ -92,9 +92,6 @@ export default function I2VPageClient() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-32">
               <div className="space-y-6">
-                <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
-                  <Bot className="h-8 w-8 text-primary" />
-                </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">로그인이 필요합니다</h3>
                   <p className="text-sm text-muted-foreground">
@@ -128,7 +125,7 @@ export default function I2VPageClient() {
 
           <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:grid-rows-[auto_1fr] w-full max-w-full overflow-hidden">
             <div className="space-y-2 lg:col-start-2 lg:row-start-1">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                 <Layers className="h-4 w-4" />
                 모델 선택
               </h2>
@@ -142,7 +139,7 @@ export default function I2VPageClient() {
                           onClick={() => setActiveModel(model)}
                           className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                             activeModel === model
-                              ? 'bg-violet-600 text-white shadow-md'
+                              ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                               : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
                           }`}
                         >
@@ -185,7 +182,7 @@ export default function I2VPageClient() {
 
             <div className="space-y-6 w-full max-w-full overflow-hidden lg:col-start-2">
               <div className="space-y-2">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   영상 길이
                 </h2>
@@ -198,7 +195,7 @@ export default function I2VPageClient() {
                           onClick={() => setVideoDuration(duration)}
                           className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                             videoDuration === duration
-                              ? 'bg-violet-600 text-white shadow-md'
+                              ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                               : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
                           }`}
                         >
@@ -216,8 +213,8 @@ export default function I2VPageClient() {
 
               {capabilities.loraPresets && (
                 <div className="space-y-2">
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4" />
                     LoRA 프리셋
                   </h2>
                   <LoRAPresetManager
@@ -247,14 +244,10 @@ export default function I2VPageClient() {
 
           {isGenerating && (
             <Card className="p-8 text-center">
-              <div className="space-y-6">
-                <div className="animate-pulse">
-                  <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
-                    <Sparkles className="h-8 w-8 text-primary animate-bounce" />
-                  </div>
-                </div>
+              <div className="space-y-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-sm font-semibold">
                     큐에 요청을 추가하고 있습니다
                   </h3>
                   <p className="text-muted-foreground">
@@ -266,13 +259,13 @@ export default function I2VPageClient() {
           )}
 
           {submitMessage && submitMessage.type === 'error' && !isGenerating && (
-            <Card className="p-6 text-center border-red-200 bg-red-50">
+            <Card className="p-6 text-center border-destructive/30 bg-destructive/5">
               <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 text-red-600">
+                <div className="flex items-center justify-center gap-2 text-destructive">
                   <XCircle className="h-6 w-6" />
                   <h3 className="text-lg font-semibold">요청 실패</h3>
                 </div>
-                <p className="text-red-700">{submitMessage.message}</p>
+                <p className="text-destructive">{submitMessage.message}</p>
                 <Button onClick={handleReset} variant="outline">
                   닫기
                 </Button>
