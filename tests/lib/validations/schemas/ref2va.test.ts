@@ -81,6 +81,22 @@ describe('ref2vaSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects a soundtrack flag without a video in the same slot', () => {
+    const result = ref2vaSchema.safeParse(baseFields({
+      refVideoSoundtrack_1: 'true',
+    }))
+    expect(result.success).toBe(false)
+    if (result.success) return
+    expect(result.error.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: ['refVideoSoundtrack_1'] }),
+    ]))
+  })
+
+  it('rejects a whitespace-only prompt', () => {
+    const result = ref2vaSchema.safeParse(baseFields({ prompt: '   \t\n  ' }))
+    expect(result.success).toBe(false)
+  })
+
   it('rejects an oversized video', () => {
     const result = ref2vaSchema.safeParse(baseFields({
       refVideo_0: makeFile('big.mp4', 'video/mp4', 64 * 1024 * 1024 + 1),

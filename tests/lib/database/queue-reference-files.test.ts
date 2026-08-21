@@ -68,6 +68,30 @@ describe('QueueService reference files', () => {
     expect(rows.map((row) => row.filename)).toEqual(['a.png', 'b.png'])
   })
 
+  it('loads reference metadata without blobs and fetches each blob by row id', async () => {
+    const { requestId } = await createRef2vaRequest()
+    const rows = await QueueService.getReferenceFileRows(requestId)
+
+    expect(rows).toHaveLength(3)
+    expect(rows.every((row) => !Object.hasOwn(row, 'blob'))).toBe(true)
+    await expect(QueueService.getReferenceFileBlob(rows[0]!.id)).resolves.toEqual(new Uint8Array([1, 2]))
+    await expect(QueueService.getReferenceFileBlob(rows[1]!.id)).resolves.toEqual(new Uint8Array([3, 4]))
+  })
+
+  it('does not mark a cancelled request as failed', async () => {
+    const { user, requestId } = await createRef2vaRequest()
+    await QueueService.updateRequest(requestId, { status: QueueStatus.PROCESSING })
+    await QueueService.cancelRequest(requestId, user.id)
+
+    const updatedCount = await QueueService.markRequestFailedIfProcessing(requestId, {
+      failedAt: new Date(),
+      error: 'fake processing error',
+    })
+
+    expect(updatedCount).toBe(0)
+    expect(await QueueService.getRequestStatus(requestId)).toBe(QueueStatus.CANCELLED)
+  })
+
   it('clearImageBlobs nulls reference blobs but keeps rows', async () => {
     const { requestId } = await createRef2vaRequest()
     await QueueService.clearImageBlobs(requestId)

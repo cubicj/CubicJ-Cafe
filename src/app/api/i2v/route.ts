@@ -171,7 +171,11 @@ export const POST = createRouteHandler(
     } catch {
       return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
     }
-    const modelField = formData.get('model')
+    const modelFields = formData.getAll('model')
+    if (modelFields.length > 1) {
+      return NextResponse.json({ error: 'model 필드는 하나여야 합니다.' }, { status: 400 })
+    }
+    const modelField = modelFields[0]
     if (
       typeof modelField === 'string' &&
       Object.hasOwn(MODEL_REGISTRY, modelField) &&

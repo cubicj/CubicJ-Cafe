@@ -2,13 +2,17 @@ import { vi } from 'vitest'
 
 const mockGetProcessingCount = vi.fn().mockResolvedValue(0)
 const mockGetRequestById = vi.fn()
+const mockGetRequestStatus = vi.fn()
 const mockUpdateRequest = vi.fn()
+const mockMarkRequestFailedIfProcessing = vi.fn()
 const mockClearImageBlobs = vi.fn()
 vi.mock('@/lib/database/queue', () => ({
   QueueService: {
     getProcessingCount: (...args: unknown[]) => mockGetProcessingCount(...args),
     getRequestById: (...args: unknown[]) => mockGetRequestById(...args),
+    getRequestStatus: (...args: unknown[]) => mockGetRequestStatus(...args),
     updateRequest: (...args: unknown[]) => mockUpdateRequest(...args),
+    markRequestFailedIfProcessing: (...args: unknown[]) => mockMarkRequestFailedIfProcessing(...args),
     clearImageBlobs: (...args: unknown[]) => mockClearImageBlobs(...args),
   },
 }))
@@ -78,6 +82,8 @@ describe('QueueMonitor orchestration', () => {
     vi.clearAllMocks()
     vi.useFakeTimers()
     mockUpdateRequest.mockResolvedValue(undefined)
+    mockGetRequestStatus.mockResolvedValue('PROCESSING')
+    mockMarkRequestFailedIfProcessing.mockResolvedValue(1)
     mockClearImageBlobs.mockResolvedValue(undefined)
     mockStartMonitoring.mockResolvedValue(undefined)
     mockBuildWorkflow.mockResolvedValue({ fake: { class_type: 'FakeNode', inputs: {} } })
@@ -199,8 +205,7 @@ describe('QueueMonitor orchestration', () => {
     })
 
     expect(mockPrepareGenerationParams).not.toHaveBeenCalled()
-    expect(mockUpdateRequest).toHaveBeenCalledWith('fake-wan-missing-image', expect.objectContaining({
-      status: 'FAILED',
+    expect(mockMarkRequestFailedIfProcessing).toHaveBeenCalledWith('fake-wan-missing-image', expect.objectContaining({
       error: '이미지 데이터가 없습니다.',
     }))
   })

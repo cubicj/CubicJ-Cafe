@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { VIDEO_MODELS } from '@/lib/comfyui/workflows/types'
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'] as const
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov'] as const
@@ -34,8 +33,8 @@ export interface Ref2vaVideoInput {
 export type Ref2vaAudioInput = { file: File; presetId?: undefined } | { presetId: string; file?: undefined }
 
 export const ref2vaSchema = z.object({
-  prompt: z.string().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)').transform((value) => value.trim()),
-  model: z.enum(VIDEO_MODELS),
+  prompt: z.string().trim().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)'),
+  model: z.literal('h3-ref2va'),
   isNSFW: formBoolean,
   videoDuration: z.coerce.number().int().positive(),
   resolutionMode: z.enum(['first_image', 'custom']),
@@ -76,7 +75,11 @@ export const ref2vaSchema = z.object({
     { file: data.refVideo_2, includeSoundtrack: data.refVideoSoundtrack_2 },
   ]
   const videos: Ref2vaVideoInput[] = []
-  for (const entry of videoFields) {
+  for (const [slot, entry] of videoFields.entries()) {
+    if (!entry.file && entry.includeSoundtrack) {
+      ctx.addIssue({ code: 'custom', path: [`refVideoSoundtrack_${slot}`], message: '비디오 없이 사운드트랙을 포함할 수 없습니다' })
+      return z.NEVER
+    }
     if (entry.file) videos.push({ file: entry.file, includeSoundtrack: entry.includeSoundtrack })
   }
 

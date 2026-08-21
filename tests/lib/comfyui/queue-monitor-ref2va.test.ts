@@ -1,15 +1,22 @@
 export {}
 
 const mockGetRequestById = vi.fn()
-const mockGetReferenceFiles = vi.fn()
+const mockGetRequestStatus = vi.fn()
+const mockGetReferenceFileRows = vi.fn()
+const mockGetReferenceFileBlob = vi.fn()
 const mockUpdateRequest = vi.fn()
+const mockMarkRequestFailedIfProcessing = vi.fn()
 const mockClearImageBlobs = vi.fn()
+const mockReleaseServer = vi.fn()
 
 vi.mock('@/lib/database/queue', () => ({
   QueueService: {
     getRequestById: (...args: unknown[]) => mockGetRequestById(...args),
-    getReferenceFiles: (...args: unknown[]) => mockGetReferenceFiles(...args),
+    getRequestStatus: (...args: unknown[]) => mockGetRequestStatus(...args),
+    getReferenceFileRows: (...args: unknown[]) => mockGetReferenceFileRows(...args),
+    getReferenceFileBlob: (...args: unknown[]) => mockGetReferenceFileBlob(...args),
     updateRequest: (...args: unknown[]) => mockUpdateRequest(...args),
+    markRequestFailedIfProcessing: (...args: unknown[]) => mockMarkRequestFailedIfProcessing(...args),
     clearImageBlobs: (...args: unknown[]) => mockClearImageBlobs(...args),
     invalidateCache: vi.fn(),
   },
@@ -20,6 +27,7 @@ vi.mock('@prisma/client', () => ({
     PENDING: 'PENDING',
     PROCESSING: 'PROCESSING',
     FAILED: 'FAILED',
+    CANCELLED: 'CANCELLED',
   },
 }))
 
@@ -51,7 +59,7 @@ vi.mock('@/lib/comfyui/server-manager', () => ({
     getClient: vi.fn(),
     checkServerHealth: vi.fn(),
     selectBestServer: vi.fn(),
-    releaseServer: vi.fn(),
+    releaseServer: (...args: unknown[]) => mockReleaseServer(...args),
   },
 }))
 
@@ -129,21 +137,53 @@ describe('QueueMonitor H3 Ref2VA references', () => {
     vi.clearAllMocks()
     mockBuildWorkflow.mockResolvedValue({ prompt: { class_type: 'TestNode', inputs: {} } })
     mockUpdateRequest.mockResolvedValue(undefined)
+    mockGetRequestStatus.mockResolvedValue('PROCESSING')
+    mockMarkRequestFailedIfProcessing.mockResolvedValue(1)
     mockClearImageBlobs.mockResolvedValue(undefined)
     mockStartMonitoring.mockResolvedValue(undefined)
   })
 
   it('uploads mixed references and passes custom resolution to the workflow', async () => {
     mockGetRequestById.mockResolvedValue(makeRequest())
-    mockGetReferenceFiles.mockResolvedValue([
-      { kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', blob: new Uint8Array([1]), includeSoundtrack: false, audioPresetName: null },
-      { kind: 'VIDEO', slot: 0, filename: 'ref_vid_0.mp4', blob: new Uint8Array([2]), includeSoundtrack: true, audioPresetName: null },
-      { kind: 'AUDIO', slot: 0, filename: 'ref_aud_0.wav', blob: new Uint8Array([3]), includeSoundtrack: false, audioPresetName: 'Preset' },
+    mockGetReferenceFileRows.mockResolvedValue([
+      { id: 'image-1', kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', includeSoundtrack: false, audioPresetName: null },
+      { id: 'video-1', kind: 'VIDEO', slot: 0, filename: 'ref_vid_0.mp4', includeSoundtrack: true, audioPresetName: null },
+      { id: 'audio-1', kind: 'AUDIO', slot: 0, filename: 'ref_aud_0.wav', includeSoundtrack: false, audioPresetName: 'Preset' },
     ])
+    const events: string[] = []
+    const blobs: Record<string, Uint8Array> = {
+      'image-1': new Uint8Array([1]),
+      'video-1': new Uint8Array([2]),
+      'audio-1': new Uint8Array([3]),
+    }
+    mockGetReferenceFileBlob.mockImplementation(async (id: string) => {
+      events.push(`load:${id}`)
+      return blobs[id]
+    })
     const client = makeClient()
+    client.uploadImage.mockImplementation(async () => {
+      events.push('upload:image-1')
+      return 'up_img.png'
+    })
+    client.uploadVideo.mockImplementation(async () => {
+      events.push('upload:video-1')
+      return 'up_vid.mp4'
+    })
+    client.uploadAudio.mockImplementation(async () => {
+      events.push('upload:audio-1')
+      return 'up_aud.wav'
+    })
 
     await processRequest('request-ref2va-1', client)
 
+    expect(events).toEqual([
+      'load:image-1',
+      'upload:image-1',
+      'load:video-1',
+      'upload:video-1',
+      'load:audio-1',
+      'upload:audio-1',
+    ])
     expect(client.uploadImage).toHaveBeenCalledTimes(1)
     expect(client.uploadVideo).toHaveBeenCalledTimes(1)
     expect(client.uploadAudio).toHaveBeenCalledTimes(1)
@@ -164,9 +204,10 @@ describe('QueueMonitor H3 Ref2VA references', () => {
       aspectWidth: null,
       aspectHeight: null,
     }))
-    mockGetReferenceFiles.mockResolvedValue([
-      { kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', blob: new Uint8Array([1]), includeSoundtrack: false, audioPresetName: null },
+    mockGetReferenceFileRows.mockResolvedValue([
+      { id: 'image-2', kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', includeSoundtrack: false, audioPresetName: null },
     ])
+    mockGetReferenceFileBlob.mockResolvedValue(new Uint8Array([1]))
     const client = makeClient()
 
     await processRequest('request-ref2va-2', client)
@@ -179,16 +220,17 @@ describe('QueueMonitor H3 Ref2VA references', () => {
 
   it('fails the request when a reference blob is missing', async () => {
     mockGetRequestById.mockResolvedValue(makeRequest({ id: 'request-ref2va-3' }))
-    mockGetReferenceFiles.mockResolvedValue([
-      { kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', blob: null, includeSoundtrack: false, audioPresetName: null },
+    mockGetReferenceFileRows.mockResolvedValue([
+      { id: 'image-3', kind: 'IMAGE', slot: 0, filename: 'ref_img_0.png', includeSoundtrack: false, audioPresetName: null },
     ])
+    mockGetReferenceFileBlob.mockResolvedValue(null)
     const client = makeClient()
 
     await processRequest('request-ref2va-3', client)
 
-    expect(mockGetReferenceFiles).toHaveBeenCalledWith('request-ref2va-3')
-    expect(mockUpdateRequest).toHaveBeenCalledWith('request-ref2va-3', expect.objectContaining({
-      status: 'FAILED',
+    expect(mockGetReferenceFileRows).toHaveBeenCalledWith('request-ref2va-3')
+    expect(mockGetReferenceFileBlob).toHaveBeenCalledWith('image-3')
+    expect(mockMarkRequestFailedIfProcessing).toHaveBeenCalledWith('request-ref2va-3', expect.objectContaining({
       error: 'Reference blob missing: ref_img_0.png',
     }))
     expect(mockBuildWorkflow).not.toHaveBeenCalled()
@@ -196,16 +238,59 @@ describe('QueueMonitor H3 Ref2VA references', () => {
 
   it('fails the request when no reference rows exist', async () => {
     mockGetRequestById.mockResolvedValue(makeRequest({ id: 'request-ref2va-4' }))
-    mockGetReferenceFiles.mockResolvedValue([])
+    mockGetReferenceFileRows.mockResolvedValue([])
     const client = makeClient()
 
     await processRequest('request-ref2va-4', client)
 
-    expect(mockGetReferenceFiles).toHaveBeenCalledWith('request-ref2va-4')
-    expect(mockUpdateRequest).toHaveBeenCalledWith('request-ref2va-4', expect.objectContaining({
-      status: 'FAILED',
+    expect(mockGetReferenceFileRows).toHaveBeenCalledWith('request-ref2va-4')
+    expect(mockMarkRequestFailedIfProcessing).toHaveBeenCalledWith('request-ref2va-4', expect.objectContaining({
       error: 'Reference files not found for reference request',
     }))
     expect(mockBuildWorkflow).not.toHaveBeenCalled()
+  })
+
+  it('does not submit or overwrite CANCELLED when cancellation clears a blob before reference loading', async () => {
+    mockGetRequestById.mockResolvedValue(makeRequest({ id: 'request-ref2va-cancel-before-load' }))
+    mockGetReferenceFileRows.mockResolvedValue([
+      { id: 'image-cancelled', kind: 'IMAGE', slot: 0, filename: 'cancelled.png', includeSoundtrack: false, audioPresetName: null },
+    ])
+    mockGetReferenceFileBlob.mockResolvedValue(null)
+    mockMarkRequestFailedIfProcessing.mockResolvedValue(0)
+    const client = makeClient()
+
+    await processRequest('request-ref2va-cancel-before-load', client)
+
+    expect(client.submitPrompt).not.toHaveBeenCalled()
+    expect(mockMarkRequestFailedIfProcessing).toHaveBeenCalledWith(
+      'request-ref2va-cancel-before-load',
+      expect.objectContaining({ error: 'Reference blob missing: cancelled.png' }),
+    )
+    expect(mockUpdateRequest).not.toHaveBeenCalledWith(
+      'request-ref2va-cancel-before-load',
+      expect.objectContaining({ status: 'FAILED' }),
+    )
+  })
+
+  it('does not submit or overwrite CANCELLED when cancellation happens between upload and submit', async () => {
+    mockGetRequestById.mockResolvedValue(makeRequest({ id: 'request-ref2va-cancel-before-submit' }))
+    mockGetReferenceFileRows.mockResolvedValue([
+      { id: 'image-uploaded', kind: 'IMAGE', slot: 0, filename: 'uploaded.png', includeSoundtrack: false, audioPresetName: null },
+    ])
+    mockGetReferenceFileBlob.mockResolvedValue(new Uint8Array([4]))
+    mockGetRequestStatus.mockResolvedValue('CANCELLED')
+    const client = makeClient()
+
+    await processRequest('request-ref2va-cancel-before-submit', client)
+
+    expect(client.uploadImage).toHaveBeenCalledOnce()
+    expect(mockGetRequestStatus).toHaveBeenCalledWith('request-ref2va-cancel-before-submit')
+    expect(client.submitPrompt).not.toHaveBeenCalled()
+    expect(mockMarkRequestFailedIfProcessing).not.toHaveBeenCalled()
+    expect(mockUpdateRequest).not.toHaveBeenCalledWith(
+      'request-ref2va-cancel-before-submit',
+      expect.objectContaining({ status: 'FAILED' }),
+    )
+    expect(mockReleaseServer).toHaveBeenCalledWith('request-ref2va-cancel-before-submit')
   })
 })

@@ -247,6 +247,35 @@ export class QueueService {
     return updated;
   }
 
+  static async getRequestStatus(requestId: string): Promise<QueueStatus | null> {
+    const request = await prisma.queueRequest.findUnique({
+      where: { id: requestId },
+      select: { status: true },
+    });
+    return request?.status ?? null;
+  }
+
+  static async markRequestFailedIfProcessing(
+    requestId: string,
+    failure: Pick<QueueRequestUpdate, 'failedAt' | 'error'>,
+  ): Promise<number> {
+    const result = await prisma.queueRequest.updateMany({
+      where: {
+        id: requestId,
+        status: QueueStatus.PROCESSING,
+      },
+      data: {
+        status: QueueStatus.FAILED,
+        ...failure,
+      },
+    });
+
+    if (result.count > 0) {
+      QueueService.invalidateCache();
+    }
+    return result.count;
+  }
+
   static async clearImageBlobs(requestId: string) {
     await prisma.$transaction(
       async (tx) => {
@@ -277,6 +306,34 @@ export class QueueService {
       REFERENCE_KIND_ORDER[left.kind] - REFERENCE_KIND_ORDER[right.kind]
       || left.slot - right.slot
     ));
+  }
+
+  static async getReferenceFileRows(requestId: string) {
+    const files = await prisma.queueReferenceFile.findMany({
+      where: { requestId },
+      orderBy: [{ kind: 'asc' }, { slot: 'asc' }],
+      select: {
+        id: true,
+        kind: true,
+        slot: true,
+        filename: true,
+        includeSoundtrack: true,
+        audioPresetName: true,
+      },
+    });
+
+    return files.sort((left, right) => (
+      REFERENCE_KIND_ORDER[left.kind] - REFERENCE_KIND_ORDER[right.kind]
+      || left.slot - right.slot
+    ));
+  }
+
+  static async getReferenceFileBlob(referenceFileId: string): Promise<Uint8Array | null> {
+    const file = await prisma.queueReferenceFile.findUnique({
+      where: { id: referenceFileId },
+      select: { blob: true },
+    });
+    return file?.blob ?? null;
   }
 
   static invalidateCache() {

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,12 +37,11 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
   const videoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const {
-    images, videos, audios, tags,
+    images, imagePreviewUrls, videos, audios, tags,
     effectiveResolutionMode, aspectWidth, aspectHeight,
     addImages, removeImage, addVideo, removeVideo, toggleSoundtrack,
     addAudioFile, addAudioPreset, removeAudio, setResolutionMode, setAspect,
   } = referenceSet;
-
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       <div className="space-y-2">
@@ -53,6 +53,16 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
           {images.map((file, index) => (
             <div key={`${file.name}-${index}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
               <Badge variant="outline" className="text-xs shrink-0">{tags.images[index]}</Badge>
+              {imagePreviewUrls[index] && (
+                <Image
+                  src={imagePreviewUrls[index]}
+                  alt={file.name}
+                  width={48}
+                  height={48}
+                  unoptimized
+                  className="h-12 w-12 shrink-0 rounded-md object-cover"
+                />
+              )}
               <span className="text-sm truncate flex-1 min-w-0">{file.name}</span>
               <Button variant="outline" size="sm" className="h-7 w-7 p-0 shrink-0" onClick={() => removeImage(index)}>
                 <X className="h-3 w-3" />
