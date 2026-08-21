@@ -65,6 +65,10 @@ model QueueRequest {
   videoDuration   Int            @default(5) @map("video_duration")
   videoDurationSeconds Float?    @map("video_duration_seconds")
   workflowJson    String?        @map("workflow_json")
+  resolutionMode  String?              @map("resolution_mode")
+  aspectWidth     Int?                 @map("aspect_width")
+  aspectHeight    Int?                 @map("aspect_height")
+  referenceFiles  QueueReferenceFile[]
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -73,6 +77,29 @@ model QueueRequest {
   @@index([serverType])
   @@index([createdAt])
   @@map("queue_requests")
+}
+
+enum ReferenceKind {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+model QueueReferenceFile {
+  id                String        @id @default(cuid())
+  requestId         String        @map("request_id")
+  kind              ReferenceKind
+  slot              Int
+  filename          String
+  blob              Bytes?
+  includeSoundtrack Boolean       @default(false) @map("include_soundtrack")
+  audioPresetName   String?       @map("audio_preset_name")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  request           QueueRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, kind, slot])
+  @@index([requestId])
+  @@map("queue_reference_files")
 }
 
 model LoRAPreset {
@@ -193,4 +220,5 @@ enum GenerationMode {
   START_END
   END_ONLY
   LOOP
+  REFERENCE
 }
