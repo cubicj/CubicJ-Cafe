@@ -58,7 +58,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <ImageIcon className="h-4 w-4" />
           레퍼런스 이미지 <span className="text-sm text-gray-500 font-normal">(최대 {REF_IMAGE_MAX}장)</span>
         </h2>
@@ -105,7 +105,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <Film className="h-4 w-4" />
           레퍼런스 비디오 <span className="text-sm text-gray-500 font-normal">(최대 {REF_VIDEO_MAX}개)</span>
         </h2>
@@ -155,7 +155,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <Music className="h-4 w-4" />
           레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(최대 {REF_AUDIO_MAX}개)</span>
         </h2>
@@ -200,7 +200,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           동작 프롬프트
         </h2>
