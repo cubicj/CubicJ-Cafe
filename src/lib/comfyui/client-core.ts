@@ -292,6 +292,10 @@ export class ComfyUIClient {
     return this.mediaManager.uploadAudio(file)
   }
 
+  async uploadVideo(file: File): Promise<string> {
+    return this.mediaManager.uploadVideo(file)
+  }
+
   async getHistory(promptId?: string): Promise<ComfyUIHistoryResponse> {
     return this.mediaManager.getHistory(promptId)
   }

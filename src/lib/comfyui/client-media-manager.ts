@@ -52,6 +52,24 @@ export class ComfyUIMediaManager {
     }
   }
 
+  async uploadVideo(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    try {
+      const response = await this.makeRequest<{ name: string }>('/upload/image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      log.debug('Video uploaded successfully', { filename: response.name, size: file.size })
+      return response.name
+    } catch (error) {
+      log.error('ComfyUI video upload failed', { error: error instanceof Error ? error.message : String(error) })
+      throw new Error(`Video upload failed: ${error instanceof Error ? error.message : 'unknown error'}`)
+    }
+  }
+
   async getHistory(promptId?: string): Promise<ComfyUIHistoryResponse> {
     try {
       const endpoint = promptId ? `/history/${promptId}` : '/history'
