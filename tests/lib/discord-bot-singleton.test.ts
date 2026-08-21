@@ -414,8 +414,10 @@ describe('discordBot singleton', () => {
       },
       delete: deleteVideo,
     }
+    const deleteCard = vi.fn().mockResolvedValue(undefined)
     const editCard = vi.fn().mockResolvedValue(undefined)
-    const cardMessage = { id: 'card-message-1', edit: editCard }
+    const cardMessage = { id: 'card-message-1', delete: deleteCard, edit: editCard }
+    const sourceSend = vi.fn().mockResolvedValue({ id: 'notice-message-1' })
     const fetchMessage = vi.fn((messageId: string) => Promise.resolve(
       messageId === 'video-message-1' ? videoMessage : cardMessage
     ))
@@ -441,7 +443,7 @@ describe('discordBot singleton', () => {
       customId: 'move_video:request-1',
       deferUpdate,
       channelId: 'channel-1',
-      channel: { messages: { fetch: fetchMessage } },
+      channel: { messages: { fetch: fetchMessage }, send: sourceSend },
       followUp,
       editReply,
       user: { id: 'mover-1' },
@@ -452,8 +454,9 @@ describe('discordBot singleton', () => {
     expect(nsfwSend.mock.invocationCallOrder[0]).toBeLessThan(mockFetch.mock.invocationCallOrder[0])
     expect(mockFetch.mock.invocationCallOrder[0]).toBeLessThan(nsfwSend.mock.invocationCallOrder[1])
     expect(nsfwSend.mock.invocationCallOrder[1]).toBeLessThan(deleteVideo.mock.invocationCallOrder[0])
-    expect(deleteVideo.mock.invocationCallOrder[0]).toBeLessThan(editCard.mock.invocationCallOrder[0])
-    expect(editCard.mock.invocationCallOrder[0]).toBeLessThan(editReply.mock.invocationCallOrder[0])
+    expect(deleteVideo.mock.invocationCallOrder[0]).toBeLessThan(deleteCard.mock.invocationCallOrder[0])
+    expect(deleteCard.mock.invocationCallOrder[0]).toBeLessThan(sourceSend.mock.invocationCallOrder[0])
+    expect(sourceSend.mock.invocationCallOrder[0]).toBeLessThan(editReply.mock.invocationCallOrder[0])
     expect(mockFetch).toHaveBeenCalledWith('https://cdn.invalid/video-1.mp4', {
       method: 'GET',
       signal: expect.any(AbortSignal),
@@ -472,14 +475,16 @@ describe('discordBot singleton', () => {
     const nsfwCard = nsfwSend.mock.calls[0][0]
     const nsfwContainer = nsfwCard.components[0]
     expect(nsfwCard.allowedMentions).toEqual({ parse: [] })
-    expect(nsfwContainer.accentColor).toBe(0x10b981)
+    expect(nsfwContainer.accentColor).toBe(0xff6b6b)
+    expect(nsfwContainer.textComponents[0].content).toContain(' NSFW]')
     expect(nsfwContainer.actionRowComponents).toHaveLength(0)
     expect(nsfwContainer.sectionComponents[0].buttonAccessory.customId).toBe('show_prompt:request-1')
     expect(nsfwContainer.sectionComponents[0].textComponents[0].content).toBe('> <@requester-1> · 300초')
 
-    const originalCardUpdate = editCard.mock.calls[0][0]
-    const noticeContainer = originalCardUpdate.components[0]
-    expect(originalCardUpdate.allowedMentions).toEqual({ parse: [] })
+    const noticeMessage = sourceSend.mock.calls[0][0]
+    const noticeContainer = noticeMessage.components[0]
+    expect(noticeMessage.allowedMentions).toEqual({ parse: [] })
+    expect(noticeContainer.accentColor).toBe(0x10b981)
     expect(noticeContainer.textComponents[0].content).toBe(
       '## [CubicJ Cafe I2V - LTX 2.3 + WAN 2.2](https://cafe.invalid)'
     )
@@ -494,6 +499,8 @@ describe('discordBot singleton', () => {
       'https://discord.com/channels/guild-1/nsfw-channel-1/nsfw-card-1'
     )
     expect(editReply).toHaveBeenCalledWith({ components: [] })
+    expect(deleteCard).toHaveBeenCalledTimes(1)
+    expect(editCard).not.toHaveBeenCalled()
     expect(mockUpdateDiscordMessageIds).toHaveBeenCalledWith(
       'request-1',
       'nsfw-card-1',
@@ -503,7 +510,7 @@ describe('discordBot singleton', () => {
     expect(nsfwCardDelete).not.toHaveBeenCalled()
   })
 
-  it('downloads and re-uploads an NSFW video to the main channel with NSFW styling', async () => {
+  it('downloads and re-uploads an NSFW video to the main channel with channel-specific styling', async () => {
     vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
     const { discordBot } = await import('@/lib/discord-bot')
     const targetCardMessage = {
@@ -530,8 +537,10 @@ describe('discordBot singleton', () => {
       },
       delete: deleteVideo,
     }
+    const deleteCard = vi.fn().mockResolvedValue(undefined)
     const editCard = vi.fn().mockResolvedValue(undefined)
-    const originalCard = { id: 'card-message-2', edit: editCard }
+    const originalCard = { id: 'card-message-2', delete: deleteCard, edit: editCard }
+    const sourceSend = vi.fn().mockResolvedValue({ id: 'notice-message-2' })
     const fetchMessage = vi.fn((messageId: string) => Promise.resolve(
       messageId === 'video-message-2' ? videoMessage : originalCard
     ))
@@ -556,7 +565,7 @@ describe('discordBot singleton', () => {
       customId: 'move_video:request-2',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channelId: 'nsfw-channel-1',
-      channel: { messages: { fetch: fetchMessage } },
+      channel: { messages: { fetch: fetchMessage }, send: sourceSend },
       followUp,
       editReply,
       user: { id: 'mover-2' },
@@ -570,13 +579,16 @@ describe('discordBot singleton', () => {
       signal: expect.any(AbortSignal),
     })
     expect(mainSend.mock.invocationCallOrder[1]).toBeLessThan(deleteVideo.mock.invocationCallOrder[0])
+    expect(deleteVideo.mock.invocationCallOrder[0]).toBeLessThan(deleteCard.mock.invocationCallOrder[0])
+    expect(deleteCard.mock.invocationCallOrder[0]).toBeLessThan(sourceSend.mock.invocationCallOrder[0])
     const rebuiltContainer = mainSend.mock.calls[0][0].components[0]
-    expect(rebuiltContainer.accentColor).toBe(0xff6b6b)
-    expect(rebuiltContainer.textComponents[0].content).toContain(' NSFW]')
+    expect(rebuiltContainer.accentColor).toBe(0x10b981)
+    expect(rebuiltContainer.textComponents[0].content).not.toContain(' NSFW]')
     expect(mainSend.mock.calls[0][0].allowedMentions).toEqual({ parse: [] })
 
-    const noticeContainer = editCard.mock.calls[0][0].components[0]
+    const noticeContainer = sourceSend.mock.calls[0][0].components[0]
     expect(noticeContainer.accentColor).toBe(0xff6b6b)
+    expect(noticeContainer.textComponents[0].content).toContain(' NSFW]')
     expect(noticeContainer.textComponents[1].content).toBe(
       '해당 영상은 <@mover-2>님이 일반 채널로 이동했습니다.'
     )
@@ -586,12 +598,94 @@ describe('discordBot singleton', () => {
       'https://discord.com/channels/guild-1/channel-1/main-card-1'
     )
     expect(editReply).toHaveBeenCalledWith({ components: [] })
+    expect(deleteCard).toHaveBeenCalledTimes(1)
+    expect(editCard).not.toHaveBeenCalled()
     expect(mockUpdateDiscordMessageIds).toHaveBeenCalledWith(
       'request-2',
       'main-card-1',
       'main-video-1'
     )
     expect(followUp).not.toHaveBeenCalled()
+  })
+
+  it('continues the successful move when deleting the original card fails', async () => {
+    vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
+    const { discordBot } = await import('@/lib/discord-bot')
+    const targetCardMessage = {
+      id: 'target-card-1',
+      delete: vi.fn().mockResolvedValue(undefined),
+    }
+    const targetSend = vi.fn()
+      .mockResolvedValueOnce(targetCardMessage)
+      .mockResolvedValueOnce({ id: 'target-video-1' })
+    const targetChannel = {
+      id: 'nsfw-channel-1',
+      guild: { id: 'guild-1', premiumTier: 0 },
+      send: targetSend,
+    }
+    const deleteVideo = vi.fn().mockResolvedValue(undefined)
+    const videoMessage = {
+      id: 'source-video-1',
+      attachments: {
+        size: 1,
+        first: () => ({
+          url: 'https://cdn.invalid/source-video.mp4',
+          name: 'source-video.mp4',
+        }),
+      },
+      delete: deleteVideo,
+    }
+    const deleteCard = vi.fn().mockRejectedValue(new Error('card delete failed'))
+    const editCard = vi.fn()
+    const cardMessage = { id: 'source-card-1', delete: deleteCard, edit: editCard }
+    const fetchMessage = vi.fn((messageId: string) => Promise.resolve(
+      messageId === 'source-video-1' ? videoMessage : cardMessage
+    ))
+    const sourceSend = vi.fn().mockResolvedValue({ id: 'notice-message-1' })
+    const editReply = vi.fn().mockResolvedValue(undefined)
+    const followUp = vi.fn().mockResolvedValue(undefined)
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-delete-failure',
+      videoModel: 'wan',
+      isNSFW: false,
+      discordCardMessageId: 'source-card-1',
+      discordVideoMessageId: 'source-video-1',
+      user: { discordId: 'requester-1' },
+    })
+    const bot = discordBot as unknown as { getChannel: ReturnType<typeof vi.fn> }
+    bot.getChannel = vi.fn().mockResolvedValue(targetChannel)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_video:request-delete-failure',
+      deferUpdate: vi.fn().mockResolvedValue(undefined),
+      channelId: 'channel-1',
+      channel: { messages: { fetch: fetchMessage }, send: sourceSend },
+      followUp,
+      editReply,
+      user: { id: 'mover-1' },
+      guildId: 'guild-1',
+    })
+
+    expect(deleteVideo).toHaveBeenCalledTimes(1)
+    expect(deleteCard).toHaveBeenCalledTimes(1)
+    expect(editCard).not.toHaveBeenCalled()
+    expect(sourceSend).toHaveBeenCalledTimes(1)
+    expect(editReply).toHaveBeenCalledWith({ components: [] })
+    expect(mockUpdateDiscordMessageIds).toHaveBeenCalledWith(
+      'request-delete-failure',
+      'target-card-1',
+      'target-video-1'
+    )
+    expect(followUp).not.toHaveBeenCalled()
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'Failed to delete original card after video move',
+      expect.objectContaining({
+        requestId: 'request-delete-failure',
+        cardMessageId: 'source-card-1',
+      })
+    )
   })
 
   it('moves a relocated result back using the newly persisted message ids', async () => {
@@ -626,8 +720,10 @@ describe('discordBot singleton', () => {
       },
       delete: sourceVideoDelete,
     }
+    const sourceCardDelete = vi.fn().mockResolvedValue(undefined)
     const sourceCardEdit = vi.fn().mockResolvedValue(undefined)
-    const sourceCard = { id: 'source-card-1', edit: sourceCardEdit }
+    const sourceCard = { id: 'source-card-1', delete: sourceCardDelete, edit: sourceCardEdit }
+    const sourceNoticeSend = vi.fn().mockResolvedValue({ id: 'source-notice-1' })
     const sourceFetch = vi.fn((messageId: string) => Promise.resolve(
       messageId === 'source-video-1' ? sourceVideo : sourceCard
     ))
@@ -638,6 +734,7 @@ describe('discordBot singleton', () => {
       edit: nsfwCardEdit,
       delete: vi.fn().mockResolvedValue(undefined),
     }
+    const nsfwNoticeSend = vi.fn().mockResolvedValue({ id: 'nsfw-notice-1' })
     const nsfwVideoDelete = vi.fn().mockResolvedValue(undefined)
     const nsfwVideo = {
       id: 'nsfw-video-1',
@@ -684,7 +781,7 @@ describe('discordBot singleton', () => {
       customId: 'move_video:roundtrip-request-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channelId: 'channel-1',
-      channel: { messages: { fetch: sourceFetch } },
+      channel: { messages: { fetch: sourceFetch }, send: sourceNoticeSend },
       followUp: vi.fn().mockResolvedValue(undefined),
       editReply: vi.fn().mockResolvedValue(undefined),
       user: { id: 'mover-1' },
@@ -697,13 +794,16 @@ describe('discordBot singleton', () => {
       'nsfw-card-1',
       'nsfw-video-1'
     )
+    expect(sourceCardDelete).toHaveBeenCalledTimes(1)
+    expect(sourceCardEdit).not.toHaveBeenCalled()
+    expect(sourceNoticeSend).toHaveBeenCalledTimes(1)
 
     await handler?.({
       isButton: () => true,
       customId: 'move_video:roundtrip-request-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channelId: 'nsfw-channel-1',
-      channel: { messages: { fetch: nsfwFetch } },
+      channel: { messages: { fetch: nsfwFetch }, send: nsfwNoticeSend },
       followUp: vi.fn().mockResolvedValue(undefined),
       editReply: vi.fn().mockResolvedValue(undefined),
       user: { id: 'mover-2' },
@@ -713,6 +813,9 @@ describe('discordBot singleton', () => {
     expect(nsfwFetch).toHaveBeenNthCalledWith(1, 'nsfw-video-1')
     expect(nsfwFetch).toHaveBeenNthCalledWith(2, 'nsfw-card-1')
     expect(nsfwVideoDelete).toHaveBeenCalledTimes(1)
+    expect(nsfwCard.delete).toHaveBeenCalledTimes(1)
+    expect(nsfwCardEdit).not.toHaveBeenCalled()
+    expect(nsfwNoticeSend).toHaveBeenCalledTimes(1)
     expect(mockUpdateDiscordMessageIds).toHaveBeenNthCalledWith(
       2,
       'roundtrip-request-1',
@@ -1057,6 +1160,7 @@ describe('discordBot singleton', () => {
     mockGetRequestById.mockResolvedValue({
       id: 'request-1',
       prompt: 'test prompt',
+      videoModel: 'ltxa',
       audioFile: 'reference.wav',
       videoDuration: 7,
       videoDurationSeconds: 2.4,
@@ -1098,6 +1202,7 @@ describe('discordBot singleton', () => {
     mockGetRequestById.mockResolvedValue({
       id: 'request-2',
       prompt: 'test prompt',
+      videoModel: 'ltxr',
       audioFile: null,
       videoDuration: 5,
       videoDurationSeconds: null,
@@ -1127,6 +1232,7 @@ describe('discordBot singleton', () => {
     mockGetRequestById.mockResolvedValue({
       id: 'request-1',
       prompt: 'a'.repeat(1801),
+      videoModel: 'ltx-wan',
       audioFile: null,
       videoDuration: 5,
       videoDurationSeconds: null,
@@ -1165,6 +1271,7 @@ describe('discordBot singleton', () => {
     mockGetRequestById.mockResolvedValue({
       id: 'legacy-request-1',
       prompt: 'legacy prompt',
+      videoModel: 'h3-fl2va',
       audioFile: null,
       videoDuration: 6,
       videoDurationSeconds: null,
@@ -1184,7 +1291,6 @@ describe('discordBot singleton', () => {
     expect(mockGetRequestById).toHaveBeenCalledWith('legacy-request-1')
     expect(reply).toHaveBeenCalledWith({
       content: [
-        '**레퍼런스 오디오:** 없음',
         '**영상 길이:** 6초',
         '```',
         'legacy prompt',
@@ -1199,6 +1305,7 @@ describe('discordBot singleton', () => {
     mockGetRequestById.mockResolvedValue({
       id: 'request-1',
       prompt: 'test prompt',
+      videoModel: 'wan',
       audioFile: null,
       videoDuration: 5,
       videoDurationSeconds: null,
@@ -1216,10 +1323,74 @@ describe('discordBot singleton', () => {
 
     expect(reply).toHaveBeenCalledWith({
       content: [
-        '**레퍼런스 오디오:** 없음',
         '**영상 길이:** 5초',
         '```',
         'test prompt',
+        '```',
+      ].join('\n'),
+      flags: 64,
+    })
+  })
+
+  it('shows reference composition and omits zero-count kinds for h3-ref2va', async () => {
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-1',
+      prompt: 'reference prompt',
+      videoModel: 'h3-ref2va',
+      videoDuration: 7,
+      referenceFiles: [
+        { kind: 'IMAGE' },
+        { kind: 'AUDIO' },
+        { kind: 'IMAGE' },
+      ],
+    })
+    const reply = vi.fn().mockResolvedValue(undefined)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'show_prompt:request-1',
+      message: { id: 'card-message-1' },
+      reply,
+    })
+
+    expect(reply).toHaveBeenCalledWith({
+      content: [
+        '**레퍼런스:** 이미지 2 · 오디오 1',
+        '**영상 길이:** 7초',
+        '```',
+        'reference prompt',
+        '```',
+      ].join('\n'),
+      flags: 64,
+    })
+  })
+
+  it('omits the reference line when h3-ref2va has no reference rows', async () => {
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-1',
+      prompt: 'reference prompt',
+      videoModel: 'h3-ref2va',
+      videoDuration: 7,
+      referenceFiles: [],
+    })
+    const reply = vi.fn().mockResolvedValue(undefined)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'show_prompt:request-1',
+      message: { id: 'card-message-1' },
+      reply,
+    })
+
+    expect(reply).toHaveBeenCalledWith({
+      content: [
+        '**영상 길이:** 7초',
+        '```',
+        'reference prompt',
         '```',
       ].join('\n'),
       flags: 64,
