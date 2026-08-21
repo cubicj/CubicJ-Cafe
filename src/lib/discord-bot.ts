@@ -1,4 +1,5 @@
 import {
+  ActionRowBuilder,
   AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -11,7 +12,7 @@ import {
   TextChannel,
   TextDisplayBuilder,
 } from 'discord.js';
-import type { MessageCreateOptions } from 'discord.js';
+import type { ButtonInteraction, MessageCreateOptions } from 'discord.js';
 import { stat } from 'node:fs/promises';
 import { QueueService } from '@/lib/database/queue';
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
@@ -21,8 +22,13 @@ import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('discord');
 const SHOW_PROMPT_PREFIX = 'show_prompt:';
+const MOVE_NSFW_PREFIX = 'move_nsfw:';
 const PROMPT_REPLY_LIMIT = 1800;
 const DISCORD_UPLOAD_SAFETY_MARGIN_BYTES = 512 * 1024;
+
+type ComponentsV2MessageOptions = Pick<MessageCreateOptions, 'allowedMentions' | 'components'> & {
+  flags: [MessageFlags.IsComponentsV2];
+};
 
 class DiscordBot {
   private client: Client;
@@ -74,6 +80,10 @@ class DiscordBot {
 
     this.client.on('interactionCreate', async (interaction) => {
       if (!interaction.isButton()) return;
+      if (interaction.customId.startsWith(MOVE_NSFW_PREFIX)) {
+        await this.handleMoveToNsfw(interaction);
+        return;
+      }
       if (!interaction.customId.startsWith(SHOW_PROMPT_PREFIX)) return;
 
       const requestId = interaction.customId.slice(SHOW_PROMPT_PREFIX.length);
@@ -147,6 +157,152 @@ class DiscordBot {
       this.isInitialized = false;
       this.invalidateChannelCache();
     });
+  }
+
+  private async handleMoveToNsfw(interaction: ButtonInteraction): Promise<void> {
+    try {
+      await interaction.deferUpdate();
+    } catch (error) {
+      if (isHandledInteractionError(error)) {
+        log.warn('NSFW move interaction was lost or already handled by another process', {
+          customId: interaction.customId,
+          code: error.code,
+          status: error.status,
+        });
+        return;
+      }
+
+      log.error('Failed to acknowledge NSFW move interaction', {
+        customId: interaction.customId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return;
+    }
+
+    const moveData = interaction.customId.slice(MOVE_NSFW_PREFIX.length);
+    const separatorIndex = moveData.indexOf(':');
+    const videoMessageId = separatorIndex === -1 ? moveData : moveData.slice(0, separatorIndex);
+    const requestId = separatorIndex === -1 ? '' : moveData.slice(separatorIndex + 1);
+
+    let videoMessage;
+    try {
+      videoMessage = await interaction.channel?.messages.fetch(videoMessageId);
+    } catch (error) {
+      if (isUnknownMessageError(error)) {
+        await interaction.followUp({
+          content: '이미 이동되었거나 찾을 수 없는 영상입니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      log.error('Failed to fetch video message for NSFW move', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      await interaction.followUp({
+        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    if (!videoMessage || videoMessage.attachments.size === 0) {
+      await interaction.followUp({
+        content: '이미 이동되었거나 찾을 수 없는 영상입니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const request = await QueueService.getRequestById(requestId);
+    if (!request) {
+      await interaction.followUp({
+        content: '요청 정보를 찾을 수 없습니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    let nsfwChannel: TextChannel;
+    let nsfwCardMessage;
+    try {
+      nsfwChannel = await this.getChannel(true);
+      nsfwCardMessage = await nsfwChannel.send({
+        ...buildVideoResultMessage({
+          modelDisplayName: getVideoModelDisplayName(request.videoModel),
+          isNSFW: false,
+          discordId: request.user?.discordId,
+          requestId,
+          processingTime: getRequestProcessingTimeSeconds(request),
+        }),
+        allowedMentions: { parse: [] },
+      });
+    } catch (error) {
+      log.error('Failed to send NSFW result card', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      await interaction.followUp({
+        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    try {
+      await videoMessage.forward(nsfwChannel);
+    } catch (error) {
+      log.error('Failed to forward video to NSFW channel', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      try {
+        await nsfwCardMessage.delete();
+      } catch (cleanupError) {
+        log.error('Failed to clean up NSFW card after video forward failure', {
+          nsfwCardMessageId: nsfwCardMessage.id,
+          requestId,
+          error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),
+        });
+      }
+      await interaction.followUp({
+        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    try {
+      await videoMessage.delete();
+    } catch (error) {
+      log.error('Failed to delete original video after NSFW forward', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    try {
+      await interaction.editReply(
+        buildMovedVideoNoticeMessage({
+          modelDisplayName: getVideoModelDisplayName(request.videoModel),
+          movedByDiscordId: interaction.user.id,
+          guildId: interaction.guildId ?? nsfwChannel.guild.id,
+          nsfwChannelId: nsfwChannel.id,
+          nsfwCardMessageId: nsfwCardMessage.id,
+        })
+      );
+    } catch (error) {
+      log.error('Failed to update original card after NSFW move', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   async initialize(): Promise<void> {
@@ -268,14 +424,27 @@ class DiscordBot {
   }): Promise<void> {
     const { channel, attachment, resultMessage, uploadNotice } = await this.withRetry(() => this.prepareVideoMessage(params));
 
-    await this.withRetry(() => channel.send({ ...resultMessage }));
+    const cardMessage = await this.withRetry(() => channel.send({ ...resultMessage }));
     if (!attachment) {
       if (uploadNotice) await this.withRetry(() => channel.send({ content: uploadNotice }));
       log.info('Discord result card sent without video attachment');
       return;
     }
 
-    await this.withRetry(() => channel.send({ files: [attachment] }));
+    const videoMessage = await this.withRetry(() => channel.send({ files: [attachment] }));
+
+    if (!params.isNSFW && process.env.DISCORD_NSFW_CHANNEL_ID) {
+      await this.withRetry(() => cardMessage.edit(
+        buildVideoResultMessage({
+          modelDisplayName: getVideoModelDisplayName(params.videoModel),
+          isNSFW: false,
+          discordId: params.discordId,
+          requestId: params.requestId,
+          processingTime: params.processingTime,
+          moveVideoMessageId: videoMessage.id,
+        })
+      ));
+    }
 
     log.info('Video sent to Discord successfully');
   }
@@ -542,6 +711,10 @@ function isHandledInteractionError(error: unknown): error is DiscordAPIError {
   return error instanceof DiscordAPIError && (error.code === 10062 || error.code === 40060);
 }
 
+function isUnknownMessageError(error: unknown): error is DiscordAPIError {
+  return error instanceof DiscordAPIError && error.code === 10008;
+}
+
 function isNonRetryableUploadError(error: unknown): boolean {
   return error instanceof DiscordAPIError && (error.code === 40005 || error.status === 413);
 }
@@ -580,7 +753,8 @@ function buildVideoResultMessage(params: {
   discordId?: string;
   requestId: string;
   processingTime?: number;
-}): MessageCreateOptions {
+  moveVideoMessageId?: string;
+}): ComponentsV2MessageOptions {
   const userLine = params.discordId ? `<@${params.discordId}>` : 'A generation is ready.';
   const detailLine = `> ${userLine} · ${formatProcessingTime(params.processingTime)}`;
   const appUrl = process.env.APP_URL || 'https://localhost:3000';
@@ -603,11 +777,68 @@ function buildVideoResultMessage(params: {
         )
     );
 
+  if (params.moveVideoMessageId) {
+    container.addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`${MOVE_NSFW_PREFIX}${params.moveVideoMessageId}:${params.requestId}`)
+          .setLabel('NSFW 채널로 이동')
+          .setStyle(ButtonStyle.Secondary)
+      )
+    );
+  }
+
   return {
     allowedMentions: params.discordId ? { users: [params.discordId] } : { parse: [] },
     components: [container],
     flags: [MessageFlags.IsComponentsV2],
   };
+}
+
+function buildMovedVideoNoticeMessage(params: {
+  modelDisplayName: string;
+  movedByDiscordId: string;
+  guildId: string;
+  nsfwChannelId: string;
+  nsfwCardMessageId: string;
+}): ComponentsV2MessageOptions {
+  const appUrl = process.env.APP_URL || 'https://localhost:3000';
+  const title = `CubicJ Cafe I2V - ${params.modelDisplayName}`;
+  const messageUrl = `https://discord.com/channels/${params.guildId}/${params.nsfwChannelId}/${params.nsfwCardMessageId}`;
+  const container = new ContainerBuilder()
+    .setAccentColor(0x10b981)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(`## [${title}](${appUrl})`),
+      new TextDisplayBuilder().setContent(
+        `해당 영상은 <@${params.movedByDiscordId}>님이 NSFW 채널로 이동했습니다.`
+      )
+    )
+    .addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setLabel('NSFW 채널에서 보기')
+          .setStyle(ButtonStyle.Link)
+          .setURL(messageUrl)
+      )
+    );
+
+  return {
+    allowedMentions: { parse: [] },
+    components: [container],
+    flags: [MessageFlags.IsComponentsV2],
+  };
+}
+
+function getRequestProcessingTimeSeconds(request: {
+  startedAt?: Date | null;
+  completedAt?: Date | null;
+}): number | undefined {
+  const startedAt = request.startedAt;
+  const completedAt = request.completedAt;
+  if (!startedAt || !completedAt) return undefined;
+
+  const seconds = Math.round((completedAt.getTime() - startedAt.getTime()) / 1000);
+  return seconds >= 0 ? seconds : undefined;
 }
 
 function formatProcessingTime(processingTime?: number) {
