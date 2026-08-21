@@ -1,18 +1,20 @@
 import type { Metadata } from 'next';
-import { Inter, Sora } from 'next/font/google';
+import { IBM_Plex_Sans_KR, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
-const inter = Inter({
-  variable: '--font-inter',
+const plexSansKr = IBM_Plex_Sans_KR({
+  variable: '--font-plex-sans-kr',
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
 });
 
-const sora = Sora({
-  variable: '--font-sora',
+const plexMono = IBM_Plex_Mono({
+  variable: '--font-plex-mono',
+  weight: ['400', '500'],
   subsets: ['latin'],
   display: 'swap',
 });
@@ -49,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${inter.variable} ${sora.variable} antialiased`}
+        className={`${plexSansKr.variable} ${plexMono.variable} antialiased`}
       >
         <Providers>
           <div className="min-h-screen flex flex-col">
