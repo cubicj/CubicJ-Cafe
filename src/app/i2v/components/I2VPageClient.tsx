@@ -8,6 +8,7 @@ import { Sparkles, Bot, XCircle, Film } from 'lucide-react';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import { ServerStatusSection } from './sections/ServerStatusSection';
 import { ImageUploadSection } from './sections/ImageUploadSection';
+import { ReferenceUploadSection } from './sections/ReferenceUploadSection';
 import { ContentSettingsSection } from './sections/ContentSettingsSection';
 import { I2VControlsSection } from './sections/I2VControlsSection';
 import { useI2VForm } from './hooks/useI2VForm';
@@ -46,6 +47,7 @@ export default function I2VPageClient() {
     capabilities,
     durationOptions,
     durationLabels,
+    referenceSet,
     setHasUnavailableLoRAs,
     isFormValid,
     handleSubmit,
@@ -130,21 +132,29 @@ export default function I2VPageClient() {
           <QueueMonitor />
 
           <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 w-full max-w-full overflow-hidden">
-            <ImageUploadSection
-              selectedFile={selectedFile}
-              onFileSelect={setSelectedFile}
-              endImageFile={endImageFile}
-              onEndImageSelect={setEndImageFile}
-              isLoopEnabled={isLoopEnabled}
-              onLoopToggle={setIsLoopEnabled}
-              prompt={prompt}
-              onPromptChange={setPrompt}
-              showEndImage={capabilities.endImage}
-              startImageOptional={capabilities.startImageOptional}
-              audioPresetId={audioPresetId}
-              onAudioPresetChange={setAudioPresetId}
-              showAudio={capabilities.audio}
-            />
+            {capabilities.referenceInputs ? (
+              <ReferenceUploadSection
+                referenceSet={referenceSet}
+                prompt={prompt}
+                onPromptChange={setPrompt}
+              />
+            ) : (
+              <ImageUploadSection
+                selectedFile={selectedFile}
+                onFileSelect={setSelectedFile}
+                endImageFile={endImageFile}
+                onEndImageSelect={setEndImageFile}
+                isLoopEnabled={isLoopEnabled}
+                onLoopToggle={setIsLoopEnabled}
+                prompt={prompt}
+                onPromptChange={setPrompt}
+                showEndImage={capabilities.endImage}
+                startImageOptional={capabilities.startImageOptional}
+                audioPresetId={audioPresetId}
+                onAudioPresetChange={setAudioPresetId}
+                showAudio={capabilities.audio}
+              />
+            )}
 
             <div className="space-y-6 w-full max-w-full overflow-hidden">
               <div className="space-y-2">

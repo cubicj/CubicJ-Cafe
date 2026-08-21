@@ -11,6 +11,7 @@ import {
   usePersistedLoraPresetSelection,
 } from './useLoraPresetSelection';
 import { useModelCapabilities } from './useModelCapabilities';
+import { useReferenceSet } from './useReferenceSet';
 import { useInitialServerStatus, useServerStatus } from './useServerStatus';
 
 export function useI2VForm(): UseI2VFormReturn {
@@ -62,6 +63,8 @@ export function useI2VForm(): UseI2VFormReturn {
     setSelectedPresetIds,
     setCurrentPresets,
   });
+  const referenceSet = useReferenceSet();
+  const resetReferenceSet = referenceSet.reset;
   const {
     isGenerating,
     setIsGenerating,
@@ -85,8 +88,13 @@ export function useI2VForm(): UseI2VFormReturn {
     capabilities,
     videoDuration,
     clearForm,
+    referenceSet,
   });
   const previousIsLoopEnabledRef = useRef(isLoopEnabled);
+
+  useEffect(() => {
+    resetReferenceSet();
+  }, [activeModel, resetReferenceSet]);
 
   useEffect(() => {
     if (isLoopEnabled) {
@@ -117,7 +125,8 @@ export function useI2VForm(): UseI2VFormReturn {
   });
 
   const hasRequiredImages = capabilities.startImageOptional ? !!selectedFile || !!endImageFile : !!selectedFile;
-  const isFormValid = enabledModels.includes(activeModel) && hasRequiredImages && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
+  const hasRequiredInputs = capabilities.referenceInputs ? referenceSet.totalCount > 0 : hasRequiredImages;
+  const isFormValid = enabledModels.includes(activeModel) && hasRequiredInputs && prompt.trim().length > 0 && (serverStatus?.summary?.totalActive || 0) > 0;
 
   return {
     selectedFile,
@@ -159,6 +168,7 @@ export function useI2VForm(): UseI2VFormReturn {
     capabilities,
     durationOptions,
     durationLabels,
+    referenceSet,
     isFormValid,
     handleSubmit,
     handleReset,

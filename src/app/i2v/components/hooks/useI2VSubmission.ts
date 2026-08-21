@@ -3,6 +3,7 @@ import { apiClient, ApiError } from '@/lib/api-client';
 import { createLogger } from '@/lib/logger';
 import type { ModelCapabilities, VideoModel } from '@/lib/comfyui/workflows/types';
 import type { PresetData, SubmitMessage } from './useI2VForm.types';
+import type { ReferenceSetState } from './useReferenceSet';
 
 const log = createLogger('i2v');
 
@@ -20,6 +21,7 @@ interface UseI2VSubmissionOptions {
   capabilities: ModelCapabilities;
   videoDuration: number;
   clearForm: () => void;
+  referenceSet: ReferenceSetState;
 }
 
 export function useI2VSubmission({
@@ -36,14 +38,88 @@ export function useI2VSubmission({
   capabilities,
   videoDuration,
   clearForm,
+  referenceSet,
 }: UseI2VSubmissionOptions) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasUnavailableLoRAs, setHasUnavailableLoRAs] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
 
+  const handleSubmitError = (error: unknown) => {
+    log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
+
+    if (error instanceof ApiError) {
+      if (error.status === 429) {
+        setSubmitMessage({
+          type: 'error',
+          message: error.errorMessage || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
+        });
+      } else {
+        setSubmitMessage({
+          type: 'error',
+          message: error.errorMessage || '요청 처리 중 오류가 발생했습니다.'
+        });
+      }
+      return;
+    }
+
+    const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
+    const errorMessage = isNetworkError
+      ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
+      : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
+
+    setSubmitMessage({
+      type: 'error',
+      message: errorMessage
+    });
+  };
+
   const handleSubmit = async () => {
     if (!enabledModels.includes(activeModel)) {
       setSubmitMessage({ type: 'error', message: '선택 가능한 모델이 없습니다.' });
+      return;
+    }
+
+    if (capabilities.referenceInputs) {
+      if (referenceSet.totalCount === 0) {
+        setSubmitMessage({ type: 'error', message: '레퍼런스를 1개 이상 업로드해주세요.' });
+        return;
+      }
+      if (!prompt.trim()) {
+        setSubmitMessage({ type: 'error', message: '프롬프트를 입력해주세요.' });
+        return;
+      }
+
+      setIsGenerating(true);
+      setSubmitMessage(null);
+      try {
+        const formData = new FormData();
+        formData.append('prompt', prompt.trim());
+        formData.append('model', activeModel);
+        formData.append('isNSFW', (capabilities.nsfw ? isNSFW : false).toString());
+        formData.append('videoDuration', videoDuration.toString());
+        formData.append('resolutionMode', referenceSet.effectiveResolutionMode);
+        if (referenceSet.effectiveResolutionMode === 'custom') {
+          formData.append('aspectWidth', referenceSet.aspectWidth.toString());
+          formData.append('aspectHeight', referenceSet.aspectHeight.toString());
+        }
+        referenceSet.images.forEach((file, index) => formData.append(`refImage_${index}`, file));
+        referenceSet.videos.forEach((entry, index) => {
+          formData.append(`refVideo_${index}`, entry.file);
+          formData.append(`refVideoSoundtrack_${index}`, entry.includeSoundtrack.toString());
+        });
+        referenceSet.audios.forEach((entry, index) => {
+          if (entry.file) formData.append(`refAudioFile_${index}`, entry.file);
+          else formData.append(`refAudioPresetId_${index}`, entry.presetId);
+        });
+
+        await apiClient.postFormData<{ requestId: string }>('/api/i2v', formData);
+        clearForm();
+        referenceSet.reset();
+      } catch (error) {
+        handleSubmitError(error);
+      } finally {
+        setIsGenerating(false);
+      }
       return;
     }
 
@@ -123,32 +199,7 @@ export function useI2VSubmission({
 
       clearForm();
     } catch (error) {
-      log.error('Queue request failed', { error: error instanceof Error ? error.message : String(error) });
-
-      if (error instanceof ApiError) {
-        if (error.status === 429) {
-          setSubmitMessage({
-            type: 'error',
-            message: error.errorMessage || '현재 처리 중인 요청이 2개입니다. 기존 요청이 완료된 후 다시 시도해주세요.'
-          });
-        } else {
-          setSubmitMessage({
-            type: 'error',
-            message: error.errorMessage || '요청 처리 중 오류가 발생했습니다.'
-          });
-        }
-        return;
-      }
-
-      const isNetworkError = error instanceof TypeError && error.message.includes('fetch');
-      const errorMessage = isNetworkError
-        ? '네트워크 연결에 문제가 있습니다. 인터넷 연결과 서버 상태를 확인해주세요.'
-        : (error instanceof Error ? error.message : '요청 처리 중 오류가 발생했습니다.');
-
-      setSubmitMessage({
-        type: 'error',
-        message: errorMessage
-      });
+      handleSubmitError(error);
     } finally {
       setIsGenerating(false);
     }
@@ -156,6 +207,7 @@ export function useI2VSubmission({
 
   const handleReset = () => {
     clearForm();
+    referenceSet.reset();
     setSubmitMessage(null);
   };
 

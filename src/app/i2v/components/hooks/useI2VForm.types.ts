@@ -1,4 +1,5 @@
 import type { ModelCapabilities, VideoModel } from '@/lib/comfyui/workflows/types';
+import type { ReferenceSetState } from './useReferenceSet';
 
 export interface ServerInfo {
   type: 'local' | 'runpod';
@@ -85,6 +86,7 @@ export interface UseI2VFormReturn {
   capabilities: ModelCapabilities;
   durationOptions: number[];
   durationLabels: Record<number, string>;
+  referenceSet: ReferenceSetState;
   isLoadingAuth: boolean;
   hasUnavailableLoRAs: boolean;
   setHasUnavailableLoRAs: (has: boolean) => void;
