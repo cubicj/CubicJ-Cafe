@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Database, Shield, AlertCircle, ScrollText, Power, Pause, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BADGE_TONES } from '@/lib/badge-palette';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import { useAdminSettings } from './hooks/useAdminSettings';
 import DatabaseTab from './tabs/DatabaseTab';
@@ -295,7 +296,7 @@ export default function AdminDashboard() {
     <div className="container mx-auto px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">관리자 대시보드</h1>
-        <Badge variant="destructive">관리자 전용</Badge>
+        <Badge variant="outline" className={BADGE_TONES.red}>관리자 전용</Badge>
       </div>
 
       {error && (

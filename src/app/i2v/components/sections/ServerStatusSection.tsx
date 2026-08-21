@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BADGE_TONES } from "@/lib/badge-palette";
 import { Server, Clock, AlertCircle, AlertTriangle, Cpu, Cloud, CheckCircle, RefreshCw, XCircle } from "lucide-react";
 
 interface ServerInfo {
@@ -48,10 +49,10 @@ export function ServerStatusSection({
 }: ServerStatusSectionProps) {
   const getServerStatusColor = (serverStatus: string) => {
     switch (serverStatus) {
-      case 'connected': return 'default'
-      case 'disconnected': return 'secondary'
-      case 'error': return 'destructive'
-      default: return 'secondary'
+      case 'connected': return BADGE_TONES.green
+      case 'disconnected': return BADGE_TONES.gray
+      case 'error': return BADGE_TONES.red
+      default: return BADGE_TONES.gray
     }
   }
 
@@ -120,7 +121,7 @@ export function ServerStatusSection({
                   {serverStatus.servers?.filter(s => s.type === 'local').map((server, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
                       <div className="flex items-center gap-2">
-                        <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
+                        <Badge variant="outline" className={`${getServerStatusColor(server.status)} text-xs flex items-center gap-1`}>
                           {getServerStatusIcon(server.status)}
                           {server.name}
                         </Badge>
@@ -151,7 +152,7 @@ export function ServerStatusSection({
                     {serverStatus.servers?.filter(s => s.type === 'runpod').map((server, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
                         <div className="flex items-center gap-2">
-                          <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
+                          <Badge variant="outline" className={`${getServerStatusColor(server.status)} text-xs flex items-center gap-1`}>
                             {getServerStatusIcon(server.status)}
                             {server.name}
                           </Badge>
@@ -178,7 +179,7 @@ export function ServerStatusSection({
             {(serverStatus.summary?.totalActive || 0) > 0 && (
               <div className="p-3 bg-green-50 rounded-lg text-sm text-green-700">
                 <span className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 shrink-0" />
+                  <CheckCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
                   {serverStatus.summary?.totalActive || 0}개의 서버가 활성화되어 있습니다. 비디오 생성이 가능합니다.
                 </span>
               </div>
@@ -187,7 +188,7 @@ export function ServerStatusSection({
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) > 0 && (
               <div className="p-3 bg-yellow-50 rounded-lg text-sm text-yellow-700">
                 <span className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <AlertTriangle aria-hidden="true" className="h-4 w-4 shrink-0" />
                   모든 서버가 비활성 상태입니다. 비디오 생성이 일시적으로 불가능합니다.
                 </span>
               </div>
@@ -196,7 +197,7 @@ export function ServerStatusSection({
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) === 0 && (
               <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
                 <span className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 shrink-0" />
+                  <XCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
                   사용 가능한 서버가 없습니다. 관리자에게 문의하세요.
                 </span>
               </div>
@@ -205,7 +206,7 @@ export function ServerStatusSection({
             {serverStatus?.error && (
               <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
                 <span className="flex items-center gap-2">
-                  <XCircle className="h-4 w-4 shrink-0" />
+                  <XCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
                   서버 상태 확인 중 오류가 발생했습니다.
                 </span>
               </div>

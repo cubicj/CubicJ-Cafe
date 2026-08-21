@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     fileParallelism: false,
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     globalSetup: ['tests/helpers/setup.ts'],
     setupFiles: ['tests/helpers/setup-mocks.ts'],
     env: {

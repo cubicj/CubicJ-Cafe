@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ClientIcon } from '@/components/ui/client-icon';
 import { Video, Image } from 'lucide-react';
@@ -41,17 +42,17 @@ export default function Home() {
         </Card>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Card className="p-5 opacity-60">
-            <div className="flex items-center justify-between gap-3">
+          <Card className="p-5 bg-muted/40 border-dashed justify-center">
+            <div className="flex w-full items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <ClientIcon icon={Image} className="h-4 w-4 text-muted-foreground" fallback="🖼️" />
                 <span className="text-sm font-semibold">Txt to Img</span>
               </div>
-              <span className="font-mono text-xs text-muted-foreground">준비중</span>
+              <Badge variant="outline" className="bg-background text-xs text-muted-foreground">준비중</Badge>
             </div>
           </Card>
-          <Card className="p-5">
-            <div className="flex items-center justify-between gap-3">
+          <Card className="p-5 justify-center">
+            <div className="flex w-full items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <GithubIcon className="h-4 w-4 text-foreground" />
                 <span className="text-sm font-semibold">GitHub</span>

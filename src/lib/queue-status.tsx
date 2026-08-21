@@ -6,7 +6,7 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react';
-import { BADGE_TONES } from '@/lib/badge-palette';
+import { BADGE_ACCENTS, BADGE_TONES } from '@/lib/badge-palette';
 
 type QueueStatusType =
   | 'PENDING'
@@ -32,7 +32,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'secondary',
     bgClass: BADGE_TONES.yellow,
     badgeClass: BADGE_TONES.yellow,
-    accentClass: 'text-yellow-600',
+    accentClass: BADGE_ACCENTS.yellow,
   },
   PROCESSING: {
     text: '처리중',
@@ -40,7 +40,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'default',
     bgClass: BADGE_TONES.blue,
     badgeClass: BADGE_TONES.blue,
-    accentClass: 'text-blue-600',
+    accentClass: BADGE_ACCENTS.blue,
   },
   COMPLETED: {
     text: '완료',
@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'outline',
     bgClass: BADGE_TONES.green,
     badgeClass: BADGE_TONES.green,
-    accentClass: 'text-green-600',
+    accentClass: BADGE_ACCENTS.green,
   },
   COMPLETED_WITH_ERROR: {
     text: '전송 실패',
@@ -56,7 +56,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'destructive',
     bgClass: BADGE_TONES.orange,
     badgeClass: BADGE_TONES.orange,
-    accentClass: 'text-orange-600',
+    accentClass: BADGE_ACCENTS.orange,
   },
   FAILED: {
     text: '실패',
@@ -64,7 +64,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'destructive',
     bgClass: BADGE_TONES.red,
     badgeClass: BADGE_TONES.red,
-    accentClass: 'text-red-600',
+    accentClass: BADGE_ACCENTS.red,
   },
   CANCELLED: {
     text: '취소됨',
@@ -72,7 +72,7 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     badgeVariant: 'outline',
     bgClass: BADGE_TONES.gray,
     badgeClass: BADGE_TONES.gray,
-    accentClass: 'text-gray-600',
+    accentClass: BADGE_ACCENTS.gray,
   },
 };
 
