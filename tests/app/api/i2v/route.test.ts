@@ -35,6 +35,7 @@ vi.mock('@/lib/database/system-settings', () => ({
   getLtxrSettings: vi.fn(() => ({ loraEnabled: false, durationOptions: [5, 6, 7], frameBase: 11, frameRate: 19 })),
   getLtxWanSettings: vi.fn(() => ({ loraEnabledWan: false, durationOptions: [5, 6, 7, 8] })),
   getH3Fl2vaSettings: vi.fn(() => ({ durationOptions: [5, 7], framesPerStep: 10, frameBase: 3, frameRate: 10 })),
+  getH3Ref2vaSettings: vi.fn(() => ({ durationOptions: [7], framesPerStep: 10, frameBase: 3, frameRate: 10 })),
   getEnabledModels: vi.fn(() => ['wan', 'ltxa', 'ltx-wan']),
 }))
 

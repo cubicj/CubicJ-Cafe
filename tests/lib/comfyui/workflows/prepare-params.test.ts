@@ -146,6 +146,58 @@ describe('generation param preparation', () => {
     })).rejects.toThrow('H3 FL2VA requires at least one image')
   })
 
+  it('prepares H3 Ref2VA params with references and custom resolution', async () => {
+    await expect(prepareGenerationParams('h3-ref2va', {
+      request,
+      references: {
+        images: ['reference.png'],
+        videos: [{ name: 'reference.mp4', includeSoundtrack: true }],
+        audios: ['reference.wav'],
+      },
+      resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 },
+      client: client as never,
+    })).resolves.toEqual({
+      model: 'h3-ref2va',
+      prompt: 'fake prompt',
+      videoDuration: 6,
+      isNSFW: true,
+      refImages: ['reference.png'],
+      refVideos: [{ name: 'reference.mp4', includeSoundtrack: true }],
+      refAudios: ['reference.wav'],
+      resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 },
+    })
+  })
+
+  it('rejects H3 Ref2VA params without references', async () => {
+    await expect(prepareGenerationParams('h3-ref2va', {
+      request,
+      references: { images: [], videos: [], audios: [] },
+      resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 },
+      client: client as never,
+    })).rejects.toThrow('H3 Ref2VA requires at least one reference')
+  })
+
+  it('rejects H3 Ref2VA params without resolution', async () => {
+    await expect(prepareGenerationParams('h3-ref2va', {
+      request,
+      references: { images: ['reference.png'], videos: [], audios: [] },
+      client: client as never,
+    })).rejects.toThrow('H3 Ref2VA requires resolution parameters')
+  })
+
+  it('rejects H3 Ref2VA first-image resolution without a reference image', async () => {
+    await expect(prepareGenerationParams('h3-ref2va', {
+      request,
+      references: {
+        images: [],
+        videos: [{ name: 'reference.mp4', includeSoundtrack: false }],
+        audios: [],
+      },
+      resolution: { mode: 'firstImage' },
+      client: client as never,
+    })).rejects.toThrow('H3 Ref2VA firstImage resolution requires at least one reference image')
+  })
+
   it.each(['wan', 'ltxa', 'ltxr', 'ltx-wan'] as const)('rejects %s without a start image', async model => {
     mockGetLtxrSettings.mockResolvedValue({
       watermarkEnabled: false,

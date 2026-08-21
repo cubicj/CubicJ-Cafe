@@ -45,6 +45,12 @@ export const GET = createRouteHandler(
           ? `${getVideoDurationSeconds('h3-fl2va', duration, { framesPerStep: settings.h3Fl2vaFramesPerStep, frameBase: settings.h3Fl2vaFrameBase ?? 0, frameRate: settings.h3Fl2vaFrameRate }).toFixed(1)}초`
           : `${duration}초`,
       ])),
+      'h3-ref2va': Object.fromEntries(durationOptions['h3-ref2va'].map(duration => [
+        duration,
+        settings.h3Ref2vaFramesPerStep && settings.h3Ref2vaFrameRate
+          ? `${getVideoDurationSeconds('h3-ref2va', duration, { framesPerStep: settings.h3Ref2vaFramesPerStep, frameBase: settings.h3Ref2vaFrameBase ?? 0, frameRate: settings.h3Ref2vaFrameRate }).toFixed(1)}초`
+          : `${duration}초`,
+      ])),
     }
 
     return { capabilities, durationOptions, durationLabels, enabledModels: settings.enabledModels }
