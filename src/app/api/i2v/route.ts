@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandler } from '@/lib/api/route-handler';
-import { QueueService } from '@/lib/database/queue';
+import { createRouteHandler, type AuthenticatedRequest } from '@/lib/api/route-handler';
+import { QueueService, type QueueReferenceFileInput } from '@/lib/database/queue';
 import { serverManager } from '@/lib/comfyui/server-manager';
 import { randomUUID } from 'crypto';
-import { GenerationMode, ServerType } from '@/generated/prisma/enums';
+import { GenerationMode, ReferenceKind, ServerType } from '@/generated/prisma/enums';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { getModelSettings, getVideoDurationSeconds } from '@/lib/comfyui/workflows/model-settings';
@@ -11,6 +11,7 @@ import { isComfyUIEnabled } from '@/lib/comfyui/comfyui-state';
 import { getEnabledModels } from '@/lib/database/system-settings';
 import { parseFormData } from '@/lib/validations/parse';
 import { i2vSchema } from '@/lib/validations/schemas/i2v';
+import { ref2vaSchema } from '@/lib/validations/schemas/ref2va';
 import { AudioPresetService } from '@/lib/database/audio-presets';
 
 import { createLogger } from '@/lib/logger';
@@ -30,6 +31,107 @@ async function selectBestServer() {
     serverType: bestServer.type === 'LOCAL' ? ServerType.LOCAL : ServerType.RUNPOD,
     url: bestServer.url
   };
+}
+
+async function handleReferenceSubmission(
+  req: AuthenticatedRequest,
+  formData: FormData,
+  selectedServer: { serverId: string; serverType: ServerType }
+) {
+  const formResult = parseFormData(ref2vaSchema, formData)
+  if (!formResult.success) return formResult.response
+  const validated = formResult.data
+
+  const activeModel = validated.model as VideoModel
+  const enabledModels = await getEnabledModels()
+  if (!enabledModels.includes(activeModel)) {
+    return NextResponse.json({ error: '선택한 모델은 현재 비활성화되어 있습니다.' }, { status: 400 })
+  }
+
+  const capabilities = MODEL_REGISTRY[activeModel].capabilities
+  const modelSettings = await getModelSettings(activeModel)
+  if (!modelSettings.durationOptions.includes(validated.videoDuration)) {
+    return NextResponse.json(
+      { error: `영상 길이는 ${modelSettings.durationOptions.join(', ')} 중 하나여야 합니다.` },
+      { status: 400 }
+    )
+  }
+  const videoDurationSeconds = getVideoDurationSeconds(activeModel, validated.videoDuration, modelSettings)
+
+  const fileExtension = (name: string, fallback: string) =>
+    name.includes('.') ? name.split('.').pop()! : fallback
+
+  const referenceFiles: QueueReferenceFileInput[] = []
+  for (const [slot, file] of validated.images.entries()) {
+    referenceFiles.push({
+      kind: ReferenceKind.IMAGE,
+      slot,
+      filename: `ref_img_${slot}_${randomUUID()}.${fileExtension(file.name, 'png')}`,
+      blob: Buffer.from(await file.arrayBuffer()),
+    })
+  }
+  for (const [slot, video] of validated.videos.entries()) {
+    referenceFiles.push({
+      kind: ReferenceKind.VIDEO,
+      slot,
+      filename: `ref_vid_${slot}_${randomUUID()}.${fileExtension(video.file.name, 'mp4')}`,
+      blob: Buffer.from(await video.file.arrayBuffer()),
+      includeSoundtrack: video.includeSoundtrack,
+    })
+  }
+  for (const [slot, audio] of validated.audios.entries()) {
+    if (audio.file) {
+      referenceFiles.push({
+        kind: ReferenceKind.AUDIO,
+        slot,
+        filename: `ref_aud_${slot}_${randomUUID()}.${fileExtension(audio.file.name, 'wav')}`,
+        blob: Buffer.from(await audio.file.arrayBuffer()),
+      })
+      continue
+    }
+    const preset = await AudioPresetService.getPresetWithBlob(audio.presetId!, parseInt(req.user!.id))
+    if (!preset) {
+      return NextResponse.json({ error: '오디오 프리셋을 찾을 수 없습니다.' }, { status: 400 })
+    }
+    referenceFiles.push({
+      kind: ReferenceKind.AUDIO,
+      slot,
+      filename: `ref_aud_${slot}_${randomUUID()}.${fileExtension(preset.audioFilename, 'wav')}`,
+      blob: Buffer.from(preset.audioBlob),
+      audioPresetName: preset.name,
+    })
+  }
+
+  try {
+    const requestId = await QueueService.createRequest({
+      userId: parseInt(req.user!.id),
+      nickname: req.user!.nickname,
+      prompt: validated.prompt,
+      isNSFW: capabilities.nsfw ? validated.isNSFW : false,
+      serverType: selectedServer.serverType,
+      serverId: selectedServer.serverId,
+      videoModel: activeModel,
+      generationMode: GenerationMode.REFERENCE,
+      videoDuration: validated.videoDuration,
+      videoDurationSeconds,
+      referenceFiles,
+      resolutionMode: validated.resolution.mode === 'custom' ? 'custom' : 'first_image',
+      aspectWidth: validated.resolution.mode === 'custom' ? validated.resolution.aspectWidth : undefined,
+      aspectHeight: validated.resolution.mode === 'custom' ? validated.resolution.aspectHeight : undefined,
+    })
+
+    log.info('Reference request queued', { requestId, user: req.user!.nickname, references: referenceFiles.length })
+
+    return {
+      requestId,
+      message: '요청이 큐에 추가되었습니다. 처리 순서를 기다려주세요.',
+    }
+  } catch (queueError) {
+    if (queueError instanceof Error && queueError.message.includes('2개의 요청을 처리 중')) {
+      return NextResponse.json({ error: queueError.message }, { status: 429 })
+    }
+    throw queueError
+  }
 }
 
 export const POST = createRouteHandler(
@@ -68,6 +170,14 @@ export const POST = createRouteHandler(
       formData = await req.formData();
     } catch {
       return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+    }
+    const modelField = formData.get('model')
+    if (
+      typeof modelField === 'string' &&
+      Object.hasOwn(MODEL_REGISTRY, modelField) &&
+      MODEL_REGISTRY[modelField as VideoModel].capabilities.referenceInputs
+    ) {
+      return handleReferenceSubmission(req, formData, selectedServer)
     }
     const formResult = parseFormData(i2vSchema, formData);
     if (!formResult.success) return formResult.response;
