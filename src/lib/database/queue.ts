@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { GenerationMode, QueueStatus, ServerType } from '@/generated/prisma/enums';
+import { GenerationMode, QueueStatus, ServerType, ReferenceKind } from '@/generated/prisma/enums';
 import type { QueueRequestGetPayload } from '@/generated/prisma/models/QueueRequest';
 import type { LoRAPresetData } from "@/types";
 import { createLogger } from '@/lib/logger';
@@ -7,12 +7,27 @@ import { ExpiringCache } from '@/lib/utils/expiring-cache';
 
 const log = createLogger('queue');
 
+const REFERENCE_KIND_ORDER: Record<ReferenceKind, number> = {
+  [ReferenceKind.IMAGE]: 0,
+  [ReferenceKind.VIDEO]: 1,
+  [ReferenceKind.AUDIO]: 2,
+};
+
 type QueueStatsData = {
   pending: number;
   processing: number;
   todayCompleted: number;
   total: number;
 };
+
+export interface QueueReferenceFileInput {
+  kind: ReferenceKind;
+  slot: number;
+  filename: string;
+  blob?: Uint8Array;
+  includeSoundtrack?: boolean;
+  audioPresetName?: string;
+}
 
 interface QueueRequestData {
   userId: number;
@@ -33,6 +48,10 @@ interface QueueRequestData {
   generationMode?: GenerationMode;
   videoDuration?: number;
   videoDurationSeconds?: number;
+  referenceFiles?: QueueReferenceFileInput[];
+  resolutionMode?: string;
+  aspectWidth?: number;
+  aspectHeight?: number;
 }
 
 interface QueueRequestUpdate {
@@ -72,6 +91,9 @@ const QUEUE_SELECT_BASE = {
   generationMode: true,
   videoDuration: true,
   videoDurationSeconds: true,
+  resolutionMode: true,
+  aspectWidth: true,
+  aspectHeight: true,
 } as const;
 
 const QUEUE_LIST_SELECT = {
@@ -144,11 +166,27 @@ export class QueueService {
           generationMode: data.generationMode || GenerationMode.START_ONLY,
           videoDuration: data.videoDuration || 5,
           videoDurationSeconds: data.videoDurationSeconds,
+          resolutionMode: data.resolutionMode,
+          aspectWidth: data.aspectWidth,
+          aspectHeight: data.aspectHeight,
           position: nextPosition,
           status: QueueStatus.PENDING,
         };
 
         const request = await tx.queueRequest.create({ data: requestData });
+        if (data.referenceFiles && data.referenceFiles.length > 0) {
+          await tx.queueReferenceFile.createMany({
+            data: data.referenceFiles.map((file) => ({
+              requestId: request.id,
+              kind: file.kind,
+              slot: file.slot,
+              filename: file.filename,
+              blob: file.blob as Uint8Array<ArrayBuffer> | undefined,
+              includeSoundtrack: file.includeSoundtrack ?? false,
+              audioPresetName: file.audioPresetName,
+            })),
+          });
+        }
         return request.id;
       },
       { isolationLevel: 'Serializable', timeout: 15000 },
@@ -210,14 +248,35 @@ export class QueueService {
   }
 
   static async clearImageBlobs(requestId: string) {
-    await prisma.queueRequest.update({
-      where: { id: requestId },
-      data: {
-        imageBlob: null,
-        endImageBlob: null,
-        audioBlob: null,
-      }
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.queueRequest.update({
+          where: { id: requestId },
+          data: {
+            imageBlob: null,
+            endImageBlob: null,
+            audioBlob: null,
+          }
+        });
+        await tx.queueReferenceFile.updateMany({
+          where: { requestId },
+          data: { blob: null },
+        });
+      },
+      { isolationLevel: 'Serializable', timeout: 15000 },
+    );
+  }
+
+  static async getReferenceFiles(requestId: string) {
+    const files = await prisma.queueReferenceFile.findMany({
+      where: { requestId },
+      orderBy: [{ kind: 'asc' }, { slot: 'asc' }],
     });
+
+    return files.sort((left, right) => (
+      REFERENCE_KIND_ORDER[left.kind] - REFERENCE_KIND_ORDER[right.kind]
+      || left.slot - right.slot
+    ));
   }
 
   static invalidateCache() {
@@ -341,6 +400,11 @@ export class QueueService {
           }
         });
 
+        await tx.queueReferenceFile.updateMany({
+          where: { requestId },
+          data: { blob: null },
+        });
+
         return { ...updated, wasProcessing, cancelledJobId: jobId, cancelledServerId: serverId };
       },
       { isolationLevel: 'Serializable', timeout: 15000 },
@@ -366,22 +430,42 @@ export class QueueService {
   }
 
   static async cancelAllPending(): Promise<number> {
-    const result = await prisma.queueRequest.updateMany({
-      where: {
-        status: QueueStatus.PENDING
+    const cancelledCount = await prisma.$transaction(
+      async (tx) => {
+        const pendingRequests = await tx.queueRequest.findMany({
+          where: { status: QueueStatus.PENDING },
+          select: { id: true },
+        });
+        const requestIds = pendingRequests.map((request) => request.id);
+
+        if (requestIds.length === 0) {
+          return 0;
+        }
+
+        await tx.queueReferenceFile.updateMany({
+          where: { requestId: { in: requestIds } },
+          data: { blob: null },
+        });
+
+        const result = await tx.queueRequest.updateMany({
+          where: { id: { in: requestIds } },
+          data: {
+            status: QueueStatus.CANCELLED,
+            failedAt: new Date(),
+            error: 'ComfyUI 비활성화로 자동 취소됨',
+            imageBlob: null,
+            endImageBlob: null,
+            audioBlob: null,
+          }
+        });
+
+        return result.count;
       },
-      data: {
-        status: QueueStatus.CANCELLED,
-        failedAt: new Date(),
-        error: 'ComfyUI 비활성화로 자동 취소됨',
-        imageBlob: null,
-        endImageBlob: null,
-        audioBlob: null,
-      }
-    });
+      { isolationLevel: 'Serializable', timeout: 15000 },
+    );
 
     QueueService.invalidateCache();
-    return result.count;
+    return cancelledCount;
   }
 
   static async resetStaleProcessingRequests() {
