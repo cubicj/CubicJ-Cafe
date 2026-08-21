@@ -2,14 +2,30 @@ import { vi } from 'vitest'
 
 const discordClientHandlers = vi.hoisted(() => new Map<string, (...args: unknown[]) => unknown>())
 const mockGetRequestById = vi.hoisted(() => vi.fn())
+const mockStat = vi.hoisted(() => vi.fn())
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+}))
+const MockDiscordAPIError = vi.hoisted(() => class DiscordAPIError extends Error {
+  code: number
+  status: number
+
+  constructor(code: number, status: number) {
+    super(`Discord API error ${code}`)
+    this.code = code
+    this.status = status
+  }
+})
+
+vi.mock('node:fs/promises', () => ({
+  stat: (...args: unknown[]) => mockStat(...args),
+}))
 
 vi.mock('@/lib/logger', () => ({
-  createLogger: () => ({
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  }),
+  createLogger: () => mockLogger,
 }))
 
 vi.mock('@/lib/database/ops-settings', () => ({
@@ -59,6 +75,7 @@ vi.mock('discord.js', () => ({
     addTextDisplayComponents(...components: unknown[]) { this.textComponents.push(...components); return this }
     addSectionComponents(...components: unknown[]) { this.sectionComponents.push(...components); return this }
   },
+  DiscordAPIError: MockDiscordAPIError,
   GatewayIntentBits: { Guilds: 1, GuildMessages: 2 },
   MessageFlags: { Ephemeral: 64, IsComponentsV2: 32768 },
   SectionBuilder: class {
@@ -77,6 +94,7 @@ describe('discordBot singleton', () => {
   beforeEach(() => {
     vi.stubEnv('DISCORD_GUILD_ID', 'guild-1')
     vi.stubEnv('DISCORD_CHANNEL_ID', 'channel-1')
+    mockStat.mockResolvedValue({ size: 1024 })
   })
 
   afterEach(() => {
@@ -86,6 +104,8 @@ describe('discordBot singleton', () => {
     delete globalThis.__discordBot
     discordClientHandlers.clear()
     mockGetRequestById.mockReset()
+    mockStat.mockReset()
+    vi.clearAllMocks()
   })
 
   it('refreshes the prototype of an existing global singleton after hot reload', async () => {
@@ -120,7 +140,7 @@ describe('discordBot singleton', () => {
     }
     bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
-    bot.getChannel = vi.fn().mockResolvedValue({ send })
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
     await bot.sendDebugVideoResultMessage({
       requestId: 'request-1',
@@ -158,7 +178,7 @@ describe('discordBot singleton', () => {
     }
     bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
-    bot.getChannel = vi.fn().mockResolvedValue({ send })
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
     const sendPromise = bot.sendVideoToDiscord({
       videoPath: '/tmp/video.mp4',
@@ -174,6 +194,94 @@ describe('discordBot singleton', () => {
     const fileSends = send.mock.calls.filter(([message]) => message.files)
     expect(cardSends).toHaveLength(1)
     expect(fileSends).toHaveLength(2)
+  })
+
+  it('sends the result card and a notice without uploading an oversized video', async () => {
+    mockStat.mockResolvedValue({ size: 10 * 1024 * 1024 })
+    const { discordBot } = await import('@/lib/discord-bot')
+    const send = vi.fn().mockResolvedValue(undefined)
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
+
+    await bot.sendVideoToDiscord({
+      videoPath: '/tmp/oversized-video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+    })
+
+    expect(send).toHaveBeenCalledTimes(2)
+    expect(send.mock.calls[0][0].files).toBeUndefined()
+    expect(send.mock.calls[1][0]).toEqual({
+      content: '영상 파일이 Discord 업로드 제한을 초과해 업로드하지 못했습니다. (10.0MB)',
+    })
+    expect(mockLogger.warn).toHaveBeenCalledWith('Video exceeds Discord upload limit', expect.objectContaining({
+      sizeBytes: 10 * 1024 * 1024,
+      premiumTier: 0,
+    }))
+  })
+
+  it.each([
+    [2, 40],
+    [3, 80],
+  ])('allows a video within guild premium tier %s upload limit', async (premiumTier, sizeMB) => {
+    mockStat.mockResolvedValue({ size: sizeMB * 1024 * 1024 })
+    const { discordBot } = await import('@/lib/discord-bot')
+    const send = vi.fn().mockResolvedValue(undefined)
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier } })
+
+    await bot.sendVideoToDiscord({
+      videoPath: '/tmp/tier-video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+    })
+
+    expect(send.mock.calls.filter(([message]) => message.files)).toHaveLength(1)
+  })
+
+  it.each([
+    [40005, 400],
+    [50000, 413],
+  ])('does not retry a Discord upload failure with code %s and status %s', async (code, status) => {
+    const { discordBot } = await import('@/lib/discord-bot')
+    const uploadError = new MockDiscordAPIError(code, status)
+    const send = vi.fn((message: { files?: unknown[] }) => (
+      message.files ? Promise.reject(uploadError) : Promise.resolve(undefined)
+    ))
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
+
+    await expect(bot.sendVideoToDiscord({
+      videoPath: '/tmp/video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+    })).rejects.toBe(uploadError)
+
+    expect(send.mock.calls.filter(([message]) => message.files)).toHaveLength(1)
   })
 
   it('includes request metadata when replying with a short prompt', async () => {
@@ -234,5 +342,51 @@ describe('discordBot singleton', () => {
     expect(reply.mock.calls[0][0].files[0].options).toEqual({
       name: 'prompt-request-1.txt',
     })
+  })
+
+  it.each([10062, 40060])('does not send a fallback reply for handled interaction error %s', async (code) => {
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-1',
+      prompt: 'test prompt',
+    })
+    const replyError = new MockDiscordAPIError(code, 400)
+    const reply = vi.fn().mockRejectedValue(replyError)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'show_prompt:request-1',
+      replied: false,
+      deferred: false,
+      reply,
+    })
+
+    expect(reply).toHaveBeenCalledTimes(1)
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'Prompt button interaction was lost or already handled by another process',
+      expect.objectContaining({ requestId: 'request-1', code })
+    )
+  })
+
+  it('swallows a failed fallback reply', async () => {
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockRejectedValue(new Error('database unavailable'))
+    const reply = vi.fn().mockRejectedValue(new Error('reply unavailable'))
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await expect(handler?.({
+      isButton: () => true,
+      customId: 'show_prompt:request-1',
+      replied: false,
+      deferred: false,
+      reply,
+    })).resolves.toBeUndefined()
+
+    expect(reply).toHaveBeenCalledTimes(1)
+    expect(mockLogger.error).toHaveBeenCalledWith('Failed to send prompt button error reply', expect.objectContaining({
+      requestId: 'request-1',
+      error: 'reply unavailable',
+    }))
   })
 })

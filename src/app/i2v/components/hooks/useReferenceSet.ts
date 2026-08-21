@@ -17,7 +17,7 @@ interface ReferenceImageEntry {
   previewUrl: string;
 }
 
-export type ReferenceAudioEntry = { file: File; presetId?: undefined } | { presetId: string; file?: undefined };
+export type ReferenceAudioEntry = { file: File; presetId?: undefined; presetName?: undefined } | { presetId: string; presetName: string; file?: undefined };
 
 export type Ref2vaResolutionMode = 'first_image' | 'custom';
 
@@ -38,7 +38,8 @@ export interface ReferenceSetState {
   removeVideo: (index: number) => void;
   toggleSoundtrack: (index: number) => void;
   addAudioFile: (file: File) => void;
-  addAudioPreset: (presetId: string) => void;
+  addAudioPreset: (preset: { id: string; name: string }) => void;
+  removeAudioPreset: (presetId: string) => void;
   removeAudio: (index: number) => void;
   setResolutionMode: (mode: Ref2vaResolutionMode) => void;
   setAspect: (width: number, height: number) => void;
@@ -86,13 +87,21 @@ export function useReferenceSet(): ReferenceSetState {
   const addAudioFile = useCallback((file: File) => {
     setAudios((prev) => (prev.length >= REF_AUDIO_MAX ? prev : [...prev, { file }]));
   }, []);
-  const addAudioPreset = useCallback((presetId: string) => {
-    setAudios((prev) => (prev.length >= REF_AUDIO_MAX ? prev : [...prev, { presetId }]));
+  const addAudioPreset = useCallback((preset: { id: string; name: string }) => {
+    setAudios((prev) => (
+      prev.length >= REF_AUDIO_MAX || prev.some((entry) => entry.presetId === preset.id)
+        ? prev
+        : [...prev, { presetId: preset.id, presetName: preset.name }]
+    ));
+  }, []);
+  const removeAudioPreset = useCallback((presetId: string) => {
+    setAudios((prev) => prev.filter((entry) => entry.presetId !== presetId));
   }, []);
   const removeAudio = useCallback((index: number) => {
     setAudios((prev) => prev.filter((_, i) => i !== index));
   }, []);
   const setAspect = useCallback((width: number, height: number) => {
+    setResolutionMode('custom');
     setAspectWidth(Math.max(1, Math.min(100, Math.round(width) || 1)));
     setAspectHeight(Math.max(1, Math.min(100, Math.round(height) || 1)));
   }, []);
@@ -142,6 +151,7 @@ export function useReferenceSet(): ReferenceSetState {
     toggleSoundtrack,
     addAudioFile,
     addAudioPreset,
+    removeAudioPreset,
     removeAudio,
     setResolutionMode,
     setAspect,

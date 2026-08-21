@@ -10,16 +10,25 @@ import AudioPresetDialog from './AudioPresetDialog'
 import { AudioPreset, formatFileSize } from '@/types/audio'
 
 interface AudioPresetSelectorProps {
-  selectedPresetId: string | null
-  onPresetChange: (presetId: string | null) => void
+  selectedPresetId?: string | null
+  onPresetChange?: (presetId: string | null) => void
+  addedPresetIds?: string[]
+  onAddPreset?: (preset: Pick<AudioPreset, 'id' | 'name'>) => void
+  onPresetDeleted?: (presetId: string) => void
+  addDisabled?: boolean
   className?: string
 }
 
 export default function AudioPresetSelector({
-  selectedPresetId,
+  selectedPresetId = null,
   onPresetChange,
+  addedPresetIds,
+  onAddPreset,
+  onPresetDeleted,
+  addDisabled = false,
   className,
 }: AudioPresetSelectorProps) {
+  const isAddMode = addedPresetIds !== undefined || onAddPreset !== undefined
   const [presets, setPresets] = useState<AudioPreset[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAddOpen, setIsAddOpen] = useState(false)
@@ -74,8 +83,14 @@ export default function AudioPresetSelector({
     }
   }, [])
 
-  const togglePreset = (presetId: string) => {
-    onPresetChange(selectedPresetId === presetId ? null : presetId)
+  const togglePreset = (preset: AudioPreset) => {
+    if (isAddMode) {
+      if (addDisabled || addedPresetIds?.includes(preset.id)) return
+      onAddPreset?.({ id: preset.id, name: preset.name })
+      return
+    }
+
+    onPresetChange?.(selectedPresetId === preset.id ? null : preset.id)
   }
 
   const handleAdd = async (name: string, file: File | null) => {
@@ -102,7 +117,8 @@ export default function AudioPresetSelector({
     e.stopPropagation()
     try {
       await apiClient.delete(`/api/audio-presets/${presetId}`)
-      if (selectedPresetId === presetId) onPresetChange(null)
+      if (selectedPresetId === presetId) onPresetChange?.(null)
+      onPresetDeleted?.(presetId)
       await fetchPresets()
     } catch {
     }
@@ -146,20 +162,25 @@ export default function AudioPresetSelector({
                 ref={provided.innerRef}
                 className="space-y-1"
               >
-                {presets.map((preset, index) => (
+                {presets.map((preset, index) => {
+                  const isAdded = addedPresetIds?.includes(preset.id) ?? false
+                  const isDisabled = isAddMode && (isAdded || addDisabled)
+
+                  return (
                   <Draggable key={preset.id} draggableId={preset.id} index={index}>
                     {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         className={cn(
-                          'flex items-center gap-2 sm:gap-2 p-3 sm:p-2 rounded-md cursor-pointer transition-colors',
+                          'flex items-center gap-2 sm:gap-2 p-3 sm:p-2 rounded-md transition-colors',
+                          isDisabled ? 'cursor-default' : 'cursor-pointer',
                           snapshot.isDragging && 'shadow-lg ring-2 ring-blue-500 ring-opacity-50',
-                          selectedPresetId === preset.id
+                          selectedPresetId === preset.id || isAdded
                             ? 'bg-primary/10 border border-primary/30'
-                            : 'hover:bg-muted'
+                            : !isDisabled && 'hover:bg-muted'
                         )}
-                        onClick={() => togglePreset(preset.id)}
+                        onClick={() => togglePreset(preset)}
                       >
                         <div
                           {...provided.dragHandleProps}
@@ -170,9 +191,9 @@ export default function AudioPresetSelector({
                         </div>
                         <div className={cn(
                           'h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0',
-                          selectedPresetId === preset.id ? 'border-primary bg-primary' : 'border-muted-foreground'
+                          selectedPresetId === preset.id || isAdded ? 'border-primary bg-primary' : 'border-muted-foreground'
                         )}>
-                          {selectedPresetId === preset.id && <Check className="h-3 w-3 text-primary-foreground" />}
+                          {(selectedPresetId === preset.id || isAdded) && <Check className="h-3 w-3 text-primary-foreground" />}
                         </div>
                         <Music className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <div className="flex-1 min-w-0">
@@ -220,7 +241,8 @@ export default function AudioPresetSelector({
                       </div>
                     )}
                   </Draggable>
-                ))}
+                  )
+                })}
                 {provided.placeholder}
               </div>
             )}

@@ -32,7 +32,7 @@ export interface Ref2vaVideoInput {
 
 export type Ref2vaAudioInput = { file: File; presetId?: undefined } | { presetId: string; file?: undefined }
 
-export const ref2vaSchema = z.object({
+export const ref2vaSchema = z.strictObject({
   prompt: z.string().trim().min(1, '프롬프트를 입력해주세요').max(5000, '프롬프트가 너무 깁니다 (최대 5000자)'),
   model: z.literal('h3-ref2va'),
   isNSFW: formBoolean,
