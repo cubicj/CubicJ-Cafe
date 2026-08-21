@@ -25,12 +25,12 @@ export interface H3Ref2vaSettings {
   fusedModulation: boolean;
   chunkFeedforwardEnabled: boolean;
   chunkFeedforwardChunks: number;
-  chunkFeedforwardMinTokens: number;
+  chunkFeedforwardMinLen: number;
   solAttnEnabled: boolean;
   solAttnTauStart: number;
   solAttnTauEnd: number;
   solAttnCurve: string;
-  solAttnMinTokens: number;
+  solAttnMinLen: number;
   solAttnStrict: boolean;
   solAttnDensePercent: number;
   solAttnThreshType: string;
@@ -74,12 +74,12 @@ export const H3_REF2VA_KEYS = {
   fusedModulation: 'h3-ref2va.fused_modulation',
   chunkFeedforwardEnabled: 'h3-ref2va.chunk_feedforward_enabled',
   chunkFeedforwardChunks: 'h3-ref2va.chunk_feedforward_chunks',
-  chunkFeedforwardMinTokens: 'h3-ref2va.chunk_feedforward_min_tokens',
+  chunkFeedforwardMinLen: 'h3-ref2va.chunk_feedforward_min_len',
   solAttnEnabled: 'h3-ref2va.sol_attn_enabled',
   solAttnTauStart: 'h3-ref2va.sol_attn_tau_start',
   solAttnTauEnd: 'h3-ref2va.sol_attn_tau_end',
   solAttnCurve: 'h3-ref2va.sol_attn_curve',
-  solAttnMinTokens: 'h3-ref2va.sol_attn_min_tokens',
+  solAttnMinLen: 'h3-ref2va.sol_attn_min_len',
   solAttnStrict: 'h3-ref2va.sol_attn_strict',
   solAttnDensePercent: 'h3-ref2va.sol_attn_dense_percent',
   solAttnThreshType: 'h3-ref2va.sol_attn_thresh_type',
@@ -128,12 +128,12 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     fusedModulation: map.get(k.fusedModulation)! === 'true',
     chunkFeedforwardEnabled: map.get(k.chunkFeedforwardEnabled)! === 'true',
     chunkFeedforwardChunks: parseLtxInteger(map, k.chunkFeedforwardChunks),
-    chunkFeedforwardMinTokens: parseLtxInteger(map, k.chunkFeedforwardMinTokens),
+    chunkFeedforwardMinLen: parseLtxInteger(map, k.chunkFeedforwardMinLen),
     solAttnEnabled: map.get(k.solAttnEnabled)! === 'true',
     solAttnTauStart: parseLtxNumber(map, k.solAttnTauStart),
     solAttnTauEnd: parseLtxNumber(map, k.solAttnTauEnd),
     solAttnCurve: map.get(k.solAttnCurve)!,
-    solAttnMinTokens: parseLtxInteger(map, k.solAttnMinTokens),
+    solAttnMinLen: parseLtxInteger(map, k.solAttnMinLen),
     solAttnStrict: map.get(k.solAttnStrict)! === 'true',
     solAttnDensePercent: parseLtxNumber(map, k.solAttnDensePercent),
     solAttnThreshType: map.get(k.solAttnThreshType)!,
