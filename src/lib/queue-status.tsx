@@ -6,6 +6,7 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react';
+import { BADGE_TONES } from '@/lib/badge-palette';
 
 type QueueStatusType =
   | 'PENDING'
@@ -29,48 +30,48 @@ const STATUS_CONFIG: Record<QueueStatusType, StatusConfig> = {
     text: '대기중',
     icon: Clock,
     badgeVariant: 'secondary',
-    bgClass: 'bg-yellow-100 text-yellow-800',
-    badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+    bgClass: BADGE_TONES.yellow,
+    badgeClass: BADGE_TONES.yellow,
     accentClass: 'text-yellow-600',
   },
   PROCESSING: {
     text: '처리중',
     icon: Play,
     badgeVariant: 'default',
-    bgClass: 'bg-blue-100 text-blue-800',
-    badgeClass: 'bg-blue-100 text-blue-700 border-blue-300',
+    bgClass: BADGE_TONES.blue,
+    badgeClass: BADGE_TONES.blue,
     accentClass: 'text-blue-600',
   },
   COMPLETED: {
     text: '완료',
     icon: CheckCircle,
     badgeVariant: 'outline',
-    bgClass: 'bg-green-100 text-green-800',
-    badgeClass: 'bg-green-100 text-green-700 border-green-300',
+    bgClass: BADGE_TONES.green,
+    badgeClass: BADGE_TONES.green,
     accentClass: 'text-green-600',
   },
   COMPLETED_WITH_ERROR: {
     text: '전송 실패',
     icon: AlertTriangle,
     badgeVariant: 'destructive',
-    bgClass: 'bg-orange-100 text-orange-800',
-    badgeClass: 'bg-orange-100 text-orange-700 border-orange-300',
+    bgClass: BADGE_TONES.orange,
+    badgeClass: BADGE_TONES.orange,
     accentClass: 'text-orange-600',
   },
   FAILED: {
     text: '실패',
     icon: XCircle,
     badgeVariant: 'destructive',
-    bgClass: 'bg-red-100 text-red-800',
-    badgeClass: 'bg-red-100 text-red-700 border-red-300',
+    bgClass: BADGE_TONES.red,
+    badgeClass: BADGE_TONES.red,
     accentClass: 'text-red-600',
   },
   CANCELLED: {
     text: '취소됨',
     icon: AlertCircle,
     badgeVariant: 'outline',
-    bgClass: 'bg-gray-100 text-gray-800',
-    badgeClass: 'bg-gray-100 text-gray-700 border-gray-300',
+    bgClass: BADGE_TONES.gray,
+    badgeClass: BADGE_TONES.gray,
     accentClass: 'text-gray-600',
   },
 };

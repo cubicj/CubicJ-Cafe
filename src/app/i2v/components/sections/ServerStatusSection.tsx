@@ -112,7 +112,7 @@ export function ServerStatusSection({
                 <div className="flex items-center gap-2">
                   <Cpu className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium">로컬 서버</span>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="font-mono text-xs">
                     {serverStatus.summary?.local.active || 0}/{serverStatus.summary?.local.total || 0}
                   </Badge>
                 </div>
@@ -143,7 +143,7 @@ export function ServerStatusSection({
                   <div className="flex items-center gap-2">
                     <Cloud className="h-4 w-4 text-purple-600" />
                     <span className="text-sm font-medium">Runpod 서버</span>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="font-mono text-xs">
                       {serverStatus.summary?.runpod.active || 0}/{serverStatus.summary?.runpod.total || 0}
                     </Badge>
                   </div>
