@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, Eye, ImagePlus, ImageDown, Repeat, Volume2, VolumeX } from 'lucide-react';
+import { Trash2, Eye, ImagePlus, ImageDown, Repeat, Layers, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 import { cn } from '@/lib/utils';
@@ -50,6 +50,7 @@ const MODEL_CONFIG: Record<string, { label: string; className: string }> = {
   ltx: { label: 'LTX(Anime)', className: 'bg-blue-100 text-blue-700 border-blue-300' },
   'ltx-wan': { label: 'LTX + WAN', className: 'bg-teal-100 text-teal-700 border-teal-300' },
   'h3-fl2va': { label: 'H3 FL2VA', className: 'bg-rose-100 text-rose-700 border-rose-300' },
+  'h3-ref2va': { label: 'H3 Ref2VA', className: 'bg-orange-100 text-orange-700 border-orange-300' },
 };
 
 function getModelConfig(videoModel: string) {
@@ -97,6 +98,7 @@ const MODE_CONFIG: Record<string, { label: string; className: string }> = {
   START_END: { label: 'Base+End', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
   END_ONLY: { label: 'End', className: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
   LOOP: { label: 'Loop', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+  REFERENCE: { label: 'Ref', className: 'bg-violet-100 text-violet-700 border-violet-300' },
 };
 
 function getModeConfig(generationMode: string) {
@@ -252,6 +254,9 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           )}
           {request.generationMode === 'LOOP' && (
             <Repeat className="h-4 w-4 text-muted-foreground" />
+          )}
+          {request.generationMode === 'REFERENCE' && (
+            <Layers className="h-4 w-4 text-muted-foreground" />
           )}
           {request.audioFile ? (
             <Volume2 className="h-4 w-4 text-muted-foreground" />
