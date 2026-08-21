@@ -1,7 +1,8 @@
 import { vi } from 'vitest'
 import { cleanTables } from '@tests/helpers/db'
 import { createUser } from '@tests/helpers/fixtures'
-import { createTestSession } from '@tests/helpers/auth'
+import { buildAuthenticatedRequest, createTestSession } from '@tests/helpers/auth'
+import { seedH3Ref2va } from '@tests/helpers/h3-ref2va-seed'
 import { seedLtxrSettings } from '@tests/helpers/ltxr-seed'
 import { prisma } from '@/lib/database/prisma'
 
@@ -81,6 +82,22 @@ function buildFormDataRequest(url: string, sessionId: string, formData: FormData
       cookie: `session_id=${sessionId}`,
     },
   })
+}
+
+function buildReferenceFormData(overrides?: Record<string, string | Blob>) {
+  const form = new FormData()
+  form.set('prompt', 'a fake reference prompt')
+  form.set('model', 'h3-ref2va')
+  form.set('isNSFW', 'false')
+  form.set('videoDuration', '7')
+  form.set('resolutionMode', 'first_image')
+  form.set('refImage_0', new File(['fake-reference-image'], 'fake-reference.png', { type: 'image/png' }))
+  if (overrides) {
+    for (const [key, value] of Object.entries(overrides)) {
+      form.set(key, value)
+    }
+  }
+  return form
 }
 
 describe('POST /api/i2v', () => {
@@ -404,5 +421,160 @@ describe('POST /api/i2v', () => {
       select: { generationMode: true },
     })
     expect(row?.generationMode).toBe(expectedMode)
+  })
+
+  describe('h3-ref2va submissions', () => {
+    beforeEach(async () => {
+      await seedH3Ref2va()
+      vi.mocked(getEnabledModels).mockResolvedValue(
+        ['wan', 'h3-ref2va'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+      )
+    })
+
+    it('stores ordered reference files for a valid submission', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const preset = await prisma.audioPreset.create({
+        data: {
+          userId: user.id,
+          name: 'Fake Reference Preset',
+          audioBlob: new Uint8Array([11, 22, 33]),
+          audioFilename: 'fake-reference.wav',
+          audioMimeType: 'audio/wav',
+          audioSize: 3,
+        },
+      })
+      const form = buildReferenceFormData({
+        refImage_1: new File(['fake-second-image'], 'fake-second.webp', { type: 'image/webp' }),
+        refVideo_0: new File(['fake-video'], 'fake-video.mp4', { type: 'video/mp4' }),
+        refVideoSoundtrack_0: 'true',
+        refAudioPresetId_0: preset.id,
+      })
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      const request = await prisma.queueRequest.findUnique({
+        where: { id: body.requestId },
+        select: {
+          generationMode: true,
+          resolutionMode: true,
+          referenceFiles: true,
+        },
+      })
+      expect(request?.generationMode).toBe('REFERENCE')
+      expect(request?.resolutionMode).toBe('first_image')
+      expect(request?.referenceFiles).toHaveLength(4)
+      expect(request?.referenceFiles).toEqual(expect.arrayContaining([
+        expect.objectContaining({ kind: 'IMAGE', slot: 0, includeSoundtrack: false, audioPresetName: null }),
+        expect.objectContaining({ kind: 'IMAGE', slot: 1, includeSoundtrack: false, audioPresetName: null }),
+        expect.objectContaining({ kind: 'VIDEO', slot: 0, includeSoundtrack: true, audioPresetName: null }),
+        expect.objectContaining({ kind: 'AUDIO', slot: 0, includeSoundtrack: false, audioPresetName: 'Fake Reference Preset' }),
+      ]))
+    })
+
+    it('stores custom aspect values', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData({
+        resolutionMode: 'custom',
+        aspectWidth: '13',
+        aspectHeight: '8',
+      })
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      const request = await prisma.queueRequest.findUnique({
+        where: { id: body.requestId },
+        select: { resolutionMode: true, aspectWidth: true, aspectHeight: true },
+      })
+      expect(request).toEqual({ resolutionMode: 'custom', aspectWidth: 13, aspectHeight: 8 })
+    })
+
+    it('rejects a submission with no references', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData({ resolutionMode: 'custom', aspectWidth: '5', aspectHeight: '4' })
+      form.delete('refImage_0')
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+    })
+
+    it('rejects first_image mode without an image reference', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData({
+        refAudioFile_0: new File(['fake-audio'], 'fake-audio.ogg', { type: 'audio/ogg' }),
+      })
+      form.delete('refImage_0')
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+    })
+
+    it('returns a Korean error for an unsupported reference duration', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData({ videoDuration: '6' })
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(400)
+      expect(body.error).toBe('영상 길이는 7 중 하나여야 합니다.')
+    })
+
+    it('rejects an unknown audio preset', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData({ refAudioPresetId_0: 'missing-fake-preset' })
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(400)
+      expect(body.error).toBe('오디오 프리셋을 찾을 수 없습니다.')
+    })
+
+    it('rejects the disabled reference model', async () => {
+      await prisma.systemSetting.update({
+        where: { key: 'h3-ref2va.enabled' },
+        data: { value: 'false' },
+      })
+      vi.mocked(getEnabledModels).mockResolvedValue(
+        ['wan'] as unknown as Awaited<ReturnType<typeof getEnabledModels>>
+      )
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData()
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(400)
+      expect(body.error).toContain('비활성')
+    })
+
+    it('keeps the legacy wan submission path working', async () => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildFormData({ model: 'wan' })
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      const request = await prisma.queueRequest.findUnique({
+        where: { id: body.requestId },
+        select: { videoModel: true, generationMode: true, referenceFiles: true },
+      })
+      expect(request).toEqual({ videoModel: 'wan', generationMode: 'START_ONLY', referenceFiles: [] })
+    })
   })
 })
