@@ -282,7 +282,7 @@ class DiscordBot {
       targetCardMessage = await targetChannel.send({
         ...buildVideoResultMessage({
           modelDisplayName: getVideoModelDisplayName(request.videoModel),
-          isNSFW: request.isNSFW,
+          isNSFW: isMovingToNsfw,
           discordId: request.user?.discordId,
           requestId,
           processingTime: getRequestProcessingTimeSeconds(request),
@@ -358,10 +358,25 @@ class DiscordBot {
     try {
       const cardMessage = await interaction.channel?.messages.fetch(cardMessageId);
       if (!cardMessage) throw new Error(`Card message not found: ${cardMessageId}`);
-      await cardMessage.edit(
+      await cardMessage.delete();
+    } catch (error) {
+      log.error('Failed to delete original card after video move', {
+        videoMessageId,
+        cardMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    try {
+      const sourceChannel = interaction.channel;
+      if (!sourceChannel || !('send' in sourceChannel)) {
+        throw new Error('Source channel is not sendable');
+      }
+      await sourceChannel.send(
         buildMovedVideoNoticeMessage({
           modelDisplayName: getVideoModelDisplayName(request.videoModel),
-          isNSFW: request.isNSFW,
+          isNSFW: !isMovingToNsfw,
           isMovingToNsfw,
           movedByDiscordId: interaction.user.id,
           guildId: interaction.guildId ?? targetChannel.guild.id,
@@ -370,7 +385,7 @@ class DiscordBot {
         })
       );
     } catch (error) {
-      log.error('Failed to update original card after video move', {
+      log.error('Failed to send move notice to source channel', {
         videoMessageId,
         cardMessageId,
         requestId,
@@ -971,21 +986,47 @@ function formatProcessingTime(processingTime?: number) {
 function buildPromptReplyContent(request: {
   prompt: string;
   audioFile?: string | null;
+  videoModel?: string;
   videoDuration?: number | null;
   videoDurationSeconds?: number | null;
+  referenceFiles?: Array<{ kind: string }>;
 }, prompt: string) {
   return `${buildPromptReplyHeader(request)}\n\`\`\`\n${escapeCodeBlock(prompt)}\n\`\`\``;
 }
 
 function buildPromptReplyHeader(request: {
   audioFile?: string | null;
+  videoModel?: string;
   videoDuration?: number | null;
   videoDurationSeconds?: number | null;
+  referenceFiles?: Array<{ kind: string }>;
 }) {
-  return [
-    `**레퍼런스 오디오:** ${request.audioFile ? '사용' : '없음'}`,
-    `**영상 길이:** ${formatVideoDuration(request.videoDurationSeconds ?? request.videoDuration)}`,
-  ].join('\n');
+  const modelConfig = MODEL_REGISTRY[request.videoModel as VideoModel];
+  const lines: string[] = [];
+
+  if (modelConfig?.capabilities.audio) {
+    lines.push(`**레퍼런스 오디오:** ${request.audioFile ? '사용' : '없음'}`);
+  } else if (modelConfig?.capabilities.referenceInputs) {
+    const referenceKinds = [
+      ['IMAGE', '이미지'],
+      ['VIDEO', '영상'],
+      ['AUDIO', '오디오'],
+    ] as const;
+    const composition = referenceKinds
+      .map(([kind, label]) => {
+        const count = request.referenceFiles?.filter((file) => file.kind === kind).length ?? 0;
+        return count > 0 ? `${label} ${count}` : null;
+      })
+      .filter((part): part is string => part !== null)
+      .join(' · ');
+
+    if (composition) {
+      lines.push(`**레퍼런스:** ${composition}`);
+    }
+  }
+
+  lines.push(`**영상 길이:** ${formatVideoDuration(request.videoDurationSeconds ?? request.videoDuration)}`);
+  return lines.join('\n');
 }
 
 function formatVideoDuration(duration?: number | null) {

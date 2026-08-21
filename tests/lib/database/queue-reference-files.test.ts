@@ -48,6 +48,12 @@ describe('QueueService reference files', () => {
     expect(request!.resolutionMode).toBe('custom')
     expect(request!.aspectWidth).toBe(16)
     expect(request!.aspectHeight).toBe(9)
+    expect(request!.referenceFiles.map((file) => file.kind)).toEqual([
+      ReferenceKind.IMAGE,
+      ReferenceKind.VIDEO,
+      ReferenceKind.AUDIO,
+    ])
+    expect(request!.referenceFiles.every((file) => Object.keys(file).length === 1)).toBe(true)
   })
 
   it('orders reference rows by kind then slot', async () => {

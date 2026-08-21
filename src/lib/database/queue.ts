@@ -368,6 +368,11 @@ export class QueueService {
             discordId: true,
             avatar: true
           }
+        },
+        referenceFiles: {
+          select: {
+            kind: true,
+          },
         }
       }
     });

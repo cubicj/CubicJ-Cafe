@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Eye, ImagePlus, ImageDown, Repeat, Layers, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { BADGE_TONES } from '@/lib/badge-palette';
+import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
+import type { VideoModel } from '@/lib/comfyui/workflows/types';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 import { cn } from '@/lib/utils';
 import { getQueueDetailTags, getQueueDisplayDurationSeconds } from './queue-detail-tags';
@@ -211,6 +213,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
 
 export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDelete }: QueueItemProps) {
   const modelConfig = getModelConfig(request.videoModel);
+  const supportsAudio = MODEL_REGISTRY[request.videoModel as VideoModel]?.capabilities.audio;
   const loraName = useMemo(
     () => parseLoraPresetName(request.loraPresetData),
     [request.loraPresetData]
@@ -255,10 +258,12 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
           {request.generationMode === 'REFERENCE' && (
             <Layers className="h-4 w-4 text-muted-foreground" />
           )}
-          {request.audioFile ? (
-            <Volume2 className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <VolumeX className="h-4 w-4 text-muted-foreground/40" />
+          {supportsAudio && (
+            request.audioFile ? (
+              <Volume2 className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <VolumeX className="h-4 w-4 text-muted-foreground/40" />
+            )
           )}
         </div>
 
