@@ -23,6 +23,7 @@ Generation console: the UI reads like an operator tool (queue, servers, models),
 ## Separation order
 
 Whitespace → background shift (card vs ground) → hairline `border` → never a shadow. No card-in-card.
+The `/i2v` form sections deliberately use Card containers per the user ruling on 2026-08-21; the no-card-in-card rule still applies.
 
 ## Mobile
 
