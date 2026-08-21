@@ -100,6 +100,34 @@ describe('QueueService', () => {
     })
   })
 
+  describe('updateDiscordMessageIds', () => {
+    it('stores the current Discord card and video message ids', async () => {
+      const user = await createUser()
+      const request = await createQueueRequest(user.id)
+
+      await QueueService.updateDiscordMessageIds(
+        request.id,
+        'card-message-fake',
+        'video-message-fake'
+      )
+
+      const updated = await QueueService.getRequestById(request.id)
+      expect(updated?.discordCardMessageId).toBe('card-message-fake')
+      expect(updated?.discordVideoMessageId).toBe('video-message-fake')
+    })
+
+    it('stores a card id with a null video id', async () => {
+      const user = await createUser()
+      const request = await createQueueRequest(user.id)
+
+      await QueueService.updateDiscordMessageIds(request.id, 'card-message-fake', null)
+
+      const updated = await QueueService.getRequestById(request.id)
+      expect(updated?.discordCardMessageId).toBe('card-message-fake')
+      expect(updated?.discordVideoMessageId).toBeNull()
+    })
+  })
+
   describe('cancelRequest', () => {
     it('cancels own pending request', async () => {
       const user = await createUser()

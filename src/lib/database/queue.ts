@@ -247,6 +247,23 @@ export class QueueService {
     return updated;
   }
 
+  static async updateDiscordMessageIds(
+    requestId: string,
+    discordCardMessageId: string,
+    discordVideoMessageId: string | null
+  ) {
+    const updated = await prisma.queueRequest.update({
+      where: { id: requestId },
+      data: {
+        discordCardMessageId,
+        discordVideoMessageId,
+      },
+    });
+
+    QueueService.invalidateCache();
+    return updated;
+  }
+
   static async getRequestStatus(requestId: string): Promise<QueueStatus | null> {
     const request = await prisma.queueRequest.findUnique({
       where: { id: requestId },
