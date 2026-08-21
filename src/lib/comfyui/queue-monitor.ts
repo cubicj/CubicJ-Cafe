@@ -322,7 +322,7 @@ class QueueMonitor {
       let references;
       let resolution;
       if (modelConfig.capabilities.referenceInputs) {
-        const referenceRows = await QueueService.getReferenceFiles(request.id);
+        const referenceRows = await QueueService.getReferenceFileRows(request.id);
         references = await this.uploadReferenceFiles(referenceRows, server.client);
         resolution = request.resolutionMode === 'custom'
           ? { mode: 'custom' as const, aspectWidth: request.aspectWidth!, aspectHeight: request.aspectHeight! }
@@ -358,7 +358,16 @@ class QueueMonitor {
         lowLoras: loraPreset?.loraItems.filter(item => item.group === 'LOW').length || 0
       });
 
-      // 선택된 서버에 워크플로우 전송
+      const currentStatus = await QueueService.getRequestStatus(requestId);
+      if (currentStatus !== QueueStatus.PROCESSING) {
+        log.info('Workflow submission skipped because request is no longer processing', {
+          requestId,
+          status: currentStatus,
+        });
+        serverManager.releaseServer(requestId);
+        return;
+      }
+
       const response = await server.client.submitPrompt(workflow);
       
       this.lastModelByServer.set(server.url, videoModel);
@@ -401,8 +410,7 @@ class QueueMonitor {
 
       serverManager.releaseServer(requestId);
 
-      await QueueService.updateRequest(requestId, {
-        status: QueueStatus.FAILED,
+      await QueueService.markRequestFailedIfProcessing(requestId, {
         failedAt: new Date(),
         error: error instanceof Error ? error.message : '알 수 없는 오류'
       });
@@ -410,7 +418,7 @@ class QueueMonitor {
   }
 
   private async uploadReferenceFiles(
-    rows: Awaited<ReturnType<typeof QueueService.getReferenceFiles>>,
+    rows: Awaited<ReturnType<typeof QueueService.getReferenceFileRows>>,
     client: ActiveServer['client']
   ) {
     if (rows.length === 0) {
@@ -421,12 +429,13 @@ class QueueMonitor {
     const audios: string[] = [];
 
     for (const row of rows) {
-      if (!row.blob) {
+      const blob = await QueueService.getReferenceFileBlob(row.id);
+      if (!blob) {
         throw new Error(`Reference blob missing: ${row.filename}`);
       }
       const extension = row.filename.split('.').pop()?.toLowerCase() ?? '';
       const mimeType = REFERENCE_MIME_BY_EXTENSION[extension] ?? 'application/octet-stream';
-      const file = new File([new Blob([row.blob], { type: mimeType })], row.filename, { type: mimeType });
+      const file = new File([new Uint8Array(blob)], row.filename, { type: mimeType });
 
       if (row.kind === ReferenceKind.IMAGE) {
         images.push(await client.uploadImage(file));

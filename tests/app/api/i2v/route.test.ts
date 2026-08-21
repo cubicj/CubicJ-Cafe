@@ -431,6 +431,24 @@ describe('POST /api/i2v', () => {
       )
     })
 
+    it.each([
+      ['h3-ref2va first', ['h3-ref2va', 'wan']],
+      ['h3-ref2va last', ['wan', 'h3-ref2va']],
+    ])('rejects duplicate model fields with $0', async (_label, models) => {
+      const user = await createUser()
+      const session = await createTestSession(user.id)
+      const form = buildReferenceFormData()
+      form.delete('model')
+      for (const model of models) form.append('model', model)
+      const req = buildAuthenticatedRequest('/api/i2v', session.id, { method: 'POST', body: form })
+      const res = await POST(req)
+      const body = await res.json()
+
+      expect(res.status).toBe(400)
+      expect(body.error).toBe('model 필드는 하나여야 합니다.')
+      expect(await prisma.queueRequest.count()).toBe(0)
+    })
+
     it('stores ordered reference files for a valid submission', async () => {
       const user = await createUser()
       const session = await createTestSession(user.id)

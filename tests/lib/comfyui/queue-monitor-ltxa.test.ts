@@ -1,11 +1,15 @@
 const mockGetRequestById = vi.fn()
+const mockGetRequestStatus = vi.fn()
 const mockUpdateRequest = vi.fn()
+const mockMarkRequestFailedIfProcessing = vi.fn()
 const mockClearImageBlobs = vi.fn()
 
 vi.mock('@/lib/database/queue', () => ({
   QueueService: {
     getRequestById: (...args: unknown[]) => mockGetRequestById(...args),
+    getRequestStatus: (...args: unknown[]) => mockGetRequestStatus(...args),
     updateRequest: (...args: unknown[]) => mockUpdateRequest(...args),
+    markRequestFailedIfProcessing: (...args: unknown[]) => mockMarkRequestFailedIfProcessing(...args),
     clearImageBlobs: (...args: unknown[]) => mockClearImageBlobs(...args),
     invalidateCache: vi.fn(),
   },
@@ -68,6 +72,8 @@ describe('QueueMonitor LTXA params', () => {
     vi.clearAllMocks()
     mockBuildWorkflow.mockResolvedValue({ prompt: { class_type: 'TestNode', inputs: {} } })
     mockUpdateRequest.mockResolvedValue(undefined)
+    mockGetRequestStatus.mockResolvedValue('PROCESSING')
+    mockMarkRequestFailedIfProcessing.mockResolvedValue(1)
     mockClearImageBlobs.mockResolvedValue(undefined)
     mockStartMonitoring.mockResolvedValue(undefined)
   })
