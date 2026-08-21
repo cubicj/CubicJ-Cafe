@@ -160,7 +160,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
       <div className="space-y-4 text-sm">
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">프롬프트</div>
-          <p className="p-2 bg-muted/50 rounded text-sm max-h-32 overflow-y-auto">{request.prompt}</p>
+          <p className="p-2 bg-muted/50 rounded text-sm max-h-32 overflow-y-auto whitespace-pre-wrap wrap-break-word">{request.prompt}</p>
         </div>
 
         <div>
@@ -181,10 +181,10 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">시간</div>
           <div className="p-2 bg-muted/50 rounded space-y-1 text-sm">
-            <div><span className="text-xs text-muted-foreground font-medium">등록:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.createdAt)}</Badge></div>
-            {request.startedAt && <div><span className="text-xs text-muted-foreground font-medium">시작:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.startedAt)}</Badge></div>}
-            {request.completedAt && <div><span className="text-xs text-muted-foreground font-medium">완료:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.completedAt)}</Badge></div>}
-            {request.failedAt && <div><span className="text-xs text-muted-foreground font-medium">실패:</span> <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">{formatAbsoluteTime(request.failedAt)}</Badge></div>}
+            <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">등록:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.createdAt)}</Badge></div>
+            {request.startedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">시작:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.startedAt)}</Badge></div>}
+            {request.completedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">완료:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.completedAt)}</Badge></div>}
+            {request.failedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">실패:</span> <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">{formatAbsoluteTime(request.failedAt)}</Badge></div>}
           </div>
         </div>
 

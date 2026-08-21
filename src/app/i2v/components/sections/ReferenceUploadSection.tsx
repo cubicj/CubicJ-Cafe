@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import { useRef } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +34,27 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
     addImages, removeImage, addVideo, removeVideo, toggleSoundtrack,
     addAudioFile, addAudioPreset, removeAudio, removeAudioPreset,
   } = referenceSet;
+  const imageDropzone = useDropzone({
+    onDrop: (files) => addImages(files),
+    accept: { 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/webp': ['.webp'] },
+    noClick: true,
+    noKeyboard: true,
+    disabled: images.length >= REF_IMAGE_MAX,
+  });
+  const videoDropzone = useDropzone({
+    onDrop: (files) => files.forEach(addVideo),
+    accept: { 'video/mp4': ['.mp4'], 'video/webm': ['.webm'], 'video/quicktime': ['.mov'] },
+    noClick: true,
+    noKeyboard: true,
+    disabled: videos.length >= REF_VIDEO_MAX,
+  });
+  const audioDropzone = useDropzone({
+    onDrop: (files) => files.forEach(addAudioFile),
+    accept: { 'audio/wav': ['.wav'], 'audio/mpeg': ['.mp3'], 'audio/flac': ['.flac'], 'audio/ogg': ['.ogg'] },
+    noClick: true,
+    noKeyboard: true,
+    disabled: audios.length >= REF_AUDIO_MAX,
+  });
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       <div className="space-y-2">
@@ -39,7 +62,10 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
           <ImageIcon className="h-4 w-4" />
           레퍼런스 이미지 <span className="text-sm text-gray-500 font-normal">(최대 {REF_IMAGE_MAX}장)</span>
         </h2>
-        <Card className="p-4 space-y-2">
+        <Card
+          {...imageDropzone.getRootProps()}
+          className={cn('p-4 space-y-2 transition-colors', imageDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+        >
           {images.map((file, index) => (
             <div key={`${file.name}-${index}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
               <Badge variant="outline" className="text-xs shrink-0">{tags.images[index]}</Badge>
@@ -83,7 +109,10 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
           <Film className="h-4 w-4" />
           레퍼런스 비디오 <span className="text-sm text-gray-500 font-normal">(최대 {REF_VIDEO_MAX}개)</span>
         </h2>
-        <Card className="p-4 space-y-2">
+        <Card
+          {...videoDropzone.getRootProps()}
+          className={cn('p-4 space-y-2 transition-colors', videoDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+        >
           {videos.map((entry, index) => (
             <div key={`${entry.file.name}-${index}`} className="p-2 bg-muted/50 rounded-lg space-y-2">
               <div className="flex items-center gap-2">
@@ -130,7 +159,10 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
           <Music className="h-4 w-4" />
           레퍼런스 오디오 <span className="text-sm text-gray-500 font-normal">(최대 {REF_AUDIO_MAX}개)</span>
         </h2>
-        <Card className="p-4 space-y-2">
+        <Card
+          {...audioDropzone.getRootProps()}
+          className={cn('p-4 space-y-2 transition-colors', audioDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+        >
           {audios.map((entry, index) => (
             <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
               <Badge variant="outline" className="text-xs shrink-0">{tags.audios[index]}</Badge>
