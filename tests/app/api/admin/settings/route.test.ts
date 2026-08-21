@@ -263,6 +263,21 @@ describe('PUT /api/admin/settings', () => {
     expect(body.setting.value).toBe('8')
   })
 
+  it('allows H3 Ref2VA settings', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const req = buildAuthenticatedRequest('/api/admin/settings', session.id, {
+      method: 'PUT',
+      body: JSON.stringify({ key: 'h3-ref2va.steps', value: '8', category: 'h3-ref2va' }),
+    })
+    const res = await PUT(req)
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.setting.key).toBe('h3-ref2va.steps')
+    expect(body.setting.value).toBe('8')
+  })
+
   it('rejects removed standalone LTX setting keys', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
