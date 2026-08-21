@@ -22,11 +22,11 @@ export function LoRAItemEditor({
     return (
       <div className="space-y-2">
         {!isFlat && (
-          <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
+          <h5 className={`text-sm font-medium text-${groupColor}-700`}>
             {groupTitle}
           </h5>
         )}
-        <div className={`text-center py-2 text-xs text-muted-foreground border border-dashed border-${groupColor}-300 dark:border-${groupColor}-700 rounded`}>
+        <div className={`text-center py-2 text-xs text-muted-foreground border border-dashed border-${groupColor}-300 rounded`}>
           {isFlat ? '추가된 LoRA가 없습니다' : `${groupTitle}에 LoRA가 없습니다`}
         </div>
       </div>
@@ -36,7 +36,7 @@ export function LoRAItemEditor({
   return (
     <div className="space-y-2">
       {!isFlat && (
-        <h5 className={`text-sm font-medium text-${groupColor}-700 dark:text-${groupColor}-300`}>
+        <h5 className={`text-sm font-medium text-${groupColor}-700`}>
           {groupTitle}
         </h5>
       )}
@@ -52,7 +52,7 @@ export function LoRAItemEditor({
           return (
             <div 
               key={`${(group || 'lora').toLowerCase()}-${index}`}
-              className={`p-3 bg-${groupColor}-50 dark:bg-${groupColor}-900/20 rounded border border-${groupColor}-200 dark:border-${groupColor}-800`}
+              className={`p-3 bg-${groupColor}-50 rounded border border-${groupColor}-200`}
             >
               <div className="flex flex-col space-y-2">
                 <div className="flex items-start justify-between gap-2">
@@ -60,7 +60,7 @@ export function LoRAItemEditor({
                     <div 
                       className={cn(
                         "text-sm font-medium break-words cursor-help",
-                        !isAvailable && "text-red-700 dark:text-red-300"
+                        !isAvailable && "text-red-700"
                       )}
                       title={`${item.loraName}${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                     >
@@ -69,7 +69,7 @@ export function LoRAItemEditor({
                     <div 
                       className={cn(
                         "text-xs text-muted-foreground font-mono break-all cursor-help",
-                        !isAvailable && "text-red-600 dark:text-red-400"
+                        !isAvailable && "text-red-600"
                       )}
                       title={`${item.loraFilename}${!isAvailable ? ' - 서버에서 찾을 수 없음' : ''}`}
                     >

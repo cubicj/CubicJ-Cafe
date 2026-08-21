@@ -91,7 +91,7 @@ export function FileUpload({
               ? 'border-primary bg-primary/5'
               : 'border-muted-foreground/25',
             hasError ? 'border-destructive bg-destructive/5' : '',
-            selectedFile ? 'border-green-500 bg-green-50 dark:bg-green-950' : ''
+            selectedFile ? 'border-green-500 bg-green-50' : ''
           )}
         >
           <input {...getInputProps()} />
@@ -111,7 +111,7 @@ export function FileUpload({
               )}
               <div className="flex items-center justify-between">
                 <div className="text-left min-w-0 flex-1 mr-2">
-                  <p className="font-medium text-green-700 dark:text-green-300 text-sm sm:text-base truncate">
+                  <p className="font-medium text-green-700 text-sm sm:text-base truncate">
                     {selectedFile.name}
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground">
