@@ -8,28 +8,34 @@ Upload an image, write a prompt, and get a generated video delivered to Discord 
 
 ![Home](.github/images/home.png)
 
-| Generation | Admin Dashboard |
+| Generation | Generation form |
 |------------|-----------------|
-| ![Generation page](.github/images/i2v.png) | ![Admin dashboard](.github/images/admin.png) |
+| ![Generation page](.github/images/i2v.png) | ![Generation form](.github/images/i2v-form.png) |
+| Settings | Admin dashboard |
+| ![Settings](.github/images/settings.png) | ![Admin dashboard](.github/images/admin.png) |
 
 ## Features
 
 - **Image-to-Video** — Upload an image with a prompt, get a generated video
-- **Multi-Model** — Five workflow pipelines dispatched through a single capability-driven registry
+- **Multi-Model** — Six workflow pipelines dispatched through a single capability-driven registry
 
-  | Model | End Image | Audio | Duration |
-  |-------|:---------:|:-----:|----------|
+  | Model | End Image | Audio Output | Duration |
+  |-------|:---------:|:------------:|----------|
   | WAN 2.2 | ✓ | — | 5–7s |
   | LTX (Anime) | — | ✓ | 5–7s |
   | LTX (Real) | ✓ | ✓ | 5–7s |
   | L+W (LTX + WAN hybrid) | ✓ | ✓ | 5–8s |
-  | H3 FL2VA (MiniMax) | ✓ | ✓ | frame-count based |
+  | H3 FL2VA (MiniMax) | ✓ | ✓ (native) | frame-count based |
+  | H3 Ref2VA (MiniMax) | — | ✓ (native) | frame-count based |
 
   H3 FL2VA takes a first frame, a last frame, or both — any single image is enough (F2VA / L2VA / FL2VA modes).
 
+  H3 Ref2VA accepts up to 9 reference images, 3 reference videos, and 3 reference audio clips. Output aspect ratio comes from the first reference image or a custom ratio.
+
 - **Queue System** — Serializable queue with atomic position assignment and real-time status tracking
+- **Reference Inputs** — Drag-and-drop image, video, and audio uploads with per-kind limits (9 / 3 / 3) and first-image or custom aspect-ratio control
 - **LoRA Presets & Bundles** — Drag-and-drop preset management, per-model availability gated by capability flags
-- **Audio Presets** — Upload and reuse audio clips for audio-capable models
+- **Audio Presets** — Upload and reuse audio clips as generation input on the LTX-family models; H3 Ref2VA takes reference audio directly
 - **Prompt Translation** — Built-in translation endpoint for non-English prompts
 - **Discord Integration** — OAuth2 auth + in-process bot delivery of completed videos
 - **Admin Dashboard** — Model activation toggles, queue control and pause scheduling, live log viewer (SSE), ComfyUI monitoring, DB browser
@@ -39,7 +45,7 @@ Upload an image, write a prompt, and get a generated video delivered to Discord 
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 16, React 19, TailwindCSS 4, Shadcn/ui |
+| Frontend | Next.js 16, React 19, TailwindCSS 4, Shadcn/ui; IBM Plex Sans KR + self-hosted IBM Plex Mono; light-only warm token theme ([DESIGN.md](DESIGN.md)) |
 | Backend | Next.js API Routes, Prisma 7 (better-sqlite3 driver adapter), SQLite |
 | Auth | Custom Discord OAuth2 (HttpOnly cookie sessions) |
 | Validation | Zod v4 schemas across all route handlers |
@@ -65,7 +71,7 @@ src/
 │   └── settings/     # User settings
 ├── lib/
 │   ├── comfyui/      # Queue/job monitors, server management
-│   │   └── workflows/  # Per-model builders (wan, ltxa, ltxr, ltx-wan, h3-fl2va) + registry
+│   │   └── workflows/  # Per-model builders (wan, ltxa, ltxr, ltx-wan, h3-fl2va, h3-ref2va) + registry
 │   ├── database/     # Prisma service layer
 │   ├── auth/         # Session management, withAuth/withAdmin HOF
 │   ├── validations/  # Zod schemas + parse helpers
@@ -86,7 +92,7 @@ tests/                # Mirrors src/ (route handler tests hit real DB sessions)
 npm install
 npm run prisma:migrate    # Set up database
 npm run dev               # Dev server
-npm test                  # 570 tests
+npm test                  # 666 tests
 npm run type-check        # tsc --noEmit
 npm run lint              # ESLint
 ```
