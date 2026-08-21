@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2, Eye, ImagePlus, ImageDown, Repeat, Layers, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { BADGE_TONES } from '@/lib/badge-palette';
 import { getStatusIcon, getStatusBadgeVariant, getStatusText, getStatusBadgeColor } from '@/lib/queue-status';
 import { cn } from '@/lib/utils';
 import { getQueueDetailTags, getQueueDisplayDurationSeconds } from './queue-detail-tags';
@@ -44,17 +45,17 @@ interface QueueDetailDialogProps extends QueueItemProps {
 }
 
 const MODEL_CONFIG: Record<string, { label: string; className: string }> = {
-  wan: { label: 'WAN 2.2', className: 'bg-purple-100 text-purple-700 border-purple-300' },
-  ltxa: { label: 'LTX(Anime)', className: 'bg-blue-100 text-blue-700 border-blue-300' },
-  ltxr: { label: 'LTX(Real)', className: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  ltx: { label: 'LTX(Anime)', className: 'bg-blue-100 text-blue-700 border-blue-300' },
-  'ltx-wan': { label: 'LTX + WAN', className: 'bg-teal-100 text-teal-700 border-teal-300' },
-  'h3-fl2va': { label: 'H3 FL2VA', className: 'bg-rose-100 text-rose-700 border-rose-300' },
-  'h3-ref2va': { label: 'H3 Ref2VA', className: 'bg-orange-100 text-orange-700 border-orange-300' },
+  wan: { label: 'WAN 2.2', className: BADGE_TONES.purple },
+  ltxa: { label: 'LTX(Anime)', className: BADGE_TONES.blue },
+  ltxr: { label: 'LTX(Real)', className: BADGE_TONES.emerald },
+  ltx: { label: 'LTX(Anime)', className: BADGE_TONES.blue },
+  'ltx-wan': { label: 'LTX + WAN', className: BADGE_TONES.teal },
+  'h3-fl2va': { label: 'H3 FL2VA', className: BADGE_TONES.rose },
+  'h3-ref2va': { label: 'H3 Ref2VA', className: BADGE_TONES.orange },
 };
 
 function getModelConfig(videoModel: string) {
-  return MODEL_CONFIG[videoModel] ?? { label: videoModel.toUpperCase(), className: 'bg-gray-100 text-gray-700 border-gray-300' };
+  return MODEL_CONFIG[videoModel] ?? { label: videoModel.toUpperCase(), className: BADGE_TONES.gray };
 }
 
 function parseLoraPresetName(loraPresetData?: string): string | null {
@@ -84,21 +85,17 @@ function formatRelativeTime(dateString: string) {
 }
 
 function formatAbsoluteTime(dateString: string) {
-  return new Date(dateString).toLocaleString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+  const d = new Date(dateString);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 const MODE_CONFIG: Record<string, { label: string; className: string }> = {
-  START_ONLY: { label: 'Base', className: 'bg-gray-100 text-gray-700 border-gray-300' },
-  START_END: { label: 'Base+End', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
-  END_ONLY: { label: 'End', className: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
-  LOOP: { label: 'Loop', className: 'bg-amber-100 text-amber-700 border-amber-300' },
-  REFERENCE: { label: 'Ref', className: 'bg-violet-100 text-violet-700 border-violet-300' },
+  START_ONLY: { label: 'Base', className: BADGE_TONES.gray },
+  START_END: { label: 'Base+End', className: BADGE_TONES.indigo },
+  END_ONLY: { label: 'End', className: BADGE_TONES.cyan },
+  LOOP: { label: 'Loop', className: BADGE_TONES.amber },
+  REFERENCE: { label: 'Ref', className: BADGE_TONES.violet },
 };
 
 function getModeConfig(generationMode: string) {
@@ -141,7 +138,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
     <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs">#{request.position}</Badge>
+          <Badge variant="outline" className="font-mono text-xs">#{request.position}</Badge>
           <Badge
             variant={getStatusBadgeVariant(request.status)}
             className="flex items-center gap-1"
@@ -181,10 +178,10 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">시간</div>
           <div className="p-2 bg-muted/50 rounded space-y-1 text-sm">
-            <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">등록:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.createdAt)}</Badge></div>
-            {request.startedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">시작:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.startedAt)}</Badge></div>}
-            {request.completedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">완료:</span> <Badge variant="outline" className="text-xs">{formatAbsoluteTime(request.completedAt)}</Badge></div>}
-            {request.failedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">실패:</span> <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-300">{formatAbsoluteTime(request.failedAt)}</Badge></div>}
+            <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">등록:</span> <Badge variant="outline" className="font-mono text-xs">{formatAbsoluteTime(request.createdAt)}</Badge></div>
+            {request.startedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">시작:</span> <Badge variant="outline" className="font-mono text-xs">{formatAbsoluteTime(request.startedAt)}</Badge></div>}
+            {request.completedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">완료:</span> <Badge variant="outline" className="font-mono text-xs">{formatAbsoluteTime(request.completedAt)}</Badge></div>}
+            {request.failedAt && <div className="flex items-center"><span className="w-8 shrink-0 text-xs text-muted-foreground font-medium">실패:</span> <Badge variant="outline" className={cn('font-mono text-xs', BADGE_TONES.red)}>{formatAbsoluteTime(request.failedAt)}</Badge></div>}
           </div>
         </div>
 
@@ -223,7 +220,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
     <>
       <div className="hidden md:flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-2 shrink-0">
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="font-mono text-xs">
             #{request.position}
           </Badge>
           <Badge
@@ -272,7 +269,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <div className="text-xs text-muted-foreground min-w-16">
+          <div className="font-mono text-xs text-muted-foreground min-w-16">
             {formatRelativeTime(request.createdAt)}
           </div>
 
@@ -302,7 +299,7 @@ export function QueueItem({ request, isCurrentUser, canDelete, isDeleting, onDel
       </div>
 
       <div className="flex md:hidden items-center gap-2 p-3 bg-muted/50 rounded-lg">
-        <Badge className={`text-xs ${getStatusBadgeColor(request.status)}`}>
+        <Badge className={`font-mono text-xs ${getStatusBadgeColor(request.status)}`}>
           #{request.position}
         </Badge>
 
