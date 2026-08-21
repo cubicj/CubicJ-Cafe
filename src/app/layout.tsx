@@ -19,7 +19,7 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: 'CubicJ Cafe',
-  description: 'ComfyUI 워크플로우를 위한 웹 프론트엔드',
+  description: 'ComfyUI와 Discord를 연결하는 풀스택 AI 비디오 생성 플랫폼',
   icons: {
     icon: '/icon',
     apple: '/apple-icon',
