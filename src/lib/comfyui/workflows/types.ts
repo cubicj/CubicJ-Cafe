@@ -58,4 +58,30 @@ export interface H3Fl2vaGenerationParams {
   endImage?: string
 }
 
-export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxrGenerationParams | LtxWanGenerationParams | H3Fl2vaGenerationParams
+export interface H3Ref2vaReferenceVideo {
+  name: string
+  includeSoundtrack: boolean
+}
+
+export interface H3Ref2vaReferences {
+  images: string[]
+  videos: H3Ref2vaReferenceVideo[]
+  audios: string[]
+}
+
+export type H3Ref2vaResolution =
+  | { mode: 'firstImage' }
+  | { mode: 'custom'; aspectWidth: number; aspectHeight: number }
+
+export interface H3Ref2vaGenerationParams {
+  model: 'h3-ref2va'
+  prompt: string
+  videoDuration: number
+  isNSFW?: boolean
+  refImages: string[]
+  refVideos: H3Ref2vaReferenceVideo[]
+  refAudios: string[]
+  resolution: H3Ref2vaResolution
+}
+
+export type GenerationParams = WanGenerationParams | LtxaGenerationParams | LtxrGenerationParams | LtxWanGenerationParams | H3Fl2vaGenerationParams | H3Ref2vaGenerationParams
