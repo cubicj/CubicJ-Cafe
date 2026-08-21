@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Server, Clock, AlertCircle, Cpu, Cloud, CheckCircle, RefreshCw } from "lucide-react";
+import { Server, Clock, AlertCircle, AlertTriangle, Cpu, Cloud, CheckCircle, RefreshCw, XCircle } from "lucide-react";
 
 interface ServerInfo {
   type: 'local' | 'runpod'
@@ -118,14 +118,14 @@ export function ServerStatusSection({
                 </div>
                 <div className="space-y-1">
                   {serverStatus.servers?.filter(s => s.type === 'local').map((server, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
                       <div className="flex items-center gap-2">
                         <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
                           {getServerStatusIcon(server.status)}
                           {server.name}
                         </Badge>
                         {server.queue && server.queue.remaining > 0 && (
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
                             대기: {server.queue.remaining}개
                           </span>
                         )}
@@ -149,14 +149,14 @@ export function ServerStatusSection({
                   </div>
                   <div className="space-y-1">
                     {serverStatus.servers?.filter(s => s.type === 'runpod').map((server, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg text-sm">
                         <div className="flex items-center gap-2">
                           <Badge variant={getServerStatusColor(server.status)} className="text-xs flex items-center gap-1">
                             {getServerStatusIcon(server.status)}
                             {server.name}
                           </Badge>
                           {server.queue && server.queue.remaining > 0 && (
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               대기: {server.queue.remaining}개
                             </span>
                           )}
@@ -171,31 +171,43 @@ export function ServerStatusSection({
               )}
           </div>
 
-            <div className="text-xs text-gray-500 text-center">
+            <div className="text-xs text-muted-foreground text-center">
               마지막 확인: {serverStatus.timestamp ? new Date(serverStatus.timestamp).toLocaleTimeString('ko-KR') : '알 수 없음'}
             </div>
 
             {(serverStatus.summary?.totalActive || 0) > 0 && (
               <div className="p-3 bg-green-50 rounded-lg text-sm text-green-700">
-                ✓ {serverStatus.summary?.totalActive || 0}개의 서버가 활성화되어 있습니다. 비디오 생성이 가능합니다.
+                <span className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 shrink-0" />
+                  {serverStatus.summary?.totalActive || 0}개의 서버가 활성화되어 있습니다. 비디오 생성이 가능합니다.
+                </span>
               </div>
             )}
             
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) > 0 && (
               <div className="p-3 bg-yellow-50 rounded-lg text-sm text-yellow-700">
-                ⚠️ 모든 서버가 비활성 상태입니다. 비디오 생성이 일시적으로 불가능합니다.
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  모든 서버가 비활성 상태입니다. 비디오 생성이 일시적으로 불가능합니다.
+                </span>
               </div>
             )}
 
             {(serverStatus.summary?.totalActive || 0) === 0 && (serverStatus.summary?.totalServers || 0) === 0 && (
               <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
-                ❌ 사용 가능한 서버가 없습니다. 관리자에게 문의하세요.
+                <span className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  사용 가능한 서버가 없습니다. 관리자에게 문의하세요.
+                </span>
               </div>
             )}
             
             {serverStatus?.error && (
               <div className="p-3 bg-red-50 rounded-lg text-sm text-red-700">
-                ❌ 서버 상태 확인 중 오류가 발생했습니다.
+                <span className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  서버 상태 확인 중 오류가 발생했습니다.
+                </span>
               </div>
             )}
             </div>

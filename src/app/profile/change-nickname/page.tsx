@@ -34,7 +34,7 @@ export default function NicknameChangeePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>로딩 중...</p>
@@ -44,12 +44,12 @@ export default function NicknameChangeePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-2xl mx-auto pt-12">
         <div className="mb-8">
           <Link 
             href="/" 
-            className="inline-flex items-center space-x-3 px-4 py-2 text-slate-600 hover:text-slate-800 hover:bg-white/50 rounded-lg transition-all duration-200"
+            className="inline-flex items-center space-x-3 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">홈으로 돌아가기</span>
@@ -65,19 +65,19 @@ export default function NicknameChangeePage() {
                   alt={user.nickname || user.discordUsername}
                   width={80}
                   height={80}
-                  className="rounded-full border-4 border-blue-100"
+                  className="rounded-full border-4 border-border"
                 />
               ) : (
-                <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center">
-                  <User className="h-10 w-10 text-gray-600" />
+                <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+                  <User className="h-10 w-10 text-muted-foreground" />
                 </div>
               )}
             </div>
             <CardTitle className="text-2xl font-bold">닉네임 변경</CardTitle>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               현재 닉네임: <strong>{currentNickname}</strong>
             </p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               새로운 닉네임을 입력해주세요.
             </p>
           </CardHeader>

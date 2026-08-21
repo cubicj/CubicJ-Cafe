@@ -33,19 +33,19 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center space-x-3">
-            <ClientIcon icon={Settings} fallback="⚙️" className="h-8 w-8 text-slate-700" />
-            <h1 className="text-3xl font-bold text-slate-800">설정</h1>
+            <ClientIcon icon={Settings} fallback="⚙️" className="h-6 w-6 text-muted-foreground" />
+            <h1 className="text-2xl font-bold">설정</h1>
           </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-80">
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">설정 메뉴</h2>
+              <h2 className="text-sm font-semibold text-muted-foreground mb-4">설정 메뉴</h2>
               <nav className="space-y-2">
                 {settingsNavItems.map((item) => {
                   const isActive = pathname === item.href;
@@ -55,8 +55,8 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                       href={item.href}
                       className={`block p-3 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-blue-50 border-l-4 border-blue-500 text-blue-700'
-                          : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900'
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-muted text-foreground'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
@@ -64,10 +64,10 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                           icon={item.icon} 
                           fallback="⚙️" 
                           className={`h-5 w-5 ${
-                            isActive ? 'text-blue-600' : 'text-slate-500'
+                            isActive ? 'text-primary' : 'text-muted-foreground'
                           }`} 
                         />
-                        <div className={`font-medium ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>
+                        <div className={`font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
                           {item.label}
                         </div>
                       </div>

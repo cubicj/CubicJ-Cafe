@@ -23,10 +23,8 @@ function ErrorContent() {
   return (
     <Card className="w-full max-w-md mx-4">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-          <AlertTriangle className="h-6 w-6 text-red-600" />
-        </div>
-        <CardTitle className="text-2xl font-bold text-red-600">로그인 오류</CardTitle>
+        <AlertTriangle className="mx-auto mb-4 h-8 w-8 text-destructive" />
+        <CardTitle className="text-2xl font-bold text-destructive">로그인 오류</CardTitle>
         <CardDescription>{errorMessage}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -45,14 +43,12 @@ function ErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-900 via-purple-900 to-indigo-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Suspense fallback={
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-red-600">로그인 오류</CardTitle>
+            <AlertTriangle className="mx-auto mb-4 h-8 w-8 text-destructive" />
+            <CardTitle className="text-2xl font-bold text-destructive">로그인 오류</CardTitle>
             <CardDescription>오류 정보를 불러오는 중...</CardDescription>
           </CardHeader>
         </Card>
