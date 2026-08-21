@@ -69,7 +69,7 @@ function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings
   setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,
     chunks: settings.chunkFeedforwardChunks,
-    min_tokens: settings.chunkFeedforwardMinTokens,
+    min_tokens: settings.chunkFeedforwardMinLen,
   })
   setNode(workflow, H3_REF2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
   setNode(workflow, H3_REF2VA.SCHEDULER, { scheduler: settings.scheduler })
@@ -84,7 +84,7 @@ function configureSolAttn(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings)
       tau_start: settings.solAttnTauStart,
       tau_end: settings.solAttnTauEnd,
       curve: settings.solAttnCurve,
-      min_tokens: settings.solAttnMinTokens,
+      min_tokens: settings.solAttnMinLen,
       strict: settings.solAttnStrict,
       dense_percent: settings.solAttnDensePercent,
       thresh_type: settings.solAttnThreshType,
