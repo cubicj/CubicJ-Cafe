@@ -40,13 +40,13 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b">
+    <header className="bg-card border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-            <ClientIcon icon={Coffee} fallback="☕" className="h-6 w-6 sm:h-7 sm:w-7 text-amber-700" />
-            <span className="font-bold text-lg sm:text-xl text-gray-800 hidden sm:block">CubicJ Cafe</span>
-            <span className="font-bold text-lg text-gray-800 block sm:hidden">Cafe</span>
+            <ClientIcon icon={Coffee} fallback="☕" className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <span className="font-bold text-lg sm:text-xl text-foreground hidden sm:block">CubicJ Cafe</span>
+            <span className="font-bold text-lg text-foreground block sm:hidden">Cafe</span>
           </Link>
 
           <nav className="flex items-center">
@@ -85,7 +85,7 @@ export default function Header() {
 
           <div className="flex items-center space-x-4">
             {isLoading ? (
-              <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full"></div>
+              <div className="w-8 h-8 animate-pulse bg-muted rounded-full"></div>
             ) : user ? (
               <div className="flex items-center">
                 <div className="relative group">
@@ -95,11 +95,11 @@ export default function Header() {
                       {user.nickname || user.discordUsername}
                     </span>
                   </Button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-popover border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="py-1">
                       <Link
                         href="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-popover-foreground hover:bg-muted"
                       >
                         <span className="flex items-center space-x-2">
                           <ClientIcon icon={Settings} fallback="⚙️" className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function Header() {
                       {isAdmin && (
                         <Link
                           href="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-popover-foreground hover:bg-muted"
                         >
                           <span className="flex items-center space-x-2">
                             <ClientIcon icon={Shield} fallback="🛡️" className="h-4 w-4" />
@@ -119,7 +119,7 @@ export default function Header() {
                       )}
                       <button
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-popover-foreground hover:bg-muted"
                       >
                         <span className="flex items-center space-x-2">
                           <ClientIcon icon={LogOut} fallback="🚪" className="h-4 w-4" />
