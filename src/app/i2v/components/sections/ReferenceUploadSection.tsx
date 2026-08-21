@@ -40,7 +40,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
     images, imagePreviewUrls, videos, audios, tags,
     effectiveResolutionMode, aspectWidth, aspectHeight,
     addImages, removeImage, addVideo, removeVideo, toggleSoundtrack,
-    addAudioFile, addAudioPreset, removeAudio, setResolutionMode, setAspect,
+    addAudioFile, addAudioPreset, removeAudio, removeAudioPreset, setResolutionMode, setAspect,
   } = referenceSet;
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -145,7 +145,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
             <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
               <Badge variant="outline" className="text-xs shrink-0">{tags.audios[index]}</Badge>
               <span className="text-sm truncate flex-1 min-w-0">
-                {entry.file ? entry.file.name : `프리셋: ${entry.presetId}`}
+                {entry.file ? entry.file.name : `프리셋: ${entry.presetName}`}
               </span>
               <Button variant="outline" size="sm" className="h-7 w-7 p-0 shrink-0" onClick={() => removeAudio(index)}>
                 <X className="h-3 w-3" />
@@ -153,13 +153,16 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
             </div>
           ))}
           {audios.length < REF_AUDIO_MAX && (
-            <>
-              <Button variant="outline" size="sm" className="w-full" onClick={() => audioInputRef.current?.click()}>
-                <Plus className="h-3.5 w-3.5 mr-1" /> 오디오 파일 추가
-              </Button>
-              <AudioPresetSelector selectedPresetId={null} onPresetChange={(id) => { if (id) addAudioPreset(id); }} />
-            </>
+            <Button variant="outline" size="sm" className="w-full" onClick={() => audioInputRef.current?.click()}>
+              <Plus className="h-3.5 w-3.5 mr-1" /> 오디오 파일 추가
+            </Button>
           )}
+          <AudioPresetSelector
+            addedPresetIds={audios.flatMap((entry) => entry.presetId ? [entry.presetId] : [])}
+            onAddPreset={addAudioPreset}
+            onPresetDeleted={removeAudioPreset}
+            addDisabled={audios.length >= REF_AUDIO_MAX}
+          />
           <input
             ref={audioInputRef}
             type="file"

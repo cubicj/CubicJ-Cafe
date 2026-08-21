@@ -4,6 +4,7 @@ import {
   ButtonStyle,
   Client,
   ContainerBuilder,
+  DiscordAPIError,
   GatewayIntentBits,
   MessageFlags,
   SectionBuilder,
@@ -11,6 +12,7 @@ import {
   TextDisplayBuilder,
 } from 'discord.js';
 import type { MessageCreateOptions } from 'discord.js';
+import { stat } from 'node:fs/promises';
 import { QueueService } from '@/lib/database/queue';
 import { MODEL_REGISTRY } from './comfyui/workflows/registry';
 import type { VideoModel } from './comfyui/workflows/types';
@@ -20,6 +22,7 @@ import { getOpsSetting } from '@/lib/database/ops-settings';
 const log = createLogger('discord');
 const SHOW_PROMPT_PREFIX = 'show_prompt:';
 const PROMPT_REPLY_LIMIT = 1800;
+const DISCORD_UPLOAD_SAFETY_MARGIN_BYTES = 512 * 1024;
 
 class DiscordBot {
   private client: Client;
@@ -104,16 +107,32 @@ class DiscordBot {
           flags: MessageFlags.Ephemeral,
         });
       } catch (error) {
+        if (isHandledInteractionError(error)) {
+          log.warn('Prompt button interaction was lost or already handled by another process', {
+            requestId,
+            code: error.code,
+            status: error.status,
+          });
+          return;
+        }
+
         log.error('Failed to handle prompt button', {
           requestId,
           error: error instanceof Error ? error.message : String(error),
         });
 
         if (!interaction.replied && !interaction.deferred) {
-          await interaction.reply({
-            content: 'Failed to load prompt.',
-            flags: MessageFlags.Ephemeral,
-          });
+          try {
+            await interaction.reply({
+              content: 'Failed to load prompt.',
+              flags: MessageFlags.Ephemeral,
+            });
+          } catch (replyError) {
+            log.error('Failed to send prompt button error reply', {
+              requestId,
+              error: replyError instanceof Error ? replyError.message : String(replyError),
+            });
+          }
         }
       }
     });
@@ -247,9 +266,15 @@ class DiscordBot {
     comfyUIServerUrl?: string;
     videoModel?: string;
   }): Promise<void> {
-    const { channel, attachment, resultMessage } = await this.withRetry(() => this.prepareVideoMessage(params));
+    const { channel, attachment, resultMessage, uploadNotice } = await this.withRetry(() => this.prepareVideoMessage(params));
 
     await this.withRetry(() => channel.send({ ...resultMessage }));
+    if (!attachment) {
+      if (uploadNotice) await this.withRetry(() => channel.send({ content: uploadNotice }));
+      log.info('Discord result card sent without video attachment');
+      return;
+    }
+
     await this.withRetry(() => channel.send({ files: [attachment] }));
 
     log.info('Video sent to Discord successfully');
@@ -265,6 +290,8 @@ class DiscordBot {
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         log.error('Discord send failed', { attempt, maxAttempts: 3, error: lastError.message });
+
+        if (isNonRetryableUploadError(error)) throw error;
         
         if (attempt < 3) {
           const delay = Math.pow(2, attempt) * 1000;
@@ -330,8 +357,9 @@ class DiscordBot {
     videoModel?: string;
   }): Promise<{
     channel: TextChannel;
-    attachment: AttachmentBuilder;
+    attachment: AttachmentBuilder | null;
     resultMessage: MessageCreateOptions;
+    uploadNotice: string | null;
   }> {
     if (!this.isInitialized || !this.client.isReady()) {
       log.debug('Discord Bot not ready, attempting initialization');
@@ -350,8 +378,11 @@ class DiscordBot {
       const channel = await this.getChannel(params.isNSFW ?? false);
 
       let attachment: AttachmentBuilder;
+      let attachmentSize: number;
 
       if (params.videoPath) {
+        const fileStats = await stat(params.videoPath);
+        attachmentSize = fileStats.size;
         attachment = new AttachmentBuilder(params.videoPath);
       } else if (params.filename) {
         const subfolder = params.subfolder || '';
@@ -389,6 +420,7 @@ class DiscordBot {
         
         log.debug('Video download complete', { bytes: arrayBuffer.byteLength });
         const buffer = Buffer.from(arrayBuffer);
+        attachmentSize = buffer.byteLength;
         attachment = new AttachmentBuilder(buffer, { name: params.filename });
       } else {
         throw new Error('videoPath 또는 filename 중 하나는 반드시 제공되어야 합니다');
@@ -402,7 +434,25 @@ class DiscordBot {
         processingTime: params.processingTime,
       });
 
-      return { channel, attachment, resultMessage };
+      const premiumTier = channel.guild.premiumTier;
+      const uploadLimit = getDiscordUploadLimitBytes(premiumTier);
+      if (attachmentSize > uploadLimit) {
+        const sizeMB = attachmentSize / 1024 / 1024;
+        log.warn('Video exceeds Discord upload limit', {
+          sizeBytes: attachmentSize,
+          sizeMB: Number(sizeMB.toFixed(1)),
+          uploadLimitBytes: uploadLimit,
+          premiumTier,
+        });
+        return {
+          channel,
+          attachment: null,
+          resultMessage,
+          uploadNotice: `영상 파일이 Discord 업로드 제한을 초과해 업로드하지 못했습니다. (${sizeMB.toFixed(1)}MB)`,
+        };
+      }
+
+      return { channel, attachment, resultMessage, uploadNotice: null };
     } catch (error) {
       log.error('Failed to send video to Discord', { error: error instanceof Error ? error.message : String(error) });
       throw error;
@@ -486,6 +536,19 @@ class DiscordBot {
 
 declare global {
   var __discordBot: DiscordBot | undefined;
+}
+
+function isHandledInteractionError(error: unknown): error is DiscordAPIError {
+  return error instanceof DiscordAPIError && (error.code === 10062 || error.code === 40060);
+}
+
+function isNonRetryableUploadError(error: unknown): boolean {
+  return error instanceof DiscordAPIError && (error.code === 40005 || error.status === 413);
+}
+
+function getDiscordUploadLimitBytes(premiumTier: number): number {
+  const limitMB = premiumTier === 3 ? 100 : premiumTier === 2 ? 50 : 10;
+  return limitMB * 1024 * 1024 - DISCORD_UPLOAD_SAFETY_MARGIN_BYTES;
 }
 
 function getDiscordBotSingleton(): DiscordBot {

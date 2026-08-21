@@ -110,4 +110,15 @@ describe('ref2vaSchema', () => {
     }))
     expect(result.success).toBe(false)
   })
+
+  it.each([
+    ['refImage_9', makeFile('overflow.png', 'image/png')],
+    ['refVideo_3', makeFile('overflow.mp4', 'video/mp4')],
+    ['refAudioFile_3', makeFile('overflow.wav', 'audio/wav')],
+    ['refAudioPresetId_3', 'preset-overflow'],
+    ['unexpectedField', 'unexpected-value'],
+  ])('rejects unknown field %s', (field, value) => {
+    const result = ref2vaSchema.safeParse(baseFields({ [field]: value }))
+    expect(result.success).toBe(false)
+  })
 })
