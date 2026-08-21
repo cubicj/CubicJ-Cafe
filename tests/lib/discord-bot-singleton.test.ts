@@ -39,6 +39,10 @@ vi.mock('@/lib/database/queue', () => ({
 }))
 
 vi.mock('discord.js', () => ({
+  ActionRowBuilder: class {
+    components: unknown[] = []
+    addComponents(...components: unknown[]) { this.components.push(...components); return this }
+  },
   AttachmentBuilder: class {
     data: unknown
     options: unknown
@@ -51,11 +55,13 @@ vi.mock('discord.js', () => ({
     customId = ''
     label = ''
     style = 0
+    url = ''
     setCustomId(value: string) { this.customId = value; return this }
     setLabel(value: string) { this.label = value; return this }
     setStyle(value: number) { this.style = value; return this }
+    setURL(value: string) { this.url = value; return this }
   },
-  ButtonStyle: { Secondary: 2 },
+  ButtonStyle: { Secondary: 2, Link: 5 },
   Client: class {
     guilds = { fetch: vi.fn() }
     isReady = vi.fn().mockReturnValue(false)
@@ -71,9 +77,11 @@ vi.mock('discord.js', () => ({
     accentColor = 0
     textComponents: unknown[] = []
     sectionComponents: unknown[] = []
+    actionRowComponents: unknown[] = []
     setAccentColor(value: number) { this.accentColor = value; return this }
     addTextDisplayComponents(...components: unknown[]) { this.textComponents.push(...components); return this }
     addSectionComponents(...components: unknown[]) { this.sectionComponents.push(...components); return this }
+    addActionRowComponents(...components: unknown[]) { this.actionRowComponents.push(...components); return this }
   },
   DiscordAPIError: MockDiscordAPIError,
   GatewayIntentBits: { Guilds: 1, GuildMessages: 2 },
@@ -94,6 +102,8 @@ describe('discordBot singleton', () => {
   beforeEach(() => {
     vi.stubEnv('DISCORD_GUILD_ID', 'guild-1')
     vi.stubEnv('DISCORD_CHANNEL_ID', 'channel-1')
+    vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', '')
+    vi.stubEnv('APP_URL', 'https://cafe.invalid')
     mockStat.mockResolvedValue({ size: 1024 })
   })
 
@@ -253,6 +263,306 @@ describe('discordBot singleton', () => {
     })
 
     expect(send.mock.calls.filter(([message]) => message.files)).toHaveLength(1)
+  })
+
+  it('adds the NSFW move button after a SFW video message is sent', async () => {
+    vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
+    const { discordBot } = await import('@/lib/discord-bot')
+    const edit = vi.fn().mockResolvedValue(undefined)
+    const cardMessage = { id: 'card-message-1', edit }
+    const videoMessage = { id: 'video-message-1' }
+    const send = vi.fn((message: { files?: unknown[] }) => (
+      Promise.resolve(message.files ? videoMessage : cardMessage)
+    ))
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
+
+    await bot.sendVideoToDiscord({
+      videoPath: '/tmp/video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+      processingTime: 47,
+    })
+
+    expect(edit).toHaveBeenCalledTimes(1)
+    const editedCard = edit.mock.calls[0][0]
+    const container = editedCard.components[0]
+    const moveButton = container.actionRowComponents[0].components[0]
+    expect(moveButton.label).toBe('NSFW 채널로 이동')
+    expect(moveButton.style).toBe(2)
+    expect(moveButton.customId).toBe('move_nsfw:video-message-1:request-1')
+    expect(container.sectionComponents[0].buttonAccessory.customId).toBe('show_prompt:request-1')
+    expect(editedCard.flags).toEqual([32768])
+  })
+
+  it('does not add the NSFW move button to an NSFW-origin card', async () => {
+    vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
+    const { discordBot } = await import('@/lib/discord-bot')
+    const edit = vi.fn().mockResolvedValue(undefined)
+    const send = vi.fn((message: { files?: unknown[] }) => Promise.resolve(
+      message.files ? { id: 'video-message-1' } : { id: 'card-message-1', edit }
+    ))
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
+
+    await bot.sendVideoToDiscord({
+      videoPath: '/tmp/video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+      isNSFW: true,
+    })
+
+    expect(edit).not.toHaveBeenCalled()
+  })
+
+  it('does not add the NSFW move button when the video attachment is skipped', async () => {
+    vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
+    mockStat.mockResolvedValue({ size: 10 * 1024 * 1024 })
+    const { discordBot } = await import('@/lib/discord-bot')
+    const edit = vi.fn().mockResolvedValue(undefined)
+    const cardMessage = { id: 'card-message-1', edit }
+    const send = vi.fn().mockResolvedValue(cardMessage)
+    const bot = discordBot as unknown as {
+      isInitialized: boolean
+      client: { isReady: ReturnType<typeof vi.fn> }
+      getChannel: ReturnType<typeof vi.fn>
+      sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
+    }
+    bot.isInitialized = true
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
+
+    await bot.sendVideoToDiscord({
+      videoPath: '/tmp/oversized-video.mp4',
+      prompt: 'test prompt',
+      username: 'TestUser',
+      requestId: 'request-1',
+    })
+
+    expect(edit).not.toHaveBeenCalled()
+    expect(send.mock.calls.filter(([message]) => message.files)).toHaveLength(0)
+  })
+
+  it('moves a result card and video to the NSFW channel in order', async () => {
+    const { discordBot } = await import('@/lib/discord-bot')
+    const nsfwCardDelete = vi.fn().mockResolvedValue(undefined)
+    const nsfwCardMessage = { id: 'nsfw-card-1', delete: nsfwCardDelete }
+    const nsfwSend = vi.fn().mockResolvedValue(nsfwCardMessage)
+    const nsfwChannel = {
+      id: 'nsfw-channel-1',
+      guild: { id: 'guild-1' },
+      send: nsfwSend,
+    }
+    const forward = vi.fn().mockResolvedValue({ id: 'forwarded-video-1' })
+    const deleteVideo = vi.fn().mockResolvedValue(undefined)
+    const videoMessage = {
+      id: 'video-message-1',
+      attachments: new Map([['attachment-1', {}]]),
+      forward,
+      delete: deleteVideo,
+    }
+    const fetchVideo = vi.fn().mockResolvedValue(videoMessage)
+    const deferUpdate = vi.fn().mockResolvedValue(undefined)
+    const followUp = vi.fn().mockResolvedValue(undefined)
+    const editReply = vi.fn().mockResolvedValue(undefined)
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-1',
+      videoModel: 'ltx-wan',
+      startedAt: new Date('2026-08-21T10:00:00Z'),
+      completedAt: new Date('2026-08-21T10:05:00Z'),
+      user: { discordId: 'requester-1' },
+    })
+    const bot = discordBot as unknown as { getChannel: ReturnType<typeof vi.fn> }
+    bot.getChannel = vi.fn().mockResolvedValue(nsfwChannel)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_nsfw:video-message-1:request-1',
+      deferUpdate,
+      channel: { messages: { fetch: fetchVideo } },
+      followUp,
+      editReply,
+      user: { id: 'mover-1' },
+      guildId: 'guild-1',
+    })
+
+    expect(deferUpdate.mock.invocationCallOrder[0]).toBeLessThan(fetchVideo.mock.invocationCallOrder[0])
+    expect(nsfwSend.mock.invocationCallOrder[0]).toBeLessThan(forward.mock.invocationCallOrder[0])
+    expect(forward.mock.invocationCallOrder[0]).toBeLessThan(deleteVideo.mock.invocationCallOrder[0])
+    expect(deleteVideo.mock.invocationCallOrder[0]).toBeLessThan(editReply.mock.invocationCallOrder[0])
+    expect(forward).toHaveBeenCalledWith(nsfwChannel)
+    expect(deleteVideo).toHaveBeenCalledTimes(1)
+
+    const nsfwCard = nsfwSend.mock.calls[0][0]
+    const nsfwContainer = nsfwCard.components[0]
+    expect(nsfwCard.allowedMentions).toEqual({ parse: [] })
+    expect(nsfwContainer.actionRowComponents).toHaveLength(0)
+    expect(nsfwContainer.sectionComponents[0].buttonAccessory.customId).toBe('show_prompt:request-1')
+    expect(nsfwContainer.sectionComponents[0].textComponents[0].content).toBe('> <@requester-1> · 300초')
+
+    const originalCardUpdate = editReply.mock.calls[0][0]
+    const noticeContainer = originalCardUpdate.components[0]
+    expect(originalCardUpdate.allowedMentions).toEqual({ parse: [] })
+    expect(noticeContainer.textComponents[0].content).toBe(
+      '## [CubicJ Cafe I2V - LTX 2.3 + WAN 2.2](https://cafe.invalid)'
+    )
+    expect(noticeContainer.textComponents[1].content).toBe(
+      '해당 영상은 <@mover-1>님이 NSFW 채널로 이동했습니다.'
+    )
+    expect(noticeContainer.sectionComponents).toHaveLength(0)
+    const linkButton = noticeContainer.actionRowComponents[0].components[0]
+    expect(linkButton.label).toBe('NSFW 채널에서 보기')
+    expect(linkButton.style).toBe(5)
+    expect(linkButton.url).toBe(
+      'https://discord.com/channels/guild-1/nsfw-channel-1/nsfw-card-1'
+    )
+    expect(followUp).not.toHaveBeenCalled()
+    expect(nsfwCardDelete).not.toHaveBeenCalled()
+  })
+
+  it('cleans up the rebuilt card without touching originals when forwarding fails', async () => {
+    const { discordBot } = await import('@/lib/discord-bot')
+    const nsfwCardDelete = vi.fn().mockResolvedValue(undefined)
+    const nsfwCardMessage = { id: 'nsfw-card-1', delete: nsfwCardDelete }
+    const nsfwChannel = {
+      id: 'nsfw-channel-1',
+      guild: { id: 'guild-1' },
+      send: vi.fn().mockResolvedValue(nsfwCardMessage),
+    }
+    const forward = vi.fn().mockRejectedValue(new Error('forward unavailable'))
+    const deleteVideo = vi.fn().mockResolvedValue(undefined)
+    const fetchVideo = vi.fn().mockResolvedValue({
+      id: 'video-message-1',
+      attachments: new Map([['attachment-1', {}]]),
+      forward,
+      delete: deleteVideo,
+    })
+    const followUp = vi.fn().mockResolvedValue(undefined)
+    const editReply = vi.fn().mockResolvedValue(undefined)
+    mockGetRequestById.mockResolvedValue({
+      id: 'request-1',
+      videoModel: 'wan',
+      startedAt: new Date('2026-08-21T10:00:00Z'),
+      completedAt: new Date('2026-08-21T10:01:00Z'),
+      user: { discordId: 'requester-1' },
+    })
+    const bot = discordBot as unknown as { getChannel: ReturnType<typeof vi.fn> }
+    bot.getChannel = vi.fn().mockResolvedValue(nsfwChannel)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_nsfw:video-message-1:request-1',
+      deferUpdate: vi.fn().mockResolvedValue(undefined),
+      channel: { messages: { fetch: fetchVideo } },
+      followUp,
+      editReply,
+      user: { id: 'mover-1' },
+      guildId: 'guild-1',
+    })
+
+    expect(nsfwCardDelete).toHaveBeenCalledTimes(1)
+    expect(deleteVideo).not.toHaveBeenCalled()
+    expect(editReply).not.toHaveBeenCalled()
+    expect(followUp).toHaveBeenCalledWith({
+      content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+      flags: 64,
+    })
+  })
+
+  it('aborts the NSFW move when another bot process already acknowledged it', async () => {
+    await import('@/lib/discord-bot')
+    const ackError = new MockDiscordAPIError(40060, 400)
+    const deferUpdate = vi.fn().mockRejectedValue(ackError)
+    const fetchVideo = vi.fn()
+    const followUp = vi.fn()
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_nsfw:video-message-1:request-1',
+      deferUpdate,
+      channel: { messages: { fetch: fetchVideo } },
+      followUp,
+    })
+
+    expect(deferUpdate).toHaveBeenCalledTimes(1)
+    expect(fetchVideo).not.toHaveBeenCalled()
+    expect(mockGetRequestById).not.toHaveBeenCalled()
+    expect(followUp).not.toHaveBeenCalled()
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'NSFW move interaction was lost or already handled by another process',
+      expect.objectContaining({ code: 40060 })
+    )
+  })
+
+  it('reports an already moved video when the original message is gone', async () => {
+    await import('@/lib/discord-bot')
+    const fetchVideo = vi.fn().mockRejectedValue(new MockDiscordAPIError(10008, 404))
+    const followUp = vi.fn().mockResolvedValue(undefined)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_nsfw:video-message-1:request-1',
+      deferUpdate: vi.fn().mockResolvedValue(undefined),
+      channel: { messages: { fetch: fetchVideo } },
+      followUp,
+    })
+
+    expect(mockGetRequestById).not.toHaveBeenCalled()
+    expect(followUp).toHaveBeenCalledWith({
+      content: '이미 이동되었거나 찾을 수 없는 영상입니다.',
+      flags: 64,
+    })
+  })
+
+  it('reports a missing queue request without moving the video', async () => {
+    await import('@/lib/discord-bot')
+    const forward = vi.fn()
+    const deleteVideo = vi.fn()
+    const fetchVideo = vi.fn().mockResolvedValue({
+      id: 'video-message-1',
+      attachments: new Map([['attachment-1', {}]]),
+      forward,
+      delete: deleteVideo,
+    })
+    const followUp = vi.fn().mockResolvedValue(undefined)
+    mockGetRequestById.mockResolvedValue(null)
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId: 'move_nsfw:video-message-1:request-1',
+      deferUpdate: vi.fn().mockResolvedValue(undefined),
+      channel: { messages: { fetch: fetchVideo } },
+      followUp,
+    })
+
+    expect(mockGetRequestById).toHaveBeenCalledWith('request-1')
+    expect(forward).not.toHaveBeenCalled()
+    expect(deleteVideo).not.toHaveBeenCalled()
+    expect(followUp).toHaveBeenCalledWith({
+      content: '요청 정보를 찾을 수 없습니다.',
+      flags: 64,
+    })
   })
 
   it.each([
