@@ -60,6 +60,8 @@ model QueueRequest {
   completedAt    DateTime?   @map("completed_at")
   failedAt       DateTime?   @map("failed_at")
   error          String?
+  discordCardMessageId String?       @map("discord_card_message_id")
+  discordVideoMessageId String?      @map("discord_video_message_id")
   videoModel      String         @default("wan") @map("video_model")
   generationMode  GenerationMode @default(START_ONLY) @map("generation_mode")
   videoDuration   Int            @default(5) @map("video_duration")

@@ -22,9 +22,10 @@ import { getOpsSetting } from '@/lib/database/ops-settings';
 
 const log = createLogger('discord');
 const SHOW_PROMPT_PREFIX = 'show_prompt:';
-const MOVE_NSFW_PREFIX = 'move_nsfw:';
+const MOVE_VIDEO_PREFIX = 'move_video:';
 const PROMPT_REPLY_LIMIT = 1800;
 const DISCORD_UPLOAD_SAFETY_MARGIN_BYTES = 512 * 1024;
+const movingRequestIds = new Set<string>();
 
 type ComponentsV2MessageOptions = Pick<MessageCreateOptions, 'allowedMentions' | 'components'> & {
   flags: [MessageFlags.IsComponentsV2];
@@ -80,13 +81,15 @@ class DiscordBot {
 
     this.client.on('interactionCreate', async (interaction) => {
       if (!interaction.isButton()) return;
-      if (interaction.customId.startsWith(MOVE_NSFW_PREFIX)) {
-        await this.handleMoveToNsfw(interaction);
+      if (interaction.customId.startsWith(MOVE_VIDEO_PREFIX)) {
+        await this.handleMoveVideo(interaction);
         return;
       }
       if (!interaction.customId.startsWith(SHOW_PROMPT_PREFIX)) return;
 
-      const requestId = interaction.customId.slice(SHOW_PROMPT_PREFIX.length);
+      const [requestId] = interaction.customId
+        .slice(SHOW_PROMPT_PREFIX.length)
+        .split(':');
 
       try {
         const request = await QueueService.getRequestById(requestId);
@@ -99,9 +102,15 @@ class DiscordBot {
         }
 
         const prompt = request.prompt.trim();
+        const isMovingToNsfw = interaction.channelId !== process.env.DISCORD_NSFW_CHANNEL_ID;
+        const hasMoveTarget = !isMovingToNsfw || Boolean(process.env.DISCORD_NSFW_CHANNEL_ID);
+        const moveActionRow = request.discordVideoMessageId && hasMoveTarget
+          ? buildMoveVideoActionRow(requestId, isMovingToNsfw)
+          : null;
         if (prompt.length <= PROMPT_REPLY_LIMIT) {
           await interaction.reply({
             content: buildPromptReplyContent(request, prompt),
+            ...(moveActionRow && { components: [moveActionRow] }),
             flags: MessageFlags.Ephemeral,
           });
           return;
@@ -114,6 +123,7 @@ class DiscordBot {
               name: `prompt-${request.id}.txt`,
             }),
           ],
+          ...(moveActionRow && { components: [moveActionRow] }),
           flags: MessageFlags.Ephemeral,
         });
       } catch (error) {
@@ -159,12 +169,12 @@ class DiscordBot {
     });
   }
 
-  private async handleMoveToNsfw(interaction: ButtonInteraction): Promise<void> {
+  private async handleMoveVideo(interaction: ButtonInteraction): Promise<void> {
     try {
       await interaction.deferUpdate();
     } catch (error) {
       if (isHandledInteractionError(error)) {
-        log.warn('NSFW move interaction was lost or already handled by another process', {
+        log.warn('Video move interaction was lost or already handled by another process', {
           customId: interaction.customId,
           code: error.code,
           status: error.status,
@@ -172,17 +182,55 @@ class DiscordBot {
         return;
       }
 
-      log.error('Failed to acknowledge NSFW move interaction', {
+      log.error('Failed to acknowledge video move interaction', {
         customId: interaction.customId,
         error: error instanceof Error ? error.message : String(error),
       });
       return;
     }
 
-    const moveData = interaction.customId.slice(MOVE_NSFW_PREFIX.length);
-    const separatorIndex = moveData.indexOf(':');
-    const videoMessageId = separatorIndex === -1 ? moveData : moveData.slice(0, separatorIndex);
-    const requestId = separatorIndex === -1 ? '' : moveData.slice(separatorIndex + 1);
+    const [requestId] = interaction.customId
+      .slice(MOVE_VIDEO_PREFIX.length)
+      .split(':');
+
+    if (movingRequestIds.has(requestId)) {
+      await interaction.followUp({
+        content: '이미 처리 중이거나 이동된 영상입니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    movingRequestIds.add(requestId);
+    try {
+      await this.moveVideo(interaction, requestId);
+    } finally {
+      movingRequestIds.delete(requestId);
+    }
+  }
+
+  private async moveVideo(
+    interaction: ButtonInteraction,
+    requestId: string
+  ): Promise<void> {
+    const request = await QueueService.getRequestById(requestId);
+    if (!request) {
+      await interaction.followUp({
+        content: '요청 정보를 찾을 수 없습니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const videoMessageId = request.discordVideoMessageId;
+    const cardMessageId = request.discordCardMessageId;
+    if (!videoMessageId || !cardMessageId) {
+      await interaction.followUp({
+        content: '이미 이동되었거나 찾을 수 없는 영상입니다.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     let videoMessage;
     try {
@@ -196,13 +244,13 @@ class DiscordBot {
         return;
       }
 
-      log.error('Failed to fetch video message for NSFW move', {
+      log.error('Failed to fetch video message for channel move', {
         videoMessageId,
         requestId,
         error: error instanceof Error ? error.message : String(error),
       });
       await interaction.followUp({
-        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        content: '영상을 대상 채널로 이동하지 못했습니다. 다시 시도해주세요.',
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -216,23 +264,25 @@ class DiscordBot {
       return;
     }
 
-    const request = await QueueService.getRequestById(requestId);
-    if (!request) {
+    const sourceAttachment = videoMessage.attachments.first();
+    if (!sourceAttachment) {
       await interaction.followUp({
-        content: '요청 정보를 찾을 수 없습니다.',
+        content: '이미 이동되었거나 찾을 수 없는 영상입니다.',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    let nsfwChannel: TextChannel;
-    let nsfwCardMessage;
+    const isMovingToNsfw = interaction.channelId !== process.env.DISCORD_NSFW_CHANNEL_ID;
+    let targetChannel: TextChannel;
+    let targetCardMessage;
+    let targetVideoMessage;
     try {
-      nsfwChannel = await this.getChannel(true);
-      nsfwCardMessage = await nsfwChannel.send({
+      targetChannel = await this.getChannel(isMovingToNsfw);
+      targetCardMessage = await targetChannel.send({
         ...buildVideoResultMessage({
           modelDisplayName: getVideoModelDisplayName(request.videoModel),
-          isNSFW: false,
+          isNSFW: request.isNSFW,
           discordId: request.user?.discordId,
           requestId,
           processingTime: getRequestProcessingTimeSeconds(request),
@@ -240,37 +290,56 @@ class DiscordBot {
         allowedMentions: { parse: [] },
       });
     } catch (error) {
-      log.error('Failed to send NSFW result card', {
+      log.error('Failed to send target result card', {
         videoMessageId,
         requestId,
         error: error instanceof Error ? error.message : String(error),
       });
       await interaction.followUp({
-        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        content: '영상을 대상 채널로 이동하지 못했습니다. 다시 시도해주세요.',
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
 
-    try {
-      await videoMessage.forward(nsfwChannel);
-    } catch (error) {
-      log.error('Failed to forward video to NSFW channel', {
-        videoMessageId,
-        requestId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+    const cleanupTargetCard = async () => {
       try {
-        await nsfwCardMessage.delete();
+        await targetCardMessage.delete();
       } catch (cleanupError) {
-        log.error('Failed to clean up NSFW card after video forward failure', {
-          nsfwCardMessageId: nsfwCardMessage.id,
+        log.error('Failed to clean up target card after video transfer failure', {
+          targetCardMessageId: targetCardMessage.id,
           requestId,
           error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),
         });
       }
+    };
+
+    try {
+      const videoBuffer = await downloadDiscordAttachment(sourceAttachment.url);
+      const uploadLimit = getDiscordUploadLimitBytes(targetChannel.guild.premiumTier);
+      if (videoBuffer.byteLength > uploadLimit) {
+        await cleanupTargetCard();
+        await interaction.followUp({
+          content: '영상 파일이 대상 채널의 Discord 업로드 제한을 초과했습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      targetVideoMessage = await targetChannel.send({
+        files: [
+          new AttachmentBuilder(videoBuffer, { name: sourceAttachment.name }),
+        ],
+      });
+    } catch (error) {
+      log.error('Failed to transfer video to target channel', {
+        videoMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      await cleanupTargetCard();
       await interaction.followUp({
-        content: '영상을 NSFW 채널로 이동하지 못했습니다. 다시 시도해주세요.',
+        content: '영상을 대상 채널로 이동하지 못했습니다. 다시 시도해주세요.',
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -279,7 +348,7 @@ class DiscordBot {
     try {
       await videoMessage.delete();
     } catch (error) {
-      log.error('Failed to delete original video after NSFW forward', {
+      log.error('Failed to delete original video after channel transfer', {
         videoMessageId,
         requestId,
         error: error instanceof Error ? error.message : String(error),
@@ -287,22 +356,43 @@ class DiscordBot {
     }
 
     try {
-      await interaction.editReply(
+      const cardMessage = await interaction.channel?.messages.fetch(cardMessageId);
+      if (!cardMessage) throw new Error(`Card message not found: ${cardMessageId}`);
+      await cardMessage.edit(
         buildMovedVideoNoticeMessage({
           modelDisplayName: getVideoModelDisplayName(request.videoModel),
+          isNSFW: request.isNSFW,
+          isMovingToNsfw,
           movedByDiscordId: interaction.user.id,
-          guildId: interaction.guildId ?? nsfwChannel.guild.id,
-          nsfwChannelId: nsfwChannel.id,
-          nsfwCardMessageId: nsfwCardMessage.id,
+          guildId: interaction.guildId ?? targetChannel.guild.id,
+          targetChannelId: targetChannel.id,
+          targetCardMessageId: targetCardMessage.id,
         })
       );
     } catch (error) {
-      log.error('Failed to update original card after NSFW move', {
+      log.error('Failed to update original card after video move', {
+        videoMessageId,
+        cardMessageId,
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    try {
+      await interaction.editReply({ components: [] });
+    } catch (error) {
+      log.error('Failed to clear video move button after successful move', {
         videoMessageId,
         requestId,
         error: error instanceof Error ? error.message : String(error),
       });
     }
+
+    await this.persistDiscordMessageIds(
+      requestId,
+      targetCardMessage.id,
+      targetVideoMessage.id
+    );
   }
 
   async initialize(): Promise<void> {
@@ -426,27 +516,33 @@ class DiscordBot {
 
     const cardMessage = await this.withRetry(() => channel.send({ ...resultMessage }));
     if (!attachment) {
+      await this.persistDiscordMessageIds(params.requestId, cardMessage.id, null);
       if (uploadNotice) await this.withRetry(() => channel.send({ content: uploadNotice }));
       log.info('Discord result card sent without video attachment');
       return;
     }
 
     const videoMessage = await this.withRetry(() => channel.send({ files: [attachment] }));
-
-    if (!params.isNSFW && process.env.DISCORD_NSFW_CHANNEL_ID) {
-      await this.withRetry(() => cardMessage.edit(
-        buildVideoResultMessage({
-          modelDisplayName: getVideoModelDisplayName(params.videoModel),
-          isNSFW: false,
-          discordId: params.discordId,
-          requestId: params.requestId,
-          processingTime: params.processingTime,
-          moveVideoMessageId: videoMessage.id,
-        })
-      ));
-    }
+    await this.persistDiscordMessageIds(params.requestId, cardMessage.id, videoMessage.id);
 
     log.info('Video sent to Discord successfully');
+  }
+
+  private async persistDiscordMessageIds(
+    requestId: string,
+    cardMessageId: string,
+    videoMessageId: string | null
+  ): Promise<void> {
+    try {
+      await QueueService.updateDiscordMessageIds(requestId, cardMessageId, videoMessageId);
+    } catch (error) {
+      log.error('Failed to persist Discord message ids', {
+        requestId,
+        cardMessageId,
+        videoMessageId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   private async withRetry<T>(op: () => Promise<T>): Promise<T> {
@@ -753,7 +849,6 @@ function buildVideoResultMessage(params: {
   discordId?: string;
   requestId: string;
   processingTime?: number;
-  moveVideoMessageId?: string;
 }): ComponentsV2MessageOptions {
   const userLine = params.discordId ? `<@${params.discordId}>` : 'A generation is ready.';
   const detailLine = `> ${userLine} · ${formatProcessingTime(params.processingTime)}`;
@@ -777,17 +872,6 @@ function buildVideoResultMessage(params: {
         )
     );
 
-  if (params.moveVideoMessageId) {
-    container.addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`${MOVE_NSFW_PREFIX}${params.moveVideoMessageId}:${params.requestId}`)
-          .setLabel('NSFW 채널로 이동')
-          .setStyle(ButtonStyle.Secondary)
-      )
-    );
-  }
-
   return {
     allowedMentions: params.discordId ? { users: [params.discordId] } : { parse: [] },
     components: [container],
@@ -795,28 +879,43 @@ function buildVideoResultMessage(params: {
   };
 }
 
+function buildMoveVideoActionRow(
+  requestId: string,
+  isMovingToNsfw: boolean
+): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`${MOVE_VIDEO_PREFIX}${requestId}`)
+      .setLabel(isMovingToNsfw ? 'NSFW 채널로 이동' : '일반 채널로 이동')
+      .setStyle(ButtonStyle.Secondary)
+  );
+}
+
 function buildMovedVideoNoticeMessage(params: {
   modelDisplayName: string;
+  isNSFW: boolean;
+  isMovingToNsfw: boolean;
   movedByDiscordId: string;
   guildId: string;
-  nsfwChannelId: string;
-  nsfwCardMessageId: string;
+  targetChannelId: string;
+  targetCardMessageId: string;
 }): ComponentsV2MessageOptions {
   const appUrl = process.env.APP_URL || 'https://localhost:3000';
-  const title = `CubicJ Cafe I2V - ${params.modelDisplayName}`;
-  const messageUrl = `https://discord.com/channels/${params.guildId}/${params.nsfwChannelId}/${params.nsfwCardMessageId}`;
+  const title = `CubicJ Cafe I2V - ${params.modelDisplayName}${params.isNSFW ? ' NSFW' : ''}`;
+  const targetName = params.isMovingToNsfw ? 'NSFW 채널' : '일반 채널';
+  const messageUrl = `https://discord.com/channels/${params.guildId}/${params.targetChannelId}/${params.targetCardMessageId}`;
   const container = new ContainerBuilder()
-    .setAccentColor(0x10b981)
+    .setAccentColor(params.isNSFW ? 0xff6b6b : 0x10b981)
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(`## [${title}](${appUrl})`),
       new TextDisplayBuilder().setContent(
-        `해당 영상은 <@${params.movedByDiscordId}>님이 NSFW 채널로 이동했습니다.`
+        `해당 영상은 <@${params.movedByDiscordId}>님이 ${targetName}로 이동했습니다.`
       )
     )
     .addActionRowComponents(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setLabel('NSFW 채널에서 보기')
+          .setLabel(`${targetName}에서 보기`)
           .setStyle(ButtonStyle.Link)
           .setURL(messageUrl)
       )
@@ -827,6 +926,30 @@ function buildMovedVideoNoticeMessage(params: {
     components: [container],
     flags: [MessageFlags.IsComponentsV2],
   };
+}
+
+async function downloadDiscordAttachment(url: string): Promise<Buffer> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Video download failed: ${response.status} ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength === 0) {
+      throw new Error('Downloaded video file is empty');
+    }
+
+    return Buffer.from(arrayBuffer);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function getRequestProcessingTimeSeconds(request: {
