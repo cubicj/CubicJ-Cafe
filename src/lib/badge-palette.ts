@@ -30,3 +30,20 @@ export const BADGE_TONES: Record<BadgeTone, string> = {
   amber: 'bg-amber-50 text-amber-700 border-amber-200',
   violet: 'bg-violet-50 text-violet-700 border-violet-200',
 };
+
+export const BADGE_ACCENTS: Record<BadgeTone, string> = {
+  yellow: 'text-yellow-600/70',
+  blue: 'text-blue-600/70',
+  green: 'text-green-600/70',
+  orange: 'text-orange-600/70',
+  red: 'text-red-600/70',
+  gray: 'text-gray-600/70',
+  purple: 'text-purple-600/70',
+  emerald: 'text-emerald-600/70',
+  teal: 'text-teal-600/70',
+  rose: 'text-rose-600/70',
+  indigo: 'text-indigo-600/70',
+  cyan: 'text-cyan-600/70',
+  amber: 'text-amber-600/70',
+  violet: 'text-violet-600/70',
+};

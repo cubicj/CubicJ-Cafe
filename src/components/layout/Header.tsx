@@ -55,7 +55,7 @@ export default function Header() {
                 href="/"
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   pathname === '/'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >
@@ -73,7 +73,7 @@ export default function Header() {
                 href="/i2v"
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   pathname === '/i2v'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                 }`}
               >

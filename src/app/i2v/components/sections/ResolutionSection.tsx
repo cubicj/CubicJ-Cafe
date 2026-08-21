@@ -31,7 +31,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
           <button
             onClick={() => setResolutionMode('first_image')}
             disabled={images.length === 0}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 ${
+            className={`flex-1 min-h-11 px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40 ${
               effectiveResolutionMode === 'first_image'
                 ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                 : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
@@ -41,7 +41,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
           </button>
           <button
             onClick={() => setResolutionMode('custom')}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 min-h-11 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               effectiveResolutionMode === 'custom'
                 ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                 : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'

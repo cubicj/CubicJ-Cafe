@@ -19,19 +19,19 @@ export function QueueStats({ stats }: QueueStatsProps) {
     <Card className="p-6">
       <div className="flex flex-wrap justify-center gap-4 md:gap-8">
         <div className="text-center">
-          <div className={`text-xl md:text-2xl font-bold ${getStatusAccentColor('PENDING')}`}>{stats?.pending || 0}</div>
+          <div className={`font-mono text-xl md:text-2xl font-bold ${getStatusAccentColor('PENDING')}`}>{stats?.pending || 0}</div>
           <div className="text-xs text-muted-foreground">{getStatusText('PENDING')}</div>
         </div>
         <div className="text-center">
-          <div className={`text-xl md:text-2xl font-bold ${getStatusAccentColor('PROCESSING')}`}>{stats?.processing || 0}</div>
+          <div className={`font-mono text-xl md:text-2xl font-bold ${getStatusAccentColor('PROCESSING')}`}>{stats?.processing || 0}</div>
           <div className="text-xs text-muted-foreground">{getStatusText('PROCESSING')}</div>
         </div>
         <div className="text-center">
-          <div className={`text-xl md:text-2xl font-bold ${getStatusAccentColor('COMPLETED')}`}>{stats?.todayCompleted || 0}</div>
+          <div className={`font-mono text-xl md:text-2xl font-bold ${getStatusAccentColor('COMPLETED')}`}>{stats?.todayCompleted || 0}</div>
           <div className="text-xs text-muted-foreground">오늘 {getStatusText('COMPLETED')}</div>
         </div>
         <div className="text-center">
-          <div className="text-xl md:text-2xl font-bold text-primary">{stats?.total || 0}</div>
+          <div className="font-mono text-xl md:text-2xl font-bold text-primary">{stats?.total || 0}</div>
           <div className="text-xs text-muted-foreground">전체 대기</div>
         </div>
       </div>

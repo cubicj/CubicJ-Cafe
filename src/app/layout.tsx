@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Sans_KR, IBM_Plex_Mono } from 'next/font/google';
+import { IBM_Plex_Sans_KR } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from './providers';
 import Header from '@/components/layout/Header';
@@ -12,10 +13,12 @@ const plexSansKr = IBM_Plex_Sans_KR({
   display: 'swap',
 });
 
-const plexMono = IBM_Plex_Mono({
+const plexMono = localFont({
   variable: '--font-plex-mono',
-  weight: ['400', '500'],
-  subsets: ['latin'],
+  src: [
+    { path: '../fonts/IBMPlexMono-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/IBMPlexMono-Medium.woff2', weight: '500', style: 'normal' },
+  ],
   display: 'swap',
 });
 

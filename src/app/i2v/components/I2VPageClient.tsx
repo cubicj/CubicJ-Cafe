@@ -137,7 +137,7 @@ export default function I2VPageClient() {
                         <button
                           key={model}
                           onClick={() => setActiveModel(model)}
-                          className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                          className={`flex-1 min-h-11 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                             activeModel === model
                               ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                               : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
@@ -193,7 +193,7 @@ export default function I2VPageClient() {
                         <button
                           key={duration}
                           onClick={() => setVideoDuration(duration)}
-                          className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                          className={`flex-1 min-h-11 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                             videoDuration === duration
                               ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/40'
                               : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'

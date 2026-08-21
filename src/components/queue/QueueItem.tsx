@@ -84,7 +84,7 @@ function formatRelativeTime(dateString: string) {
   return `${diffDays}일 전`;
 }
 
-function formatAbsoluteTime(dateString: string) {
+export function formatAbsoluteTime(dateString: string) {
   const d = new Date(dateString);
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
