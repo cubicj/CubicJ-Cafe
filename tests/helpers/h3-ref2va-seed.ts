@@ -1,0 +1,64 @@
+import { prisma } from '@/lib/database/prisma'
+
+type SeedType = 'string' | 'number' | 'boolean'
+
+export const H3_REF2VA_SEED: Array<{ key: string; value: string; type: SeedType }> = [
+  { key: 'h3-ref2va.enabled', value: 'true', type: 'boolean' },
+  { key: 'h3-ref2va.unet', value: 'test-h3r-unet.safetensors', type: 'string' },
+  { key: 'h3-ref2va.unet_weight_dtype', value: 'fake-weight-dtype', type: 'string' },
+  { key: 'h3-ref2va.clip_name', value: 'test-h3r-clip.safetensors', type: 'string' },
+  { key: 'h3-ref2va.clip_type', value: 'test-clip-type', type: 'string' },
+  { key: 'h3-ref2va.clip_device', value: 'fake-clip-device', type: 'string' },
+  { key: 'h3-ref2va.video_vae', value: 'test-h3r-video-vae.safetensors', type: 'string' },
+  { key: 'h3-ref2va.audio_vae', value: 'test-h3r-audio-vae.safetensors', type: 'string' },
+  { key: 'h3-ref2va.turbo_lora', value: 'test-h3r-lora.safetensors', type: 'string' },
+  { key: 'h3-ref2va.turbo_lora_strength', value: '0.9', type: 'number' },
+  { key: 'h3-ref2va.steps', value: '4', type: 'number' },
+  { key: 'h3-ref2va.sampler', value: 'fake-sampler', type: 'string' },
+  { key: 'h3-ref2va.scheduler', value: 'fake-scheduler', type: 'string' },
+  { key: 'h3-ref2va.shift_video', value: '7', type: 'number' },
+  { key: 'h3-ref2va.shift_audio', value: '2', type: 'number' },
+  { key: 'h3-ref2va.attention_backend', value: 'test attention', type: 'string' },
+  { key: 'h3-ref2va.fused_modulation', value: 'true', type: 'boolean' },
+  { key: 'h3-ref2va.chunk_feedforward_enabled', value: 'true', type: 'boolean' },
+  { key: 'h3-ref2va.chunk_feedforward_chunks', value: '3', type: 'number' },
+  { key: 'h3-ref2va.chunk_feedforward_min_tokens', value: '1024', type: 'number' },
+  { key: 'h3-ref2va.sol_attn_enabled', value: 'false', type: 'boolean' },
+  { key: 'h3-ref2va.sol_attn_tau_start', value: '1.1', type: 'number' },
+  { key: 'h3-ref2va.sol_attn_tau_end', value: '0.7', type: 'number' },
+  { key: 'h3-ref2va.sol_attn_curve', value: 'test-curve', type: 'string' },
+  { key: 'h3-ref2va.sol_attn_min_tokens', value: '2048', type: 'number' },
+  { key: 'h3-ref2va.sol_attn_strict', value: 'false', type: 'boolean' },
+  { key: 'h3-ref2va.sol_attn_dense_percent', value: '0.5', type: 'number' },
+  { key: 'h3-ref2va.sol_attn_thresh_type', value: 'test-thresh', type: 'string' },
+  { key: 'h3-ref2va.sol_attn_int8_qk', value: 'true', type: 'boolean' },
+  { key: 'h3-ref2va.sol_attn_int8_pv', value: 'false', type: 'boolean' },
+  { key: 'h3-ref2va.sol_attn_sink_conditioning', value: 'test-sink', type: 'string' },
+  { key: 'h3-ref2va.sol_attn_dense_blocks', value: '', type: 'string' },
+  { key: 'h3-ref2va.megapixels', value: '0.5', type: 'number' },
+  { key: 'h3-ref2va.resize_multiple_of', value: '16', type: 'number' },
+  { key: 'h3-ref2va.resize_upscale_method', value: 'fake-resize-method', type: 'string' },
+  { key: 'h3-ref2va.ref_image_size', value: 'test-match', type: 'string' },
+  { key: 'h3-ref2va.duration_options', value: '5,7', type: 'string' },
+  { key: 'h3-ref2va.frames_per_step', value: '10', type: 'number' },
+  { key: 'h3-ref2va.frame_base', value: '3', type: 'number' },
+  { key: 'h3-ref2va.frame_rate', value: '10', type: 'number' },
+  { key: 'h3-ref2va.video_crf', value: '18', type: 'number' },
+  { key: 'h3-ref2va.video_format', value: 'fake-video-format', type: 'string' },
+  { key: 'h3-ref2va.video_pix_fmt', value: 'fake-pix-format', type: 'string' },
+  { key: 'h3-ref2va.rtx_enabled', value: 'true', type: 'boolean' },
+  { key: 'h3-ref2va.rtx_resize_type', value: 'fake-resize-type', type: 'string' },
+  { key: 'h3-ref2va.rtx_scale', value: '1.7', type: 'number' },
+  { key: 'h3-ref2va.rtx_quality', value: 'HIGH', type: 'string' },
+]
+
+export async function seedH3Ref2va(): Promise<void> {
+  await prisma.systemSetting.createMany({
+    data: H3_REF2VA_SEED.map((row) => ({
+      key: row.key,
+      value: row.value,
+      type: row.type,
+      category: 'h3-ref2va',
+    })),
+  })
+}
