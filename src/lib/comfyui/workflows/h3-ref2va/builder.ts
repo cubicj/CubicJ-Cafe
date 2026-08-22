@@ -149,7 +149,7 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
     }
     workflow[refVideoResizeId(slot)] = {
       inputs: {
-        megapixels: settings.megapixels,
+        megapixels: settings.megapixelsVideo,
         multiple_of: settings.resizeMultipleOf,
         upscale_method: settings.resizeUpscaleMethod,
         image: [refVideoLoadId(slot), 0],

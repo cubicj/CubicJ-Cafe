@@ -44,6 +44,7 @@ describe('getH3Ref2vaSettings', () => {
       solAttnSinkConditioning: 'test-sink',
       solAttnDenseBlocks: '',
       megapixels: 0.5,
+      megapixelsVideo: 0.3,
       resizeMultipleOf: 16,
       resizeUpscaleMethod: 'fake-resize-method',
       refImageSize: 'test-match',
