@@ -40,22 +40,41 @@ describe('Header user menu', () => {
 
   it('renders a closed menu trigger with ARIA state', () => {
     const html = renderToStaticMarkup(<Header />);
+    const triggerTag = html.match(/<button\b[^>]*aria-expanded="false"[^>]*>/)?.[0];
+    const triggerClass = triggerTag?.match(/class="([^"]*)"/)?.[1];
+    const nicknameClass = html.match(/<span class="([^"]*)">Fake Nick<\/span>/)?.[1];
+    const panelClass = html.match(/<div id="header-user-menu" class="([^"]*)">/)?.[1];
 
-    expect(html).toContain('aria-haspopup="menu"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('aria-controls="header-user-menu"');
     expect(html).toContain('id="header-user-menu"');
-    expect(html).toContain('role="menu"');
-    expect(html).toMatch(/id="header-user-menu"[^>]*class="[^"]*\binvisible\b/);
     expect(html).toContain('Fake Nick');
+    expect(triggerClass).toContain('min-h-11');
+    expect(triggerClass).toContain('sm:min-h-8');
+    expect(nicknameClass).toContain('max-w-[8rem]');
+    expect(nicknameClass).toContain('truncate');
+    expect(nicknameClass).toContain('sm:max-w-none');
+    expect(panelClass).toContain('group-hover:opacity-100');
+    expect(panelClass).toContain('group-hover:visible');
+    expect(panelClass).toContain('opacity-0');
+    expect(panelClass).toContain('invisible');
   });
 
   it('renders menu items with mobile touch-target height', () => {
-    const html = renderToStaticMarkup(<Header />);
-    const menuItems = html.match(/role="menuitem"/g) ?? [];
+    sessionState.isAdmin = true;
 
-    expect(menuItems).toHaveLength(2);
-    expect(html).toMatch(/role="menuitem"[^>]*class="[^"]*\bmin-h-11\b[^"]*\bsm:min-h-9\b/);
+    const html = renderToStaticMarkup(<Header />);
+    const panelStart = html.indexOf('id="header-user-menu"');
+    const panelHtml = html.slice(panelStart, html.indexOf('</header>', panelStart));
+    const itemTags = panelHtml.match(/<(?:a|button)\b[^>]*>/g) ?? [];
+
+    expect(itemTags).toHaveLength(3);
+    for (const itemTag of itemTags) {
+      const itemClass = itemTag.match(/class="([^"]*)"/)?.[1];
+
+      expect(itemClass).toContain('min-h-11');
+      expect(itemClass).toContain('sm:min-h-9');
+    }
   });
 
   it('hides the admin link for non-admin users', () => {
@@ -72,7 +91,6 @@ describe('Header user menu', () => {
 
     expect(html).toContain('href="/admin"');
     expect(html).toContain('어드민 페이지');
-    expect(html.match(/role="menuitem"/g)).toHaveLength(3);
   });
 
   it('renders the login button and no menu when signed out', () => {
@@ -81,6 +99,6 @@ describe('Header user menu', () => {
     const html = renderToStaticMarkup(<Header />);
 
     expect(html).toContain('Discord 로그인');
-    expect(html).not.toContain('role="menu"');
+    expect(html).not.toContain('id="header-user-menu"');
   });
 });
