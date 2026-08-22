@@ -96,10 +96,26 @@ export const GET = createRouteHandler(
             videoDuration: true,
             videoDurationSeconds: true,
             workflowJson: true,
+            resolutionMode: true,
+            aspectWidth: true,
+            aspectHeight: true,
             createdAt: true,
             startedAt: true,
             completedAt: true,
             error: true,
+            referenceFiles: {
+              select: {
+                kind: true,
+                slot: true,
+                filename: true,
+                includeSoundtrack: true,
+                audioPresetName: true,
+              },
+              orderBy: [
+                { kind: 'asc' },
+                { slot: 'asc' },
+              ],
+            },
             user: {
               select: {
                 nickname: true,

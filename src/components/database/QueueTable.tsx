@@ -15,6 +15,12 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   ltx: 'LTX(Anime)',
 };
 
+const REFERENCE_KIND_LABELS = {
+  IMAGE: '이미지',
+  VIDEO: '영상',
+  AUDIO: '오디오',
+} as const;
+
 function getModelDisplayName(videoModel: string) {
   return MODEL_DISPLAY_NAMES[videoModel] ?? videoModel;
 }
@@ -43,12 +49,49 @@ interface QueueRow extends Record<string, unknown> {
   audioFile?: string;
   audioPresetName?: string;
   loraPresetData?: string;
+  resolutionMode?: string | null;
+  aspectWidth?: number | null;
+  aspectHeight?: number | null;
+  referenceFiles?: Array<{
+    kind: string;
+    slot: number;
+    filename: string;
+    includeSoundtrack: boolean;
+    audioPresetName: string | null;
+  }>;
   createdAt?: string;
   startedAt?: string;
   completedAt?: string;
   jobId?: string;
   error?: string;
   hasWorkflow?: boolean;
+}
+
+function getModelConfig(videoModel?: string) {
+  if (!videoModel || !Object.hasOwn(MODEL_REGISTRY, videoModel)) return undefined;
+  return MODEL_REGISTRY[videoModel as keyof typeof MODEL_REGISTRY];
+}
+
+function getReferenceKindLabel(kind: string) {
+  return REFERENCE_KIND_LABELS[kind as keyof typeof REFERENCE_KIND_LABELS] ?? kind;
+}
+
+function getReferenceComposition(referenceFiles: QueueRow['referenceFiles']) {
+  return Object.entries(REFERENCE_KIND_LABELS)
+    .map(([kind, label]) => {
+      const count = referenceFiles?.filter((file) => file.kind === kind).length ?? 0;
+      return count > 0 ? `${label} ${count}` : null;
+    })
+    .filter((part): part is string => part !== null)
+    .join(' · ');
+}
+
+function getResolutionLabel(request: QueueRow) {
+  if (request.resolutionMode === 'first_image') return '첫 이미지 비율';
+  if (request.resolutionMode === 'custom') {
+    return `커스텀 ${request.aspectWidth ?? '-'}:${request.aspectHeight ?? '-'}`;
+  }
+  return request.resolutionMode;
 }
 
 export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }: QueueTableProps) {
@@ -75,6 +118,10 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
         {(data as QueueRow[]).map((request, index) => {
           const itemId = `queue-${index}`;
           const isExpanded = expandedItems.has(itemId);
+          const modelConfig = getModelConfig(request.videoModel);
+          const referenceComposition = modelConfig?.capabilities.referenceInputs
+            ? getReferenceComposition(request.referenceFiles)
+            : '';
 
           return (
             <div key={index}>
@@ -107,10 +154,15 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <Badge variant="destructive" className="text-xs">NSFW</Badge>
                   )}
                 </div>
-                <div className="col-span-4 flex items-center">
+                <div className="col-span-4 flex items-center gap-1">
                   {request.generationMode && (
                     <Badge variant="outline" className="text-xs">
                       {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : request.generationMode === 'END_ONLY' ? '끝 이미지' : request.generationMode === 'REFERENCE' ? '레퍼런스' : '기본'}{request.audioFile ? '+오디오' : ''}
+                    </Badge>
+                  )}
+                  {referenceComposition && (
+                    <Badge variant="outline" className="text-xs">
+                      {referenceComposition}
                     </Badge>
                   )}
                   {isExpanded ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
@@ -124,10 +176,47 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     <p className="mt-1 p-2 bg-background rounded">{request.prompt}</p>
                   </div>
 
-                  {(request.imageFile || request.endImageFile) && (
+                  {modelConfig?.capabilities.endImage ? (
+                    <>
+                      {request.imageFile && (
+                        <div>
+                          <span className="font-medium">시작 이미지:</span>
+                          <span className="ml-2">{request.imageFile}</span>
+                        </div>
+                      )}
+                      {request.endImageFile && (
+                        <div>
+                          <span className="font-medium">끝 이미지:</span>
+                          <span className="ml-2">{request.endImageFile}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : request.imageFile ? (
                     <div>
                       <span className="font-medium">이미지 파일:</span>
-                      <span className="ml-2">{request.imageFile || request.endImageFile}</span>
+                      <span className="ml-2">{request.imageFile}</span>
+                    </div>
+                  ) : null}
+
+                  {modelConfig?.capabilities.referenceInputs && request.referenceFiles && request.referenceFiles.length > 0 && (
+                    <div>
+                      <span className="font-medium">레퍼런스:</span>
+                      <div className="mt-1 ml-2 space-y-1">
+                        {request.referenceFiles.map((file) => (
+                          <div key={`${file.kind}-${file.slot}`}>
+                            {getReferenceKindLabel(file.kind)} #{file.slot}: {file.filename}
+                            {file.includeSoundtrack ? ' (사운드트랙)' : ''}
+                            {file.audioPresetName ? ` · ${file.audioPresetName}` : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {modelConfig && request.resolutionMode && (
+                    <div>
+                      <span className="font-medium">해상도:</span>
+                      <span className="ml-2">{getResolutionLabel(request)}</span>
                     </div>
                   )}
 

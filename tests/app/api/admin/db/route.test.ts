@@ -2,6 +2,8 @@ import { cleanTables } from '@tests/helpers/db'
 import { createUser, createAdminUser, createQueueRequest } from '@tests/helpers/fixtures'
 import { createTestSession, buildRequest, buildAuthenticatedRequest } from '@tests/helpers/auth'
 import { GET } from '@/app/api/admin/db/route'
+import { prisma } from '@/lib/database/prisma'
+import { GenerationMode, ReferenceKind } from '@/generated/prisma/enums'
 
 beforeEach(async () => {
   await cleanTables()
@@ -70,6 +72,88 @@ describe('GET /api/admin/db', () => {
     expect(body.data.length).toBe(1)
     expect(body.data[0].prompt).toBe('test video prompt')
     expect(body.totalCount).toBe(1)
+  })
+
+  it('returns H3 queue metadata and reference files without blobs', async () => {
+    const admin = await createAdminUser()
+    const session = await createTestSession(admin.id)
+    const ref2vaRequest = await prisma.queueRequest.create({
+      data: {
+        userId: admin.id,
+        nickname: 'Fake Reference User',
+        prompt: 'fake reference prompt',
+        position: 1,
+        videoModel: 'h3-ref2va',
+        generationMode: GenerationMode.REFERENCE,
+        resolutionMode: 'first_image',
+        aspectWidth: 13,
+        aspectHeight: 8,
+        referenceFiles: {
+          create: [
+            {
+              kind: ReferenceKind.IMAGE,
+              slot: 0,
+              filename: 'fake-reference.png',
+              blob: new Uint8Array([1, 2, 3]),
+            },
+            {
+              kind: ReferenceKind.AUDIO,
+              slot: 0,
+              filename: 'fake-reference.wav',
+              blob: new Uint8Array([4, 5, 6]),
+              includeSoundtrack: true,
+              audioPresetName: 'Fake Audio Preset',
+            },
+          ],
+        },
+      },
+    })
+    const fl2vaRequest = await prisma.queueRequest.create({
+      data: {
+        userId: admin.id,
+        nickname: 'Fake Start End User',
+        prompt: 'fake start and end prompt',
+        position: 2,
+        videoModel: 'h3-fl2va',
+        imageFile: 'fake-start.png',
+        endImageFile: 'fake-end.png',
+      },
+    })
+
+    const req = buildAuthenticatedRequest('/api/admin/db?table=queue_requests', session.id)
+    const res = await GET(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+
+    const ref2vaRow = body.data.find((row: { id: string }) => row.id === ref2vaRequest.id)
+    expect(ref2vaRow).toMatchObject({
+      resolutionMode: 'first_image',
+      aspectWidth: 13,
+      aspectHeight: 8,
+      referenceFiles: [
+        {
+          kind: 'AUDIO',
+          slot: 0,
+          filename: 'fake-reference.wav',
+          includeSoundtrack: true,
+          audioPresetName: 'Fake Audio Preset',
+        },
+        {
+          kind: 'IMAGE',
+          slot: 0,
+          filename: 'fake-reference.png',
+          includeSoundtrack: false,
+          audioPresetName: null,
+        },
+      ],
+    })
+    expect(ref2vaRow.referenceFiles.every((file: Record<string, unknown>) => !Object.hasOwn(file, 'blob'))).toBe(true)
+
+    const fl2vaRow = body.data.find((row: { id: string }) => row.id === fl2vaRequest.id)
+    expect(fl2vaRow).toMatchObject({
+      imageFile: 'fake-start.png',
+      endImageFile: 'fake-end.png',
+    })
   })
 
   it('returns 400 for unsupported table name', async () => {
