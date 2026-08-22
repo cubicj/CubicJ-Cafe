@@ -40,6 +40,8 @@ export interface H3Ref2vaSettings {
   solAttnDenseBlocks: string;
   megapixels: number;
   megapixelsVideo: number;
+  refVideoForceRate: number;
+  refVideoFormat: string;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
   refImageSize: string;
@@ -90,6 +92,8 @@ export const H3_REF2VA_KEYS = {
   solAttnDenseBlocks: 'h3-ref2va.sol_attn_dense_blocks',
   megapixels: 'h3-ref2va.megapixels',
   megapixelsVideo: 'h3-ref2va.megapixels_video',
+  refVideoForceRate: 'h3-ref2va.ref_video_force_rate',
+  refVideoFormat: 'h3-ref2va.ref_video_format',
   resizeMultipleOf: 'h3-ref2va.resize_multiple_of',
   resizeUpscaleMethod: 'h3-ref2va.resize_upscale_method',
   refImageSize: 'h3-ref2va.ref_image_size',
@@ -145,6 +149,8 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     solAttnDenseBlocks: map.get(k.solAttnDenseBlocks)!,
     megapixels: parseLtxNumber(map, k.megapixels),
     megapixelsVideo: parseLtxNumber(map, k.megapixelsVideo),
+    refVideoForceRate: parseLtxNumber(map, k.refVideoForceRate),
+    refVideoFormat: map.get(k.refVideoFormat)!,
     resizeMultipleOf: parseLtxInteger(map, k.resizeMultipleOf),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
     refImageSize: map.get(k.refImageSize)!,

@@ -45,6 +45,8 @@ describe('getH3Ref2vaSettings', () => {
       solAttnDenseBlocks: '',
       megapixels: 0.5,
       megapixelsVideo: 0.3,
+      refVideoForceRate: 12,
+      refVideoFormat: 'test-format',
       resizeMultipleOf: 16,
       resizeUpscaleMethod: 'lanczos',
       refImageSize: 'test-match',

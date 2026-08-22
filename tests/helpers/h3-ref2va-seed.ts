@@ -37,6 +37,8 @@ export const H3_REF2VA_SEED: Array<{ key: string; value: string; type: SeedType 
   { key: 'h3-ref2va.sol_attn_dense_blocks', value: '', type: 'string' },
   { key: 'h3-ref2va.megapixels', value: '0.5', type: 'number' },
   { key: 'h3-ref2va.megapixels_video', value: '0.3', type: 'number' },
+  { key: 'h3-ref2va.ref_video_force_rate', value: '12', type: 'number' },
+  { key: 'h3-ref2va.ref_video_format', value: 'test-format', type: 'string' },
   { key: 'h3-ref2va.resize_multiple_of', value: '16', type: 'number' },
   { key: 'h3-ref2va.resize_upscale_method', value: 'lanczos', type: 'string' },
   { key: 'h3-ref2va.ref_image_size', value: 'test-match', type: 'string' },

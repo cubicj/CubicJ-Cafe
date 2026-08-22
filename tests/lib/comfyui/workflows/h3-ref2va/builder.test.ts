@@ -90,7 +90,7 @@ describe('buildH3Ref2vaWorkflow', () => {
         { name: 'v1.mp4', includeSoundtrack: true },
       ],
     }))
-    expect(wf[refVideoLoadId(0)]!.inputs!.video).toBe('v0.mp4')
+    expect(wf[refVideoLoadId(0)]!.inputs).toMatchObject({ video: 'v0.mp4', force_rate: 12, format: 'test-format' })
     expect(wf[refVideoResizeId(0)]!.inputs).toMatchObject({ megapixels: 0.3, multiple_of: 16, upscale_method: 'lanczos', image: [refVideoLoadId(0), 0] })
     expect(wf[refVideoResizeId(0)]!.class_type).toBe('ResizeImageToMegapixels')
     expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_videos.ref_video_0']).toEqual([refVideoResizeId(0), 0])
