@@ -45,3 +45,7 @@ export function refVideoLoadId(slot: number): string {
 export function refAudioLoadId(slot: number): string {
   return String(130 + slot);
 }
+
+export function refVideoResizeId(slot: number): string {
+  return String(140 + slot);
+}

@@ -2,7 +2,7 @@ import type { ComfyUIWorkflow } from '@/types'
 import type { H3Ref2vaGenerationParams } from '../types'
 import type { H3Ref2vaSettings } from '@/lib/database/system-settings'
 import { H3_REF2VA_WORKFLOW_TEMPLATE } from './template'
-import { H3_REF2VA, refAudioLoadId, refImageLoadId, refImageResizeId, refVideoLoadId } from './nodes'
+import { H3_REF2VA, refAudioLoadId, refImageLoadId, refImageResizeId, refVideoLoadId, refVideoResizeId } from './nodes'
 import { calculateResolution } from './resolution'
 import { createLogger } from '@/lib/logger'
 import { getH3Ref2vaSettings } from '@/lib/database/system-settings'
@@ -147,7 +147,17 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
       class_type: 'VHS_LoadVideo',
       _meta: { title: 'Load Video (Upload) 🎥🅥🅗🅢' },
     }
-    ref[`ref_videos.ref_video_${slot}`] = [refVideoLoadId(slot), 0]
+    workflow[refVideoResizeId(slot)] = {
+      inputs: {
+        megapixels: settings.megapixels,
+        multiple_of: settings.resizeMultipleOf,
+        upscale_method: settings.resizeUpscaleMethod,
+        image: [refVideoLoadId(slot), 0],
+      },
+      class_type: 'ResizeImageToMegapixels',
+      _meta: { title: 'Resize Image (Megapixels + Alignment)' },
+    }
+    ref[`ref_videos.ref_video_${slot}`] = [refVideoResizeId(slot), 0]
     if (video.includeSoundtrack) {
       ref[`ref_video_audios.ref_video_audio_${slot}`] = [refVideoLoadId(slot), 2]
     }

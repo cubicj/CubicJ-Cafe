@@ -3,7 +3,7 @@ import { prisma } from '@/lib/database/prisma'
 import { assertNoDanglingLinks, assertNoPlaceholders } from '@tests/helpers/workflow-assertions'
 import { cleanTables } from '@tests/helpers/db'
 import { seedH3Ref2va } from '@tests/helpers/h3-ref2va-seed'
-import { H3_REF2VA, refImageLoadId, refImageResizeId, refVideoLoadId, refAudioLoadId } from '@/lib/comfyui/workflows/h3-ref2va/nodes'
+import { H3_REF2VA, refImageLoadId, refImageResizeId, refVideoLoadId, refVideoResizeId, refAudioLoadId } from '@/lib/comfyui/workflows/h3-ref2va/nodes'
 import type { H3Ref2vaGenerationParams } from '@/lib/comfyui/workflows/types'
 import type { ComfyUIWorkflow } from '@/types'
 
@@ -91,7 +91,10 @@ describe('buildH3Ref2vaWorkflow', () => {
       ],
     }))
     expect(wf[refVideoLoadId(0)]!.inputs!.video).toBe('v0.mp4')
-    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_videos.ref_video_0']).toEqual([refVideoLoadId(0), 0])
+    expect(wf[refVideoResizeId(0)]!.inputs).toMatchObject({ megapixels: 0.5, multiple_of: 16, upscale_method: 'lanczos', image: [refVideoLoadId(0), 0] })
+    expect(wf[refVideoResizeId(0)]!.class_type).toBe('ResizeImageToMegapixels')
+    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_videos.ref_video_0']).toEqual([refVideoResizeId(0), 0])
+    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_videos.ref_video_1']).toEqual([refVideoResizeId(1), 0])
     expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_video_audios.ref_video_audio_0']).toBeUndefined()
     expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!['ref_video_audios.ref_video_audio_1']).toEqual([refVideoLoadId(1), 2])
   })
