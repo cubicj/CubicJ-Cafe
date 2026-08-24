@@ -130,8 +130,10 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
                   id={`ref-video-soundtrack-${index}`}
                   checked={entry.includeSoundtrack}
                   onCheckedChange={() => toggleSoundtrack(index)}
+                  disabled={entry.hasAudio === false}
                 />
                 <Label htmlFor={`ref-video-soundtrack-${index}`} className="text-sm">사운드트랙 포함</Label>
+                {entry.hasAudio === false && <span className="text-xs text-muted-foreground">오디오 없음</span>}
               </div>
             </div>
           ))}

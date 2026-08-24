@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { computeReferenceTags, type ReferenceTags } from '@/lib/comfyui/workflows/h3-ref2va/reference-tags';
+import { detectVideoAudioTrack } from '@/lib/utils/video-audio-track';
 
 export const REF_IMAGE_MAX = 9;
 export const REF_VIDEO_MAX = 3;
@@ -10,6 +11,7 @@ export const REF_AUDIO_MAX = 3;
 export interface ReferenceVideoEntry {
   file: File;
   includeSoundtrack: boolean;
+  hasAudio?: boolean;
 }
 
 interface ReferenceImageEntry {
@@ -76,13 +78,27 @@ export function useReferenceSet(): ReferenceSetState {
     replaceImageEntries(current.filter((_, i) => i !== index));
   }, [replaceImageEntries]);
   const addVideo = useCallback((file: File) => {
-    setVideos((prev) => (prev.length >= REF_VIDEO_MAX ? prev : [...prev, { file, includeSoundtrack: false }]));
+    setVideos((prev) => (prev.length >= REF_VIDEO_MAX ? prev : [...prev, { file, includeSoundtrack: false, hasAudio: undefined }]));
+    void file.arrayBuffer().then((buffer) => {
+      const presence = detectVideoAudioTrack(new Uint8Array(buffer));
+      if (presence === 'unknown') return;
+      setVideos((prev) => {
+        if (!prev.some((entry) => entry.file === file)) return prev;
+        return prev.map((entry) => (
+          entry.file === file
+            ? { ...entry, hasAudio: presence === 'present', includeSoundtrack: presence === 'absent' ? false : entry.includeSoundtrack }
+            : entry
+        ));
+      });
+    }).catch(() => undefined);
   }, []);
   const removeVideo = useCallback((index: number) => {
     setVideos((prev) => prev.filter((_, i) => i !== index));
   }, []);
   const toggleSoundtrack = useCallback((index: number) => {
-    setVideos((prev) => prev.map((entry, i) => (i === index ? { ...entry, includeSoundtrack: !entry.includeSoundtrack } : entry)));
+    setVideos((prev) => prev.map((entry, i) => (
+      i === index && entry.hasAudio !== false ? { ...entry, includeSoundtrack: !entry.includeSoundtrack } : entry
+    )));
   }, []);
   const addAudioFile = useCallback((file: File) => {
     setAudios((prev) => (prev.length >= REF_AUDIO_MAX ? prev : [...prev, { file }]));
