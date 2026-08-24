@@ -18,14 +18,17 @@ export async function buildH3Ref2vaWorkflow(params: H3Ref2vaGenerationParams): P
   validateReferences(params)
   const settings = await getH3Ref2vaSettings()
   const workflow = structuredClone(H3_REF2VA_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
+  const hasRefVideo = params.refVideos.length > 0
+  const effectiveSteps = hasRefVideo ? settings.stepsWithVideo : settings.steps
+  const effectiveMegapixels = hasRefVideo ? settings.megapixelsWithVideo : settings.megapixels
 
   configureModels(workflow, settings)
-  configureSampling(workflow, settings)
+  configureSampling(workflow, settings, effectiveSteps)
   configureSolAttn(workflow, settings)
   configureDuration(workflow, params, settings)
   configurePrompt(workflow, params)
-  configureReferences(workflow, params, settings)
-  configureResolution(workflow, params, settings)
+  configureReferences(workflow, params, settings, effectiveMegapixels)
+  configureResolution(workflow, params, settings, effectiveMegapixels)
   configureRtx(workflow, settings)
   configureOutput(workflow, params, settings)
 
@@ -62,7 +65,7 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) 
   setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
 }
 
-function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
+function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings, effectiveSteps: number) {
   setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
   setNode(workflow, H3_REF2VA.ATTENTION_BACKEND, { attention: settings.attentionBackend })
   setNode(workflow, H3_REF2VA.FUSED_MODULATION, { enabled: settings.fusedModulation })
@@ -73,7 +76,7 @@ function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings
   })
   setNode(workflow, H3_REF2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
   setNode(workflow, H3_REF2VA.SCHEDULER, { scheduler: settings.scheduler })
-  setNode(workflow, H3_REF2VA.STEPS, { value: settings.steps })
+  setNode(workflow, H3_REF2VA.STEPS, { value: effectiveSteps })
   setNode(workflow, H3_REF2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
 }
 
@@ -109,7 +112,7 @@ function configurePrompt(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationPa
   setNode(workflow, H3_REF2VA.POSITIVE_PROMPT, { positive: params.prompt })
 }
 
-function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings) {
+function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, effectiveMegapixels: number) {
   const ref = workflow[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!
   ref.ref_image_size = settings.refImageSize
 
@@ -121,7 +124,7 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
     }
     workflow[refImageResizeId(slot)] = {
       inputs: {
-        megapixels: settings.megapixels,
+        megapixels: effectiveMegapixels,
         multiple_of: settings.resizeMultipleOf,
         upscale_method: settings.resizeUpscaleMethod,
         image: [refImageLoadId(slot), 0],
@@ -173,7 +176,7 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
   })
 }
 
-function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings) {
+function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, effectiveMegapixels: number) {
   const ref = workflow[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!
   if (params.resolution.mode === 'firstImage') {
     ref.width = [refImageResizeId(0), 1]
@@ -183,7 +186,7 @@ function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
   const { width, height } = calculateResolution({
     aspectWidth: params.resolution.aspectWidth,
     aspectHeight: params.resolution.aspectHeight,
-    megapixels: settings.megapixels,
+    megapixels: effectiveMegapixels,
     multipleOf: settings.resizeMultipleOf,
   })
   ref.width = width

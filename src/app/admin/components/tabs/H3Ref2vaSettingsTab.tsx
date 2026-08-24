@@ -14,6 +14,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.turbo_lora_strength', label: 'Turbo LoRA Strength', type: 'number', step: 0.01, group: 'H3R — 모델' },
 
   { key: 'h3-ref2va.steps', label: 'Steps', type: 'number', step: 1, group: 'H3R — 샘플러' },
+  { key: 'h3-ref2va.steps_with_video', label: 'Steps (영상 포함)', type: 'number', step: 1, group: 'H3R — 샘플러' },
   { key: 'h3-ref2va.sampler', label: 'Sampler', type: 'nodeOption', group: 'H3R — 샘플러', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
   { key: 'h3-ref2va.scheduler', label: 'Scheduler', type: 'nodeOption', group: 'H3R — 샘플러', nodeQuery: 'scheduler:BasicScheduler:scheduler' },
   { key: 'h3-ref2va.shift_video', label: 'Shift (Video)', type: 'number', step: 0.1, group: 'H3R — 샘플러' },
@@ -38,6 +39,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.sol_attn_dense_blocks', label: 'Dense Blocks', type: 'string', group: 'H3R — Sol Attention', monoFont: true, allowEmpty: true },
 
   { key: 'h3-ref2va.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 레퍼런스' },
+  { key: 'h3-ref2va.megapixels_with_video', label: '해상도 (MP, 영상 포함)', type: 'number', step: 0.01, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.megapixels_video', label: '영상 해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.ref_video_force_rate', label: '영상 Force Rate', type: 'number', step: 1, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.ref_video_format', label: '영상 Format', type: 'nodeOption', group: 'H3R — 레퍼런스', nodeQuery: 'ref_video_format:VHS_LoadVideo:format' },

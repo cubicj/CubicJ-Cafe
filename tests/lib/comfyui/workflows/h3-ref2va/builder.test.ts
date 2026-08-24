@@ -117,6 +117,20 @@ describe('buildH3Ref2vaWorkflow', () => {
     expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.height).toBe(528)
   })
 
+  it('uses video-conditional steps and output megapixels when a reference video is present', async () => {
+    const wf = await buildH3Ref2vaWorkflow(baseParams({
+      refImages: ['a.png', 'b.png'],
+      refVideos: [{ name: 'v0.mp4', includeSoundtrack: false }],
+      resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 },
+    }))
+    expect(wf[H3_REF2VA.STEPS]!.inputs!.value).toBe(7)
+    expect(wf[refImageResizeId(0)]!.inputs!.megapixels).toBe(0.21)
+    expect(wf[refImageResizeId(1)]!.inputs!.megapixels).toBe(0.21)
+    expect(wf[refVideoResizeId(0)]!.inputs!.megapixels).toBe(0.3)
+    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.width).toBe(608)
+    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.height).toBe(336)
+  })
+
   it('composes the frame expression and duration inputs from settings', async () => {
     const wf = await buildH3Ref2vaWorkflow(baseParams())
     expect(wf[H3_REF2VA.FRAME_N]!.inputs!.value).toBe(7)

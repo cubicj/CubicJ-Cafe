@@ -17,6 +17,7 @@ export interface H3Ref2vaSettings {
   turboLora: string;
   turboLoraStrength: number;
   steps: number;
+  stepsWithVideo: number;
   sampler: string;
   scheduler: string;
   shiftVideo: number;
@@ -39,6 +40,7 @@ export interface H3Ref2vaSettings {
   solAttnSinkConditioning: string;
   solAttnDenseBlocks: string;
   megapixels: number;
+  megapixelsWithVideo: number;
   megapixelsVideo: number;
   refVideoForceRate: number;
   refVideoFormat: string;
@@ -69,6 +71,7 @@ export const H3_REF2VA_KEYS = {
   turboLora: 'h3-ref2va.turbo_lora',
   turboLoraStrength: 'h3-ref2va.turbo_lora_strength',
   steps: 'h3-ref2va.steps',
+  stepsWithVideo: 'h3-ref2va.steps_with_video',
   sampler: 'h3-ref2va.sampler',
   scheduler: 'h3-ref2va.scheduler',
   shiftVideo: 'h3-ref2va.shift_video',
@@ -91,6 +94,7 @@ export const H3_REF2VA_KEYS = {
   solAttnSinkConditioning: 'h3-ref2va.sol_attn_sink_conditioning',
   solAttnDenseBlocks: 'h3-ref2va.sol_attn_dense_blocks',
   megapixels: 'h3-ref2va.megapixels',
+  megapixelsWithVideo: 'h3-ref2va.megapixels_with_video',
   megapixelsVideo: 'h3-ref2va.megapixels_video',
   refVideoForceRate: 'h3-ref2va.ref_video_force_rate',
   refVideoFormat: 'h3-ref2va.ref_video_format',
@@ -126,6 +130,7 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     turboLora: map.get(k.turboLora)!,
     turboLoraStrength: parseLtxNumber(map, k.turboLoraStrength),
     steps: parseLtxInteger(map, k.steps),
+    stepsWithVideo: parseLtxInteger(map, k.stepsWithVideo),
     sampler: map.get(k.sampler)!,
     scheduler: map.get(k.scheduler)!,
     shiftVideo: parseLtxNumber(map, k.shiftVideo),
@@ -148,6 +153,7 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     solAttnSinkConditioning: map.get(k.solAttnSinkConditioning)!,
     solAttnDenseBlocks: map.get(k.solAttnDenseBlocks)!,
     megapixels: parseLtxNumber(map, k.megapixels),
+    megapixelsWithVideo: parseLtxNumber(map, k.megapixelsWithVideo),
     megapixelsVideo: parseLtxNumber(map, k.megapixelsVideo),
     refVideoForceRate: parseLtxNumber(map, k.refVideoForceRate),
     refVideoFormat: map.get(k.refVideoFormat)!,
