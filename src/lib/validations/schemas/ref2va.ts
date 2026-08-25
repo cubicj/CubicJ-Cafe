@@ -1,27 +1,27 @@
 import { z } from 'zod'
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'] as const
-const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov'] as const
+const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v', '.mpg', '.mpeg', '.wmv', '.flv', '.3gp', '.gif', '.ogv', '.ts', '.mts', '.m2ts'] as const
 const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.flac', '.ogg'] as const
 
 const hasExtension = (file: File, extensions: readonly string[]): boolean =>
   extensions.some((ext) => file.name.toLowerCase().endsWith(ext))
 
-const optionalFileSchema = (options: { maxSize: number; typePrefix: string; extensions: readonly string[]; label: string }) =>
+const optionalFileSchema = (options: { maxSize: number; typePrefixes: readonly string[]; extensions: readonly string[]; label: string }) =>
   z.instanceof(File)
     .transform((file) => (file.size === 0 ? undefined : file))
     .pipe(
       z.instanceof(File)
         .refine((file) => file.size <= options.maxSize, `${options.label} 파일이 너무 큽니다 (최대 ${Math.round(options.maxSize / 1024 / 1024)}MB)`)
-        .refine((file) => file.type.startsWith(options.typePrefix), `${options.label} 형식이어야 합니다`)
+        .refine((file) => file.type === '' || options.typePrefixes.some((prefix) => file.type.startsWith(prefix)), `${options.label} 형식이어야 합니다`)
         .refine((file) => hasExtension(file, options.extensions), `${options.label} 확장자는 ${options.extensions.join(', ')} 중 하나여야 합니다`)
         .optional()
     )
     .optional()
 
-const refImageSchema = optionalFileSchema({ maxSize: 10 * 1024 * 1024, typePrefix: 'image/', extensions: IMAGE_EXTENSIONS, label: '이미지' })
-const refVideoSchema = optionalFileSchema({ maxSize: 64 * 1024 * 1024, typePrefix: 'video/', extensions: VIDEO_EXTENSIONS, label: '비디오' })
-const refAudioSchema = optionalFileSchema({ maxSize: 20 * 1024 * 1024, typePrefix: 'audio/', extensions: AUDIO_EXTENSIONS, label: '오디오' })
+const refImageSchema = optionalFileSchema({ maxSize: 10 * 1024 * 1024, typePrefixes: ['image/'], extensions: IMAGE_EXTENSIONS, label: '이미지' })
+const refVideoSchema = optionalFileSchema({ maxSize: 64 * 1024 * 1024, typePrefixes: ['video/', 'image/gif'], extensions: VIDEO_EXTENSIONS, label: '비디오' })
+const refAudioSchema = optionalFileSchema({ maxSize: 20 * 1024 * 1024, typePrefixes: ['audio/'], extensions: AUDIO_EXTENSIONS, label: '오디오' })
 
 const formBoolean = z.enum(['true', 'false']).default('false').transform((value) => value === 'true')
 

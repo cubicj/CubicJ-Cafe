@@ -250,8 +250,15 @@ function detectEbmlAudioTrack(data: Uint8Array): AudioTrackPresence {
   return foundAudio ? 'present' : 'absent';
 }
 
+function isGif(data: Uint8Array): boolean {
+  if (data.length < 6) return false;
+  const header = String.fromCharCode(data[0], data[1], data[2], data[3], data[4], data[5]);
+  return header === 'GIF87a' || header === 'GIF89a';
+}
+
 export function detectVideoAudioTrack(data: Uint8Array): AudioTrackPresence {
   try {
+    if (isGif(data)) return 'absent';
     if (data.length >= 4 && readUint32(data, 0) === EBML_ID) return detectEbmlAudioTrack(data);
     return detectBmffAudioTrack(data);
   } catch {

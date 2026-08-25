@@ -123,6 +123,11 @@ describe('detectVideoAudioTrack', () => {
     expect(detectVideoAudioTrack(data)).toBe('unknown');
   });
 
+  it('reports a GIF as absent', () => {
+    expect(detectVideoAudioTrack(ascii('GIF89a'))).toBe('absent');
+    expect(detectVideoAudioTrack(ascii('GIF87a'))).toBe('absent');
+  });
+
   it('reports garbage and empty buffers as unknown', () => {
     expect(detectVideoAudioTrack(Uint8Array.of(1, 2, 3, 4))).toBe('unknown');
     expect(detectVideoAudioTrack(new Uint8Array())).toBe('unknown');

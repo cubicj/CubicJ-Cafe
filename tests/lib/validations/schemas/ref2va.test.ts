@@ -106,7 +106,29 @@ describe('ref2vaSchema', () => {
 
   it('rejects a video with a bad extension', () => {
     const result = ref2vaSchema.safeParse(baseFields({
-      refVideo_0: makeFile('v.avi', 'video/x-msvideo'),
+      refVideo_0: makeFile('v.txt', 'video/mp4'),
+    }))
+    expect(result.success).toBe(false)
+  })
+
+  it.each([
+    ['v.mkv', 'video/x-matroska'],
+    ['v.avi', 'video/x-msvideo'],
+    ['v.flv', ''],
+    ['v.gif', 'image/gif'],
+    ['v.m2ts', ''],
+  ])('accepts video %s with type %s', (name, type) => {
+    const result = ref2vaSchema.safeParse(baseFields({
+      refVideo_0: makeFile(name, type),
+    }))
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.videos).toEqual([{ file: expect.objectContaining({ name }), includeSoundtrack: false }])
+  })
+
+  it('rejects a video with a non-video MIME type', () => {
+    const result = ref2vaSchema.safeParse(baseFields({
+      refVideo_0: makeFile('v.mp4', 'text/plain'),
     }))
     expect(result.success).toBe(false)
   })

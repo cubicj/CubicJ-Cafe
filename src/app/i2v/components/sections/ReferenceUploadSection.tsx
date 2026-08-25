@@ -43,7 +43,21 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
   });
   const videoDropzone = useDropzone({
     onDrop: (files) => files.forEach(addVideo),
-    accept: { 'video/mp4': ['.mp4'], 'video/webm': ['.webm'], 'video/quicktime': ['.mov'] },
+    accept: {
+      'video/mp4': ['.mp4'],
+      'video/webm': ['.webm'],
+      'video/quicktime': ['.mov'],
+      'video/x-matroska': ['.mkv'],
+      'video/x-msvideo': ['.avi'],
+      'video/x-m4v': ['.m4v'],
+      'video/mpeg': ['.mpg', '.mpeg'],
+      'video/x-ms-wmv': ['.wmv'],
+      'video/x-flv': ['.flv'],
+      'video/3gpp': ['.3gp'],
+      'image/gif': ['.gif'],
+      'video/ogg': ['.ogv'],
+      'video/mp2t': ['.ts', '.mts', '.m2ts'],
+    },
     noClick: true,
     noKeyboard: true,
     disabled: videos.length >= REF_VIDEO_MAX,
@@ -145,7 +159,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
           <input
             ref={videoInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/quicktime"
+            accept=".mp4,.webm,.mov,.mkv,.avi,.m4v,.mpg,.mpeg,.wmv,.flv,.3gp,.gif,.ogv,.ts,.mts,.m2ts"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
