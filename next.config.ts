@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     'utf-8-validate',
   ],
   experimental: {
+    proxyClientMaxBodySize: '400mb',
     optimizePackageImports: [
       '@radix-ui/react-slot',
       '@radix-ui/react-label',
