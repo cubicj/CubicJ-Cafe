@@ -61,6 +61,7 @@ export function summarizeWorkflowJson(workflowJson: string): WorkflowSummary | n
     const inputs = node.inputs;
     addNumber(summary.steps, resolveLinkedValue(workflow, inputs.steps));
     addNumber(summary.megapixels, inputs.megapixels);
+    addNumber(summary.megapixels, inputs['mode.megapixels']);
     addString(summary.samplers, inputs.sampler_name);
     addString(summary.schedulers, inputs.scheduler);
     addString(summary.models, inputs.unet_name);

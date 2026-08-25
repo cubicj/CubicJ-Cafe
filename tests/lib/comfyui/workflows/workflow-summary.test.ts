@@ -113,4 +113,15 @@ describe('summarizeWorkflowJson', () => {
       loras: [],
     })
   })
+
+  it('extracts dotted megapixels inputs', () => {
+    const workflow = {
+      '50': {
+        class_type: 'FakeLatentUpscaler',
+        inputs: { 'mode.megapixels': 0.6 },
+      },
+    }
+
+    expect(summarizeWorkflowJson(JSON.stringify(workflow))?.megapixels).toEqual([0.6])
+  })
 })
