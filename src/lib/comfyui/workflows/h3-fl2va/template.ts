@@ -30,11 +30,6 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     class_type: 'UNETLoader',
     _meta: { title: 'Load Diffusion Model' },
   },
-  '16': {
-    inputs: { attention: 'PLACEHOLDER', model: ['3', 0] },
-    class_type: 'ModelAttentionBackend',
-    _meta: { title: 'ModelAttentionBackend' },
-  },
   '17': {
     inputs: { image: 'PLACEHOLDER' },
     class_type: 'LoadImage',
@@ -164,13 +159,8 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     class_type: 'ResizeImageToMegapixels',
     _meta: { title: 'Resize Image (Megapixels + Alignment)' },
   },
-  '59': {
-    inputs: { enabled: false, model: ['66', 0] },
-    class_type: 'MiniMaxH3FusedModulation',
-    _meta: { title: 'MiniMax H3 Fused Modulation' },
-  },
   '60': {
-    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['59', 0] },
+    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['69', 0] },
     class_type: 'MiniMaxH3ChunkFeedForward',
     _meta: { title: 'MiniMax H3 Chunk FeedForward' },
   },
@@ -189,23 +179,19 @@ export const H3_FL2VA_WORKFLOW_TEMPLATE = {
     class_type: 'MiniMaxH3TurboLoRA',
     _meta: { title: 'MiniMax-H3 Turbo LoRA' },
   },
-  '66': {
-    inputs: {
-      enabled: false,
-      tau_start: 0,
-      tau_end: 0,
-      curve: 'PLACEHOLDER',
-      min_tokens: 0,
-      strict: false,
-      dense_percent: 0,
-      thresh_type: 'PLACEHOLDER',
-      int8_qk: false,
-      int8_pv: false,
-      sink_conditioning: 'PLACEHOLDER',
-      dense_blocks: 'PLACEHOLDER',
-      model: ['16', 0],
-    },
-    class_type: 'MiniMaxH3ScheduledSolAttentionPatch',
-    _meta: { title: 'MiniMax H3 Scheduled Sol Attention Patch' },
+  '67': {
+    inputs: { sage_attention: 'PLACEHOLDER', allow_compile: false, model: ['3', 0] },
+    class_type: 'PathchSageAttentionKJ',
+    _meta: { title: 'Patch Sage Attention KJ' },
+  },
+  '68': {
+    inputs: { model: ['67', 0] },
+    class_type: 'MiniMaxH3MemoryEfficientSageAttentionPatch',
+    _meta: { title: 'MiniMax H3 Mem Eff Sage Attention Patch' },
+  },
+  '69': {
+    inputs: { head_chunks: 0, model: ['68', 0] },
+    class_type: 'MiniMaxLowVRAMAttention',
+    _meta: { title: 'MiniMax H3 Low VRAM Attention' },
   },
 } satisfies ComfyUIWorkflow

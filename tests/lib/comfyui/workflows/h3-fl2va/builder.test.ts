@@ -107,8 +107,6 @@ describe('buildH3Fl2vaWorkflow', () => {
     expect(wf[H3_FL2VA.AUDIO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3-audio-vae.safetensors')
     expect(wf[H3_FL2VA.TURBO_LORA]!.inputs).toMatchObject({ lora_name: 'test-h3-lora.safetensors', strength: 0.9 })
     expect(wf[H3_FL2VA.SIGMA_SHIFT]!.inputs).toMatchObject({ shift_video: 7, shift_audio: 2 })
-    expect(wf[H3_FL2VA.ATTENTION_BACKEND]!.inputs!.attention).toBe('test attention')
-    expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.enabled).toBe(true)
     expect(wf[H3_FL2VA.CHUNK_FEEDFORWARD]!.inputs).toMatchObject({ enabled: true, chunks: 3, min_tokens: 1024 })
     expect(wf[H3_FL2VA.SAMPLER_SELECT]!.inputs!.sampler_name).toBe('fake-sampler')
     expect(wf[H3_FL2VA.SCHEDULER]!.inputs!.scheduler).toBe('fake-scheduler')
@@ -118,31 +116,15 @@ describe('buildH3Fl2vaWorkflow', () => {
     expect(wf[H3_FL2VA.VIDEO_COMBINE]!.inputs).toMatchObject({ crf: 18, format: 'fake-video-format', pix_fmt: 'fake-pix-format', filename_prefix: 'H3FL2VA/first' })
   })
 
-  it('strips Sol Attention and restores the original model chain when disabled', async () => {
+  it('wires the sage attention stack between sigma shift and chunk feedforward', async () => {
     const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png' })
-    expect(wf[H3_FL2VA.SOL_ATTN]).toBeUndefined()
-    expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_FL2VA.ATTENTION_BACKEND, 0])
-  })
-
-  it('injects Sol Attention settings and keeps the patched model chain when enabled', async () => {
-    await prisma.systemSetting.update({ where: { key: 'h3-fl2va.sol_attn_enabled' }, data: { value: 'true' } })
-    const wf = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'p', videoDuration: 5, inputImage: 'first.png' })
-    expect(wf[H3_FL2VA.SOL_ATTN]!.inputs).toMatchObject({
-      enabled: true,
-      tau_start: 0.7,
-      tau_end: 0.3,
-      curve: 'test-curve',
-      min_tokens: 111,
-      strict: true,
-      dense_percent: 37.5,
-      thresh_type: 'test-thresh',
-      int8_qk: false,
-      int8_pv: true,
-      sink_conditioning: 'test-sink',
-      dense_blocks: '2,5,9',
-      model: [H3_FL2VA.ATTENTION_BACKEND, 0],
-    })
-    expect(wf[H3_FL2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_FL2VA.SOL_ATTN, 0])
+    expect(wf[H3_FL2VA.SAGE_PATCH]!.inputs).toMatchObject({ sage_attention: 'test-sage-mode', allow_compile: false, model: [H3_FL2VA.SIGMA_SHIFT, 0] })
+    expect(wf[H3_FL2VA.MEMEFF_SAGE]!.inputs!.model).toEqual([H3_FL2VA.SAGE_PATCH, 0])
+    expect(wf[H3_FL2VA.LOW_VRAM_ATTN]!.inputs).toMatchObject({ head_chunks: 5, model: [H3_FL2VA.MEMEFF_SAGE, 0] })
+    expect(wf[H3_FL2VA.CHUNK_FEEDFORWARD]!.inputs!.model).toEqual([H3_FL2VA.LOW_VRAM_ATTN, 0])
+    expect(wf['16']).toBeUndefined()
+    expect(wf['59']).toBeUndefined()
+    expect(wf['66']).toBeUndefined()
   })
 
   it('keeps RTX node wired when enabled', async () => {

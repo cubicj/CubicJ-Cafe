@@ -18,7 +18,6 @@ export async function buildH3Fl2vaWorkflow(params: H3Fl2vaGenerationParams): Pro
 
   configureModels(workflow, settings)
   configureSampling(workflow, settings)
-  configureSolAttn(workflow, settings)
   configureDuration(workflow, params, settings)
   configurePrompt(workflow, params)
   configureImages(workflow, params, settings)
@@ -45,8 +44,8 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
 
 function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
   setNode(workflow, H3_FL2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
-  setNode(workflow, H3_FL2VA.ATTENTION_BACKEND, { attention: settings.attentionBackend })
-  setNode(workflow, H3_FL2VA.FUSED_MODULATION, { enabled: settings.fusedModulation })
+  setNode(workflow, H3_FL2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
+  setNode(workflow, H3_FL2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
   setNode(workflow, H3_FL2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,
     chunks: settings.chunkFeedforwardChunks,
@@ -56,28 +55,6 @@ function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings)
   setNode(workflow, H3_FL2VA.SCHEDULER, { scheduler: settings.scheduler })
   setNode(workflow, H3_FL2VA.STEPS, { value: settings.steps })
   setNode(workflow, H3_FL2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
-}
-
-function configureSolAttn(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
-  if (settings.solAttnEnabled) {
-    setNode(workflow, H3_FL2VA.SOL_ATTN, {
-      enabled: true,
-      tau_start: settings.solAttnTauStart,
-      tau_end: settings.solAttnTauEnd,
-      curve: settings.solAttnCurve,
-      min_tokens: settings.solAttnMinLen,
-      strict: settings.solAttnStrict,
-      dense_percent: settings.solAttnDensePercent,
-      thresh_type: settings.solAttnThreshType,
-      int8_qk: settings.solAttnInt8Qk,
-      int8_pv: settings.solAttnInt8Pv,
-      sink_conditioning: settings.solAttnSinkConditioning,
-      dense_blocks: settings.solAttnDenseBlocks,
-    })
-    return
-  }
-  delete workflow[H3_FL2VA.SOL_ATTN]
-  setNode(workflow, H3_FL2VA.FUSED_MODULATION, { model: [H3_FL2VA.ATTENTION_BACKEND, 0] })
 }
 
 function configureDuration(workflow: ComfyUIWorkflow, params: H3Fl2vaGenerationParams, settings: H3Fl2vaSettings) {
