@@ -2,7 +2,8 @@ import type { ComfyUIWorkflow } from '@/types'
 import type { H3Ref2vaGenerationParams } from '../types'
 import type { H3Ref2vaSettings } from '@/lib/database/system-settings'
 import { H3_REF2VA_WORKFLOW_TEMPLATE } from './template'
-import { H3_REF2VA, refAudioLoadId, refImageLoadId, refImageResizeId, refVideoLoadId, refVideoResizeId } from './nodes'
+import { H3_REF2VA_NO_VIDEO_WORKFLOW_TEMPLATE } from './template-no-video'
+import { H3_REF2VA, H3_REF2VA_NO_VIDEO, refAudioLoadId, refImageLoadId, refImageResizeId, refVideoLoadId, refVideoResizeId } from './nodes'
 import { calculateResolution } from './resolution'
 import { createLogger } from '@/lib/logger'
 import { getH3Ref2vaSettings } from '@/lib/database/system-settings'
@@ -17,19 +18,12 @@ const MAX_REF_AUDIOS = 3
 export async function buildH3Ref2vaWorkflow(params: H3Ref2vaGenerationParams): Promise<ComfyUIWorkflow> {
   validateReferences(params)
   const settings = await getH3Ref2vaSettings()
-  const workflow = structuredClone(H3_REF2VA_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
-
-  configureModels(workflow, settings)
-  configureSampling(workflow, settings)
-  configureDuration(workflow, params, settings)
-  configurePrompt(workflow, params)
-  configureReferences(workflow, params, settings, settings.megapixels)
-  configureResolution(workflow, params, settings, settings.megapixels)
-  configureRtx(workflow, settings)
-  configureOutput(workflow, params, settings)
+  const hasRefVideo = params.refVideos.length > 0
+  const workflow = hasRefVideo ? buildWithVideoWorkflow(params, settings) : buildNoVideoWorkflow(params, settings)
 
   log.debug('H3 Ref2VA workflow built', {
     prompt: params.prompt.substring(0, 50),
+    pipeline: hasRefVideo ? 'with-video' : 'no-video',
     imageCount: params.refImages.length,
     videoCount: params.refVideos.length,
     audioCount: params.refAudios.length,
@@ -38,6 +32,63 @@ export async function buildH3Ref2vaWorkflow(params: H3Ref2vaGenerationParams): P
   })
 
   return workflow
+}
+
+function buildWithVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings): ComfyUIWorkflow {
+  const workflow = structuredClone(H3_REF2VA_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
+  setNode(workflow, H3_REF2VA.UNET_LOADER, { unet_name: settings.unet, weight_dtype: settings.unetWeightDtype })
+  setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
+  setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
+    enabled: settings.chunkFeedforwardEnabled,
+    chunks: settings.chunkFeedforwardChunks,
+    min_tokens: settings.chunkFeedforwardMinLen,
+  })
+  setNode(workflow, H3_REF2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
+  setNode(workflow, H3_REF2VA.SCHEDULER, { scheduler: settings.scheduler })
+  setNode(workflow, H3_REF2VA.STEPS, { value: settings.steps })
+  configureCommon(workflow, params, settings, settings.megapixels)
+  return workflow
+}
+
+function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings): ComfyUIWorkflow {
+  const workflow = structuredClone(H3_REF2VA_NO_VIDEO_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
+  setNode(workflow, H3_REF2VA_NO_VIDEO.UNET_LOADER, { unet_name: settings.noVideoUnet, weight_dtype: settings.unetWeightDtype })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.CHUNK_FEEDFORWARD, {
+    enabled: settings.noVideoChunkFeedforwardEnabled,
+    chunks: settings.noVideoChunkFeedforwardChunks,
+    min_tokens: settings.noVideoChunkFeedforwardMinLen,
+  })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.SAMPLER_SELECT, { sampler_name: settings.noVideoSampler })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.SCHEDULER, { scheduler: settings.noVideoScheduler })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.STEPS, { value: settings.noVideoSteps })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.SPLIT_SIGMAS, { step: settings.noVideoSplitStep })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.MANUAL_SIGMAS, { sigmas: settings.noVideoManualSigmas })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.LATENT_UPSCALER, {
+    model_name: settings.noVideoUpscalerModel,
+    'mode.megapixels': settings.noVideoUpscalerMegapixels,
+    align: settings.noVideoUpscalerAlign,
+    enable_chunking: settings.noVideoUpscalerChunking,
+    device: settings.noVideoUpscalerDevice,
+    precision: settings.noVideoUpscalerPrecision,
+  })
+  configureCommon(workflow, params, settings, settings.noVideoMegapixels)
+  return workflow
+}
+
+function configureCommon(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, referenceMegapixels: number) {
+  setNode(workflow, H3_REF2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
+  setNode(workflow, H3_REF2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
+  setNode(workflow, H3_REF2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
+  setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
+  setNode(workflow, H3_REF2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
+  setNode(workflow, H3_REF2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
+  setNode(workflow, H3_REF2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
+  configureDuration(workflow, params, settings)
+  configurePrompt(workflow, params)
+  configureReferences(workflow, params, settings, referenceMegapixels)
+  configureResolution(workflow, params, settings, referenceMegapixels)
+  configureRtx(workflow, settings)
+  configureOutput(workflow, params, settings)
 }
 
 function validateReferences(params: H3Ref2vaGenerationParams) {
@@ -51,29 +102,6 @@ function validateReferences(params: H3Ref2vaGenerationParams) {
   if (params.resolution.mode === 'firstImage' && params.refImages.length === 0) {
     throw new Error('H3 Ref2VA firstImage resolution requires at least one reference image')
   }
-}
-
-function configureModels(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
-  setNode(workflow, H3_REF2VA.UNET_LOADER, { unet_name: settings.unet, weight_dtype: settings.unetWeightDtype })
-  setNode(workflow, H3_REF2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
-  setNode(workflow, H3_REF2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
-  setNode(workflow, H3_REF2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
-  setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
-}
-
-function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
-  setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
-  setNode(workflow, H3_REF2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
-  setNode(workflow, H3_REF2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
-  setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
-    enabled: settings.chunkFeedforwardEnabled,
-    chunks: settings.chunkFeedforwardChunks,
-    min_tokens: settings.chunkFeedforwardMinLen,
-  })
-  setNode(workflow, H3_REF2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
-  setNode(workflow, H3_REF2VA.SCHEDULER, { scheduler: settings.scheduler })
-  setNode(workflow, H3_REF2VA.STEPS, { value: settings.steps })
-  setNode(workflow, H3_REF2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
 }
 
 function configureDuration(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings) {
