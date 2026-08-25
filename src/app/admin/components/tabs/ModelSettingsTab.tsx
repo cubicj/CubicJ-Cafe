@@ -165,7 +165,7 @@ export default function ModelSettingsTab({ title, category, fields, headerExtra,
   const groups = [...new Set(fields.map((f) => f.group))];
 
   return (
-    <Card className="p-6 space-y-6">
+    <Card className="p-6">
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-semibold">{title}</h3>
         <Button

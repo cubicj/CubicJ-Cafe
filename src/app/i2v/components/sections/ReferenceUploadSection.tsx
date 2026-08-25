@@ -64,7 +64,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
         </h2>
         <Card
           {...imageDropzone.getRootProps()}
-          className={cn('p-4 space-y-2 transition-colors', imageDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+          className={cn('p-4 gap-2 transition-colors', imageDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
         >
           {images.map((file, index) => (
             <div key={`${file.name}-${index}`} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
@@ -111,7 +111,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
         </h2>
         <Card
           {...videoDropzone.getRootProps()}
-          className={cn('p-4 space-y-2 transition-colors', videoDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+          className={cn('p-4 gap-2 transition-colors', videoDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
         >
           {videos.map((entry, index) => (
             <div key={`${entry.file.name}-${index}`} className="p-2 bg-muted/50 rounded-lg space-y-2">
@@ -163,7 +163,7 @@ export function ReferenceUploadSection({ referenceSet, prompt, onPromptChange }:
         </h2>
         <Card
           {...audioDropzone.getRootProps()}
-          className={cn('p-4 space-y-2 transition-colors', audioDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
+          className={cn('p-4 gap-2 transition-colors', audioDropzone.isDragActive && 'border-primary bg-primary/5 border-dashed')}
         >
           {audios.map((entry, index) => (
             <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">

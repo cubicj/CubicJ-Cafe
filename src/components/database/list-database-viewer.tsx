@@ -66,7 +66,7 @@ export default function ListDatabaseViewer() {
   }
 
   return (
-    <Card className="p-3 sm:p-6 space-y-4">
+    <Card className="p-3 sm:p-6 gap-4">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

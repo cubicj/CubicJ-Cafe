@@ -193,7 +193,7 @@ function WatermarkUploadSection() {
   };
 
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-6 gap-4">
       <div>
         <h3 className="text-lg font-semibold">LTXR 워터마크 이미지</h3>
         <p className="text-sm text-muted-foreground">

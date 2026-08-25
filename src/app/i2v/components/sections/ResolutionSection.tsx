@@ -26,7 +26,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
         <Ruler className="h-4 w-4" />
         해상도 비율
       </h2>
-      <Card className="p-4 space-y-3">
+      <Card className="p-4 gap-3">
         <div className="flex gap-2">
           <button
             onClick={() => setResolutionMode('first_image')}
@@ -51,7 +51,7 @@ export function ResolutionSection({ referenceSet }: ResolutionSectionProps) {
           </button>
         </div>
         {effectiveResolutionMode === 'custom' && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex gap-2">
               {ASPECT_PRESETS.map((preset) => (
                 <Button
