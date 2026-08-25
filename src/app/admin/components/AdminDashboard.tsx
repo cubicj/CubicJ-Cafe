@@ -46,16 +46,21 @@ const MODEL_ENABLE_TOGGLES: Array<{
   { key: 'h3-ref2va.enabled', label: 'H3 Ref2VA', category: 'h3-ref2va' },
 ];
 
-const ADMIN_TABS = [
+const ADMIN_TABS: Array<{
+  value: string;
+  label: string;
+  icon: typeof Database;
+  modelKey?: ModelEnabledKey;
+}> = [
   { value: 'database', label: '데이터베이스', icon: Database },
-  { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal },
-  { value: 'ltxa-settings', label: 'LTXA', icon: SlidersHorizontal },
-  { value: 'ltxr-settings', label: 'LTX(Real)', icon: SlidersHorizontal },
-  { value: 'ltx-wan-settings', label: 'L+W', icon: SlidersHorizontal },
-  { value: 'h3-fl2va-settings', label: 'H3 FL2VA', icon: SlidersHorizontal },
-  { value: 'h3-ref2va-settings', label: 'H3 Ref2VA', icon: SlidersHorizontal },
+  { value: 'wan-settings', label: 'WAN', icon: SlidersHorizontal, modelKey: 'wan.enabled' },
+  { value: 'ltxa-settings', label: 'LTXA', icon: SlidersHorizontal, modelKey: 'ltxa.enabled' },
+  { value: 'ltxr-settings', label: 'LTX(Real)', icon: SlidersHorizontal, modelKey: 'ltxr.enabled' },
+  { value: 'ltx-wan-settings', label: 'L+W', icon: SlidersHorizontal, modelKey: 'ltx-wan.enabled' },
+  { value: 'h3-fl2va-settings', label: 'H3 FL2VA', icon: SlidersHorizontal, modelKey: 'h3-fl2va.enabled' },
+  { value: 'h3-ref2va-settings', label: 'H3 Ref2VA', icon: SlidersHorizontal, modelKey: 'h3-ref2va.enabled' },
   { value: 'logs', label: 'Logs', icon: ScrollText },
-] as const;
+];
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -85,6 +90,8 @@ export default function AdminDashboard() {
   const [queueRefreshLoading, setQueueRefreshLoading] = useState(false);
   const [queueRefreshMessage, setQueueRefreshMessage] = useState('');
   const [activeTab, setActiveTab] = useState('database');
+  const visibleTabs = ADMIN_TABS.filter((tab) => !tab.modelKey || modelEnabled[tab.modelKey]);
+  const currentTab = visibleTabs.some((tab) => tab.value === activeTab) ? activeTab : 'database';
 
   const fetchComfyUIState = useCallback(async (): Promise<boolean> => {
     try {
@@ -431,14 +438,14 @@ export default function AdminDashboard() {
         )}
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={currentTab} onValueChange={setActiveTab} className="w-full">
         <div className="block md:hidden mb-4">
-          <Select value={activeTab} onValueChange={setActiveTab}>
+          <Select value={currentTab} onValueChange={setActiveTab}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ADMIN_TABS.map((tab) => (
+              {visibleTabs.map((tab) => (
                 <SelectItem key={tab.value} value={tab.value}>
                   <div className="flex items-center gap-2">
                     <tab.icon className="w-4 h-4" />
@@ -450,8 +457,11 @@ export default function AdminDashboard() {
           </Select>
         </div>
 
-        <TabsList className="hidden md:grid w-full grid-cols-8">
-          {ADMIN_TABS.map((tab) => (
+        <TabsList
+          className="hidden md:grid w-full"
+          style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
+        >
+          {visibleTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center">
               <tab.icon className="w-4 h-4 mr-2" />
               {tab.label}
@@ -459,29 +469,41 @@ export default function AdminDashboard() {
           ))}
         </TabsList>
 
-        <TabsContent value="wan-settings" className="space-y-4">
-          <WanSettingsTab />
-        </TabsContent>
+        {modelEnabled['wan.enabled'] && (
+          <TabsContent value="wan-settings" className="space-y-4">
+            <WanSettingsTab />
+          </TabsContent>
+        )}
 
-        <TabsContent value="ltxa-settings" className="space-y-4">
-          <LtxaSettingsTab />
-        </TabsContent>
+        {modelEnabled['ltxa.enabled'] && (
+          <TabsContent value="ltxa-settings" className="space-y-4">
+            <LtxaSettingsTab />
+          </TabsContent>
+        )}
 
-        <TabsContent value="ltxr-settings" className="space-y-4">
-          <LtxrSettingsTab />
-        </TabsContent>
+        {modelEnabled['ltxr.enabled'] && (
+          <TabsContent value="ltxr-settings" className="space-y-4">
+            <LtxrSettingsTab />
+          </TabsContent>
+        )}
 
-        <TabsContent value="ltx-wan-settings" className="space-y-4">
-          <LtxWanSettingsTab />
-        </TabsContent>
+        {modelEnabled['ltx-wan.enabled'] && (
+          <TabsContent value="ltx-wan-settings" className="space-y-4">
+            <LtxWanSettingsTab />
+          </TabsContent>
+        )}
 
-        <TabsContent value="h3-fl2va-settings" className="space-y-4">
-          <H3Fl2vaSettingsTab />
-        </TabsContent>
+        {modelEnabled['h3-fl2va.enabled'] && (
+          <TabsContent value="h3-fl2va-settings" className="space-y-4">
+            <H3Fl2vaSettingsTab />
+          </TabsContent>
+        )}
 
-        <TabsContent value="h3-ref2va-settings" className="space-y-4">
-          <H3Ref2vaSettingsTab />
-        </TabsContent>
+        {modelEnabled['h3-ref2va.enabled'] && (
+          <TabsContent value="h3-ref2va-settings" className="space-y-4">
+            <H3Ref2vaSettingsTab />
+          </TabsContent>
+        )}
 
         <TabsContent value="database" className="space-y-4">
           <DatabaseTab />
