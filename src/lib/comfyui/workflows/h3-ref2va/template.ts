@@ -6,11 +6,6 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     class_type: 'MiniMaxH3SigmaShift',
     _meta: { title: 'ModelSamplingMiniMaxH3' },
   },
-  '3': {
-    inputs: { enabled: false, model: ['11', 0] },
-    class_type: 'MiniMaxH3FusedModulation',
-    _meta: { title: 'MiniMax H3 Fused Modulation' },
-  },
   '4': {
     inputs: {
       prompt: ['18', 0],
@@ -36,33 +31,9 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'Load LoRA' },
   },
   '9': {
-    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['3', 0] },
+    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['49', 0] },
     class_type: 'MiniMaxH3ChunkFeedForward',
     _meta: { title: 'MiniMax H3 Chunk FeedForward' },
-  },
-  '11': {
-    inputs: {
-      enabled: false,
-      tau_start: 0,
-      tau_end: 0,
-      curve: 'PLACEHOLDER',
-      min_tokens: 0,
-      strict: false,
-      dense_percent: 0,
-      thresh_type: 'PLACEHOLDER',
-      int8_qk: false,
-      int8_pv: false,
-      sink_conditioning: 'PLACEHOLDER',
-      dense_blocks: 'PLACEHOLDER',
-      model: ['12', 0],
-    },
-    class_type: 'MiniMaxH3ScheduledSolAttentionPatch',
-    _meta: { title: 'MiniMax H3 Scheduled Sol Attention Patch' },
-  },
-  '12': {
-    inputs: { attention: 'PLACEHOLDER', model: ['1', 0] },
-    class_type: 'ModelAttentionBackend',
-    _meta: { title: 'ModelAttentionBackend' },
   },
   '15': {
     inputs: { vae_name: 'PLACEHOLDER' },
@@ -187,5 +158,20 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     inputs: { verbose: true, release_pinned_ram: true, aimdo_analyze: true, passthrough: ['34', 0] },
     class_type: 'ForceFullUnload',
     _meta: { title: 'Force Full Unload (VRAM+Pinned)' },
+  },
+  '43': {
+    inputs: { sage_attention: 'PLACEHOLDER', allow_compile: false, model: ['1', 0] },
+    class_type: 'PathchSageAttentionKJ',
+    _meta: { title: 'Patch Sage Attention KJ' },
+  },
+  '49': {
+    inputs: { head_chunks: 0, model: ['50', 0] },
+    class_type: 'MiniMaxLowVRAMAttention',
+    _meta: { title: 'MiniMax H3 Low VRAM Attention' },
+  },
+  '50': {
+    inputs: { model: ['43', 0] },
+    class_type: 'MiniMaxH3MemoryEfficientSageAttentionPatch',
+    _meta: { title: 'MiniMax H3 Mem Eff Sage Attention Patch' },
   },
 } satisfies ComfyUIWorkflow;

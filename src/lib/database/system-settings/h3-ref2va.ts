@@ -17,30 +17,33 @@ export interface H3Ref2vaSettings {
   turboLora: string;
   turboLoraStrength: number;
   steps: number;
-  stepsWithVideo: number;
   sampler: string;
   scheduler: string;
   shiftVideo: number;
   shiftAudio: number;
-  attentionBackend: string;
-  fusedModulation: boolean;
+  sageAttention: string;
+  sageAllowCompile: boolean;
+  lowVramHeadChunks: number;
+  noVideoUnet: string;
+  noVideoSteps: number;
+  noVideoSampler: string;
+  noVideoScheduler: string;
+  noVideoMegapixels: number;
+  noVideoChunkFeedforwardEnabled: boolean;
+  noVideoChunkFeedforwardChunks: number;
+  noVideoChunkFeedforwardMinLen: number;
+  noVideoSplitStep: number;
+  noVideoManualSigmas: string;
+  noVideoUpscalerModel: string;
+  noVideoUpscalerMegapixels: number;
+  noVideoUpscalerAlign: number;
+  noVideoUpscalerChunking: boolean;
+  noVideoUpscalerDevice: string;
+  noVideoUpscalerPrecision: string;
   chunkFeedforwardEnabled: boolean;
   chunkFeedforwardChunks: number;
   chunkFeedforwardMinLen: number;
-  solAttnEnabled: boolean;
-  solAttnTauStart: number;
-  solAttnTauEnd: number;
-  solAttnCurve: string;
-  solAttnMinLen: number;
-  solAttnStrict: boolean;
-  solAttnDensePercent: number;
-  solAttnThreshType: string;
-  solAttnInt8Qk: boolean;
-  solAttnInt8Pv: boolean;
-  solAttnSinkConditioning: string;
-  solAttnDenseBlocks: string;
   megapixels: number;
-  megapixelsWithVideo: number;
   megapixelsVideo: number;
   refVideoForceRate: number;
   refVideoFormat: string;
@@ -71,30 +74,33 @@ export const H3_REF2VA_KEYS = {
   turboLora: 'h3-ref2va.turbo_lora',
   turboLoraStrength: 'h3-ref2va.turbo_lora_strength',
   steps: 'h3-ref2va.steps',
-  stepsWithVideo: 'h3-ref2va.steps_with_video',
   sampler: 'h3-ref2va.sampler',
   scheduler: 'h3-ref2va.scheduler',
   shiftVideo: 'h3-ref2va.shift_video',
   shiftAudio: 'h3-ref2va.shift_audio',
-  attentionBackend: 'h3-ref2va.attention_backend',
-  fusedModulation: 'h3-ref2va.fused_modulation',
+  sageAttention: 'h3-ref2va.sage_attention',
+  sageAllowCompile: 'h3-ref2va.sage_allow_compile',
+  lowVramHeadChunks: 'h3-ref2va.low_vram_head_chunks',
+  noVideoUnet: 'h3-ref2va.no_video_unet',
+  noVideoSteps: 'h3-ref2va.no_video_steps',
+  noVideoSampler: 'h3-ref2va.no_video_sampler',
+  noVideoScheduler: 'h3-ref2va.no_video_scheduler',
+  noVideoMegapixels: 'h3-ref2va.no_video_megapixels',
+  noVideoChunkFeedforwardEnabled: 'h3-ref2va.no_video_chunk_feedforward_enabled',
+  noVideoChunkFeedforwardChunks: 'h3-ref2va.no_video_chunk_feedforward_chunks',
+  noVideoChunkFeedforwardMinLen: 'h3-ref2va.no_video_chunk_feedforward_min_len',
+  noVideoSplitStep: 'h3-ref2va.no_video_split_step',
+  noVideoManualSigmas: 'h3-ref2va.no_video_manual_sigmas',
+  noVideoUpscalerModel: 'h3-ref2va.no_video_upscaler_model',
+  noVideoUpscalerMegapixels: 'h3-ref2va.no_video_upscaler_megapixels',
+  noVideoUpscalerAlign: 'h3-ref2va.no_video_upscaler_align',
+  noVideoUpscalerChunking: 'h3-ref2va.no_video_upscaler_chunking',
+  noVideoUpscalerDevice: 'h3-ref2va.no_video_upscaler_device',
+  noVideoUpscalerPrecision: 'h3-ref2va.no_video_upscaler_precision',
   chunkFeedforwardEnabled: 'h3-ref2va.chunk_feedforward_enabled',
   chunkFeedforwardChunks: 'h3-ref2va.chunk_feedforward_chunks',
   chunkFeedforwardMinLen: 'h3-ref2va.chunk_feedforward_min_len',
-  solAttnEnabled: 'h3-ref2va.sol_attn_enabled',
-  solAttnTauStart: 'h3-ref2va.sol_attn_tau_start',
-  solAttnTauEnd: 'h3-ref2va.sol_attn_tau_end',
-  solAttnCurve: 'h3-ref2va.sol_attn_curve',
-  solAttnMinLen: 'h3-ref2va.sol_attn_min_len',
-  solAttnStrict: 'h3-ref2va.sol_attn_strict',
-  solAttnDensePercent: 'h3-ref2va.sol_attn_dense_percent',
-  solAttnThreshType: 'h3-ref2va.sol_attn_thresh_type',
-  solAttnInt8Qk: 'h3-ref2va.sol_attn_int8_qk',
-  solAttnInt8Pv: 'h3-ref2va.sol_attn_int8_pv',
-  solAttnSinkConditioning: 'h3-ref2va.sol_attn_sink_conditioning',
-  solAttnDenseBlocks: 'h3-ref2va.sol_attn_dense_blocks',
   megapixels: 'h3-ref2va.megapixels',
-  megapixelsWithVideo: 'h3-ref2va.megapixels_with_video',
   megapixelsVideo: 'h3-ref2va.megapixels_video',
   refVideoForceRate: 'h3-ref2va.ref_video_force_rate',
   refVideoFormat: 'h3-ref2va.ref_video_format',
@@ -117,7 +123,7 @@ export const H3_REF2VA_KEYS = {
 export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
   const keys = Object.values(H3_REF2VA_KEYS);
   const settings = await prisma.systemSetting.findMany({ where: { key: { in: keys } } });
-  const map = buildSettingsMap(settings, H3_REF2VA_KEYS, [], [H3_REF2VA_KEYS.solAttnDenseBlocks]);
+  const map = buildSettingsMap(settings, H3_REF2VA_KEYS);
   const k = H3_REF2VA_KEYS;
   return {
     unet: map.get(k.unet)!,
@@ -130,30 +136,33 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     turboLora: map.get(k.turboLora)!,
     turboLoraStrength: parseLtxNumber(map, k.turboLoraStrength),
     steps: parseLtxInteger(map, k.steps),
-    stepsWithVideo: parseLtxInteger(map, k.stepsWithVideo),
     sampler: map.get(k.sampler)!,
     scheduler: map.get(k.scheduler)!,
     shiftVideo: parseLtxNumber(map, k.shiftVideo),
     shiftAudio: parseLtxNumber(map, k.shiftAudio),
-    attentionBackend: map.get(k.attentionBackend)!,
-    fusedModulation: map.get(k.fusedModulation)! === 'true',
+    sageAttention: map.get(k.sageAttention)!,
+    sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
+    lowVramHeadChunks: parseLtxInteger(map, k.lowVramHeadChunks),
+    noVideoUnet: map.get(k.noVideoUnet)!,
+    noVideoSteps: parseLtxInteger(map, k.noVideoSteps),
+    noVideoSampler: map.get(k.noVideoSampler)!,
+    noVideoScheduler: map.get(k.noVideoScheduler)!,
+    noVideoMegapixels: parseLtxNumber(map, k.noVideoMegapixels),
+    noVideoChunkFeedforwardEnabled: map.get(k.noVideoChunkFeedforwardEnabled)! === 'true',
+    noVideoChunkFeedforwardChunks: parseLtxInteger(map, k.noVideoChunkFeedforwardChunks),
+    noVideoChunkFeedforwardMinLen: parseLtxInteger(map, k.noVideoChunkFeedforwardMinLen),
+    noVideoSplitStep: parseLtxInteger(map, k.noVideoSplitStep),
+    noVideoManualSigmas: map.get(k.noVideoManualSigmas)!,
+    noVideoUpscalerModel: map.get(k.noVideoUpscalerModel)!,
+    noVideoUpscalerMegapixels: parseLtxNumber(map, k.noVideoUpscalerMegapixels),
+    noVideoUpscalerAlign: parseLtxInteger(map, k.noVideoUpscalerAlign),
+    noVideoUpscalerChunking: map.get(k.noVideoUpscalerChunking)! === 'true',
+    noVideoUpscalerDevice: map.get(k.noVideoUpscalerDevice)!,
+    noVideoUpscalerPrecision: map.get(k.noVideoUpscalerPrecision)!,
     chunkFeedforwardEnabled: map.get(k.chunkFeedforwardEnabled)! === 'true',
     chunkFeedforwardChunks: parseLtxInteger(map, k.chunkFeedforwardChunks),
     chunkFeedforwardMinLen: parseLtxInteger(map, k.chunkFeedforwardMinLen),
-    solAttnEnabled: map.get(k.solAttnEnabled)! === 'true',
-    solAttnTauStart: parseLtxNumber(map, k.solAttnTauStart),
-    solAttnTauEnd: parseLtxNumber(map, k.solAttnTauEnd),
-    solAttnCurve: map.get(k.solAttnCurve)!,
-    solAttnMinLen: parseLtxInteger(map, k.solAttnMinLen),
-    solAttnStrict: map.get(k.solAttnStrict)! === 'true',
-    solAttnDensePercent: parseLtxNumber(map, k.solAttnDensePercent),
-    solAttnThreshType: map.get(k.solAttnThreshType)!,
-    solAttnInt8Qk: map.get(k.solAttnInt8Qk)! === 'true',
-    solAttnInt8Pv: map.get(k.solAttnInt8Pv)! === 'true',
-    solAttnSinkConditioning: map.get(k.solAttnSinkConditioning)!,
-    solAttnDenseBlocks: map.get(k.solAttnDenseBlocks)!,
     megapixels: parseLtxNumber(map, k.megapixels),
-    megapixelsWithVideo: parseLtxNumber(map, k.megapixelsWithVideo),
     megapixelsVideo: parseLtxNumber(map, k.megapixelsVideo),
     refVideoForceRate: parseLtxNumber(map, k.refVideoForceRate),
     refVideoFormat: map.get(k.refVideoFormat)!,

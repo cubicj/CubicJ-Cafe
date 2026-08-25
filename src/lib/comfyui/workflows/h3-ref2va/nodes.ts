@@ -1,12 +1,9 @@
 export const H3_REF2VA = {
   SIGMA_SHIFT: '1',
-  FUSED_MODULATION: '3',
   REFERENCE_TO_VIDEO: '4',
   UNET_LOADER: '7',
   TURBO_LORA: '8',
   CHUNK_FEEDFORWARD: '9',
-  SOL_ATTN: '11',
-  ATTENTION_BACKEND: '12',
   AUDIO_VAE_LOADER: '15',
   VIDEO_VAE_LOADER: '16',
   CLIP_LOADER: '17',
@@ -28,6 +25,9 @@ export const H3_REF2VA = {
   RTX_SUPER_RES: '33',
   VIDEO_COMBINE: '34',
   UNLOAD_FINAL: '40',
+  SAGE_PATCH: '43',
+  LOW_VRAM_ATTN: '49',
+  MEMEFF_SAGE: '50',
 } as const;
 
 export function refImageLoadId(slot: number): string {

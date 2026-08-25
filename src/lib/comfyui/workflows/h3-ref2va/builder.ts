@@ -18,17 +18,13 @@ export async function buildH3Ref2vaWorkflow(params: H3Ref2vaGenerationParams): P
   validateReferences(params)
   const settings = await getH3Ref2vaSettings()
   const workflow = structuredClone(H3_REF2VA_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
-  const hasRefVideo = params.refVideos.length > 0
-  const effectiveSteps = hasRefVideo ? settings.stepsWithVideo : settings.steps
-  const effectiveMegapixels = hasRefVideo ? settings.megapixelsWithVideo : settings.megapixels
 
   configureModels(workflow, settings)
-  configureSampling(workflow, settings, effectiveSteps)
-  configureSolAttn(workflow, settings)
+  configureSampling(workflow, settings)
   configureDuration(workflow, params, settings)
   configurePrompt(workflow, params)
-  configureReferences(workflow, params, settings, effectiveMegapixels)
-  configureResolution(workflow, params, settings, effectiveMegapixels)
+  configureReferences(workflow, params, settings, settings.megapixels)
+  configureResolution(workflow, params, settings, settings.megapixels)
   configureRtx(workflow, settings)
   configureOutput(workflow, params, settings)
 
@@ -65,10 +61,10 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) 
   setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
 }
 
-function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings, effectiveSteps: number) {
+function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
   setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
-  setNode(workflow, H3_REF2VA.ATTENTION_BACKEND, { attention: settings.attentionBackend })
-  setNode(workflow, H3_REF2VA.FUSED_MODULATION, { enabled: settings.fusedModulation })
+  setNode(workflow, H3_REF2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
+  setNode(workflow, H3_REF2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
   setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,
     chunks: settings.chunkFeedforwardChunks,
@@ -76,30 +72,8 @@ function configureSampling(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings
   })
   setNode(workflow, H3_REF2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
   setNode(workflow, H3_REF2VA.SCHEDULER, { scheduler: settings.scheduler })
-  setNode(workflow, H3_REF2VA.STEPS, { value: effectiveSteps })
+  setNode(workflow, H3_REF2VA.STEPS, { value: settings.steps })
   setNode(workflow, H3_REF2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
-}
-
-function configureSolAttn(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
-  if (settings.solAttnEnabled) {
-    setNode(workflow, H3_REF2VA.SOL_ATTN, {
-      enabled: true,
-      tau_start: settings.solAttnTauStart,
-      tau_end: settings.solAttnTauEnd,
-      curve: settings.solAttnCurve,
-      min_tokens: settings.solAttnMinLen,
-      strict: settings.solAttnStrict,
-      dense_percent: settings.solAttnDensePercent,
-      thresh_type: settings.solAttnThreshType,
-      int8_qk: settings.solAttnInt8Qk,
-      int8_pv: settings.solAttnInt8Pv,
-      sink_conditioning: settings.solAttnSinkConditioning,
-      dense_blocks: settings.solAttnDenseBlocks,
-    })
-    return
-  }
-  delete workflow[H3_REF2VA.SOL_ATTN]
-  setNode(workflow, H3_REF2VA.FUSED_MODULATION, { model: [H3_REF2VA.ATTENTION_BACKEND, 0] })
 }
 
 function configureDuration(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings) {
@@ -112,7 +86,7 @@ function configurePrompt(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationPa
   setNode(workflow, H3_REF2VA.POSITIVE_PROMPT, { positive: params.prompt })
 }
 
-function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, effectiveMegapixels: number) {
+function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, referenceMegapixels: number) {
   const ref = workflow[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!
   ref.ref_image_size = settings.refImageSize
 
@@ -124,7 +98,7 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
     }
     workflow[refImageResizeId(slot)] = {
       inputs: {
-        megapixels: effectiveMegapixels,
+        megapixels: referenceMegapixels,
         multiple_of: settings.resizeMultipleOf,
         upscale_method: settings.resizeUpscaleMethod,
         image: [refImageLoadId(slot), 0],
@@ -176,7 +150,7 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
   })
 }
 
-function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, effectiveMegapixels: number) {
+function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, referenceMegapixels: number) {
   const ref = workflow[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!
   if (params.resolution.mode === 'firstImage') {
     ref.width = [refImageResizeId(0), 1]
@@ -186,7 +160,7 @@ function configureResolution(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
   const { width, height } = calculateResolution({
     aspectWidth: params.resolution.aspectWidth,
     aspectHeight: params.resolution.aspectHeight,
-    megapixels: effectiveMegapixels,
+    megapixels: referenceMegapixels,
     multipleOf: settings.resizeMultipleOf,
   })
   ref.width = width

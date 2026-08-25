@@ -117,20 +117,6 @@ describe('buildH3Ref2vaWorkflow', () => {
     expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.height).toBe(528)
   })
 
-  it('uses video-conditional steps and output megapixels when a reference video is present', async () => {
-    const wf = await buildH3Ref2vaWorkflow(baseParams({
-      refImages: ['a.png', 'b.png'],
-      refVideos: [{ name: 'v0.mp4', includeSoundtrack: false }],
-      resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 },
-    }))
-    expect(wf[H3_REF2VA.STEPS]!.inputs!.value).toBe(7)
-    expect(wf[refImageResizeId(0)]!.inputs!.megapixels).toBe(0.21)
-    expect(wf[refImageResizeId(1)]!.inputs!.megapixels).toBe(0.21)
-    expect(wf[refVideoResizeId(0)]!.inputs!.megapixels).toBe(0.3)
-    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.width).toBe(608)
-    expect(wf[H3_REF2VA.REFERENCE_TO_VIDEO]!.inputs!.height).toBe(336)
-  })
-
   it('composes the frame expression and duration inputs from settings', async () => {
     const wf = await buildH3Ref2vaWorkflow(baseParams())
     expect(wf[H3_REF2VA.FRAME_N]!.inputs!.value).toBe(7)
@@ -146,8 +132,6 @@ describe('buildH3Ref2vaWorkflow', () => {
     expect(wf[H3_REF2VA.VIDEO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3r-video-vae.safetensors')
     expect(wf[H3_REF2VA.AUDIO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3r-audio-vae.safetensors')
     expect(wf[H3_REF2VA.SIGMA_SHIFT]!.inputs).toMatchObject({ shift_video: 7, shift_audio: 2 })
-    expect(wf[H3_REF2VA.ATTENTION_BACKEND]!.inputs!.attention).toBe('test attention')
-    expect(wf[H3_REF2VA.FUSED_MODULATION]!.inputs!.enabled).toBe(true)
     expect(wf[H3_REF2VA.CHUNK_FEEDFORWARD]!.inputs).toMatchObject({ enabled: true, chunks: 3, min_tokens: 1024 })
     expect(wf[H3_REF2VA.SAMPLER_SELECT]!.inputs!.sampler_name).toBe('fake-sampler')
     expect(wf[H3_REF2VA.SCHEDULER]!.inputs!.scheduler).toBe('fake-scheduler')
@@ -157,30 +141,15 @@ describe('buildH3Ref2vaWorkflow', () => {
     expect(wf[H3_REF2VA.VIDEO_COMBINE]!.inputs).toMatchObject({ crf: 18, format: 'fake-video-format', pix_fmt: 'fake-pix-format', filename_prefix: 'H3Ref2VA/img0' })
   })
 
-  it('removes the sol attn node and rewires the chain when disabled', async () => {
+  it('wires the sage attention stack between sigma shift and chunk feedforward', async () => {
     const wf = await buildH3Ref2vaWorkflow(baseParams())
-    expect(wf[H3_REF2VA.SOL_ATTN]).toBeUndefined()
-    expect(wf[H3_REF2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_REF2VA.ATTENTION_BACKEND, 0])
-  })
-
-  it('keeps and configures the sol attn node when enabled', async () => {
-    await prisma.systemSetting.update({ where: { key: 'h3-ref2va.sol_attn_enabled' }, data: { value: 'true' } })
-    const wf = await buildH3Ref2vaWorkflow(baseParams())
-    expect(wf[H3_REF2VA.SOL_ATTN]!.inputs).toMatchObject({
-      enabled: true,
-      tau_start: 1.1,
-      tau_end: 0.7,
-      curve: 'test-curve',
-      min_tokens: 2048,
-      strict: false,
-      dense_percent: 0.5,
-      thresh_type: 'test-thresh',
-      int8_qk: true,
-      int8_pv: false,
-      sink_conditioning: 'test-sink',
-      dense_blocks: '',
-    })
-    expect(wf[H3_REF2VA.FUSED_MODULATION]!.inputs!.model).toEqual([H3_REF2VA.SOL_ATTN, 0])
+    expect(wf[H3_REF2VA.SAGE_PATCH]!.inputs).toMatchObject({ sage_attention: 'test-sage-mode', allow_compile: false, model: [H3_REF2VA.SIGMA_SHIFT, 0] })
+    expect(wf[H3_REF2VA.MEMEFF_SAGE]!.inputs!.model).toEqual([H3_REF2VA.SAGE_PATCH, 0])
+    expect(wf[H3_REF2VA.LOW_VRAM_ATTN]!.inputs).toMatchObject({ head_chunks: 5, model: [H3_REF2VA.MEMEFF_SAGE, 0] })
+    expect(wf[H3_REF2VA.CHUNK_FEEDFORWARD]!.inputs!.model).toEqual([H3_REF2VA.LOW_VRAM_ATTN, 0])
+    expect(wf['3']).toBeUndefined()
+    expect(wf['11']).toBeUndefined()
+    expect(wf['12']).toBeUndefined()
   })
 
   it('keeps RTX node wired when enabled', async () => {

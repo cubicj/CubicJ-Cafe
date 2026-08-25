@@ -26,23 +26,12 @@ describe('getH3Ref2vaSettings', () => {
       scheduler: 'fake-scheduler',
       shiftVideo: 7,
       shiftAudio: 2,
-      attentionBackend: 'test attention',
-      fusedModulation: true,
+      sageAttention: 'test-sage-mode',
+      sageAllowCompile: false,
+      lowVramHeadChunks: 5,
       chunkFeedforwardEnabled: true,
       chunkFeedforwardChunks: 3,
       chunkFeedforwardMinLen: 1024,
-      solAttnEnabled: false,
-      solAttnTauStart: 1.1,
-      solAttnTauEnd: 0.7,
-      solAttnCurve: 'test-curve',
-      solAttnMinLen: 2048,
-      solAttnStrict: false,
-      solAttnDensePercent: 0.5,
-      solAttnThreshType: 'test-thresh',
-      solAttnInt8Qk: true,
-      solAttnInt8Pv: false,
-      solAttnSinkConditioning: 'test-sink',
-      solAttnDenseBlocks: '',
       megapixels: 0.5,
       megapixelsVideo: 0.3,
       refVideoForceRate: 12,
@@ -61,16 +50,27 @@ describe('getH3Ref2vaSettings', () => {
       rtxResizeType: 'fake-resize-type',
       rtxScale: 1.7,
       rtxQuality: 'HIGH',
+      noVideoUnet: 'test-h3r-nv-unet.safetensors',
+      noVideoSteps: 9,
+      noVideoSampler: 'test-nv-sampler',
+      noVideoScheduler: 'test-nv-scheduler',
+      noVideoMegapixels: 0.4,
+      noVideoChunkFeedforwardEnabled: true,
+      noVideoChunkFeedforwardChunks: 5,
+      noVideoChunkFeedforwardMinLen: 512,
+      noVideoSplitStep: 6,
+      noVideoManualSigmas: '0.9, 0.5, 0.1, 0.0',
+      noVideoUpscalerModel: 'test-nv-upscaler.pth',
+      noVideoUpscalerMegapixels: 0.6,
+      noVideoUpscalerAlign: 8,
+      noVideoUpscalerChunking: false,
+      noVideoUpscalerDevice: 'test-device',
+      noVideoUpscalerPrecision: 'test-precision',
     })
   })
 
   it('throws when a required key is missing', async () => {
     await prisma.systemSetting.delete({ where: { key: 'h3-ref2va.unet' } })
     await expect(getH3Ref2vaSettings()).rejects.toThrow('h3-ref2va.unet')
-  })
-
-  it('allows empty dense_blocks', async () => {
-    const settings = await getH3Ref2vaSettings()
-    expect(settings.solAttnDenseBlocks).toBe('')
   })
 })
