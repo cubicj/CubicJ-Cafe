@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Download } from 'lucide-react';
@@ -7,6 +8,7 @@ import { SortableHeader, formatDate, LoRAPresetDisplay } from './db-utils';
 import { getStatusBgColor } from '@/lib/queue-status';
 import { MODEL_REGISTRY } from '@/lib/comfyui/workflows/registry';
 import type { SortState } from '@/hooks/useDatabaseTable';
+import type { WorkflowSummary } from '@/lib/comfyui/workflows/workflow-summary';
 
 const MODEL_DISPLAY_NAMES: Record<string, string> = {
   ...Object.fromEntries(
@@ -65,6 +67,77 @@ interface QueueRow extends Record<string, unknown> {
   jobId?: string;
   error?: string;
   hasWorkflow?: boolean;
+  workflowSummary?: WorkflowSummary | null;
+}
+
+export function CollapsiblePrompt({ prompt }: { prompt: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <button
+      type="button"
+      className={`mt-1 p-2 bg-background rounded w-full text-left whitespace-pre-wrap cursor-pointer ${isExpanded ? '' : 'line-clamp-2'}`}
+      onClick={() => setIsExpanded((expanded) => !expanded)}
+    >
+      {prompt}
+    </button>
+  );
+}
+
+function hasWorkflowSummary(
+  summary: WorkflowSummary | null | undefined
+): summary is WorkflowSummary {
+  return !!summary && Object.values(summary).some((values) => values.length > 0);
+}
+
+function WorkflowSummaryDetails({ summary }: { summary: WorkflowSummary }) {
+  return (
+    <div>
+      <span className="font-medium">생성 설정:</span>
+      <div className="mt-1 ml-2 space-y-1">
+        {summary.steps.length > 0 && (
+          <div>
+            <span className="font-medium">Steps:</span>
+            <span className="ml-2">{summary.steps.join(' / ')}</span>
+          </div>
+        )}
+        {summary.megapixels.length > 0 && (
+          <div>
+            <span className="font-medium">MP:</span>
+            <span className="ml-2">{summary.megapixels.join(' / ')}</span>
+          </div>
+        )}
+        {summary.samplers.length > 0 && (
+          <div>
+            <span className="font-medium">샘플러:</span>
+            <span className="ml-2">{summary.samplers.join(' / ')}</span>
+          </div>
+        )}
+        {summary.schedulers.length > 0 && (
+          <div>
+            <span className="font-medium">스케줄러:</span>
+            <span className="ml-2">{summary.schedulers.join(' / ')}</span>
+          </div>
+        )}
+        {summary.models.length > 0 && (
+          <div className="flex items-start gap-2 min-w-0">
+            <span className="font-medium shrink-0">모델:</span>
+            <div className="min-w-0 font-mono break-all">
+              {summary.models.map((model) => <div key={model}>{model}</div>)}
+            </div>
+          </div>
+        )}
+        {summary.loras.length > 0 && (
+          <div className="flex items-start gap-2 min-w-0">
+            <span className="font-medium shrink-0">LoRA:</span>
+            <div className="min-w-0 font-mono break-all">
+              {summary.loras.map((lora) => <div key={lora}>{lora}</div>)}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function getModelConfig(videoModel?: string) {
@@ -173,8 +246,12 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                 <div className="px-4 py-3 bg-muted/20 border-t text-xs space-y-3">
                   <div>
                     <span className="font-medium">프롬프트:</span>
-                    <p className="mt-1 p-2 bg-background rounded">{request.prompt}</p>
+                    <CollapsiblePrompt prompt={request.prompt} />
                   </div>
+
+                  {hasWorkflowSummary(request.workflowSummary) && (
+                    <WorkflowSummaryDetails summary={request.workflowSummary} />
+                  )}
 
                   {modelConfig?.capabilities.endImage ? (
                     <>

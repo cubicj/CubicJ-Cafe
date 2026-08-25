@@ -2,6 +2,7 @@ import { prisma } from '@/lib/database/prisma';
 import { createRouteHandler } from '@/lib/api/route-handler';
 import { parseQuery } from '@/lib/validations/parse';
 import { dbQuerySchema } from '@/lib/validations/schemas/admin';
+import { summarizeWorkflowJson } from '@/lib/comfyui/workflows/workflow-summary';
 
 export const GET = createRouteHandler(
   { auth: 'admin', category: 'admin' },
@@ -127,6 +128,9 @@ export const GET = createRouteHandler(
         data = (data as Record<string, unknown>[]).map(({ workflowJson, ...rest }) => ({
           ...rest,
           hasWorkflow: !!workflowJson,
+          workflowSummary: typeof workflowJson === 'string'
+            ? summarizeWorkflowJson(workflowJson)
+            : null,
         }));
         totalCount = await prisma.queueRequest.count();
         break;

@@ -59,19 +59,66 @@ describe('GET /api/admin/db', () => {
     expect(body.limit).toBe(25)
   })
 
-  it('returns queue_requests data', async () => {
+  it('returns queue_requests data with workflow summaries but without workflow JSON', async () => {
     const admin = await createAdminUser()
     const session = await createTestSession(admin.id)
-    await createQueueRequest(admin.id, { prompt: 'test video prompt' })
+    const withWorkflow = await createQueueRequest(admin.id, {
+      prompt: 'fake workflow prompt',
+      position: 1,
+    })
+    await prisma.queueRequest.update({
+      where: { id: withWorkflow.id },
+      data: {
+        workflowJson: JSON.stringify({
+          '10': {
+            class_type: 'FakeSampler',
+            inputs: {
+              steps: 23,
+              megapixels: 1.5,
+              sampler_name: 'fake_sampler',
+              scheduler: 'fake_scheduler',
+              model: 'fake_model.safetensors',
+              lora_name: 'fake_lora.safetensors',
+            },
+          },
+        }),
+      },
+    })
+    const withoutWorkflow = await createQueueRequest(admin.id, {
+      prompt: 'fake plain prompt',
+      position: 2,
+    })
 
     const req = buildAuthenticatedRequest('/api/admin/db?table=queue_requests', session.id)
     const res = await GET(req)
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.data).toBeDefined()
-    expect(body.data.length).toBe(1)
-    expect(body.data[0].prompt).toBe('test video prompt')
-    expect(body.totalCount).toBe(1)
+    expect(body.data.length).toBe(2)
+    expect(body.totalCount).toBe(2)
+
+    const workflowRow = body.data.find((row: { id: string }) => row.id === withWorkflow.id)
+    expect(workflowRow).toMatchObject({
+      prompt: 'fake workflow prompt',
+      hasWorkflow: true,
+      workflowSummary: {
+        steps: [23],
+        megapixels: [1.5],
+        samplers: ['fake_sampler'],
+        schedulers: ['fake_scheduler'],
+        models: ['fake_model.safetensors'],
+        loras: ['fake_lora.safetensors'],
+      },
+    })
+    expect(workflowRow).not.toHaveProperty('workflowJson')
+
+    const plainRow = body.data.find((row: { id: string }) => row.id === withoutWorkflow.id)
+    expect(plainRow).toMatchObject({
+      prompt: 'fake plain prompt',
+      hasWorkflow: false,
+      workflowSummary: null,
+    })
+    expect(plainRow).not.toHaveProperty('workflowJson')
   })
 
   it('returns H3 queue metadata and reference files without blobs', async () => {
