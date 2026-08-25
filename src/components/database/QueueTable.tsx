@@ -183,8 +183,8 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
           <SortableHeader field="status" sort={sort} onSort={onSort}>상태</SortableHeader>
         </div>
         <div className="col-span-1">길이</div>
-        <div className="col-span-2">모델/NSFW</div>
-        <div className="col-span-4">작업 정보</div>
+        <div className="col-span-3">모델/NSFW</div>
+        <div className="col-span-3">작업 정보</div>
       </div>
 
       <div className="divide-y">
@@ -219,22 +219,22 @@ export function QueueTable({ data, sort, expandedItems, onSort, onToggleExpand }
                     </div>
                   )}
                 </div>
-                <div className="col-span-2 flex items-center gap-1">
+                <div className="col-span-3 flex items-center gap-1">
                   {request.videoModel && (
-                    <Badge variant="outline" className="text-xs">{getModelDisplayName(request.videoModel)}</Badge>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">{getModelDisplayName(request.videoModel)}</Badge>
                   )}
                   {request.isNSFW && (
-                    <Badge variant="destructive" className="text-xs">NSFW</Badge>
+                    <Badge variant="destructive" className="text-xs whitespace-nowrap">NSFW</Badge>
                   )}
                 </div>
-                <div className="col-span-4 flex items-center gap-1">
+                <div className="col-span-3 flex items-center flex-wrap gap-1">
                   {request.generationMode && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
                       {request.generationMode === 'LOOP' ? '루프' : request.generationMode === 'START_END' ? '처음+끝' : request.generationMode === 'END_ONLY' ? '끝 이미지' : request.generationMode === 'REFERENCE' ? '레퍼런스' : '기본'}{request.audioFile ? '+오디오' : ''}
                     </Badge>
                   )}
                   {referenceComposition && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
                       {referenceComposition}
                     </Badge>
                   )}
