@@ -39,7 +39,6 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
   setNode(workflow, H3_FL2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
   setNode(workflow, H3_FL2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
   setNode(workflow, H3_FL2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
-  setNode(workflow, H3_FL2VA.TURBO_LORA, { lora_name: settings.turboLora, strength: settings.turboLoraStrength })
 }
 
 function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
@@ -54,6 +53,15 @@ function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings)
   setNode(workflow, H3_FL2VA.SAMPLER_SELECT, { sampler_name: settings.sampler })
   setNode(workflow, H3_FL2VA.SCHEDULER, { scheduler: settings.scheduler })
   setNode(workflow, H3_FL2VA.STEPS, { value: settings.steps })
+  setNode(workflow, H3_FL2VA.SPLIT_SIGMAS, { step: settings.splitStep })
+  setNode(workflow, H3_FL2VA.MANUAL_SIGMAS, { sigmas: settings.manualSigmas })
+  setNode(workflow, H3_FL2VA.LATENT_UPSCALER, {
+    model_name: settings.upscalerModel,
+    align: settings.upscalerAlign,
+    enable_chunking: settings.upscalerChunking,
+    device: settings.upscalerDevice,
+    precision: settings.upscalerPrecision,
+  })
   setNode(workflow, H3_FL2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
 }
 
@@ -68,46 +76,54 @@ function configurePrompt(workflow: ComfyUIWorkflow, params: H3Fl2vaGenerationPar
 }
 
 function configureImages(workflow: ComfyUIWorkflow, params: H3Fl2vaGenerationParams, settings: H3Fl2vaSettings) {
-  const resize = {
-    megapixels: settings.megapixels,
-    multiple_of: settings.resizeMultipleOf,
-    upscale_method: settings.resizeUpscaleMethod,
-  }
+  const pass1Resize = { megapixels: settings.megapixels, multiple_of: settings.resizeMultipleOf, upscale_method: settings.resizeUpscaleMethod }
+  const pass2Resize = { ...pass1Resize, megapixels: settings.secondPassMegapixels }
+
+  setNode(workflow, H3_FL2VA.RESIZE_FIRST_PASS1, pass1Resize)
+  setNode(workflow, H3_FL2VA.RESIZE_LAST_PASS1, pass1Resize)
+  setNode(workflow, H3_FL2VA.RESIZE_FIRST_PASS2, pass2Resize)
+  setNode(workflow, H3_FL2VA.RESIZE_LAST_PASS2, pass2Resize)
+
+  const firstPass = workflow[H3_FL2VA.IMAGE_TO_VIDEO_FIRST]!.inputs!
+  const secondPass = workflow[H3_FL2VA.IMAGE_TO_VIDEO_SECOND]!.inputs!
 
   if (params.inputImage && params.endImage) {
     setNode(workflow, H3_FL2VA.LOAD_IMAGE_FIRST, { image: params.inputImage })
-    setNode(workflow, H3_FL2VA.RESIZE_FIRST, resize)
     setNode(workflow, H3_FL2VA.LOAD_IMAGE_LAST, { image: params.endImage })
-    setNode(workflow, H3_FL2VA.RESIZE_LAST, { ...resize, megapixels: settings.megapixelsLast })
+    firstPass.last_frame = [H3_FL2VA.RESIZE_LAST_PASS1, 0]
+    secondPass.last_frame = [H3_FL2VA.RESIZE_LAST_PASS2, 0]
     return
   }
 
   if (params.inputImage) {
     setNode(workflow, H3_FL2VA.LOAD_IMAGE_FIRST, { image: params.inputImage })
-    setNode(workflow, H3_FL2VA.RESIZE_FIRST, resize)
     delete workflow[H3_FL2VA.LOAD_IMAGE_LAST]
-    delete workflow[H3_FL2VA.RESIZE_LAST]
-    delete workflow[H3_FL2VA.IMAGE_TO_VIDEO]!.inputs!.last_frame
+    delete workflow[H3_FL2VA.RESIZE_LAST_PASS1]
+    delete workflow[H3_FL2VA.RESIZE_LAST_PASS2]
     return
   }
 
   setNode(workflow, H3_FL2VA.LOAD_IMAGE_LAST, { image: params.endImage! })
-  setNode(workflow, H3_FL2VA.RESIZE_LAST, resize)
   delete workflow[H3_FL2VA.LOAD_IMAGE_FIRST]
-  delete workflow[H3_FL2VA.RESIZE_FIRST]
-  const imageToVideo = workflow[H3_FL2VA.IMAGE_TO_VIDEO]!.inputs!
-  delete imageToVideo.first_frame
-  imageToVideo.width = [H3_FL2VA.RESIZE_LAST, 1]
-  imageToVideo.height = [H3_FL2VA.RESIZE_LAST, 2]
+  delete workflow[H3_FL2VA.RESIZE_FIRST_PASS1]
+  delete workflow[H3_FL2VA.RESIZE_FIRST_PASS2]
+
+  delete firstPass.first_frame
+  firstPass.last_frame = [H3_FL2VA.RESIZE_LAST_PASS1, 0]
+  firstPass.width = [H3_FL2VA.RESIZE_LAST_PASS1, 1]
+  firstPass.height = [H3_FL2VA.RESIZE_LAST_PASS1, 2]
+
+  delete secondPass.first_frame
+  secondPass.last_frame = [H3_FL2VA.RESIZE_LAST_PASS2, 0]
+  secondPass.width = [H3_FL2VA.RESIZE_LAST_PASS2, 1]
+  secondPass.height = [H3_FL2VA.RESIZE_LAST_PASS2, 2]
+
+  setNode(workflow, H3_FL2VA.LATENT_UPSCALER, { 'mode.width': [H3_FL2VA.RESIZE_LAST_PASS2, 1], 'mode.height': [H3_FL2VA.RESIZE_LAST_PASS2, 2] })
 }
 
 function configureRtx(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
   if (settings.rtxEnabled) {
-    setNode(workflow, H3_FL2VA.RTX_SUPER_RES, {
-      resize_type: settings.rtxResizeType,
-      'resize_type.scale': settings.rtxScale,
-      quality: settings.rtxQuality,
-    })
+    setNode(workflow, H3_FL2VA.RTX_SUPER_RES, { resize_type: settings.rtxResizeType, 'resize_type.scale': settings.rtxScale, quality: settings.rtxQuality })
     return
   }
   delete workflow[H3_FL2VA.RTX_SUPER_RES]

@@ -14,8 +14,6 @@ export interface H3Fl2vaSettings {
   clipDevice: string;
   videoVae: string;
   audioVae: string;
-  turboLora: string;
-  turboLoraStrength: number;
   steps: number;
   sampler: string;
   scheduler: string;
@@ -28,7 +26,14 @@ export interface H3Fl2vaSettings {
   chunkFeedforwardChunks: number;
   chunkFeedforwardMinLen: number;
   megapixels: number;
-  megapixelsLast: number;
+  secondPassMegapixels: number;
+  splitStep: number;
+  manualSigmas: string;
+  upscalerModel: string;
+  upscalerAlign: number;
+  upscalerChunking: boolean;
+  upscalerDevice: string;
+  upscalerPrecision: string;
   resizeMultipleOf: number;
   resizeUpscaleMethod: string;
   durationOptions: number[];
@@ -52,8 +57,6 @@ export const H3_FL2VA_KEYS = {
   clipDevice: 'h3-fl2va.clip_device',
   videoVae: 'h3-fl2va.video_vae',
   audioVae: 'h3-fl2va.audio_vae',
-  turboLora: 'h3-fl2va.turbo_lora',
-  turboLoraStrength: 'h3-fl2va.turbo_lora_strength',
   steps: 'h3-fl2va.steps',
   sampler: 'h3-fl2va.sampler',
   scheduler: 'h3-fl2va.scheduler',
@@ -66,7 +69,14 @@ export const H3_FL2VA_KEYS = {
   chunkFeedforwardChunks: 'h3-fl2va.chunk_feedforward_chunks',
   chunkFeedforwardMinLen: 'h3-fl2va.chunk_feedforward_min_len',
   megapixels: 'h3-fl2va.megapixels',
-  megapixelsLast: 'h3-fl2va.megapixels_last',
+  secondPassMegapixels: 'h3-fl2va.second_pass_megapixels',
+  splitStep: 'h3-fl2va.split_step',
+  manualSigmas: 'h3-fl2va.manual_sigmas',
+  upscalerModel: 'h3-fl2va.upscaler_model',
+  upscalerAlign: 'h3-fl2va.upscaler_align',
+  upscalerChunking: 'h3-fl2va.upscaler_chunking',
+  upscalerDevice: 'h3-fl2va.upscaler_device',
+  upscalerPrecision: 'h3-fl2va.upscaler_precision',
   resizeMultipleOf: 'h3-fl2va.resize_multiple_of',
   resizeUpscaleMethod: 'h3-fl2va.resize_upscale_method',
   durationOptions: 'h3-fl2va.duration_options',
@@ -95,8 +105,6 @@ export async function getH3Fl2vaSettings(): Promise<H3Fl2vaSettings> {
     clipDevice: map.get(k.clipDevice)!,
     videoVae: map.get(k.videoVae)!,
     audioVae: map.get(k.audioVae)!,
-    turboLora: map.get(k.turboLora)!,
-    turboLoraStrength: parseLtxNumber(map, k.turboLoraStrength),
     steps: parseLtxInteger(map, k.steps),
     sampler: map.get(k.sampler)!,
     scheduler: map.get(k.scheduler)!,
@@ -109,7 +117,14 @@ export async function getH3Fl2vaSettings(): Promise<H3Fl2vaSettings> {
     chunkFeedforwardChunks: parseLtxInteger(map, k.chunkFeedforwardChunks),
     chunkFeedforwardMinLen: parseLtxInteger(map, k.chunkFeedforwardMinLen),
     megapixels: parseLtxNumber(map, k.megapixels),
-    megapixelsLast: parseLtxNumber(map, k.megapixelsLast),
+    secondPassMegapixels: parseLtxNumber(map, k.secondPassMegapixels),
+    splitStep: parseLtxInteger(map, k.splitStep),
+    manualSigmas: map.get(k.manualSigmas)!,
+    upscalerModel: map.get(k.upscalerModel)!,
+    upscalerAlign: parseLtxInteger(map, k.upscalerAlign),
+    upscalerChunking: map.get(k.upscalerChunking)! === 'true',
+    upscalerDevice: map.get(k.upscalerDevice)!,
+    upscalerPrecision: map.get(k.upscalerPrecision)!,
     resizeMultipleOf: parseLtxInteger(map, k.resizeMultipleOf),
     resizeUpscaleMethod: map.get(k.resizeUpscaleMethod)!,
     durationOptions: parseLtxNumberList(map, k.durationOptions),

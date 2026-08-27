@@ -10,9 +10,6 @@ const H3_FL2VA_FIELDS: SettingsField[] = [
   { key: 'h3-fl2va.clip_device', label: 'CLIP Device', type: 'nodeOption', group: 'H3 — 모델', nodeQuery: 'clip_device:CLIPLoader:device' },
   { key: 'h3-fl2va.video_vae', label: 'Video VAE', type: 'nodeOption', group: 'H3 — 모델', nodeQuery: 'video_vae:VAELoader:vae_name' },
   { key: 'h3-fl2va.audio_vae', label: 'Audio VAE', type: 'nodeOption', group: 'H3 — 모델', nodeQuery: 'audio_vae:VAELoader:vae_name' },
-  { key: 'h3-fl2va.turbo_lora', label: 'Turbo LoRA', type: 'nodeOption', group: 'H3 — 모델', nodeQuery: 'turbo_lora:LoraLoaderModelOnly:lora_name' },
-  { key: 'h3-fl2va.turbo_lora_strength', label: 'Turbo LoRA Strength', type: 'number', step: 0.01, group: 'H3 — 모델' },
-
   { key: 'h3-fl2va.steps', label: 'Steps', type: 'number', step: 1, group: 'H3 — 샘플러' },
   { key: 'h3-fl2va.sampler', label: 'Sampler', type: 'nodeOption', group: 'H3 — 샘플러', nodeQuery: 'sampler:KSamplerSelect:sampler_name' },
   { key: 'h3-fl2va.scheduler', label: 'Scheduler', type: 'nodeOption', group: 'H3 — 샘플러', nodeQuery: 'scheduler:BasicScheduler:scheduler' },
@@ -26,8 +23,16 @@ const H3_FL2VA_FIELDS: SettingsField[] = [
   { key: 'h3-fl2va.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'H3 — Sage Attention' },
   { key: 'h3-fl2va.low_vram_head_chunks', label: 'Head Chunks', type: 'number', step: 1, group: 'H3 — Sage Attention' },
 
+  { key: 'h3-fl2va.split_step', label: 'Split Step', type: 'number', step: 1, group: 'H3 — 2-pass' },
+  { key: 'h3-fl2va.manual_sigmas', label: '2차 패스 Sigmas CSV', type: 'string', group: 'H3 — 2-pass', monoFont: true },
+  { key: 'h3-fl2va.second_pass_megapixels', label: '2차 패스 해상도 (MP)', type: 'number', step: 0.01, group: 'H3 — 2-pass' },
+  { key: 'h3-fl2va.upscaler_model', label: 'Upscaler Model', type: 'nodeOption', group: 'H3 — 2-pass', nodeQuery: 'upscaler_model:MinimaxH3LatentUpscaler3D:model_name' },
+  { key: 'h3-fl2va.upscaler_align', label: 'Upscaler Align', type: 'number', step: 1, group: 'H3 — 2-pass' },
+  { key: 'h3-fl2va.upscaler_chunking', label: 'Upscaler Chunking', type: 'boolean', group: 'H3 — 2-pass' },
+  { key: 'h3-fl2va.upscaler_device', label: 'Upscaler Device', type: 'nodeOption', group: 'H3 — 2-pass', nodeQuery: 'upscaler_device:MinimaxH3LatentUpscaler3D:device' },
+  { key: 'h3-fl2va.upscaler_precision', label: 'Upscaler Precision', type: 'nodeOption', group: 'H3 — 2-pass', nodeQuery: 'upscaler_precision:MinimaxH3LatentUpscaler3D:precision' },
+
   { key: 'h3-fl2va.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'H3 — 이미지' },
-  { key: 'h3-fl2va.megapixels_last', label: '끝 이미지 해상도 (MP)', type: 'number', step: 0.01, group: 'H3 — 이미지' },
   { key: 'h3-fl2va.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'H3 — 이미지' },
   { key: 'h3-fl2va.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'H3 — 이미지', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
 
