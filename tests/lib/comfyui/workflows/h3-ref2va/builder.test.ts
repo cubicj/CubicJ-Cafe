@@ -229,6 +229,13 @@ describe('buildH3Ref2vaWorkflow', () => {
       expect(wf[H3_REF2VA_NO_VIDEO.CHUNK_FEEDFORWARD]!.inputs).toMatchObject({ enabled: true, chunks: 5, min_tokens: 512, model: [H3_REF2VA_NO_VIDEO.LOW_VRAM_ATTN, 0] })
     })
 
+    it('loads the no-video clip and video vae with shared type, device, and audio vae', async () => {
+      const wf = await buildH3Ref2vaWorkflow(baseParams())
+      expect(wf[H3_REF2VA_NO_VIDEO.CLIP_LOADER]!.inputs).toMatchObject({ clip_name: 'test-h3r-nv-clip.safetensors', type: 'test-clip-type', device: 'fake-clip-device' })
+      expect(wf[H3_REF2VA_NO_VIDEO.VIDEO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3r-nv-video-vae.safetensors')
+      expect(wf[H3_REF2VA_NO_VIDEO.AUDIO_VAE_LOADER]!.inputs!.vae_name).toBe('test-h3r-audio-vae.safetensors')
+    })
+
     it('wires the split-sigma first pass and manual-sigma second pass', async () => {
       const wf = await buildH3Ref2vaWorkflow(baseParams())
       expect(wf[H3_REF2VA_NO_VIDEO.SPLIT_SIGMAS]!.inputs).toMatchObject({ step: 6, sigmas: [H3_REF2VA_NO_VIDEO.SCHEDULER, 0] })

@@ -27,6 +27,8 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.low_vram_head_chunks', label: 'Head Chunks', type: 'number', step: 1, group: 'H3R — Sage Attention' },
 
   { key: 'h3-ref2va.no_video_unet', label: 'UNet (영상 없음)', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_unet:UNETLoader:unet_name' },
+  { key: 'h3-ref2va.no_video_clip_name', label: 'CLIP (영상 없음)', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_clip_name:CLIPLoader:clip_name' },
+  { key: 'h3-ref2va.no_video_video_vae', label: 'Video VAE (영상 없음)', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_video_vae:VAELoader:vae_name' },
   { key: 'h3-ref2va.no_video_steps', label: 'Steps', type: 'number', step: 1, group: 'H3R — 영상 없음 파이프라인' },
   { key: 'h3-ref2va.no_video_sampler', label: 'Sampler', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_sampler:KSamplerSelect:sampler_name' },
   { key: 'h3-ref2va.no_video_scheduler', label: 'Scheduler', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_scheduler:BasicScheduler:scheduler' },

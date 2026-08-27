@@ -25,6 +25,8 @@ export interface H3Ref2vaSettings {
   sageAllowCompile: boolean;
   lowVramHeadChunks: number;
   noVideoUnet: string;
+  noVideoClipName: string;
+  noVideoVideoVae: string;
   noVideoSteps: number;
   noVideoSampler: string;
   noVideoScheduler: string;
@@ -82,6 +84,8 @@ export const H3_REF2VA_KEYS = {
   sageAllowCompile: 'h3-ref2va.sage_allow_compile',
   lowVramHeadChunks: 'h3-ref2va.low_vram_head_chunks',
   noVideoUnet: 'h3-ref2va.no_video_unet',
+  noVideoClipName: 'h3-ref2va.no_video_clip_name',
+  noVideoVideoVae: 'h3-ref2va.no_video_video_vae',
   noVideoSteps: 'h3-ref2va.no_video_steps',
   noVideoSampler: 'h3-ref2va.no_video_sampler',
   noVideoScheduler: 'h3-ref2va.no_video_scheduler',
@@ -144,6 +148,8 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     lowVramHeadChunks: parseLtxInteger(map, k.lowVramHeadChunks),
     noVideoUnet: map.get(k.noVideoUnet)!,
+    noVideoClipName: map.get(k.noVideoClipName)!,
+    noVideoVideoVae: map.get(k.noVideoVideoVae)!,
     noVideoSteps: parseLtxInteger(map, k.noVideoSteps),
     noVideoSampler: map.get(k.noVideoSampler)!,
     noVideoScheduler: map.get(k.noVideoScheduler)!,

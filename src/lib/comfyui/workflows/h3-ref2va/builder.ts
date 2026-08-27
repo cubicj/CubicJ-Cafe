@@ -37,6 +37,8 @@ export async function buildH3Ref2vaWorkflow(params: H3Ref2vaGenerationParams): P
 function buildWithVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings): ComfyUIWorkflow {
   const workflow = structuredClone(H3_REF2VA_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
   setNode(workflow, H3_REF2VA.UNET_LOADER, { unet_name: settings.unet, weight_dtype: settings.unetWeightDtype })
+  setNode(workflow, H3_REF2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
+  setNode(workflow, H3_REF2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
   setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
   setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,
@@ -53,6 +55,8 @@ function buildWithVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Re
 function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings): ComfyUIWorkflow {
   const workflow = structuredClone(H3_REF2VA_NO_VIDEO_WORKFLOW_TEMPLATE) as ComfyUIWorkflow
   setNode(workflow, H3_REF2VA_NO_VIDEO.UNET_LOADER, { unet_name: settings.noVideoUnet, weight_dtype: settings.unetWeightDtype })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.CLIP_LOADER, { clip_name: settings.noVideoClipName, type: settings.clipType, device: settings.clipDevice })
+  setNode(workflow, H3_REF2VA_NO_VIDEO.VIDEO_VAE_LOADER, { vae_name: settings.noVideoVideoVae })
   setNode(workflow, H3_REF2VA_NO_VIDEO.CHUNK_FEEDFORWARD, {
     enabled: settings.noVideoChunkFeedforwardEnabled,
     chunks: settings.noVideoChunkFeedforwardChunks,
@@ -76,8 +80,6 @@ function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2
 }
 
 function configureCommon(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, referenceMegapixels: number) {
-  setNode(workflow, H3_REF2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
-  setNode(workflow, H3_REF2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
   setNode(workflow, H3_REF2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
   setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
   setNode(workflow, H3_REF2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })

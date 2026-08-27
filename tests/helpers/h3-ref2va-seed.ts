@@ -43,6 +43,8 @@ export const H3_REF2VA_SEED: Array<{ key: string; value: string; type: SeedType 
   { key: 'h3-ref2va.rtx_scale', value: '1.7', type: 'number' },
   { key: 'h3-ref2va.rtx_quality', value: 'HIGH', type: 'string' },
   { key: 'h3-ref2va.no_video_unet', value: 'test-h3r-nv-unet.safetensors', type: 'string' },
+  { key: 'h3-ref2va.no_video_clip_name', value: 'test-h3r-nv-clip.safetensors', type: 'string' },
+  { key: 'h3-ref2va.no_video_video_vae', value: 'test-h3r-nv-video-vae.safetensors', type: 'string' },
   { key: 'h3-ref2va.no_video_steps', value: '9', type: 'number' },
   { key: 'h3-ref2va.no_video_sampler', value: 'test-nv-sampler', type: 'string' },
   { key: 'h3-ref2va.no_video_scheduler', value: 'test-nv-scheduler', type: 'string' },

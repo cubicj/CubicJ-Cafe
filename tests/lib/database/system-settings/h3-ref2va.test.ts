@@ -66,6 +66,8 @@ describe('getH3Ref2vaSettings', () => {
       noVideoUpscalerChunking: false,
       noVideoUpscalerDevice: 'test-device',
       noVideoUpscalerPrecision: 'test-precision',
+      noVideoClipName: 'test-h3r-nv-clip.safetensors',
+      noVideoVideoVae: 'test-h3r-nv-video-vae.safetensors',
     })
   })
 
