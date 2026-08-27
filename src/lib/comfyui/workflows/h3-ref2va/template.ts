@@ -30,11 +30,6 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     class_type: 'LoraLoaderModelOnly',
     _meta: { title: 'Load LoRA' },
   },
-  '9': {
-    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['49', 0] },
-    class_type: 'MiniMaxH3ChunkFeedForward',
-    _meta: { title: 'MiniMax H3 Chunk FeedForward' },
-  },
   '15': {
     inputs: { vae_name: 'PLACEHOLDER' },
     class_type: 'VAELoader',
@@ -71,12 +66,12 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'N' },
   },
   '22': {
-    inputs: { number_type: 'integer', number: 0 },
+    inputs: { number_type: 'float', number: 0 },
     class_type: 'Constant Number',
     _meta: { title: 'FPS' },
   },
   '23': {
-    inputs: { model: ['9', 0], conditioning: ['29', 0] },
+    inputs: { model: ['52', 0], conditioning: ['29', 0] },
     class_type: 'BasicGuider',
     _meta: { title: 'Basic Guider' },
   },
@@ -102,14 +97,9 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'KSamplerSelect' },
   },
   '27': {
-    inputs: { scheduler: 'PLACEHOLDER', steps: ['19', 0], denoise: 1, model: ['9', 0] },
+    inputs: { scheduler: 'PLACEHOLDER', steps: ['19', 0], denoise: 1, model: ['52', 0] },
     class_type: 'BasicScheduler',
     _meta: { title: 'BasicScheduler' },
-  },
-  '28': {
-    inputs: { av_latent: ['30', 0] },
-    class_type: 'LTXVSeparateAVLatent',
-    _meta: { title: 'LTXVSeparateAVLatent' },
   },
   '29': {
     inputs: { verbose: true, release_pinned_ram: true, aimdo_analyze: true, passthrough: ['4', 0] },
@@ -122,12 +112,12 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     _meta: { title: 'Force Full Unload (VRAM+Pinned)' },
   },
   '31': {
-    inputs: { samples: ['28', 0], vae: ['16', 0] },
+    inputs: { samples: ['62', 0], vae: ['16', 0] },
     class_type: 'VAEDecode',
     _meta: { title: 'VAE Decode' },
   },
   '32': {
-    inputs: { samples: ['28', 1], vae: ['15', 0] },
+    inputs: { samples: ['62', 1], vae: ['15', 0] },
     class_type: 'VAEDecodeAudio',
     _meta: { title: 'VAE Decode Audio' },
   },
@@ -173,5 +163,15 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     inputs: { model: ['43', 0] },
     class_type: 'MiniMaxH3MemoryEfficientSageAttentionPatch',
     _meta: { title: 'MiniMax H3 Mem Eff Sage Attention Patch' },
+  },
+  '52': {
+    inputs: { enabled: false, chunks: 0, min_tokens: 0, model: ['49', 0] },
+    class_type: 'MiniMaxH3ChunkFeedForward',
+    _meta: { title: 'MiniMax H3 Chunk FeedForward' },
+  },
+  '62': {
+    inputs: { av_latent: ['30', 0] },
+    class_type: 'LTXVSeparateAVLatent',
+    _meta: { title: 'LTXVSeparateAVLatent' },
   },
 } satisfies ComfyUIWorkflow;

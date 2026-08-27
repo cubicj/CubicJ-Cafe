@@ -46,7 +46,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.megapixels', label: '해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.megapixels_video', label: '영상 해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.ref_video_force_rate', label: '영상 Force Rate', type: 'number', step: 1, group: 'H3R — 레퍼런스' },
-  { key: 'h3-ref2va.ref_video_format', label: '영상 Format', type: 'nodeOption', group: 'H3R — 레퍼런스', nodeQuery: 'ref_video_format:VHS_LoadVideo:format' },
+  { key: 'h3-ref2va.ref_video_format', label: '영상 Format', type: 'nodeOption', group: 'H3R — 레퍼런스', nodeQuery: 'ref_video_format:VHS_LoadVideoFFmpeg:format' },
   { key: 'h3-ref2va.resize_multiple_of', label: 'Resize Multiple Of', type: 'number', step: 1, group: 'H3R — 레퍼런스' },
   { key: 'h3-ref2va.resize_upscale_method', label: 'Resize 방식', type: 'nodeOption', group: 'H3R — 레퍼런스', nodeQuery: 'resize_upscale_method:ResizeImageToMegapixels:upscale_method' },
   { key: 'h3-ref2va.ref_image_size', label: 'Ref Image Size', type: 'nodeOption', group: 'H3R — 레퍼런스', nodeQuery: 'ref_image_size:MiniMaxH3ReferenceToVideo:ref_image_size' },

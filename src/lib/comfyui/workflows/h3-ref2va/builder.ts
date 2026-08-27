@@ -144,13 +144,12 @@ function configureReferences(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerati
         force_rate: settings.refVideoForceRate,
         custom_width: 0,
         custom_height: 0,
-        frame_load_cap: 0,
-        skip_first_frames: 0,
-        select_every_nth: 1,
+        frame_load_cap: [H3_REF2VA.FRAME_MATH, 0],
+        start_time: 0,
         format: settings.refVideoFormat,
       },
-      class_type: 'VHS_LoadVideo',
-      _meta: { title: 'Load Video (Upload) 🎥🅥🅗🅢' },
+      class_type: 'VHS_LoadVideoFFmpeg',
+      _meta: { title: 'Load Video FFmpeg (Upload) 🎥🅥🅗🅢' },
     }
     workflow[refVideoResizeId(slot)] = {
       inputs: {

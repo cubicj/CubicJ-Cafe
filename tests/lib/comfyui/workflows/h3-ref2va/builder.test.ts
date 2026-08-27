@@ -136,7 +136,19 @@ describe('buildH3Ref2vaWorkflow', () => {
           { name: 'v1.mp4', includeSoundtrack: true },
         ],
       }))
-      expect(wf[refVideoLoadId(0)]!.inputs).toMatchObject({ video: 'v0.mp4', force_rate: 12, format: 'test-format' })
+      expect(wf[refVideoLoadId(0)]).toEqual({
+        inputs: {
+          video: 'v0.mp4',
+          force_rate: 12,
+          custom_width: 0,
+          custom_height: 0,
+          frame_load_cap: [H3_REF2VA.FRAME_MATH, 0],
+          start_time: 0,
+          format: 'test-format',
+        },
+        class_type: 'VHS_LoadVideoFFmpeg',
+        _meta: { title: 'Load Video FFmpeg (Upload) 🎥🅥🅗🅢' },
+      })
       expect(wf[refVideoResizeId(0)]!.inputs).toMatchObject({ megapixels: 0.3, multiple_of: 16, upscale_method: 'fake-resize-method', image: [refVideoLoadId(0), 0] })
       expect(wf[refVideoResizeId(0)]!.class_type).toBe('ResizeImageToMegapixels')
       expect(wf[refImageResizeId(0)]!.inputs!.megapixels).toBe(0.5)
@@ -155,6 +167,21 @@ describe('buildH3Ref2vaWorkflow', () => {
       expect(wf['3']).toBeUndefined()
       expect(wf['11']).toBeUndefined()
       expect(wf['12']).toBeUndefined()
+    })
+
+    it('uses the source-aligned processing node ids and links', async () => {
+      const wf = await buildH3Ref2vaWorkflow(withVideoParams())
+      expect(H3_REF2VA.CHUNK_FEEDFORWARD).toBe('52')
+      expect(H3_REF2VA.SEPARATE_AV).toBe('62')
+      expect(wf['9']).toBeUndefined()
+      expect(wf['28']).toBeUndefined()
+      expect(wf[H3_REF2VA.CHUNK_FEEDFORWARD]!.class_type).toBe('MiniMaxH3ChunkFeedForward')
+      expect(wf[H3_REF2VA.GUIDER]!.inputs!.model).toEqual([H3_REF2VA.CHUNK_FEEDFORWARD, 0])
+      expect(wf[H3_REF2VA.SCHEDULER]!.inputs!.model).toEqual([H3_REF2VA.CHUNK_FEEDFORWARD, 0])
+      expect(wf[H3_REF2VA.SEPARATE_AV]!.class_type).toBe('LTXVSeparateAVLatent')
+      expect(wf[H3_REF2VA.VAE_DECODE]!.inputs!.samples).toEqual([H3_REF2VA.SEPARATE_AV, 0])
+      expect(wf[H3_REF2VA.VAE_DECODE_AUDIO]!.inputs!.samples).toEqual([H3_REF2VA.SEPARATE_AV, 1])
+      expect(wf[H3_REF2VA.FPS]!.inputs!.number_type).toBe('float')
     })
 
     it('injects model files, sampling, and output settings', async () => {
