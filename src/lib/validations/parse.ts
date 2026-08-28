@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { ZodType, ZodError } from 'zod'
+import { createLogger } from '@/lib/logger'
+
+const log = createLogger('api')
 
 type ParseSuccess<T> = { success: true; data: T }
 type ParseFailure = { success: false; response: NextResponse }
@@ -10,6 +13,7 @@ function formatZodError(error: ZodError): NextResponse {
     field: e.path.join('.'),
     message: e.message,
   }))
+  log.warn('Request validation failed', { details })
   return NextResponse.json({ error: 'Validation failed', details }, { status: 400 })
 }
 

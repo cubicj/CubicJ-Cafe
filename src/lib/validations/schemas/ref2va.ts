@@ -19,7 +19,7 @@ const optionalFileSchema = (options: { maxSize: number; typePrefixes: readonly s
     )
     .optional()
 
-const refImageSchema = optionalFileSchema({ maxSize: 10 * 1024 * 1024, typePrefixes: ['image/'], extensions: IMAGE_EXTENSIONS, label: '이미지' })
+const refImageSchema = optionalFileSchema({ maxSize: 20 * 1024 * 1024, typePrefixes: ['image/'], extensions: IMAGE_EXTENSIONS, label: '이미지' })
 const refVideoSchema = optionalFileSchema({ maxSize: 64 * 1024 * 1024, typePrefixes: ['video/', 'image/gif'], extensions: VIDEO_EXTENSIONS, label: '비디오' })
 const refAudioSchema = optionalFileSchema({ maxSize: 20 * 1024 * 1024, typePrefixes: ['audio/'], extensions: AUDIO_EXTENSIONS, label: '오디오' })
 

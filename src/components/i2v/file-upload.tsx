@@ -20,7 +20,7 @@ export function FileUpload({
   onFileSelect,
   selectedFile: externalSelectedFile,
   className,
-  maxSize = 10 * 1024 * 1024,
+  maxSize = 20 * 1024 * 1024,
 }: FileUploadProps) {
   const [internalSelectedFile, setInternalSelectedFile] = useState<File | null>(
     externalSelectedFile ?? null

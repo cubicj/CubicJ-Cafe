@@ -58,7 +58,7 @@ export function ImageUploadSection({
         <FileUpload
           onFileSelect={onFileSelect}
           selectedFile={selectedFile}
-          maxSize={10 * 1024 * 1024}
+          maxSize={20 * 1024 * 1024}
         />
       </div>
 
@@ -92,7 +92,7 @@ export function ImageUploadSection({
             <FileUpload
               onFileSelect={onEndImageSelect}
               selectedFile={endImageFile}
-              maxSize={10 * 1024 * 1024}
+              maxSize={20 * 1024 * 1024}
             />
           )}
         </div>

@@ -15,8 +15,23 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     let errorMessage = text.trim() || `HTTP ${res.status}`;
     if (text.trim()) {
       try {
-        const body = JSON.parse(text) as { error?: unknown };
-        if (typeof body.error === 'string' && body.error.trim()) {
+        const body = JSON.parse(text) as { error?: unknown; details?: unknown };
+        const detailMessages = Array.isArray(body.details)
+          ? body.details
+              .map((detail) =>
+                typeof detail === 'object' && detail !== null && 'message' in detail
+                  ? detail.message
+                  : undefined,
+              )
+              .filter(
+                (message): message is string =>
+                  typeof message === 'string' && message.trim().length > 0,
+              )
+          : [];
+        const uniqueDetailMessages = [...new Set(detailMessages)];
+        if (uniqueDetailMessages.length > 0) {
+          errorMessage = uniqueDetailMessages.join(', ');
+        } else if (typeof body.error === 'string' && body.error.trim()) {
           errorMessage = body.error;
         }
       } catch {

@@ -97,6 +97,20 @@ describe('ref2vaSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts an image just under 20MB', () => {
+    const result = ref2vaSchema.safeParse(baseFields({
+      refImage_0: makeFile('large.png', 'image/png', 20 * 1024 * 1024 - 1),
+    }))
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects an image just over 20MB', () => {
+    const result = ref2vaSchema.safeParse(baseFields({
+      refImage_0: makeFile('too-large.png', 'image/png', 20 * 1024 * 1024 + 1),
+    }))
+    expect(result.success).toBe(false)
+  })
+
   it('rejects an oversized video', () => {
     const result = ref2vaSchema.safeParse(baseFields({
       refVideo_0: makeFile('big.mp4', 'video/mp4', 64 * 1024 * 1024 + 1),

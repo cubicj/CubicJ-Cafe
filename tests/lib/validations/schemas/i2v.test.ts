@@ -37,6 +37,18 @@ describe('i2vSchema image validation', () => {
     expect(result.success).toBe(true)
   })
 
+  it('accepts an image just under 20MB', () => {
+    const file = new File([new ArrayBuffer(20 * 1024 * 1024 - 1)], 'large.png', { type: 'image/png' })
+    const result = i2vSchema.safeParse(Object.fromEntries(makeFormData(file).entries()))
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects an image just over 20MB', () => {
+    const file = new File([new ArrayBuffer(20 * 1024 * 1024 + 1)], 'too-large.png', { type: 'image/png' })
+    const result = i2vSchema.safeParse(Object.fromEntries(makeFormData(file).entries()))
+    expect(result.success).toBe(false)
+  })
+
   it('rejects file with double extension where the actual one is bad', () => {
     const file = new File(['fake content'], 'photo.jpg.exe', { type: 'image/jpeg' })
     const result = i2vSchema.safeParse(Object.fromEntries(makeFormData(file).entries()))
