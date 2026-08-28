@@ -177,8 +177,9 @@ export const H3_REF2VA_NO_VIDEO_WORKFLOW_TEMPLATE = {
   '57': {
     inputs: {
       model_name: 'PLACEHOLDER',
-      mode: 'megapixels',
-      'mode.megapixels': 0,
+      mode: 'target dimensions',
+      'mode.width': 0,
+      'mode.height': 0,
       align: 0,
       enable_chunking: false,
       device: 'PLACEHOLDER',
@@ -218,5 +219,10 @@ export const H3_REF2VA_NO_VIDEO_WORKFLOW_TEMPLATE = {
     inputs: { sigmas: 'PLACEHOLDER' },
     class_type: 'ManualSigmas',
     _meta: { title: 'ManualSigmas' },
+  },
+  '71': {
+    inputs: { megapixels: 0, multiple_of: 0, upscale_method: 'PLACEHOLDER', image: ['PLACEHOLDER', 0] },
+    class_type: 'ResizeImageToMegapixels',
+    _meta: { title: 'Resize Image (Megapixels + Alignment)' },
   },
 } satisfies ComfyUIWorkflow;

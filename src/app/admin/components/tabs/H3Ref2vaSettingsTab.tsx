@@ -39,7 +39,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.no_video_split_step', label: 'Split Step', type: 'number', step: 1, group: 'H3R — 영상 없음 파이프라인' },
   { key: 'h3-ref2va.no_video_manual_sigmas', label: '2차 패스 Sigmas CSV', type: 'string', group: 'H3R — 영상 없음 파이프라인', monoFont: true },
   { key: 'h3-ref2va.no_video_upscaler_model', label: 'Upscaler Model', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_upscaler_model:MinimaxH3LatentUpscaler3D:model_name' },
-  { key: 'h3-ref2va.no_video_upscaler_megapixels', label: 'Upscaler 해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 영상 없음 파이프라인' },
+  { key: 'h3-ref2va.no_video_second_pass_megapixels', label: '2-pass 해상도 (MP)', type: 'number', step: 0.01, group: 'H3R — 영상 없음 파이프라인' },
   { key: 'h3-ref2va.no_video_upscaler_align', label: 'Upscaler Align', type: 'number', step: 1, group: 'H3R — 영상 없음 파이프라인' },
   { key: 'h3-ref2va.no_video_upscaler_chunking', label: 'Upscaler Chunking', type: 'boolean', group: 'H3R — 영상 없음 파이프라인' },
   { key: 'h3-ref2va.no_video_upscaler_device', label: 'Upscaler Device', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_upscaler_device:MinimaxH3LatentUpscaler3D:device' },

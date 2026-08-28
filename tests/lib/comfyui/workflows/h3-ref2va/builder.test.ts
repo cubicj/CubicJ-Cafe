@@ -247,19 +247,50 @@ describe('buildH3Ref2vaWorkflow', () => {
       expect(wf[H3_REF2VA_NO_VIDEO.VAE_DECODE_AUDIO]!.inputs!.samples).toEqual([H3_REF2VA_NO_VIDEO.SEPARATE_AV_FINAL, 1])
     })
 
-    it('configures the latent upscaler from no-video settings', async () => {
+    it('configures the latent upscaler in target-dimensions mode', async () => {
       const wf = await buildH3Ref2vaWorkflow(baseParams())
       expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs).toMatchObject({
         model_name: 'test-nv-upscaler.pth',
-        mode: 'megapixels',
-        'mode.megapixels': 0.6,
+        mode: 'target dimensions',
+        'mode.width': [H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE, 1],
+        'mode.height': [H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE, 2],
         align: 8,
         enable_chunking: false,
         device: 'test-device',
         precision: 'test-precision',
         latent: [H3_REF2VA_NO_VIDEO.SEPARATE_AV_MID, 0],
       })
+      expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs!['mode.megapixels']).toBeUndefined()
       expect(wf[H3_REF2VA_NO_VIDEO.CONCAT_AV]!.inputs).toMatchObject({ video_latent: [H3_REF2VA_NO_VIDEO.LATENT_UPSCALER, 0], audio_latent: [H3_REF2VA_NO_VIDEO.SEPARATE_AV_MID, 1] })
+    })
+
+    it('wires the second-pass resize from the first reference image in firstImage mode', async () => {
+      const wf = await buildH3Ref2vaWorkflow(baseParams())
+      expect(wf[H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE]!.class_type).toBe('ResizeImageToMegapixels')
+      expect(wf[H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE]!.inputs).toMatchObject({
+        megapixels: 0.7,
+        multiple_of: 16,
+        upscale_method: 'fake-resize-method',
+        image: [refImageLoadId(0), 0],
+      })
+    })
+
+    it('injects constant upscaler target dimensions in custom mode and drops the second-pass resize', async () => {
+      const wf = await buildH3Ref2vaWorkflow(baseParams({ resolution: { mode: 'custom', aspectWidth: 16, aspectHeight: 9 } }))
+      expect(wf[H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE]).toBeUndefined()
+      expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs!['mode.width']).toBe(1120)
+      expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs!['mode.height']).toBe(624)
+    })
+
+    it('computes upscaler target dimensions for audio-only custom requests', async () => {
+      const wf = await buildH3Ref2vaWorkflow(baseParams({
+        refImages: [],
+        refAudios: ['a0.wav'],
+        resolution: { mode: 'custom', aspectWidth: 1, aspectHeight: 1 },
+      }))
+      expect(wf[H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE]).toBeUndefined()
+      expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs!['mode.width']).toBe(832)
+      expect(wf[H3_REF2VA_NO_VIDEO.LATENT_UPSCALER]!.inputs!['mode.height']).toBe(832)
     })
 
     it('resizes references with the no-video megapixels and computes custom resolution from them', async () => {

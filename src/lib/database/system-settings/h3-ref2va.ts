@@ -37,7 +37,7 @@ export interface H3Ref2vaSettings {
   noVideoSplitStep: number;
   noVideoManualSigmas: string;
   noVideoUpscalerModel: string;
-  noVideoUpscalerMegapixels: number;
+  noVideoSecondPassMegapixels: number;
   noVideoUpscalerAlign: number;
   noVideoUpscalerChunking: boolean;
   noVideoUpscalerDevice: string;
@@ -96,7 +96,7 @@ export const H3_REF2VA_KEYS = {
   noVideoSplitStep: 'h3-ref2va.no_video_split_step',
   noVideoManualSigmas: 'h3-ref2va.no_video_manual_sigmas',
   noVideoUpscalerModel: 'h3-ref2va.no_video_upscaler_model',
-  noVideoUpscalerMegapixels: 'h3-ref2va.no_video_upscaler_megapixels',
+  noVideoSecondPassMegapixels: 'h3-ref2va.no_video_second_pass_megapixels',
   noVideoUpscalerAlign: 'h3-ref2va.no_video_upscaler_align',
   noVideoUpscalerChunking: 'h3-ref2va.no_video_upscaler_chunking',
   noVideoUpscalerDevice: 'h3-ref2va.no_video_upscaler_device',
@@ -160,7 +160,7 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     noVideoSplitStep: parseLtxInteger(map, k.noVideoSplitStep),
     noVideoManualSigmas: map.get(k.noVideoManualSigmas)!,
     noVideoUpscalerModel: map.get(k.noVideoUpscalerModel)!,
-    noVideoUpscalerMegapixels: parseLtxNumber(map, k.noVideoUpscalerMegapixels),
+    noVideoSecondPassMegapixels: parseLtxNumber(map, k.noVideoSecondPassMegapixels),
     noVideoUpscalerAlign: parseLtxInteger(map, k.noVideoUpscalerAlign),
     noVideoUpscalerChunking: map.get(k.noVideoUpscalerChunking)! === 'true',
     noVideoUpscalerDevice: map.get(k.noVideoUpscalerDevice)!,

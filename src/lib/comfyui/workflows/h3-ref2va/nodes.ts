@@ -66,6 +66,7 @@ export const H3_REF2VA_NO_VIDEO = {
   UNLOAD_MID: '61',
   SEPARATE_AV_FINAL: '62',
   MANUAL_SIGMAS: '66',
+  SECOND_PASS_RESIZE: '71',
 } as const;
 
 export function refImageLoadId(slot: number): string {

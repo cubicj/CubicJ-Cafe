@@ -55,7 +55,7 @@ export const H3_REF2VA_SEED: Array<{ key: string; value: string; type: SeedType 
   { key: 'h3-ref2va.no_video_split_step', value: '6', type: 'number' },
   { key: 'h3-ref2va.no_video_manual_sigmas', value: '0.9, 0.5, 0.1, 0.0', type: 'string' },
   { key: 'h3-ref2va.no_video_upscaler_model', value: 'test-nv-upscaler.pth', type: 'string' },
-  { key: 'h3-ref2va.no_video_upscaler_megapixels', value: '0.6', type: 'number' },
+  { key: 'h3-ref2va.no_video_second_pass_megapixels', value: '0.7', type: 'number' },
   { key: 'h3-ref2va.no_video_upscaler_align', value: '8', type: 'number' },
   { key: 'h3-ref2va.no_video_upscaler_chunking', value: 'false', type: 'boolean' },
   { key: 'h3-ref2va.no_video_upscaler_device', value: 'test-device', type: 'string' },

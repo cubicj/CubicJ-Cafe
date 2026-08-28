@@ -61,7 +61,7 @@ describe('getH3Ref2vaSettings', () => {
       noVideoSplitStep: 6,
       noVideoManualSigmas: '0.9, 0.5, 0.1, 0.0',
       noVideoUpscalerModel: 'test-nv-upscaler.pth',
-      noVideoUpscalerMegapixels: 0.6,
+      noVideoSecondPassMegapixels: 0.7,
       noVideoUpscalerAlign: 8,
       noVideoUpscalerChunking: false,
       noVideoUpscalerDevice: 'test-device',

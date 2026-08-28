@@ -69,13 +69,13 @@ function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2
   setNode(workflow, H3_REF2VA_NO_VIDEO.MANUAL_SIGMAS, { sigmas: settings.noVideoManualSigmas })
   setNode(workflow, H3_REF2VA_NO_VIDEO.LATENT_UPSCALER, {
     model_name: settings.noVideoUpscalerModel,
-    'mode.megapixels': settings.noVideoUpscalerMegapixels,
     align: settings.noVideoUpscalerAlign,
     enable_chunking: settings.noVideoUpscalerChunking,
     device: settings.noVideoUpscalerDevice,
     precision: settings.noVideoUpscalerPrecision,
   })
   configureCommon(workflow, params, settings, settings.noVideoMegapixels)
+  configureSecondPassTarget(workflow, params, settings)
   return workflow
 }
 
@@ -91,6 +91,30 @@ function configureCommon(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationPa
   configureResolution(workflow, params, settings, referenceMegapixels)
   configureRtx(workflow, settings)
   configureOutput(workflow, params, settings)
+}
+
+function configureSecondPassTarget(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings) {
+  if (params.resolution.mode === 'firstImage') {
+    setNode(workflow, H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE, {
+      megapixels: settings.noVideoSecondPassMegapixels,
+      multiple_of: settings.resizeMultipleOf,
+      upscale_method: settings.resizeUpscaleMethod,
+      image: [refImageLoadId(0), 0],
+    })
+    setNode(workflow, H3_REF2VA_NO_VIDEO.LATENT_UPSCALER, {
+      'mode.width': [H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE, 1],
+      'mode.height': [H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE, 2],
+    })
+    return
+  }
+  const { width, height } = calculateResolution({
+    aspectWidth: params.resolution.aspectWidth,
+    aspectHeight: params.resolution.aspectHeight,
+    megapixels: settings.noVideoSecondPassMegapixels,
+    multipleOf: settings.resizeMultipleOf,
+  })
+  delete workflow[H3_REF2VA_NO_VIDEO.SECOND_PASS_RESIZE]
+  setNode(workflow, H3_REF2VA_NO_VIDEO.LATENT_UPSCALER, { 'mode.width': width, 'mode.height': height })
 }
 
 function validateReferences(params: H3Ref2vaGenerationParams) {
