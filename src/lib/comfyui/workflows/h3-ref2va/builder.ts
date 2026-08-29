@@ -39,7 +39,7 @@ function buildWithVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Re
   setNode(workflow, H3_REF2VA.UNET_LOADER, { unet_name: settings.unet, weight_dtype: settings.unetWeightDtype })
   setNode(workflow, H3_REF2VA.CLIP_LOADER, { clip_name: settings.clipName, type: settings.clipType, device: settings.clipDevice })
   setNode(workflow, H3_REF2VA.VIDEO_VAE_LOADER, { vae_name: settings.videoVae })
-  setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
+  configureTurboLora(workflow, settings)
   setNode(workflow, H3_REF2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,
     chunks: settings.chunkFeedforwardChunks,
@@ -50,6 +50,15 @@ function buildWithVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Re
   setNode(workflow, H3_REF2VA.STEPS, { value: settings.steps })
   configureCommon(workflow, params, settings, settings.megapixels)
   return workflow
+}
+
+function configureTurboLora(workflow: ComfyUIWorkflow, settings: H3Ref2vaSettings) {
+  if (settings.turboLoraEnabled) {
+    setNode(workflow, H3_REF2VA.TURBO_LORA, { lora_name: settings.turboLora, strength_model: settings.turboLoraStrength })
+    return
+  }
+  delete workflow[H3_REF2VA.TURBO_LORA]
+  setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { model: [H3_REF2VA.UNET_LOADER, 0] })
 }
 
 function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings): ComfyUIWorkflow {

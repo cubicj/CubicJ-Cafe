@@ -119,6 +119,20 @@ describe('buildH3Ref2vaWorkflow', () => {
     expect(wf[H3_REF2VA.VIDEO_COMBINE]!.inputs!.images).toEqual([H3_REF2VA.VAE_DECODE, 0])
   })
 
+  it('strips the turbo LoRA node when disabled', async () => {
+    await prisma.systemSetting.update({ where: { key: 'h3-ref2va.turbo_lora_enabled' }, data: { value: 'false' } })
+    const wf = await buildH3Ref2vaWorkflow(withVideoParams())
+    expect(wf[H3_REF2VA.TURBO_LORA]).toBeUndefined()
+    expect(wf[H3_REF2VA.SIGMA_SHIFT]!.inputs!.model).toEqual([H3_REF2VA.UNET_LOADER, 0])
+    assertNoDanglingLinks(wf)
+  })
+
+  it('keeps the turbo LoRA node wired when enabled', async () => {
+    const wf = await buildH3Ref2vaWorkflow(withVideoParams())
+    expect(wf[H3_REF2VA.TURBO_LORA]!.inputs).toMatchObject({ lora_name: 'test-h3r-lora.safetensors', strength_model: 0.9, model: [H3_REF2VA.UNET_LOADER, 0] })
+    expect(wf[H3_REF2VA.SIGMA_SHIFT]!.inputs!.model).toEqual([H3_REF2VA.TURBO_LORA, 0])
+  })
+
   it('uses the first audio basename for the filename prefix when no images or videos exist', async () => {
     const wf = await buildH3Ref2vaWorkflow(baseParams({
       refImages: [],

@@ -10,6 +10,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.clip_device', label: 'CLIP Device', type: 'nodeOption', group: 'H3R — 모델', nodeQuery: 'clip_device:CLIPLoader:device' },
   { key: 'h3-ref2va.video_vae', label: 'Video VAE', type: 'nodeOption', group: 'H3R — 모델', nodeQuery: 'video_vae:VAELoader:vae_name' },
   { key: 'h3-ref2va.audio_vae', label: 'Audio VAE', type: 'nodeOption', group: 'H3R — 모델', nodeQuery: 'audio_vae:VAELoader:vae_name' },
+  { key: 'h3-ref2va.turbo_lora_enabled', label: 'Turbo LoRA Enabled', type: 'boolean', group: 'H3R — 모델' },
   { key: 'h3-ref2va.turbo_lora', label: 'Turbo LoRA', type: 'nodeOption', group: 'H3R — 모델', nodeQuery: 'turbo_lora:LoraLoaderModelOnly:lora_name' },
   { key: 'h3-ref2va.turbo_lora_strength', label: 'Turbo LoRA Strength', type: 'number', step: 0.01, group: 'H3R — 모델' },
 

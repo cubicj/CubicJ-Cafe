@@ -16,6 +16,7 @@ export interface H3Ref2vaSettings {
   audioVae: string;
   turboLora: string;
   turboLoraStrength: number;
+  turboLoraEnabled: boolean;
   steps: number;
   sampler: string;
   scheduler: string;
@@ -75,6 +76,7 @@ export const H3_REF2VA_KEYS = {
   audioVae: 'h3-ref2va.audio_vae',
   turboLora: 'h3-ref2va.turbo_lora',
   turboLoraStrength: 'h3-ref2va.turbo_lora_strength',
+  turboLoraEnabled: 'h3-ref2va.turbo_lora_enabled',
   steps: 'h3-ref2va.steps',
   sampler: 'h3-ref2va.sampler',
   scheduler: 'h3-ref2va.scheduler',
@@ -139,6 +141,7 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     audioVae: map.get(k.audioVae)!,
     turboLora: map.get(k.turboLora)!,
     turboLoraStrength: parseLtxNumber(map, k.turboLoraStrength),
+    turboLoraEnabled: map.get(k.turboLoraEnabled)! === 'true',
     steps: parseLtxInteger(map, k.steps),
     sampler: map.get(k.sampler)!,
     scheduler: map.get(k.scheduler)!,

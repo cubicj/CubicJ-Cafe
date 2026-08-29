@@ -13,6 +13,7 @@ export const H3_REF2VA_SEED: Array<{ key: string; value: string; type: SeedType 
   { key: 'h3-ref2va.audio_vae', value: 'test-h3r-audio-vae.safetensors', type: 'string' },
   { key: 'h3-ref2va.turbo_lora', value: 'test-h3r-lora.safetensors', type: 'string' },
   { key: 'h3-ref2va.turbo_lora_strength', value: '0.9', type: 'number' },
+  { key: 'h3-ref2va.turbo_lora_enabled', value: 'true', type: 'boolean' },
   { key: 'h3-ref2va.steps', value: '4', type: 'number' },
   { key: 'h3-ref2va.sampler', value: 'fake-sampler', type: 'string' },
   { key: 'h3-ref2va.scheduler', value: 'fake-scheduler', type: 'string' },

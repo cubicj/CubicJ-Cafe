@@ -21,6 +21,7 @@ describe('getH3Ref2vaSettings', () => {
       audioVae: 'test-h3r-audio-vae.safetensors',
       turboLora: 'test-h3r-lora.safetensors',
       turboLoraStrength: 0.9,
+      turboLoraEnabled: true,
       steps: 4,
       sampler: 'fake-sampler',
       scheduler: 'fake-scheduler',
