@@ -17,7 +17,6 @@ export const H3_FL2VA_SEED: Array<{ key: string; value: string; type: SeedType }
   { key: 'h3-fl2va.shift_video', value: '7', type: 'number' },
   { key: 'h3-fl2va.shift_audio', value: '2', type: 'number' },
   { key: 'h3-fl2va.sage_attention', value: 'test-sage-mode', type: 'string' },
-  { key: 'h3-fl2va.sage_allow_compile', value: 'false', type: 'boolean' },
   { key: 'h3-fl2va.low_vram_head_chunks', value: '5', type: 'number' },
   { key: 'h3-fl2va.chunk_feedforward_enabled', value: 'true', type: 'boolean' },
   { key: 'h3-fl2va.chunk_feedforward_chunks', value: '3', type: 'number' },

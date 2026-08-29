@@ -43,7 +43,7 @@ function configureModels(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
 
 function configureSampling(workflow: ComfyUIWorkflow, settings: H3Fl2vaSettings) {
   setNode(workflow, H3_FL2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
-  setNode(workflow, H3_FL2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
+  setNode(workflow, H3_FL2VA.MEMEFF_SAGE, { attention_mode: settings.sageAttention })
   setNode(workflow, H3_FL2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
   setNode(workflow, H3_FL2VA.CHUNK_FEEDFORWARD, {
     enabled: settings.chunkFeedforwardEnabled,

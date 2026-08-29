@@ -91,7 +91,7 @@ function buildNoVideoWorkflow(params: H3Ref2vaGenerationParams, settings: H3Ref2
 function configureCommon(workflow: ComfyUIWorkflow, params: H3Ref2vaGenerationParams, settings: H3Ref2vaSettings, referenceMegapixels: number) {
   setNode(workflow, H3_REF2VA.AUDIO_VAE_LOADER, { vae_name: settings.audioVae })
   setNode(workflow, H3_REF2VA.SIGMA_SHIFT, { shift_video: settings.shiftVideo, shift_audio: settings.shiftAudio })
-  setNode(workflow, H3_REF2VA.SAGE_PATCH, { sage_attention: settings.sageAttention, allow_compile: settings.sageAllowCompile })
+  setNode(workflow, H3_REF2VA.MEMEFF_SAGE, { attention_mode: settings.sageAttention })
   setNode(workflow, H3_REF2VA.LOW_VRAM_ATTN, { head_chunks: settings.lowVramHeadChunks })
   setNode(workflow, H3_REF2VA.RANDOM_NOISE, { noise_seed: generateSeed() })
   configureDuration(workflow, params, settings)

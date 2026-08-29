@@ -149,18 +149,13 @@ export const H3_REF2VA_WORKFLOW_TEMPLATE = {
     class_type: 'ForceFullUnload',
     _meta: { title: 'Force Full Unload (VRAM+Pinned)' },
   },
-  '43': {
-    inputs: { sage_attention: 'PLACEHOLDER', allow_compile: false, model: ['1', 0] },
-    class_type: 'PathchSageAttentionKJ',
-    _meta: { title: 'Patch Sage Attention KJ' },
-  },
   '49': {
     inputs: { head_chunks: 0, model: ['50', 0] },
     class_type: 'MiniMaxLowVRAMAttention',
     _meta: { title: 'MiniMax H3 Low VRAM Attention' },
   },
   '50': {
-    inputs: { model: ['43', 0] },
+    inputs: { attention_mode: 'PLACEHOLDER', model: ['1', 0] },
     class_type: 'MiniMaxH3MemoryEfficientSageAttentionPatch',
     _meta: { title: 'MiniMax H3 Mem Eff Sage Attention Patch' },
   },

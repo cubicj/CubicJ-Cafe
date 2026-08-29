@@ -25,7 +25,6 @@ export const H3_REF2VA = {
   RTX_SUPER_RES: '33',
   VIDEO_COMBINE: '34',
   UNLOAD_FINAL: '40',
-  SAGE_PATCH: '43',
   LOW_VRAM_ATTN: '49',
   MEMEFF_SAGE: '50',
 } as const;
@@ -55,7 +54,6 @@ export const H3_REF2VA_NO_VIDEO = {
   RTX_SUPER_RES: '33',
   VIDEO_COMBINE: '34',
   UNLOAD_FINAL: '40',
-  SAGE_PATCH: '43',
   LOW_VRAM_ATTN: '49',
   MEMEFF_SAGE: '50',
   CHUNK_FEEDFORWARD: '52',

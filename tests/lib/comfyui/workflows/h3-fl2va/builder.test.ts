@@ -165,10 +165,10 @@ describe('buildH3Fl2vaWorkflow', () => {
     const workflow = await buildH3Fl2vaWorkflow({ model: 'h3-fl2va', prompt: 'fake prompt', videoDuration: 9, inputImage: 'fake-first.png' })
 
     expect(workflow[H3_FL2VA.SIGMA_SHIFT]!.inputs!.model).toEqual([H3_FL2VA.UNET_LOADER, 0])
-    expect(workflow[H3_FL2VA.SAGE_PATCH]!.inputs).toMatchObject({ sage_attention: 'test-sage-mode', allow_compile: false, model: [H3_FL2VA.SIGMA_SHIFT, 0] })
-    expect(workflow[H3_FL2VA.MEMEFF_SAGE]!.inputs!.model).toEqual([H3_FL2VA.SAGE_PATCH, 0])
+    expect(workflow[H3_FL2VA.MEMEFF_SAGE]!.inputs).toMatchObject({ attention_mode: 'test-sage-mode', model: [H3_FL2VA.SIGMA_SHIFT, 0] })
     expect(workflow[H3_FL2VA.LOW_VRAM_ATTN]!.inputs).toMatchObject({ head_chunks: 5, model: [H3_FL2VA.MEMEFF_SAGE, 0] })
     expect(workflow[H3_FL2VA.CHUNK_FEEDFORWARD]!.inputs!.model).toEqual([H3_FL2VA.LOW_VRAM_ATTN, 0])
+    expect(workflow['43']).toBeUndefined()
     expect(Object.values(workflow).some((node) => node.class_type.includes('LoRA'))).toBe(false)
   })
 

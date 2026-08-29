@@ -23,8 +23,7 @@ const H3_REF2VA_FIELDS: SettingsField[] = [
   { key: 'h3-ref2va.chunk_feedforward_chunks', label: 'Chunks', type: 'number', step: 1, group: 'H3R — 샘플러' },
   { key: 'h3-ref2va.chunk_feedforward_min_len', label: 'Min Tokens', type: 'number', step: 1, group: 'H3R — 샘플러' },
 
-  { key: 'h3-ref2va.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'H3R — Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
-  { key: 'h3-ref2va.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'H3R — Sage Attention' },
+  { key: 'h3-ref2va.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'H3R — Sage Attention', nodeQuery: 'sage_attention:MiniMaxH3MemoryEfficientSageAttentionPatch:attention_mode' },
   { key: 'h3-ref2va.low_vram_head_chunks', label: 'Head Chunks', type: 'number', step: 1, group: 'H3R — Sage Attention' },
 
   { key: 'h3-ref2va.no_video_unet', label: 'UNet (영상 없음)', type: 'nodeOption', group: 'H3R — 영상 없음 파이프라인', nodeQuery: 'no_video_unet:UNETLoader:unet_name' },

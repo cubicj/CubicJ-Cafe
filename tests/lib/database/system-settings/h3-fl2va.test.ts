@@ -25,7 +25,6 @@ describe('getH3Fl2vaSettings', () => {
       shiftVideo: 7,
       shiftAudio: 2,
       sageAttention: 'test-sage-mode',
-      sageAllowCompile: false,
       lowVramHeadChunks: 5,
       chunkFeedforwardEnabled: true,
       chunkFeedforwardChunks: 3,

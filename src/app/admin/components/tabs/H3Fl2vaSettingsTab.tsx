@@ -19,8 +19,7 @@ const H3_FL2VA_FIELDS: SettingsField[] = [
   { key: 'h3-fl2va.chunk_feedforward_chunks', label: 'Chunks', type: 'number', step: 1, group: 'H3 — 샘플러' },
   { key: 'h3-fl2va.chunk_feedforward_min_len', label: 'Min Tokens', type: 'number', step: 1, group: 'H3 — 샘플러' },
 
-  { key: 'h3-fl2va.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'H3 — Sage Attention', nodeQuery: 'sage_attention:PathchSageAttentionKJ:sage_attention' },
-  { key: 'h3-fl2va.sage_allow_compile', label: 'Allow Compile', type: 'boolean', group: 'H3 — Sage Attention' },
+  { key: 'h3-fl2va.sage_attention', label: 'Sage Attention', type: 'nodeOption', group: 'H3 — Sage Attention', nodeQuery: 'sage_attention:MiniMaxH3MemoryEfficientSageAttentionPatch:attention_mode' },
   { key: 'h3-fl2va.low_vram_head_chunks', label: 'Head Chunks', type: 'number', step: 1, group: 'H3 — Sage Attention' },
 
   { key: 'h3-fl2va.split_step', label: 'Split Step', type: 'number', step: 1, group: 'H3 — 2-pass' },

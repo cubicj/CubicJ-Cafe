@@ -20,7 +20,6 @@ export interface H3Fl2vaSettings {
   shiftVideo: number;
   shiftAudio: number;
   sageAttention: string;
-  sageAllowCompile: boolean;
   lowVramHeadChunks: number;
   chunkFeedforwardEnabled: boolean;
   chunkFeedforwardChunks: number;
@@ -63,7 +62,6 @@ export const H3_FL2VA_KEYS = {
   shiftVideo: 'h3-fl2va.shift_video',
   shiftAudio: 'h3-fl2va.shift_audio',
   sageAttention: 'h3-fl2va.sage_attention',
-  sageAllowCompile: 'h3-fl2va.sage_allow_compile',
   lowVramHeadChunks: 'h3-fl2va.low_vram_head_chunks',
   chunkFeedforwardEnabled: 'h3-fl2va.chunk_feedforward_enabled',
   chunkFeedforwardChunks: 'h3-fl2va.chunk_feedforward_chunks',
@@ -111,7 +109,6 @@ export async function getH3Fl2vaSettings(): Promise<H3Fl2vaSettings> {
     shiftVideo: parseLtxNumber(map, k.shiftVideo),
     shiftAudio: parseLtxNumber(map, k.shiftAudio),
     sageAttention: map.get(k.sageAttention)!,
-    sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     lowVramHeadChunks: parseLtxInteger(map, k.lowVramHeadChunks),
     chunkFeedforwardEnabled: map.get(k.chunkFeedforwardEnabled)! === 'true',
     chunkFeedforwardChunks: parseLtxInteger(map, k.chunkFeedforwardChunks),

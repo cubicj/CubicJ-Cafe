@@ -174,10 +174,10 @@ describe('buildH3Ref2vaWorkflow', () => {
 
     it('wires the sage attention stack between sigma shift and chunk feedforward', async () => {
       const wf = await buildH3Ref2vaWorkflow(withVideoParams())
-      expect(wf[H3_REF2VA.SAGE_PATCH]!.inputs).toMatchObject({ sage_attention: 'test-sage-mode', allow_compile: false, model: [H3_REF2VA.SIGMA_SHIFT, 0] })
-      expect(wf[H3_REF2VA.MEMEFF_SAGE]!.inputs!.model).toEqual([H3_REF2VA.SAGE_PATCH, 0])
+      expect(wf[H3_REF2VA.MEMEFF_SAGE]!.inputs).toMatchObject({ attention_mode: 'test-sage-mode', model: [H3_REF2VA.SIGMA_SHIFT, 0] })
       expect(wf[H3_REF2VA.LOW_VRAM_ATTN]!.inputs).toMatchObject({ head_chunks: 5, model: [H3_REF2VA.MEMEFF_SAGE, 0] })
       expect(wf[H3_REF2VA.CHUNK_FEEDFORWARD]!.inputs!.model).toEqual([H3_REF2VA.LOW_VRAM_ATTN, 0])
+      expect(wf['43']).toBeUndefined()
       expect(wf['3']).toBeUndefined()
       expect(wf['11']).toBeUndefined()
       expect(wf['12']).toBeUndefined()
@@ -316,9 +316,9 @@ describe('buildH3Ref2vaWorkflow', () => {
 
     it('wires the sage stack in the no-video graph', async () => {
       const wf = await buildH3Ref2vaWorkflow(baseParams())
-      expect(wf[H3_REF2VA_NO_VIDEO.SAGE_PATCH]!.inputs).toMatchObject({ sage_attention: 'test-sage-mode', allow_compile: false, model: [H3_REF2VA_NO_VIDEO.SIGMA_SHIFT, 0] })
-      expect(wf[H3_REF2VA_NO_VIDEO.MEMEFF_SAGE]!.inputs!.model).toEqual([H3_REF2VA_NO_VIDEO.SAGE_PATCH, 0])
+      expect(wf[H3_REF2VA_NO_VIDEO.MEMEFF_SAGE]!.inputs).toMatchObject({ attention_mode: 'test-sage-mode', model: [H3_REF2VA_NO_VIDEO.SIGMA_SHIFT, 0] })
       expect(wf[H3_REF2VA_NO_VIDEO.LOW_VRAM_ATTN]!.inputs).toMatchObject({ head_chunks: 5, model: [H3_REF2VA_NO_VIDEO.MEMEFF_SAGE, 0] })
+      expect(wf['43']).toBeUndefined()
     })
   })
 })

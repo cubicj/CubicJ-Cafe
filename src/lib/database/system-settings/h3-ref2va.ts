@@ -23,7 +23,6 @@ export interface H3Ref2vaSettings {
   shiftVideo: number;
   shiftAudio: number;
   sageAttention: string;
-  sageAllowCompile: boolean;
   lowVramHeadChunks: number;
   noVideoUnet: string;
   noVideoClipName: string;
@@ -83,7 +82,6 @@ export const H3_REF2VA_KEYS = {
   shiftVideo: 'h3-ref2va.shift_video',
   shiftAudio: 'h3-ref2va.shift_audio',
   sageAttention: 'h3-ref2va.sage_attention',
-  sageAllowCompile: 'h3-ref2va.sage_allow_compile',
   lowVramHeadChunks: 'h3-ref2va.low_vram_head_chunks',
   noVideoUnet: 'h3-ref2va.no_video_unet',
   noVideoClipName: 'h3-ref2va.no_video_clip_name',
@@ -148,7 +146,6 @@ export async function getH3Ref2vaSettings(): Promise<H3Ref2vaSettings> {
     shiftVideo: parseLtxNumber(map, k.shiftVideo),
     shiftAudio: parseLtxNumber(map, k.shiftAudio),
     sageAttention: map.get(k.sageAttention)!,
-    sageAllowCompile: map.get(k.sageAllowCompile)! === 'true',
     lowVramHeadChunks: parseLtxInteger(map, k.lowVramHeadChunks),
     noVideoUnet: map.get(k.noVideoUnet)!,
     noVideoClipName: map.get(k.noVideoClipName)!,
