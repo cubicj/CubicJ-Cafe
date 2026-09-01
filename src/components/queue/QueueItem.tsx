@@ -137,7 +137,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
   });
 
   return (
-    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="font-mono text-xs">#{request.position}</Badge>
@@ -148,7 +148,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
             {getStatusIcon(request.status)}
             {getStatusText(request.status)}
           </Badge>
-          <span>{request.nickname}</span>
+          <span className="min-w-0 wrap-anywhere">{request.nickname}</span>
           {isCurrentUser && (
             <Badge variant="secondary" className="text-xs">내 요청</Badge>
           )}
@@ -156,10 +156,10 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
         <DialogDescription className="sr-only">Queue request detail</DialogDescription>
       </DialogHeader>
 
-      <div className="space-y-4 text-sm">
+      <div className="min-w-0 space-y-4 text-sm">
         <div>
           <div className="font-medium text-xs text-muted-foreground mb-1">프롬프트</div>
-          <p className="p-2 bg-muted/50 rounded text-sm max-h-32 overflow-y-auto whitespace-pre-wrap wrap-break-word">{request.prompt}</p>
+          <p className="p-2 bg-muted/50 rounded text-sm max-h-32 overflow-y-auto whitespace-pre-wrap wrap-anywhere">{request.prompt}</p>
         </div>
 
         <div>
@@ -190,7 +190,7 @@ function QueueDetailDialog({ request, isCurrentUser, canDelete, isDeleting, onDe
         {request.error && (
           <div>
             <div className="font-medium text-xs text-muted-foreground mb-1">오류</div>
-            <p className="p-2 bg-red-50 rounded text-sm text-red-700">{request.error}</p>
+            <p className="p-2 bg-red-50 rounded text-sm text-red-700 whitespace-pre-wrap wrap-anywhere">{request.error}</p>
           </div>
         )}
 
