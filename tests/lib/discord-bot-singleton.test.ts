@@ -1,10 +1,23 @@
 import { vi } from 'vitest'
 
+type MockDiscordClient = {
+  ws: { destroyed: boolean }
+  isReady: ReturnType<typeof vi.fn>
+  login: ReturnType<typeof vi.fn>
+  destroy: ReturnType<typeof vi.fn>
+  removeAllListeners: ReturnType<typeof vi.fn>
+}
+
 const discordClientHandlers = vi.hoisted(() => new Map<string, (...args: unknown[]) => unknown>())
 const mockGetRequestById = vi.hoisted(() => vi.fn())
 const mockUpdateDiscordMessageIds = vi.hoisted(() => vi.fn())
 const mockStat = vi.hoisted(() => vi.fn())
 const mockFetch = vi.hoisted(() => vi.fn())
+const mockDiscordClientConstructor = vi.hoisted(() => vi.fn())
+const mockDiscordClients = vi.hoisted(() => [] as MockDiscordClient[])
+const mockDiscordClientSetups = vi.hoisted(
+  () => [] as Array<(client: MockDiscordClient) => void>
+)
 const mockLogger = vi.hoisted(() => ({
   info: vi.fn(),
   warn: vi.fn(),
@@ -67,13 +80,27 @@ vi.mock('discord.js', () => ({
   ButtonStyle: { Secondary: 2, Link: 5 },
   Client: class {
     guilds = { fetch: vi.fn() }
+    ws = { destroyed: false }
     isReady = vi.fn().mockReturnValue(false)
     login = vi.fn()
-    destroy = vi.fn()
+    destroy = vi.fn(() => {
+      this.ws.destroyed = true
+      this.isReady.mockReturnValue(false)
+    })
+    constructor(options: unknown) {
+      mockDiscordClientConstructor(options)
+      mockDiscordClients.push(this)
+      mockDiscordClientSetups.shift()?.(this)
+    }
     on = vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
       discordClientHandlers.set(event, handler)
     })
-    once = vi.fn()
+    once = vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
+      discordClientHandlers.set(event, handler)
+    })
+    removeListener = vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
+      if (discordClientHandlers.get(event) === handler) discordClientHandlers.delete(event)
+    })
     removeAllListeners = vi.fn(() => discordClientHandlers.clear())
   },
   ContainerBuilder: class {
@@ -101,8 +128,24 @@ vi.mock('discord.js', () => ({
   },
 }))
 
+function createPromptInteraction(customId: string, overrides: Record<string, unknown> = {}) {
+  return {
+    isButton: () => true,
+    customId,
+    createdTimestamp: Date.now(),
+    guildId: 'guild-1',
+    channelId: 'channel-1',
+    deferReply: vi.fn().mockResolvedValue(undefined),
+    editReply: vi.fn().mockResolvedValue(undefined),
+    reply: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
+}
+
 describe('discordBot singleton', () => {
   beforeEach(() => {
+    mockDiscordClients.length = 0
+    mockDiscordClientSetups.length = 0
     vi.stubEnv('DISCORD_GUILD_ID', 'guild-1')
     vi.stubEnv('DISCORD_CHANNEL_ID', 'channel-1')
     vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', '')
@@ -129,12 +172,14 @@ describe('discordBot singleton', () => {
     mockUpdateDiscordMessageIds.mockReset()
     mockStat.mockReset()
     mockFetch.mockReset()
+    mockDiscordClientConstructor.mockReset()
+    mockDiscordClients.length = 0
+    mockDiscordClientSetups.length = 0
     vi.clearAllMocks()
   })
 
   it('refreshes the prototype of an existing global singleton after hot reload', async () => {
     const existing = {
-      isInitialized: false,
       client: {
         isReady: vi.fn().mockReturnValue(false),
         on: vi.fn((event: string, handler: (...args: unknown[]) => unknown) => {
@@ -153,16 +198,59 @@ describe('discordBot singleton', () => {
     expect(discordClientHandlers.has('interactionCreate')).toBe(true)
   })
 
+  it('configures the Discord REST request timeout', async () => {
+    await import('@/lib/discord-bot')
+
+    expect(mockDiscordClientConstructor).toHaveBeenCalledWith(expect.objectContaining({
+      rest: { timeout: 120000 },
+    }))
+    expect(discordClientHandlers.has('clientReady')).toBe(true)
+    expect(discordClientHandlers.has('ready')).toBe(false)
+    expect(discordClientHandlers.has('disconnect')).toBe(false)
+    expect(discordClientHandlers.has('reconnecting')).toBe(false)
+    expect(discordClientHandlers.has('shardReconnecting')).toBe(true)
+    expect(discordClientHandlers.has('shardResume')).toBe(true)
+  })
+
+  it.each([
+    'show_prompt:request-1',
+    'move_video:request-1',
+  ])('ignores %s interactions from a different guild', async (customId) => {
+    await import('@/lib/discord-bot')
+    const deferReply = vi.fn()
+    const deferUpdate = vi.fn()
+    const editReply = vi.fn()
+    const reply = vi.fn()
+    const followUp = vi.fn()
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.({
+      isButton: () => true,
+      customId,
+      guildId: 'other-guild',
+      deferReply,
+      deferUpdate,
+      editReply,
+      reply,
+      followUp,
+    })
+
+    expect(deferReply).not.toHaveBeenCalled()
+    expect(deferUpdate).not.toHaveBeenCalled()
+    expect(mockGetRequestById).not.toHaveBeenCalled()
+    expect(editReply).not.toHaveBeenCalled()
+    expect(reply).not.toHaveBeenCalled()
+    expect(followUp).not.toHaveBeenCalled()
+  })
+
   it('puts mention and generation time in the same section as the prompt button', async () => {
     const { discordBot } = await import('@/lib/discord-bot')
     const send = vi.fn().mockResolvedValue(undefined)
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendDebugVideoResultMessage: typeof discordBot.sendDebugVideoResultMessage
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -195,12 +283,10 @@ describe('discordBot singleton', () => {
       return Promise.resolve({ id: message.files ? 'video-message-1' : 'card-message-1' })
     })
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -225,12 +311,10 @@ describe('discordBot singleton', () => {
     const { discordBot } = await import('@/lib/discord-bot')
     const send = vi.fn().mockResolvedValue({ id: 'card-message-1' })
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -262,12 +346,10 @@ describe('discordBot singleton', () => {
       id: message.files ? 'video-message-1' : 'card-message-1',
     }))
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier } })
 
@@ -296,12 +378,10 @@ describe('discordBot singleton', () => {
       Promise.resolve(message.files ? videoMessage : cardMessage)
     ))
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -331,12 +411,10 @@ describe('discordBot singleton', () => {
       message.files ? { id: 'video-message-1' } : { id: 'card-message-1', edit }
     ))
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -364,12 +442,10 @@ describe('discordBot singleton', () => {
     const cardMessage = { id: 'card-message-1', edit }
     const send = vi.fn().mockResolvedValue(cardMessage)
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -965,6 +1041,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate,
       channel: { messages: { fetch: fetchVideo } },
       followUp,
@@ -993,6 +1070,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: fetchVideo } },
       followUp,
@@ -1019,6 +1097,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: fetchMessage } },
       followUp,
@@ -1052,6 +1131,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: fetchVideo } },
       followUp,
@@ -1085,6 +1165,7 @@ describe('discordBot singleton', () => {
     const firstMove = Promise.resolve(handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: firstFetch } },
       followUp: firstFollowUp,
@@ -1094,6 +1175,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: secondFetch } },
       followUp: secondFollowUp,
@@ -1118,6 +1200,7 @@ describe('discordBot singleton', () => {
     await handler?.({
       isButton: () => true,
       customId: 'move_video:request-1',
+      guildId: 'guild-1',
       deferUpdate: vi.fn().mockResolvedValue(undefined),
       channel: { messages: { fetch: thirdFetch } },
       followUp: vi.fn().mockResolvedValue(undefined),
@@ -1135,12 +1218,10 @@ describe('discordBot singleton', () => {
       message.files ? Promise.reject(uploadError) : Promise.resolve(undefined)
     ))
     const bot = discordBot as unknown as {
-      isInitialized: boolean
       client: { isReady: ReturnType<typeof vi.fn> }
       getChannel: ReturnType<typeof vi.fn>
       sendVideoToDiscord: typeof discordBot.sendVideoToDiscord
     }
-    bot.isInitialized = true
     bot.client.isReady.mockReturnValue(true)
     bot.getChannel = vi.fn().mockResolvedValue({ send, guild: { premiumTier: 0 } })
 
@@ -1154,7 +1235,7 @@ describe('discordBot singleton', () => {
     expect(send.mock.calls.filter(([message]) => message.files)).toHaveLength(1)
   })
 
-  it('resolves a legacy extended prompt id and shows the DB-backed move button', async () => {
+  it('defers a legacy extended prompt interaction before lookup and edits the reply', async () => {
     vi.stubEnv('DISCORD_NSFW_CHANNEL_ID', 'nsfw-channel-1')
     await import('@/lib/discord-bot')
     mockGetRequestById.mockResolvedValue({
@@ -1166,18 +1247,16 @@ describe('discordBot singleton', () => {
       videoDurationSeconds: 2.4,
       discordVideoMessageId: 'stored-video-message-1',
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-1:video-message-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1:video-message-1',
-      channelId: 'channel-1',
-      message: { id: 'card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledWith(expect.objectContaining({
+    expect(interaction.deferReply).toHaveBeenCalledWith({ flags: 64 })
+    expect(interaction.deferReply.mock.invocationCallOrder[0]).toBeLessThan(
+      mockGetRequestById.mock.invocationCallOrder[0]
+    )
+    expect(interaction.editReply).toHaveBeenCalledWith(expect.objectContaining({
       content: [
         '**레퍼런스 오디오:** 사용',
         '**영상 길이:** 2.4초',
@@ -1185,9 +1264,9 @@ describe('discordBot singleton', () => {
         'test prompt',
         '```',
       ].join('\n'),
-      flags: 64,
     }))
-    const moveButton = reply.mock.calls[0][0].components[0].components[0]
+    expect(interaction.reply).not.toHaveBeenCalled()
+    const moveButton = interaction.editReply.mock.calls[0][0].components[0].components[0]
     expect(mockGetRequestById).toHaveBeenCalledWith('request-1')
     expect(moveButton.label).toBe('NSFW 채널로 이동')
     expect(moveButton.style).toBe(2)
@@ -1208,18 +1287,14 @@ describe('discordBot singleton', () => {
       videoDurationSeconds: null,
       discordVideoMessageId: 'stored-video-message-2',
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-2:video-message-2', {
+      channelId: 'nsfw-channel-1',
+    })
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-2:video-message-2',
-      channelId: 'nsfw-channel-1',
-      message: { id: 'card-message-2' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    const moveButton = reply.mock.calls[0][0].components[0].components[0]
+    const moveButton = interaction.editReply.mock.calls[0][0].components[0].components[0]
     expect(moveButton.label).toBe('일반 채널로 이동')
     expect(moveButton.customId).toBe(
       'move_video:request-2'
@@ -1238,28 +1313,21 @@ describe('discordBot singleton', () => {
       videoDurationSeconds: null,
       discordVideoMessageId: 'stored-video-message-1',
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-1:video-message-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1:video-message-1',
-      channelId: 'channel-1',
-      message: { id: 'card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledWith(expect.objectContaining({
+    expect(interaction.editReply).toHaveBeenCalledWith(expect.objectContaining({
       content: [
         '**레퍼런스 오디오:** 없음',
         '**영상 길이:** 5초',
       ].join('\n'),
-      flags: 64,
     }))
-    expect(reply.mock.calls[0][0].files[0].options).toEqual({
+    expect(interaction.editReply.mock.calls[0][0].files[0].options).toEqual({
       name: 'prompt-request-1.txt',
     })
-    const moveButton = reply.mock.calls[0][0].components[0].components[0]
+    const moveButton = interaction.editReply.mock.calls[0][0].components[0].components[0]
     expect(moveButton.customId).toBe(
       'move_video:request-1'
     )
@@ -1278,25 +1346,19 @@ describe('discordBot singleton', () => {
       discordCardMessageId: null,
       discordVideoMessageId: null,
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:legacy-request-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:legacy-request-1',
-      message: { id: 'legacy-card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
     expect(mockGetRequestById).toHaveBeenCalledWith('legacy-request-1')
-    expect(reply).toHaveBeenCalledWith({
+    expect(interaction.editReply).toHaveBeenCalledWith({
       content: [
         '**영상 길이:** 6초',
         '```',
         'legacy prompt',
         '```',
       ].join('\n'),
-      flags: 64,
     })
   })
 
@@ -1311,24 +1373,18 @@ describe('discordBot singleton', () => {
       videoDurationSeconds: null,
       discordVideoMessageId: 'stored-video-message-1',
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-1:video-message-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1:video-message-1',
-      message: { id: 'card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledWith({
+    expect(interaction.editReply).toHaveBeenCalledWith({
       content: [
         '**영상 길이:** 5초',
         '```',
         'test prompt',
         '```',
       ].join('\n'),
-      flags: 64,
     })
   })
 
@@ -1345,17 +1401,12 @@ describe('discordBot singleton', () => {
         { kind: 'IMAGE' },
       ],
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1',
-      message: { id: 'card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledWith({
+    expect(interaction.editReply).toHaveBeenCalledWith({
       content: [
         '**레퍼런스:** 이미지 2 · 오디오 1',
         '**영상 길이:** 7초',
@@ -1363,7 +1414,6 @@ describe('discordBot singleton', () => {
         'reference prompt',
         '```',
       ].join('\n'),
-      flags: 64,
     })
   })
 
@@ -1376,70 +1426,258 @@ describe('discordBot singleton', () => {
       videoDuration: 7,
       referenceFiles: [],
     })
-    const reply = vi.fn().mockResolvedValue(undefined)
+    const interaction = createPromptInteraction('show_prompt:request-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1',
-      message: { id: 'card-message-1' },
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledWith({
+    expect(interaction.editReply).toHaveBeenCalledWith({
       content: [
         '**영상 길이:** 7초',
         '```',
         'reference prompt',
         '```',
       ].join('\n'),
-      flags: 64,
     })
   })
 
-  it.each([10062, 40060])('does not send a fallback reply for handled interaction error %s', async (code) => {
+  it.each([10062, 40060])('stops when deferReply fails with handled interaction error %s', async (code) => {
     await import('@/lib/discord-bot')
-    mockGetRequestById.mockResolvedValue({
-      id: 'request-1',
-      prompt: 'test prompt',
+    const interaction = createPromptInteraction('show_prompt:request-1', {
+      deferReply: vi.fn().mockRejectedValue(new MockDiscordAPIError(code, 400)),
     })
-    const replyError = new MockDiscordAPIError(code, 400)
-    const reply = vi.fn().mockRejectedValue(replyError)
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1',
-      replied: false,
-      deferred: false,
-      reply,
-    })
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledTimes(1)
+    expect(interaction.deferReply).toHaveBeenCalledWith({ flags: 64 })
+    expect(mockGetRequestById).not.toHaveBeenCalled()
+    expect(interaction.editReply).not.toHaveBeenCalled()
+    expect(interaction.reply).not.toHaveBeenCalled()
     expect(mockLogger.warn).toHaveBeenCalledWith(
       'Prompt button interaction was lost or already handled by another process',
       expect.objectContaining({ requestId: 'request-1', code })
     )
   })
 
-  it('swallows a failed fallback reply', async () => {
+  it('edits the deferred reply with failure text when prompt lookup fails', async () => {
     await import('@/lib/discord-bot')
     mockGetRequestById.mockRejectedValue(new Error('database unavailable'))
-    const reply = vi.fn().mockRejectedValue(new Error('reply unavailable'))
+    const interaction = createPromptInteraction('show_prompt:request-1')
     const handler = discordClientHandlers.get('interactionCreate')
 
-    await expect(handler?.({
-      isButton: () => true,
-      customId: 'show_prompt:request-1',
-      replied: false,
-      deferred: false,
-      reply,
-    })).resolves.toBeUndefined()
+    await handler?.(interaction)
 
-    expect(reply).toHaveBeenCalledTimes(1)
+    expect(interaction.deferReply).toHaveBeenCalledWith({ flags: 64 })
+    expect(interaction.editReply).toHaveBeenCalledWith({ content: 'Failed to load prompt.' })
+    expect(interaction.reply).not.toHaveBeenCalled()
+  })
+
+  it('warns when prompt acknowledgement latency exceeds 1500ms', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(5001)
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockResolvedValue(null)
+    const interaction = createPromptInteraction('show_prompt:request-1', {
+      createdTimestamp: 3000,
+    })
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await handler?.(interaction)
+
+    expect(mockLogger.debug).toHaveBeenCalledWith(
+      'Prompt button acknowledgement latency',
+      { requestId: 'request-1', ackLatencyMs: 2001 }
+    )
+    expect(mockLogger.warn).toHaveBeenCalledWith(
+      'Prompt button acknowledgement was delayed',
+      { requestId: 'request-1', ackLatencyMs: 2001 }
+    )
+  })
+
+  it('swallows a failed edit of the deferred error reply', async () => {
+    await import('@/lib/discord-bot')
+    mockGetRequestById.mockRejectedValue(new Error('database unavailable'))
+    const interaction = createPromptInteraction('show_prompt:request-1', {
+      editReply: vi.fn().mockRejectedValue(new Error('reply unavailable')),
+    })
+    const handler = discordClientHandlers.get('interactionCreate')
+
+    await expect(handler?.(interaction)).resolves.toBeUndefined()
+
+    expect(interaction.editReply).toHaveBeenCalledTimes(1)
     expect(mockLogger.error).toHaveBeenCalledWith('Failed to send prompt button error reply', expect.objectContaining({
       requestId: 'request-1',
       error: 'reply unavailable',
     }))
+  })
+
+  it('does not log in again after a shard error while the client remains ready', async () => {
+    const { discordBot } = await import('@/lib/discord-bot')
+    const send = vi.fn().mockResolvedValue(undefined)
+    const bot = discordBot as unknown as {
+      client: {
+        isReady: ReturnType<typeof vi.fn>
+        login: ReturnType<typeof vi.fn>
+      }
+      getChannel: ReturnType<typeof vi.fn>
+      sendDebugVideoResultMessage: typeof discordBot.sendDebugVideoResultMessage
+    }
+    bot.client.isReady.mockReturnValue(true)
+    bot.getChannel = vi.fn().mockResolvedValue({ send })
+
+    await discordClientHandlers.get('shardError')?.(new Error('gateway failure'))
+    await bot.sendDebugVideoResultMessage({ requestId: 'request-1' })
+
+    expect(bot.client.login).not.toHaveBeenCalled()
+    expect(send).toHaveBeenCalledTimes(1)
+  })
+
+  it('shares one login across two concurrent initialize calls', async () => {
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'test-discord-bot-value')
+    const { discordBot } = await import('@/lib/discord-bot')
+    let resolveLogin: ((value: string) => void) | undefined
+    const loginPending = new Promise<string>((resolve) => {
+      resolveLogin = resolve
+    })
+    const bot = discordBot as unknown as {
+      client: {
+        isReady: ReturnType<typeof vi.fn>
+        login: ReturnType<typeof vi.fn>
+      }
+      initialize: typeof discordBot.initialize
+    }
+    bot.client.login.mockReturnValue(loginPending)
+
+    const firstInitialize = bot.initialize()
+    const secondInitialize = bot.initialize()
+
+    expect(bot.client.login).toHaveBeenCalledTimes(1)
+    bot.client.isReady.mockReturnValue(true)
+    resolveLogin?.('test-discord-bot-value')
+    await Promise.all([firstInitialize, secondInitialize])
+
+    expect(bot.client.login).toHaveBeenCalledTimes(1)
+  })
+
+  it('replaces a client destroyed by a failed login before the next initialize', async () => {
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'test-discord-bot-value')
+    const { discordBot } = await import('@/lib/discord-bot')
+    const firstClient = mockDiscordClients[0]
+    firstClient.login.mockImplementation(async () => {
+      firstClient.ws.destroyed = true
+      throw new Error('login failed')
+    })
+
+    await expect(discordBot.initialize()).rejects.toThrow('login failed')
+
+    mockDiscordClientSetups.push((client) => {
+      client.login.mockImplementation(async () => {
+        client.isReady.mockReturnValue(true)
+        return 'test-discord-bot-value'
+      })
+    })
+    await discordBot.initialize()
+
+    expect(mockDiscordClients).toHaveLength(2)
+    expect(mockDiscordClients[1].login).toHaveBeenCalledTimes(1)
+    expect(firstClient.login).toHaveBeenCalledTimes(1)
+  })
+
+  it('reconnects with exponential backoff and resets the delay after success', async () => {
+    vi.useFakeTimers()
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'test-discord-bot-value')
+    await import('@/lib/discord-bot')
+    const firstClient = mockDiscordClients[0]
+    firstClient.isReady.mockReturnValue(true)
+    const configureFailure = () => {
+      mockDiscordClientSetups.push((client) => {
+        client.login.mockImplementation(async () => {
+          client.ws.destroyed = true
+          throw new Error('login failed')
+        })
+      })
+    }
+    const configureSuccess = () => {
+      mockDiscordClientSetups.push((client) => {
+        client.login.mockImplementation(async () => {
+          client.isReady.mockReturnValue(true)
+          await discordClientHandlers.get('clientReady')?.(client)
+          return 'test-discord-bot-value'
+        })
+      })
+    }
+
+    configureFailure()
+    await discordClientHandlers.get('shardDisconnect')?.(undefined, 0)
+    await vi.advanceTimersByTimeAsync(4_999)
+    expect(mockDiscordClients).toHaveLength(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(firstClient.destroy).toHaveBeenCalledTimes(1)
+    expect(mockDiscordClients).toHaveLength(2)
+    expect(mockDiscordClients[1].login).toHaveBeenCalledTimes(1)
+
+    configureFailure()
+    await vi.advanceTimersByTimeAsync(9_999)
+    expect(mockDiscordClients).toHaveLength(2)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(mockDiscordClients).toHaveLength(3)
+    expect(mockDiscordClients[2].login).toHaveBeenCalledTimes(1)
+
+    configureSuccess()
+    await vi.advanceTimersByTimeAsync(19_999)
+    expect(mockDiscordClients).toHaveLength(3)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(mockDiscordClients).toHaveLength(4)
+    expect(mockDiscordClients[3].login).toHaveBeenCalledTimes(1)
+
+    configureSuccess()
+    await discordClientHandlers.get('shardDisconnect')?.(undefined, 0)
+    await vi.advanceTimersByTimeAsync(4_999)
+    expect(mockDiscordClients).toHaveLength(4)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(mockDiscordClients).toHaveLength(5)
+    expect(mockDiscordClients[4].login).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts auto-connect immediately and schedules a rejected login without throwing', async () => {
+    vi.useFakeTimers()
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'test-discord-bot-value')
+    const { discordBot } = await import('@/lib/discord-bot')
+    const client = mockDiscordClients[0]
+    client.login.mockImplementation(async () => {
+      client.ws.destroyed = true
+      throw new Error('login failed')
+    })
+
+    expect(() => discordBot.startAutoConnect()).not.toThrow()
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(client.login).toHaveBeenCalledTimes(1)
+    expect(vi.getTimerCount()).toBe(1)
+  })
+
+  it('keeps only one pending reconnect timer across repeated shard disconnects', async () => {
+    vi.useFakeTimers()
+    vi.stubEnv('DISCORD_BOT_TOKEN', 'test-discord-bot-value')
+    await import('@/lib/discord-bot')
+    const firstClient = mockDiscordClients[0]
+    firstClient.isReady.mockReturnValue(true)
+    mockDiscordClientSetups.push((client) => {
+      client.login.mockImplementation(async () => {
+        client.isReady.mockReturnValue(true)
+        await discordClientHandlers.get('clientReady')?.(client)
+        return 'test-discord-bot-value'
+      })
+    })
+    const shardDisconnect = discordClientHandlers.get('shardDisconnect')
+
+    await shardDisconnect?.(undefined, 0)
+    await shardDisconnect?.(undefined, 0)
+
+    expect(vi.getTimerCount()).toBe(1)
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(firstClient.destroy).toHaveBeenCalledTimes(1)
+    expect(mockDiscordClients).toHaveLength(2)
+    expect(mockDiscordClients[1].login).toHaveBeenCalledTimes(1)
   })
 })

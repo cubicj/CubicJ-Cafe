@@ -24,7 +24,10 @@ const log = createLogger('discord');
 const SHOW_PROMPT_PREFIX = 'show_prompt:';
 const MOVE_VIDEO_PREFIX = 'move_video:';
 const PROMPT_REPLY_LIMIT = 1800;
+const DISCORD_REST_TIMEOUT_MS = 120_000;
 const DISCORD_UPLOAD_SAFETY_MARGIN_BYTES = 512 * 1024;
+const DISCORD_RECONNECT_INITIAL_DELAY_MS = 5_000;
+const DISCORD_RECONNECT_MAX_DELAY_MS = 5 * 60_000;
 const movingRequestIds = new Set<string>();
 
 type ComponentsV2MessageOptions = Pick<MessageCreateOptions, 'allowedMentions' | 'components'> & {
@@ -33,8 +36,9 @@ type ComponentsV2MessageOptions = Pick<MessageCreateOptions, 'allowedMentions' |
 
 class DiscordBot {
   private client: Client;
-  private isInitialized = false;
-  private isConnecting = false;
+  private loginPromise: Promise<void> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectDelayMs = DISCORD_RECONNECT_INITIAL_DELAY_MS;
   private cachedChannel: TextChannel | null = null;
   private cachedNsfwChannel: TextChannel | null = null;
   private cachedChannelTimestamp = 0;
@@ -43,44 +47,47 @@ class DiscordBot {
   }
 
   constructor() {
-    this.client = new Client({
-      intents: [GatewayIntentBits.Guilds]
+    this.client = this.createClient();
+  }
+
+  private createClient(): Client {
+    const client = new Client({
+      intents: [GatewayIntentBits.Guilds],
+      rest: { timeout: DISCORD_REST_TIMEOUT_MS },
     });
-    this.setupErrorHandlers();
+    this.setupErrorHandlers(client);
+    return client;
   }
 
   refreshForHotReload(): void {
-    this.setupErrorHandlers();
+    this.loginPromise ??= null;
+    this.reconnectTimer ??= null;
+    if (!Number.isFinite(this.reconnectDelayMs)) {
+      this.reconnectDelayMs = DISCORD_RECONNECT_INITIAL_DELAY_MS;
+    }
+    this.setupErrorHandlers(this.client);
   }
   
-  private setupErrorHandlers(): void {
-    this.client.removeAllListeners();
-    this.client.on('error', (error) => {
+  private setupErrorHandlers(client: Client): void {
+    client.removeAllListeners();
+    client.on('error', (error) => {
       log.error('Discord Client error', { error: error.message });
     });
     
-    this.client.on('warn', (warning) => {
+    client.on('warn', (warning) => {
       log.warn('Discord Client warning', { warning });
     });
     
-    this.client.on('disconnect', () => {
-      log.info('Discord Bot disconnected');
-      this.isInitialized = false;
-      this.invalidateChannelCache();
+    client.on('clientReady', () => {
+      if (client !== this.client) return;
+      this.clearReconnectTimer();
+      this.reconnectDelayMs = DISCORD_RECONNECT_INITIAL_DELAY_MS;
+      log.info('Discord Bot ready', { tag: client.user?.tag });
     });
 
-    this.client.on('reconnecting', () => {
-      log.info('Discord Bot reconnecting');
-    });
-
-    this.client.on('ready', () => {
-      log.info('Discord Bot ready', { tag: this.client.user?.tag });
-      this.isInitialized = true;
-      this.isConnecting = false;
-    });
-
-    this.client.on('interactionCreate', async (interaction) => {
+    client.on('interactionCreate', async (interaction) => {
       if (!interaction.isButton()) return;
+      if (interaction.guildId !== process.env.DISCORD_GUILD_ID) return;
       if (interaction.customId.startsWith(MOVE_VIDEO_PREFIX)) {
         await this.handleMoveVideo(interaction);
         return;
@@ -91,12 +98,36 @@ class DiscordBot {
         .slice(SHOW_PROMPT_PREFIX.length)
         .split(':');
 
+      const ackLatencyMs = Date.now() - interaction.createdTimestamp;
+      log.debug('Prompt button acknowledgement latency', { requestId, ackLatencyMs });
+      if (ackLatencyMs > 1500) {
+        log.warn('Prompt button acknowledgement was delayed', { requestId, ackLatencyMs });
+      }
+
+      try {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      } catch (error) {
+        if (isHandledInteractionError(error)) {
+          log.warn('Prompt button interaction was lost or already handled by another process', {
+            requestId,
+            code: error.code,
+            status: error.status,
+          });
+          return;
+        }
+
+        log.error('Failed to acknowledge prompt button', {
+          requestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return;
+      }
+
       try {
         const request = await QueueService.getRequestById(requestId);
         if (!request) {
-          await interaction.reply({
+          await interaction.editReply({
             content: 'Prompt not found.',
-            flags: MessageFlags.Ephemeral,
           });
           return;
         }
@@ -108,15 +139,14 @@ class DiscordBot {
           ? buildMoveVideoActionRow(requestId, isMovingToNsfw)
           : null;
         if (prompt.length <= PROMPT_REPLY_LIMIT) {
-          await interaction.reply({
+          await interaction.editReply({
             content: buildPromptReplyContent(request, prompt),
             ...(moveActionRow && { components: [moveActionRow] }),
-            flags: MessageFlags.Ephemeral,
           });
           return;
         }
 
-        await interaction.reply({
+        await interaction.editReply({
           content: buildPromptReplyHeader(request),
           files: [
             new AttachmentBuilder(Buffer.from(prompt, 'utf8'), {
@@ -124,49 +154,72 @@ class DiscordBot {
             }),
           ],
           ...(moveActionRow && { components: [moveActionRow] }),
-          flags: MessageFlags.Ephemeral,
         });
       } catch (error) {
-        if (isHandledInteractionError(error)) {
-          log.warn('Prompt button interaction was lost or already handled by another process', {
-            requestId,
-            code: error.code,
-            status: error.status,
-          });
-          return;
-        }
-
         log.error('Failed to handle prompt button', {
           requestId,
           error: error instanceof Error ? error.message : String(error),
         });
 
-        if (!interaction.replied && !interaction.deferred) {
-          try {
-            await interaction.reply({
-              content: 'Failed to load prompt.',
-              flags: MessageFlags.Ephemeral,
-            });
-          } catch (replyError) {
-            log.error('Failed to send prompt button error reply', {
-              requestId,
-              error: replyError instanceof Error ? replyError.message : String(replyError),
-            });
-          }
+        try {
+          await interaction.editReply({ content: 'Failed to load prompt.' });
+        } catch (replyError) {
+          log.error('Failed to send prompt button error reply', {
+            requestId,
+            error: replyError instanceof Error ? replyError.message : String(replyError),
+          });
         }
       }
     });
 
-    this.client.on('shardError', (error) => {
+    client.on('shardError', (error) => {
       log.error('Discord Shard error', { error: error.message });
-      this.isInitialized = false;
     });
 
-    this.client.on('shardDisconnect', () => {
+    client.on('shardDisconnect', () => {
+      if (client !== this.client) return;
       log.info('Discord Shard disconnected');
-      this.isInitialized = false;
       this.invalidateChannelCache();
+      this.scheduleReconnect();
     });
+
+    client.on('shardReconnecting', (shardId) => {
+      log.info('Discord Shard reconnecting', { shardId });
+    });
+
+    client.on('shardResume', (shardId, replayedEvents) => {
+      log.info('Discord Shard resumed', { shardId, replayedEvents });
+    });
+  }
+
+  private clearReconnectTimer(): void {
+    if (!this.reconnectTimer) return;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer) return;
+
+    const delayMs = this.reconnectDelayMs;
+    this.reconnectDelayMs = Math.min(
+      this.reconnectDelayMs * 2,
+      DISCORD_RECONNECT_MAX_DELAY_MS
+    );
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.loginPromise) return;
+      const previousClient = this.client;
+      previousClient.removeAllListeners();
+      previousClient.destroy();
+      this.client = this.createClient();
+      this.invalidateChannelCache();
+      void this.initialize().catch(() => {
+        this.scheduleReconnect();
+      });
+    }, delayMs);
+    this.reconnectTimer.unref();
+    log.info('Discord Bot reconnect scheduled', { delayMs });
   }
 
   private async handleMoveVideo(interaction: ButtonInteraction): Promise<void> {
@@ -411,8 +464,8 @@ class DiscordBot {
   }
 
   async initialize(): Promise<void> {
-    if (this.isInitialized && this.client.isReady()) return;
-    if (this.isConnecting) {
+    if (this.client.isReady()) return;
+    if (this.loginPromise) {
       await this.waitForConnection();
       return;
     }
@@ -426,35 +479,39 @@ class DiscordBot {
       throw new Error('Discord Bot 토큰이 프로덕션 환경에서 제대로 설정되지 않았습니다');
     }
 
-    this.isConnecting = true;
+    if ((this.client.ws as unknown as { destroyed: boolean }).destroyed) {
+      this.client = this.createClient();
+      this.invalidateChannelCache();
+    }
+
+    const loginPromise = (async () => {
+      try {
+        log.debug('Discord Bot logging in');
+        await this.client.login(process.env.DISCORD_BOT_TOKEN);
+        await this.waitForReady(15000);
+        log.info('Discord Bot initialized successfully');
+      } catch (error) {
+        log.error('Failed to initialize Discord Bot', { error: error instanceof Error ? error.message : String(error) });
+        throw error;
+      }
+    })();
+    this.loginPromise = loginPromise;
 
     try {
-      log.debug('Discord Bot logging in');
-      await this.client.login(process.env.DISCORD_BOT_TOKEN);
-
-      await this.waitForReady(15000);
-
-      log.info('Discord Bot initialized successfully');
-    } catch (error) {
-      log.error('Failed to initialize Discord Bot', { error: error instanceof Error ? error.message : String(error) });
-      this.isInitialized = false;
-      this.isConnecting = false;
-      throw error;
+      await this.waitForConnection();
     } finally {
-      this.isConnecting = false;
+      if (this.loginPromise === loginPromise) this.loginPromise = null;
     }
+  }
+
+  startAutoConnect(): void {
+    void this.initialize().catch(() => {
+      this.scheduleReconnect();
+    });
   }
   
   private async waitForConnection(): Promise<void> {
-    const startTime = Date.now();
-    const timeout = 30000;
-    
-    while (this.isConnecting && !this.isInitialized) {
-      if (Date.now() - startTime > timeout) {
-        throw new Error('연결 대기 타임아웃');
-      }
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    await this.loginPromise;
   }
   
   private invalidateChannelCache(): void {
@@ -494,20 +551,20 @@ class DiscordBot {
   private async waitForReady(timeout = 10000): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.client.isReady()) {
-        this.isInitialized = true;
         resolve();
         return;
       }
-      
+
+      const handleReady = () => {
+        clearTimeout(timer);
+        resolve();
+      };
       const timer = setTimeout(() => {
+        this.client.removeListener('clientReady', handleReady);
         reject(new Error('Discord Bot 준비 상태 대기 타임아웃'));
       }, timeout);
-      
-      this.client.once('ready', () => {
-        clearTimeout(timer);
-        this.isInitialized = true;
-        resolve();
-      });
+
+      this.client.once('clientReady', handleReady);
     });
   }
 
@@ -593,7 +650,7 @@ class DiscordBot {
     videoModel?: string;
     processingTime?: number;
   }): Promise<void> {
-    if (!this.isInitialized || !this.client.isReady()) {
+    if (!this.client.isReady()) {
       log.debug('Discord Bot not ready, attempting initialization');
       await this.initialize();
     }
@@ -641,7 +698,7 @@ class DiscordBot {
     resultMessage: MessageCreateOptions;
     uploadNotice: string | null;
   }> {
-    if (!this.isInitialized || !this.client.isReady()) {
+    if (!this.client.isReady()) {
       log.debug('Discord Bot not ready, attempting initialization');
       await this.initialize();
     }
@@ -746,7 +803,7 @@ class DiscordBot {
     userAvatar?: string;
     processingTime?: number;
   }): Promise<void> {
-    if (!this.isInitialized || !this.client.isReady()) {
+    if (!this.client.isReady()) {
       await this.initialize();
     }
 
@@ -801,16 +858,16 @@ class DiscordBot {
   }
 
   async disconnect(): Promise<void> {
-    if (this.isInitialized) {
+    this.clearReconnectTimer();
+    if (this.client.isReady()) {
       this.client.destroy();
-      this.isInitialized = false;
       this.invalidateChannelCache();
       log.info('Discord Bot disconnected');
     }
   }
 
   isReady(): boolean {
-    return this.isInitialized && this.client.isReady();
+    return this.client.isReady();
   }
 }
 

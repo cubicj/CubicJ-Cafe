@@ -91,5 +91,24 @@ export async function register() {
 
     log.info('Server starting: setting up global error handlers');
     setupGlobalErrorHandlers();
+
+    if (
+      process.env.DISCORD_BOT_TOKEN &&
+      process.env.DISCORD_GUILD_ID &&
+      process.env.DISCORD_CHANNEL_ID
+    ) {
+      void import('./lib/discord-bot')
+        .then(({ discordBot }) => {
+          discordBot.startAutoConnect();
+          log.info('Discord Bot auto-connect started');
+        })
+        .catch((error) => {
+          log.error('Failed to start Discord Bot auto-connect', {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        });
+    } else {
+      log.info('Discord Bot auto-connect skipped because configuration is incomplete');
+    }
   }
 }
